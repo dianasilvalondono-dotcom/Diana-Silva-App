@@ -330,8 +330,9 @@ function App() {
         <div style={{
           background: 'rgba(255,255,255,0.2)', borderRadius: 20, padding: '6px 14px',
           fontSize: 13, fontWeight: 700, color: 'white', backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', gap: 6,
         }}>
-          {totalDone}/{totalHabits}
+          <span>🌱</span> {totalDone}/{totalHabits} hoy
         </div>
       </div>
     </div>
