@@ -1,30 +1,31 @@
 import { useState, useEffect, useMemo } from 'react'
 import './App.css'
 
-/* ── Color tokens ── */
+/* ── Color tokens — Verde + Tierra ── */
 const C = {
-  lavanda:  '#a78bfa',
-  rosa:     '#f9a8d4',
-  azul:     '#7dd3fc',
-  menta:    '#6ee7b7',
-  purple:   '#7c3aed',
-  deepPurp: '#4c1d95',
-  bg:       '#faf5ff',
-  card:     '#ffffff',
-  border:   '#f3e8ff',
-  text:     '#1e1b4b',
-  muted:    '#6b7280',
-  subtle:   '#9ca3af',
-  green:    '#22c55e',
-  red:      '#ef4444',
+  sage:     '#7C9A72',
+  sageDark: '#5A7A50',
+  sageLight:'#A8C49F',
+  tierra:   '#B8956A',
+  tierraDk: '#8B6F47',
+  sand:     '#D4B896',
+  beige:    '#F5F0E8',
+  cream:    '#FAF7F2',
+  card:     '#FFFFFF',
+  border:   '#E8E0D4',
+  text:     '#2D2A26',
+  muted:    '#7A7267',
+  subtle:   '#A69E93',
+  green:    '#6B9E5B',
+  greenDone:'#8DB97F',
 }
 
 /* ── Dimension config ── */
 const DIMS = {
-  espiritual: { emoji: '🧘', color: C.lavanda, label: 'Espiritual' },
-  emocional:  { emoji: '💛', color: C.rosa,    label: 'Emocional' },
-  fisico:     { emoji: '💪', color: C.azul,    label: 'Físico' },
-  mental:     { emoji: '🧠', color: C.menta,   label: 'Mental' },
+  espiritual: { emoji: '🕊️', color: '#7C9A72', label: 'Espiritual' },
+  emocional:  { emoji: '🌻', color: '#D4A574', label: 'Emocional' },
+  fisico:     { emoji: '🌿', color: '#8B956A', label: 'Físico' },
+  mental:     { emoji: '🧠', color: '#B8956A', label: 'Mental' },
 }
 
 /* ── Default habits ── */
@@ -56,7 +57,7 @@ const DEFAULT_MIDDAY = [
   { id: 20, time: '10:45', task: 'Oración de serenidad', emoji: '🕊️' },
   { id: 21, time: '11:45', task: 'Respira Profundo — Estoy a salvo', emoji: '🌬️' },
   { id: 22, time: '14:00', task: 'Entrega a Dios — Tú eres el poder y la sanidad', emoji: '✝️' },
-  { id: 23, time: '15:45', task: 'Libero el dolor y doy la bienvenida al amor', emoji: '💜' },
+  { id: 23, time: '15:45', task: 'Libero el dolor y doy la bienvenida al amor', emoji: '💛' },
   { id: 24, time: '16:30', task: 'Respira y Pausa Activa', emoji: '🧘‍♀️' },
 ]
 const DEFAULT_NIGHT = [
@@ -66,7 +67,7 @@ const DEFAULT_NIGHT = [
   { id: 10, time: '21:00', task: 'Me perdono y descanso en Dios', emoji: '🌙' },
 ]
 
-/* ── Quotes collection — Diana's own affirmations + inspirational ── */
+/* ── Quotes collection ── */
 const QUOTES = [
   { text: 'Libero todo el dolor de mi pasado y doy la bienvenida a la salud, la alegría, el amor y el éxito que me corresponden.', author: 'Diana', cat: 'sanacion' },
   { text: 'Respira y Pausa Activa — No tengo que decidir nada ahora. Estoy a salvo.', author: 'Diana', cat: 'serenidad' },
@@ -117,7 +118,7 @@ function getDayQuote() {
 const MOODS = ['😢','😐','🙂','😊','🤩']
 
 /* ── Reusable components ── */
-function Bar({ value, color = C.purple, height = 8 }) {
+function Bar({ value, color = C.sage, height = 6 }) {
   return (
     <div style={{ height, background: C.border, borderRadius: height, overflow: 'hidden' }}>
       <div style={{ height: '100%', width: `${Math.min(value, 100)}%`, background: color, borderRadius: height, transition: 'width 0.6s ease' }} />
@@ -125,18 +126,38 @@ function Bar({ value, color = C.purple, height = 8 }) {
   )
 }
 
-function DimCard({ dim, done, total }) {
+function DimCard({ dim, done, total, onClick }) {
   const d = DIMS[dim]
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
   return (
-    <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderLeft: `4px solid ${d.color}`, flex: '1 1 140px', minWidth: 140 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.emoji} {d.label}</span>
-        <span style={{ fontSize: 18, fontWeight: 900, color: d.color }}>{pct}%</span>
+    <div onClick={onClick} style={{
+      background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+      borderLeft: `3px solid ${d.color}`, flex: '1 1 140px', minWidth: 140, cursor: 'pointer',
+      transition: 'transform 0.15s', ':hover': { transform: 'translateY(-2px)' },
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.emoji} {d.label}</span>
+        <span style={{ fontSize: 16, fontWeight: 900, color: d.color }}>{pct}%</span>
       </div>
       <Bar value={pct} color={d.color} />
-      <div style={{ fontSize: 12, color: C.subtle, marginTop: 4 }}>{done}/{total} hábitos</div>
+      <div style={{ fontSize: 11, color: C.subtle, marginTop: 4 }}>{done}/{total} completados</div>
     </div>
+  )
+}
+
+/* ── Bottom Nav Item ── */
+function NavItem({ icon, label, active, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+      background: 'none', border: 'none', padding: '8px 0', cursor: 'pointer',
+      color: active ? C.sage : C.subtle, fontFamily: 'inherit', flex: 1,
+      transition: 'color 0.15s',
+    }}>
+      <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>
+      <span style={{ fontSize: 10, fontWeight: active ? 800 : 600, letterSpacing: '0.02em' }}>{label}</span>
+      {active && <div style={{ width: 4, height: 4, borderRadius: 2, background: C.sage, marginTop: 1 }} />}
+    </button>
   )
 }
 
@@ -154,9 +175,9 @@ function App() {
   const [streaks, setStreaks] = useState(() => load('diana-streaks', {}))
 
   // Routines
-  const [morning, setMorning] = useState(() => load('diana-morning', DEFAULT_MORNING))
-  const [midday, setMidday] = useState(() => load('diana-midday', DEFAULT_MIDDAY))
-  const [night, setNight] = useState(() => load('diana-night', DEFAULT_NIGHT))
+  const [morning] = useState(() => load('diana-morning', DEFAULT_MORNING))
+  const [midday] = useState(() => load('diana-midday', DEFAULT_MIDDAY))
+  const [night] = useState(() => load('diana-night', DEFAULT_NIGHT))
   const [routineChecked, setRoutineChecked] = useState(() => load(`diana-routine-${todayKey()}`, {}))
 
   // Journal
@@ -184,9 +205,6 @@ function App() {
   useEffect(() => { save('diana-habits', habits) }, [habits])
   useEffect(() => { save(`diana-checked-${todayKey()}`, checked) }, [checked])
   useEffect(() => { save('diana-streaks', streaks) }, [streaks])
-  useEffect(() => { save('diana-morning', morning) }, [morning])
-  useEffect(() => { save('diana-midday', midday) }, [midday])
-  useEffect(() => { save('diana-night', night) }, [night])
   useEffect(() => { save(`diana-routine-${todayKey()}`, routineChecked) }, [routineChecked])
   useEffect(() => { save('diana-journal', entries) }, [entries])
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
@@ -208,7 +226,6 @@ function App() {
   const toggleHabit = (id) => {
     const next = { ...checked, [id]: !checked[id] }
     setChecked(next)
-    // Update streak
     if (next[id]) {
       setStreaks(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }))
     }
@@ -245,77 +262,89 @@ function App() {
   const quote = getDayQuote()
 
   const NAV = [
-    { id: 'inicio',  label: 'Inicio',  icon: '🏠' },
-    { id: 'habitos', label: 'Hábitos', icon: '✅' },
-    { id: 'rutina',  label: 'Rutina',  icon: '📋' },
-    { id: 'diario',  label: 'Diario',  icon: '📖' },
-    { id: 'frases',  label: 'Frases',  icon: '🌟' },
+    { id: 'inicio',  label: 'Inicio',  icon: '🏡' },
+    { id: 'habitos', label: 'Hábitos', icon: '🌱' },
+    { id: 'rutina',  label: 'Rutina',  icon: '🍃' },
+    { id: 'diario',  label: 'Diario',  icon: '📔' },
+    { id: 'frases',  label: 'Frases',  icon: '✨' },
   ]
 
-  /* ── Header ── */
+  /* ── Top Header ── */
   const header = (
-    <div style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #f9a8d4 100%)', padding: isMobile ? '16px 16px 0' : '0 24px', position: 'sticky', top: 0, zIndex: 100 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '0 0 12px' : '14px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 24 }}>✨</span>
-          <span style={{ fontSize: 18, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>Diana App</span>
+    <div style={{
+      background: 'linear-gradient(135deg, #5A7A50 0%, #7C9A72 50%, #A8C49F 100%)',
+      padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
+            🌿 Diana
+          </div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: 500, marginTop: 2 }}>{formatDate()}</div>
         </div>
-        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>{formatDate()}</span>
+        <div style={{
+          background: 'rgba(255,255,255,0.2)', borderRadius: 20, padding: '6px 14px',
+          fontSize: 13, fontWeight: 700, color: 'white', backdropFilter: 'blur(10px)',
+        }}>
+          {totalDone}/{totalHabits}
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 0, WebkitOverflowScrolling: 'touch' }}>
-        {NAV.map(n => (
-          <button key={n.id} onClick={() => setView(n.id)} style={{
-            background: view === n.id ? 'rgba(255,255,255,0.25)' : 'transparent',
-            border: 'none', color: 'white', padding: '10px 14px', borderRadius: '12px 12px 0 0',
-            fontSize: 13, fontWeight: view === n.id ? 800 : 600, cursor: 'pointer',
-            whiteSpace: 'nowrap', fontFamily: 'inherit', transition: 'all 0.15s',
-            backdropFilter: view === n.id ? 'blur(10px)' : 'none',
-          }}>
-            {n.icon} {n.label}
-          </button>
-        ))}
-      </div>
+    </div>
+  )
+
+  /* ── Bottom Navigation ── */
+  const bottomNav = (
+    <div style={{
+      position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+      width: '100%', maxWidth: 600, background: 'rgba(255,255,255,0.95)',
+      backdropFilter: 'blur(20px)', borderTop: `1px solid ${C.border}`,
+      display: 'flex', padding: '4px 8px 12px', zIndex: 100,
+      boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+    }}>
+      {NAV.map(n => (
+        <NavItem key={n.id} icon={n.icon} label={n.label} active={view === n.id} onClick={() => setView(n.id)} />
+      ))}
     </div>
   )
 
   /* ── INICIO ── */
   const inicioView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Greeting */}
-      <div style={{ padding: 24, background: 'linear-gradient(135deg, #7c3aed, #a78bfa)', borderRadius: 20, color: 'white' }}>
-        <div style={{ fontSize: 26, fontWeight: 900 }}>{getGreeting()}, Diana</div>
-        <div style={{ fontSize: 14, opacity: 0.85, marginTop: 4 }}>Hoy es un gran día para crecer ✨</div>
+      <div style={{ padding: 20, background: 'linear-gradient(135deg, #7C9A72, #A8C49F)', borderRadius: 18, color: 'white' }}>
+        <div style={{ fontSize: 24, fontWeight: 900 }}>{getGreeting()}, Diana</div>
+        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Hoy es un gran día para crecer 🌱</div>
       </div>
 
       {/* Quote of the day */}
-      <div style={{ background: 'linear-gradient(135deg, #f9a8d4 0%, #a78bfa 100%)', borderRadius: 20, padding: 24, color: 'white' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>🌟 Frase del día</div>
-        <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
-        <div style={{ fontSize: 13, marginTop: 8, opacity: 0.85 }}>— {quote.author}</div>
+      <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.sage}` }}>
+        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.sage, marginBottom: 8 }}>✨ Frase del día</div>
+        <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
+        <div style={{ fontSize: 12, marginTop: 8, color: C.muted, fontWeight: 600 }}>— {quote.author}</div>
       </div>
 
-      {/* Progress summary */}
-      <div style={{ background: C.card, borderRadius: 20, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span style={{ fontSize: 15, fontWeight: 800, color: C.text }}>Progreso de hoy</span>
-          <span style={{ fontSize: 24, fontWeight: 900, color: C.purple }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</span>
+      {/* Progress ring */}
+      <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Progreso de hoy</span>
+          <span style={{ fontSize: 22, fontWeight: 900, color: C.sage }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</span>
         </div>
         <Bar value={totalHabits > 0 ? (totalDone / totalHabits) * 100 : 0} />
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 6 }}>{totalDone} de {totalHabits} hábitos completados</div>
+        <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>{totalDone} de {totalHabits} hábitos completados</div>
       </div>
 
-      {/* Dimension cards */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      {/* Dimension cards — clickable to navigate */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {Object.keys(DIMS).map(dim => (
-          <DimCard key={dim} dim={dim} done={dimStats[dim].done} total={dimStats[dim].total} />
+          <DimCard key={dim} dim={dim} done={dimStats[dim].done} total={dimStats[dim].total} onClick={() => setView('habitos')} />
         ))}
       </div>
 
-      {/* Today's mood (if journal entry exists) */}
+      {/* Today's mood */}
       {entries.length > 0 && entries[0].date === todayKey() && (
-        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', textAlign: 'center' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 8 }}>Estado de ánimo hoy</div>
-          <div style={{ fontSize: 40 }}>{MOODS[entries[0].mood]}</div>
+        <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Estado de ánimo hoy</div>
+          <div style={{ fontSize: 36 }}>{MOODS[entries[0].mood]}</div>
         </div>
       )}
     </div>
@@ -323,12 +352,12 @@ function App() {
 
   /* ── HÁBITOS ── */
   const habitosView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Progress bar */}
-      <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Progress */}
+      <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 15, fontWeight: 800 }}>Hoy</span>
-          <span style={{ fontSize: 15, fontWeight: 800, color: C.purple }}>{totalDone}/{totalHabits}</span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Hoy</span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: C.sage }}>{totalDone}/{totalHabits}</span>
         </div>
         <Bar value={totalHabits > 0 ? (totalDone / totalHabits) * 100 : 0} />
       </div>
@@ -339,34 +368,34 @@ function App() {
         if (dimHabits.length === 0) return null
         return (
           <div key={dim}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: cfg.color, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: cfg.color, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {cfg.emoji} {cfg.label}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {dimHabits.map(h => (
                 <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
-                  background: C.card, borderRadius: 12, padding: '14px 16px',
-                  display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderLeft: `4px solid ${checked[h.id] ? C.green : cfg.color}`,
-                  transition: 'all 0.15s', opacity: checked[h.id] ? 0.7 : 1,
+                  background: C.card, borderRadius: 12, padding: '12px 14px',
+                  display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)', borderLeft: `3px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
+                  transition: 'all 0.15s', opacity: checked[h.id] ? 0.65 : 1,
                 }}>
                   <div style={{
-                    width: 26, height: 26, borderRadius: 8, border: `2px solid ${checked[h.id] ? C.green : cfg.color}`,
-                    background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontSize: 14, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                    width: 24, height: 24, borderRadius: 7, border: `2px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
+                    background: checked[h.id] ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
                   }}>
                     {checked[h.id] && '✓'}
                   </div>
-                  <span style={{ fontSize: 15, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
                     {h.name}
                   </span>
                   {streaks[h.id] > 0 && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.purple, background: C.border, padding: '2px 8px', borderRadius: 20 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: C.tierra, background: C.beige, padding: '2px 7px', borderRadius: 20 }}>
                       🔥 {streaks[h.id]}
                     </span>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); removeHabit(h.id) }} style={{
-                    background: 'none', border: 'none', fontSize: 16, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1,
+                    background: 'none', border: 'none', fontSize: 14, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1,
                   }}>✕</button>
                 </div>
               ))}
@@ -377,26 +406,26 @@ function App() {
 
       {/* Add habit */}
       {showAddHabit ? (
-        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Nuevo hábito</div>
+        <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: C.text }}>Nuevo hábito</div>
           <input value={newHabitName} onChange={e => setNewHabitName(e.target.value)} placeholder="Nombre del hábito..."
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 10, outline: 'none' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
             onKeyDown={e => e.key === 'Enter' && addHabit()}
           />
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
             {Object.entries(DIMS).map(([key, d]) => (
               <button key={key} onClick={() => setNewHabitDim(key)} style={{
-                padding: '6px 12px', borderRadius: 20, border: `2px solid ${d.color}`,
+                padding: '5px 12px', borderRadius: 20, border: `2px solid ${d.color}`,
                 background: newHabitDim === key ? d.color : 'transparent',
                 color: newHabitDim === key ? 'white' : d.color,
-                fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 {d.emoji} {d.label}
               </button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={addHabit} style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: C.purple, color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={addHabit} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.sage, color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               Agregar
             </button>
             <button onClick={() => setShowAddHabit(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
@@ -406,8 +435,8 @@ function App() {
         </div>
       ) : (
         <button onClick={() => setShowAddHabit(true)} style={{
-          padding: 14, borderRadius: 12, border: `2px dashed ${C.lavanda}`, background: 'transparent',
-          color: C.purple, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          padding: 12, borderRadius: 12, border: `2px dashed ${C.sageLight}`, background: 'transparent',
+          color: C.sage, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
           + Agregar hábito
         </button>
@@ -416,29 +445,29 @@ function App() {
   )
 
   /* ── RUTINA ── */
-  const renderRoutineSection = (title, emoji, items, gradient) => (
+  const renderRoutineSection = (title, emoji, items, color) => (
     <div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ background: gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{title}</span> {emoji}
+      <div style={{ fontSize: 15, fontWeight: 800, color: color, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {emoji} {title}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {items.map((item, idx) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {items.map(item => (
           <div key={item.id} onClick={() => toggleRoutine(item.id)} style={{
-            background: C.card, borderRadius: 12, padding: '12px 16px',
-            display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            opacity: routineChecked[item.id] ? 0.6 : 1, transition: 'all 0.15s',
+            background: C.card, borderRadius: 12, padding: '11px 14px',
+            display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            opacity: routineChecked[item.id] ? 0.55 : 1, transition: 'all 0.15s',
           }}>
             <div style={{
-              width: 24, height: 24, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.green : C.lavanda}`,
-              background: routineChecked[item.id] ? C.green : 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 12, flexShrink: 0,
+              width: 22, height: 22, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.greenDone : C.sageLight}`,
+              background: routineChecked[item.id] ? C.greenDone : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11, flexShrink: 0,
             }}>
               {routineChecked[item.id] && '✓'}
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: C.purple, minWidth: 42 }}>{item.time}</span>
-            <span style={{ fontSize: 18, flexShrink: 0 }}>{item.emoji}</span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none' }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.tierra, minWidth: 40 }}>{item.time}</span>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>{item.emoji}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none' }}>
               {item.task}
             </span>
           </div>
@@ -448,27 +477,27 @@ function App() {
   )
 
   const rutinaView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {renderRoutineSection('Mañana', '☀️', morning, 'linear-gradient(90deg, #f9a8d4, #a78bfa)')}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {renderRoutineSection('Mañana', '☀️', morning, C.sage)}
       <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Afirmaciones del día', '🕊️', midday, 'linear-gradient(90deg, #7dd3fc, #a78bfa)')}
+      {renderRoutineSection('Afirmaciones del día', '🕊️', midday, C.tierra)}
       <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Noche', '🌙', night, 'linear-gradient(90deg, #7c3aed, #4c1d95)')}
+      {renderRoutineSection('Noche', '🌙', night, C.sageDark)}
     </div>
   )
 
   /* ── DIARIO ── */
   const diarioView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* New entry */}
-      <div style={{ background: C.card, borderRadius: 20, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 12 }}>¿Cómo te sientes hoy?</div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
+      <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10, color: C.text }}>¿Cómo te sientes hoy?</div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14, justifyContent: 'center' }}>
           {MOODS.map((m, i) => (
             <button key={i} onClick={() => setJournalMood(i)} style={{
-              fontSize: 32, background: journalMood === i ? C.border : 'transparent',
-              border: journalMood === i ? `2px solid ${C.lavanda}` : '2px solid transparent',
-              borderRadius: 12, padding: 8, cursor: 'pointer', transition: 'all 0.15s',
+              fontSize: 28, background: journalMood === i ? C.beige : 'transparent',
+              border: journalMood === i ? `2px solid ${C.sage}` : '2px solid transparent',
+              borderRadius: 12, padding: 6, cursor: 'pointer', transition: 'all 0.15s',
               transform: journalMood === i ? 'scale(1.15)' : 'scale(1)',
             }}>
               {m}
@@ -478,34 +507,35 @@ function App() {
         <textarea value={journalText} onChange={e => setJournalText(e.target.value)}
           placeholder="Escribe tu reflexión del día..."
           style={{
-            width: '100%', minHeight: 120, padding: 14, borderRadius: 14, border: `1px solid ${C.border}`,
+            width: '100%', minHeight: 100, padding: 14, borderRadius: 12, border: `1px solid ${C.border}`,
             fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6,
+            boxSizing: 'border-box', background: C.cream,
           }}
         />
         <button onClick={addJournalEntry} disabled={!journalText.trim()} style={{
-          marginTop: 12, width: '100%', padding: 14, borderRadius: 12, border: 'none',
-          background: journalText.trim() ? 'linear-gradient(135deg, #7c3aed, #a78bfa)' : C.border,
+          marginTop: 10, width: '100%', padding: 12, borderRadius: 12, border: 'none',
+          background: journalText.trim() ? 'linear-gradient(135deg, #5A7A50, #7C9A72)' : C.border,
           color: journalText.trim() ? 'white' : C.subtle,
-          fontSize: 15, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
+          fontSize: 14, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
         }}>
-          Guardar reflexión ✨
+          Guardar reflexión 🌱
         </button>
       </div>
 
       {/* Entries */}
       {entries.length > 0 && (
         <div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Entradas anteriores
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {entries.map(e => (
-              <div key={e.id} style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{e.date} • {e.time}</span>
-                  <span style={{ fontSize: 22 }}>{MOODS[e.mood]}</span>
+              <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: C.muted }}>{e.date} · {e.time}</span>
+                  <span style={{ fontSize: 20 }}>{MOODS[e.mood]}</span>
                 </div>
-                <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
+                <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
               </div>
             ))}
           </div>
@@ -514,9 +544,9 @@ function App() {
 
       {entries.length === 0 && (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📝</div>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>Tu diario está vacío</div>
-          <div style={{ fontSize: 13, marginTop: 4 }}>Escribe tu primera reflexión arriba</div>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>📔</div>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>Tu diario está vacío</div>
+          <div style={{ fontSize: 12, marginTop: 4 }}>Escribe tu primera reflexión arriba</div>
         </div>
       )}
     </div>
@@ -525,47 +555,51 @@ function App() {
   /* ── FRASES ── */
   const CATS = ['todas', 'espiritual', 'sanacion', 'serenidad', 'motivacional', 'sabiduria']
   const filteredQuotes = quoteFilter === 'todas' ? QUOTES : QUOTES.filter(q => q.cat === quoteFilter)
+  const catLabels = { todas: 'Todas', espiritual: 'Espiritual', sanacion: 'Sanación', serenidad: 'Serenidad', motivacional: 'Motivacional', sabiduria: 'Sabiduría' }
 
   const frasesView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Quote of the day highlight */}
-      <div style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa, #f9a8d4)', borderRadius: 20, padding: 24, color: 'white' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 10 }}>🌟 Frase del día</div>
-        <div style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
-        <div style={{ fontSize: 14, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Quote of the day */}
+      <div style={{ background: 'linear-gradient(135deg, #5A7A50, #7C9A72, #A8C49F)', borderRadius: 18, padding: 22, color: 'white' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>✨ Frase del día</div>
+        <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
+        <div style={{ fontSize: 13, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
       </div>
 
-      {/* Filter */}
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
+      {/* Filter chips */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
         {CATS.map(cat => (
           <button key={cat} onClick={() => setQuoteFilter(cat)} style={{
-            padding: '6px 14px', borderRadius: 20, border: `2px solid ${quoteFilter === cat ? C.purple : C.border}`,
-            background: quoteFilter === cat ? C.purple : C.card, color: quoteFilter === cat ? 'white' : C.muted,
-            fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-            textTransform: 'capitalize',
+            padding: '5px 12px', borderRadius: 20, border: `2px solid ${quoteFilter === cat ? C.sage : C.border}`,
+            background: quoteFilter === cat ? C.sage : C.card, color: quoteFilter === cat ? 'white' : C.muted,
+            fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}>
-            {cat === 'sabiduria' ? 'Sabiduría' : cat === 'sanacion' ? 'Sanación' : cat === 'todas' ? 'Todas' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            {catLabels[cat]}
           </button>
         ))}
       </div>
 
       {/* Quotes list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {filteredQuotes.map((q, idx) => {
           const globalIdx = QUOTES.indexOf(q)
           const isFav = favQuotes.includes(globalIdx)
+          const isDiana = q.author === 'Diana'
           return (
-            <div key={idx} style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderLeft: q.author === 'Diana' ? `4px solid ${C.lavanda}` : 'none' }}>
-              <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>"{q.text}"</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-                <div>
-                  <span style={{ fontSize: 13, color: q.author === 'Diana' ? C.purple : C.muted, fontWeight: 600 }}>— {q.author}</span>
-                  <span style={{ fontSize: 11, marginLeft: 8, background: C.border, padding: '2px 8px', borderRadius: 20, color: C.subtle, fontWeight: 600, textTransform: 'capitalize' }}>
-                    {q.cat === 'sabiduria' ? 'Sabiduría' : q.cat === 'sanacion' ? 'Sanación' : q.cat}
+            <div key={idx} style={{
+              background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              borderLeft: isDiana ? `3px solid ${C.sage}` : `3px solid ${C.border}`,
+            }}>
+              <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>"{q.text}"</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 12, color: isDiana ? C.sage : C.muted, fontWeight: 600 }}>— {q.author}</span>
+                  <span style={{ fontSize: 10, background: C.beige, padding: '2px 8px', borderRadius: 20, color: C.muted, fontWeight: 600 }}>
+                    {catLabels[q.cat] || q.cat}
                   </span>
                 </div>
                 <button onClick={() => toggleFavQuote(globalIdx)} style={{
-                  background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', padding: 4,
+                  background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', padding: 4,
                 }}>
                   {isFav ? '❤️' : '🤍'}
                 </button>
@@ -579,16 +613,16 @@ function App() {
 
   /* ── Render ── */
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.bg }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       {header}
-      <div style={{ padding: isMobile ? 16 : 24 }}>
+      <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 80 }}>
         {view === 'inicio'  && inicioView}
         {view === 'habitos' && habitosView}
         {view === 'rutina'  && rutinaView}
         {view === 'diario'  && diarioView}
         {view === 'frases'  && frasesView}
       </div>
-      <div style={{ height: 40 }} />
+      {bottomNav}
     </div>
   )
 }
