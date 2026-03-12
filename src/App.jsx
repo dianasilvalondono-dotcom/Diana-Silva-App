@@ -324,7 +324,7 @@ function App() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 24, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>🌿 Ronda</span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontStyle: 'italic' }}>Your circle of power</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontStyle: 'italic' }}>Tu ronda, tu poder</span>
           </div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginTop: 3 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
