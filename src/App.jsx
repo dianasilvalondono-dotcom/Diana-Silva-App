@@ -332,7 +332,7 @@ function App() {
           fontSize: 13, fontWeight: 700, color: 'white', backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>
-          ✨ {totalDone} de {totalHabits} hoy
+          Hábitos del día: {totalDone}/{totalHabits}
         </div>
       </div>
     </div>
