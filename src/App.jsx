@@ -167,9 +167,9 @@ function NavItem({ icon, label, active, onClick }) {
       color: active ? C.rose : C.subtle, fontFamily: 'inherit', flex: 1,
       transition: 'color 0.15s',
     }}>
-      <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>
-      <span style={{ fontSize: 11, fontWeight: active ? 800 : 600, letterSpacing: '0.02em' }}>{label}</span>
-      {active && <div style={{ width: 4, height: 4, borderRadius: 2, background: C.rose, marginTop: 1 }} />}
+      <span style={{ fontSize: 26, lineHeight: 1 }}>{icon}</span>
+      <span style={{ fontSize: 12, fontWeight: active ? 800 : 600, letterSpacing: '0.02em' }}>{label}</span>
+      {active && <div style={{ width: 5, height: 5, borderRadius: 3, background: C.rose, marginTop: 2 }} />}
     </button>
   )
 }
@@ -343,7 +343,7 @@ function App() {
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 600, background: 'rgba(255,255,255,0.95)',
       backdropFilter: 'blur(20px)', borderTop: `1px solid ${C.border}`,
-      display: 'flex', padding: '4px 8px 12px', zIndex: 100,
+      display: 'flex', padding: '6px 8px 18px', zIndex: 100,
       boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
     }}>
       {NAV.map(n => (
@@ -358,7 +358,7 @@ function App() {
       {/* Greeting */}
       <div style={{ padding: 20, background: 'linear-gradient(135deg, #C4878E, #DDB3B7)', borderRadius: 18, color: 'white' }}>
         <div style={{ fontSize: 26, fontWeight: 900 }}>{getGreeting()}, Diana</div>
-        <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Tu ronda de crecimiento 🌱</div>
+        <div style={{ fontSize: 15, opacity: 0.9, marginTop: 6, fontWeight: 600, letterSpacing: '0.01em' }}>La mujer que quieres ser, empieza hoy ✨</div>
       </div>
 
       {/* Quote of the day */}
