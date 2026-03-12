@@ -91,6 +91,18 @@ const QUOTES = [
   { text: 'Eres más fuerte de lo que crees y más valiente de lo que imaginas.', author: 'A.A. Milne', cat: 'motivacional' },
 ]
 
+/* ── Toolkit categories ── */
+const TOOLKIT_CATS = [
+  { id: 'podcast',    emoji: '🎙️', label: 'Podcasts',      color: '#7C9A72' },
+  { id: 'libro',      emoji: '📚', label: 'Libros',        color: '#B8956A' },
+  { id: 'curso',      emoji: '🎓', label: 'Cursos',        color: '#8B956A' },
+  { id: 'tedtalk',    emoji: '🎤', label: 'Ted Talks',     color: '#D4A574' },
+  { id: 'musica',     emoji: '🎵', label: 'Música',        color: '#A8C49F' },
+  { id: 'masterclass',emoji: '🏆', label: 'Masterclasses', color: '#8B6F47' },
+  { id: 'wellness',   emoji: '🧘', label: 'Wellness',      color: '#7C9A72' },
+  { id: 'otro',       emoji: '🔗', label: 'Otros',         color: '#A69E93' },
+]
+
 /* ── Helpers ── */
 const todayKey = () => new Date().toISOString().slice(0, 10)
 const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback } catch { return fallback } }
@@ -189,6 +201,15 @@ function App() {
   const [favQuotes, setFavQuotes] = useState(() => load('diana-fav-quotes', []))
   const [quoteFilter, setQuoteFilter] = useState('todas')
 
+  // Toolkit
+  const [toolkitItems, setToolkitItems] = useState(() => load('diana-toolkit', []))
+  const [showAddTool, setShowAddTool] = useState(false)
+  const [newToolName, setNewToolName] = useState('')
+  const [newToolUrl, setNewToolUrl] = useState('')
+  const [newToolCat, setNewToolCat] = useState('podcast')
+  const [newToolNote, setNewToolNote] = useState('')
+  const [toolFilter, setToolFilter] = useState('todas')
+
   // Habit editor
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitDim, setNewHabitDim] = useState('espiritual')
@@ -208,6 +229,7 @@ function App() {
   useEffect(() => { save(`diana-routine-${todayKey()}`, routineChecked) }, [routineChecked])
   useEffect(() => { save('diana-journal', entries) }, [entries])
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
+  useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
 
   // Stats
   const dimStats = useMemo(() => {
@@ -259,10 +281,32 @@ function App() {
     setFavQuotes(prev => prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx])
   }
 
+  const addToolkitItem = () => {
+    if (!newToolName.trim()) return
+    const item = {
+      id: Date.now(),
+      name: newToolName.trim(),
+      url: newToolUrl.trim(),
+      cat: newToolCat,
+      note: newToolNote.trim(),
+      added: todayKey(),
+    }
+    setToolkitItems([item, ...toolkitItems])
+    setNewToolName('')
+    setNewToolUrl('')
+    setNewToolNote('')
+    setShowAddTool(false)
+  }
+
+  const removeToolkitItem = (id) => {
+    setToolkitItems(toolkitItems.filter(t => t.id !== id))
+  }
+
   const quote = getDayQuote()
 
   const NAV = [
     { id: 'inicio',  label: 'Inicio',  icon: '🏡' },
+    { id: 'toolkit', label: 'Toolkit', icon: '🧰' },
     { id: 'habitos', label: 'Hábitos', icon: '🌱' },
     { id: 'rutina',  label: 'Rutina',  icon: '🍃' },
     { id: 'diario',  label: 'Diario',  icon: '📔' },
@@ -611,12 +655,146 @@ function App() {
     </div>
   )
 
+  /* ── TOOLKIT ── */
+  const filteredTools = toolFilter === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === toolFilter)
+  const toolkitCounts = TOOLKIT_CATS.reduce((acc, cat) => {
+    acc[cat.id] = toolkitItems.filter(t => t.cat === cat.id).length
+    return acc
+  }, {})
+
+  const toolkitView = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg, #7C9A72, #B8956A)', borderRadius: 18, padding: 20, color: 'white' }}>
+        <div style={{ fontSize: 20, fontWeight: 900 }}>Mi Toolkit</div>
+        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
+        <div style={{ fontSize: 12, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
+      </div>
+
+      {/* Category chips with counts */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
+        <button onClick={() => setToolFilter('todas')} style={{
+          padding: '6px 12px', borderRadius: 20, border: `2px solid ${toolFilter === 'todas' ? C.sage : C.border}`,
+          background: toolFilter === 'todas' ? C.sage : C.card, color: toolFilter === 'todas' ? 'white' : C.muted,
+          fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+        }}>
+          Todas ({toolkitItems.length})
+        </button>
+        {TOOLKIT_CATS.map(cat => (
+          toolkitCounts[cat.id] > 0 && (
+            <button key={cat.id} onClick={() => setToolFilter(cat.id)} style={{
+              padding: '6px 12px', borderRadius: 20, border: `2px solid ${toolFilter === cat.id ? cat.color : C.border}`,
+              background: toolFilter === cat.id ? cat.color : C.card, color: toolFilter === cat.id ? 'white' : C.muted,
+              fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+            }}>
+              {cat.emoji} {cat.label} ({toolkitCounts[cat.id]})
+            </button>
+          )
+        ))}
+      </div>
+
+      {/* Add new resource */}
+      {showAddTool ? (
+        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: C.text }}>Agregar recurso</div>
+
+          <input value={newToolName} onChange={e => setNewToolName(e.target.value)} placeholder="Nombre (ej: Podcast de Jay Shetty)"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
+          />
+
+          <input value={newToolUrl} onChange={e => setNewToolUrl(e.target.value)} placeholder="Link (ej: https://spotify.com/...)"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
+          />
+
+          <input value={newToolNote} onChange={e => setNewToolNote(e.target.value)} placeholder="Nota (opcional)"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
+          />
+
+          {/* Category selector */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+            {TOOLKIT_CATS.map(cat => (
+              <button key={cat.id} onClick={() => setNewToolCat(cat.id)} style={{
+                padding: '5px 10px', borderRadius: 20, border: `2px solid ${cat.color}`,
+                background: newToolCat === cat.id ? cat.color : 'transparent',
+                color: newToolCat === cat.id ? 'white' : cat.color,
+                fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={addToolkitItem} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.sage, color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Guardar
+            </button>
+            <button onClick={() => setShowAddTool(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setShowAddTool(true)} style={{
+          padding: 14, borderRadius: 12, border: `2px dashed ${C.sageLight}`, background: 'transparent',
+          color: C.sage, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          + Agregar recurso
+        </button>
+      )}
+
+      {/* Resource list */}
+      {filteredTools.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {filteredTools.map(item => {
+            const cat = TOOLKIT_CATS.find(c => c.id === item.cat) || TOOLKIT_CATS[TOOLKIT_CATS.length - 1]
+            return (
+              <div key={item.id} style={{
+                background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                borderLeft: `3px solid ${cat.color}`, display: 'flex', alignItems: 'flex-start', gap: 12,
+              }}>
+                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{cat.emoji}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{item.name}</div>
+                  {item.note && <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{item.note}</div>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                    <span style={{ fontSize: 10, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.color, fontWeight: 700 }}>
+                      {cat.label}
+                    </span>
+                    {item.url && (
+                      <a href={item.url.startsWith('http') ? item.url : `https://${item.url}`} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: 11, color: C.sage, fontWeight: 700, textDecoration: 'none' }}
+                        onClick={e => e.stopPropagation()}>
+                        Abrir →
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => removeToolkitItem(item.id)} style={{
+                  background: 'none', border: 'none', fontSize: 14, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0,
+                }}>✕</button>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
+          <div style={{ fontSize: 36, marginBottom: 10 }}>🧰</div>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>
+            {toolFilter === 'todas' ? 'Tu toolkit está vacío' : 'No hay recursos en esta categoría'}
+          </div>
+          <div style={{ fontSize: 12, marginTop: 4 }}>Agrega tus podcasts, libros, cursos y más</div>
+        </div>
+      )}
+    </div>
+  )
+
   /* ── Render ── */
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       {header}
       <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 80 }}>
         {view === 'inicio'  && inicioView}
+        {view === 'toolkit' && toolkitView}
         {view === 'habitos' && habitosView}
         {view === 'rutina'  && rutinaView}
         {view === 'diario'  && diarioView}
