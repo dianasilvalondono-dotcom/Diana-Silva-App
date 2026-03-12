@@ -306,12 +306,12 @@ function App() {
   const quote = getDayQuote()
 
   const NAV = [
-    { id: 'inicio',  label: 'Inicio',  icon: '🏡' },
-    { id: 'toolkit', label: 'Toolkit', icon: '🧰' },
-    { id: 'habitos', label: 'Hábitos', icon: '🌱' },
-    { id: 'rutina',  label: 'Rutina',  icon: '🍃' },
-    { id: 'diario',  label: 'Diario',  icon: '📔' },
-    { id: 'frases',  label: 'Frases',  icon: '✨' },
+    { id: 'inicio',  label: 'Mi día',     icon: '🏡' },
+    { id: 'toolkit', label: 'Recursos',   icon: '🧰' },
+    { id: 'habitos', label: 'Mis hábitos',icon: '🌱' },
+    { id: 'rutina',  label: 'Mi rutina',  icon: '🍃' },
+    { id: 'diario',  label: 'Diario',     icon: '📔' },
+    { id: 'frases',  label: 'Frases',     icon: '✨' },
   ]
 
   /* ── Top Header ── */
@@ -332,7 +332,7 @@ function App() {
           fontSize: 13, fontWeight: 700, color: 'white', backdropFilter: 'blur(10px)',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>
-          <span>🌱</span> {totalDone}/{totalHabits} hoy
+          ✨ {totalDone} de {totalHabits} hoy
         </div>
       </div>
     </div>
