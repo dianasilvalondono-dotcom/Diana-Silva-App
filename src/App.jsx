@@ -29,58 +29,65 @@ const DIMS = {
 
 /* ── Default habits ── */
 const DEFAULT_HABITS = [
-  { id: 1,  name: 'Meditación',        dim: 'espiritual' },
-  { id: 2,  name: 'Gratitud',          dim: 'espiritual' },
-  { id: 3,  name: 'Lectura espiritual', dim: 'espiritual' },
-  { id: 4,  name: 'Journaling',        dim: 'emocional' },
-  { id: 5,  name: 'Conexión social',   dim: 'emocional' },
-  { id: 6,  name: 'Acto de bondad',    dim: 'emocional' },
-  { id: 7,  name: 'Ejercicio',         dim: 'fisico' },
-  { id: 8,  name: 'Agua (8 vasos)',    dim: 'fisico' },
-  { id: 9,  name: 'Sueño 7h+',        dim: 'fisico' },
-  { id: 10, name: 'Lectura',           dim: 'mental' },
-  { id: 11, name: 'Aprendizaje nuevo', dim: 'mental' },
-  { id: 12, name: 'Sin redes 1h',      dim: 'mental' },
+  { id: 1,  name: 'Oración y gratitud — evangelio y meditaciones', dim: 'espiritual' },
+  { id: 2,  name: 'Meditación mañana',                            dim: 'espiritual' },
+  { id: 3,  name: 'Meditación de noche',                          dim: 'espiritual' },
+  { id: 4,  name: 'Lectura noche',                                dim: 'espiritual' },
+  { id: 5,  name: 'Respira y Pausa Activa',                       dim: 'emocional' },
+  { id: 6,  name: 'Respira Profundo — Estoy a salvo',             dim: 'emocional' },
+  { id: 7,  name: 'Journaling / Reflexión del día',               dim: 'emocional' },
+  { id: 8,  name: 'Gym',                                          dim: 'fisico' },
+  { id: 9,  name: 'Caldo + Paseo',                                dim: 'fisico' },
+  { id: 10, name: 'Proteína + Creatina',                          dim: 'fisico' },
+  { id: 11, name: 'Ajedrez',                                      dim: 'mental' },
+  { id: 12, name: 'Momento Mori — Take nothing personally',       dim: 'mental' },
 ]
 
 /* ── Default routines ── */
 const DEFAULT_MORNING = [
-  { id: 1, time: '5:30', task: 'Despertar', emoji: '☀️' },
-  { id: 2, time: '5:45', task: 'Meditación', emoji: '🧘' },
-  { id: 3, time: '6:00', task: 'Ejercicio', emoji: '💪' },
-  { id: 4, time: '6:45', task: 'Ducha y arreglo', emoji: '🚿' },
-  { id: 5, time: '7:15', task: 'Desayuno consciente', emoji: '🥑' },
-  { id: 6, time: '7:45', task: 'Journaling', emoji: '📝' },
+  { id: 1, time: '7:05', task: 'Intención del día: Oración y gratitud', emoji: '🙏' },
+  { id: 2, time: '7:20', task: 'Caldo + Paseo', emoji: '🚶‍♀️' },
+  { id: 3, time: '7:35', task: 'Meditación', emoji: '🧘' },
+  { id: 4, time: '7:40', task: 'Afirmación: Momento Mori. Solo tengo hoy.', emoji: '⏳' },
+  { id: 5, time: '8:00', task: 'Gym', emoji: '💪' },
+  { id: 6, time: '9:35', task: 'Proteína + Creatina', emoji: '🥤' },
+]
+const DEFAULT_MIDDAY = [
+  { id: 20, time: '10:45', task: 'Oración de serenidad', emoji: '🕊️' },
+  { id: 21, time: '11:45', task: 'Respira Profundo — Estoy a salvo', emoji: '🌬️' },
+  { id: 22, time: '14:00', task: 'Entrega a Dios — Tú eres el poder y la sanidad', emoji: '✝️' },
+  { id: 23, time: '15:45', task: 'Libero el dolor y doy la bienvenida al amor', emoji: '💜' },
+  { id: 24, time: '16:30', task: 'Respira y Pausa Activa', emoji: '🧘‍♀️' },
 ]
 const DEFAULT_NIGHT = [
-  { id: 7,  time: '21:00', task: 'Reflexión del día', emoji: '💭' },
-  { id: 8,  time: '21:15', task: 'Lectura', emoji: '📖' },
-  { id: 9,  time: '21:30', task: 'Agradecer 3 cosas', emoji: '🙏' },
-  { id: 10, time: '22:00', task: 'Dormir', emoji: '🌙' },
+  { id: 7,  time: '18:30', task: 'Lectura noche', emoji: '📖' },
+  { id: 8,  time: '19:00', task: 'Meditación de noche', emoji: '🧘' },
+  { id: 9,  time: '19:35', task: 'Soltar y rendirme a Dios', emoji: '🙏' },
+  { id: 10, time: '21:00', task: 'Me perdono y descanso en Dios', emoji: '🌙' },
 ]
 
-/* ── Quotes collection ── */
+/* ── Quotes collection — Diana's own affirmations + inspirational ── */
 const QUOTES = [
-  { text: 'La paz viene de adentro. No la busques afuera.', author: 'Buda', cat: 'espiritual' },
-  { text: 'Sé el cambio que deseas ver en el mundo.', author: 'Gandhi', cat: 'motivacional' },
-  { text: 'La gratitud convierte lo que tenemos en suficiente.', author: 'Melody Beattie', cat: 'gratitud' },
-  { text: 'El único modo de hacer un gran trabajo es amar lo que haces.', author: 'Steve Jobs', cat: 'motivacional' },
-  { text: 'No es la montaña lo que conquistamos, sino a nosotros mismos.', author: 'Edmund Hillary', cat: 'motivacional' },
-  { text: 'La mente es todo. En lo que piensas, te conviertes.', author: 'Buda', cat: 'sabiduria' },
+  { text: 'Libero todo el dolor de mi pasado y doy la bienvenida a la salud, la alegría, el amor y el éxito que me corresponden.', author: 'Diana', cat: 'sanacion' },
+  { text: 'Respira y Pausa Activa — No tengo que decidir nada ahora. Estoy a salvo.', author: 'Diana', cat: 'serenidad' },
+  { text: 'El control fue mi intento de no perder; Soltar y rendirme a Dios es mi forma de no PERDERME A MI.', author: 'Diana', cat: 'espiritual' },
+  { text: 'Hoy hice lo mejor que pude con las herramientas que tengo. Me perdono y descanso en Dios.', author: 'Diana', cat: 'sanacion' },
+  { text: 'Diana, take nothing personally today. Time is ticking. You only have today. Momento Mori.', author: 'Diana', cat: 'motivacional' },
+  { text: 'Dios concédeme serenidad para aceptar todo aquello que no puedo cambiar, valor para cambiar lo que soy capaz de cambiar y sabiduría para entender la diferencia.', author: 'Oración de Serenidad', cat: 'espiritual' },
+  { text: 'Respira Profundo Diana — No tengo que decidir nada ahora. Estoy a salvo.', author: 'Diana', cat: 'serenidad' },
+  { text: 'Dios mi vida se volvió inmanejable y no tengo poder sobre mi, ni sobre otros. Tú eres el poder y la sanidad.', author: 'Diana', cat: 'espiritual' },
+  { text: 'You can be kind and lovely and still tell people to fuck off.', author: 'Diana', cat: 'motivacional' },
+  { text: 'Diana, te perdono por haberte dado el valor en la elección de otros. Te perdono por haber confundido poder con amor y atención con seguridad. Hoy te elijo yo.', author: 'Diana', cat: 'sanacion' },
+  { text: 'Everybody is going through something. Be kind.', author: 'Diana', cat: 'sabiduria' },
+  { text: 'God, I give to You all that I am and all that I will be for Your healing and direction.', author: 'Diana', cat: 'espiritual' },
+  { text: 'Quiero a quien me quiera y dejo ir lo que tiene que irse.', author: 'Diana', cat: 'serenidad' },
+  { text: 'La paz viene de adentro. No la busques afuera.', author: 'Buda', cat: 'sabiduria' },
   { text: 'Cada mañana nacemos de nuevo. Lo que hacemos hoy es lo que más importa.', author: 'Buda', cat: 'espiritual' },
-  { text: 'Agradece lo que tienes; terminarás teniendo más.', author: 'Oprah Winfrey', cat: 'gratitud' },
   { text: 'La felicidad no es algo hecho. Viene de tus propias acciones.', author: 'Dalai Lama', cat: 'sabiduria' },
-  { text: 'Tu cuerpo es un templo, pero solo si lo tratas como tal.', author: 'Astrid Alauda', cat: 'espiritual' },
   { text: 'La disciplina es el puente entre metas y logros.', author: 'Jim Rohn', cat: 'motivacional' },
-  { text: 'Cuida tu cuerpo. Es el único lugar que tienes para vivir.', author: 'Jim Rohn', cat: 'sabiduria' },
-  { text: 'No cuentes los días, haz que los días cuenten.', author: 'Muhammad Ali', cat: 'motivacional' },
-  { text: 'La mayor gloria no es nunca caer, sino levantarse siempre.', author: 'Confucio', cat: 'sabiduria' },
-  { text: 'Respira. Suelta. Recuerda quién eres.', author: 'Anónimo', cat: 'espiritual' },
-  { text: 'Hoy elijo ser feliz. Hoy elijo amarme.', author: 'Anónimo', cat: 'gratitud' },
+  { text: 'La oración no cambia a Dios, pero cambia a quien ora.', author: 'Søren Kierkegaard', cat: 'espiritual' },
   { text: 'El agua no lucha. Fluye. Y al fluir, es poderosa.', author: 'Lao Tzu', cat: 'sabiduria' },
   { text: 'Eres más fuerte de lo que crees y más valiente de lo que imaginas.', author: 'A.A. Milne', cat: 'motivacional' },
-  { text: 'La oración no cambia a Dios, pero cambia a quien ora.', author: 'Søren Kierkegaard', cat: 'espiritual' },
-  { text: 'Cada día es una nueva oportunidad para cambiar tu vida.', author: 'Anónimo', cat: 'gratitud' },
 ]
 
 /* ── Helpers ── */
@@ -148,6 +155,7 @@ function App() {
 
   // Routines
   const [morning, setMorning] = useState(() => load('diana-morning', DEFAULT_MORNING))
+  const [midday, setMidday] = useState(() => load('diana-midday', DEFAULT_MIDDAY))
   const [night, setNight] = useState(() => load('diana-night', DEFAULT_NIGHT))
   const [routineChecked, setRoutineChecked] = useState(() => load(`diana-routine-${todayKey()}`, {}))
 
@@ -177,6 +185,7 @@ function App() {
   useEffect(() => { save(`diana-checked-${todayKey()}`, checked) }, [checked])
   useEffect(() => { save('diana-streaks', streaks) }, [streaks])
   useEffect(() => { save('diana-morning', morning) }, [morning])
+  useEffect(() => { save('diana-midday', midday) }, [midday])
   useEffect(() => { save('diana-night', night) }, [night])
   useEffect(() => { save(`diana-routine-${todayKey()}`, routineChecked) }, [routineChecked])
   useEffect(() => { save('diana-journal', entries) }, [entries])
@@ -442,6 +451,8 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {renderRoutineSection('Mañana', '☀️', morning, 'linear-gradient(90deg, #f9a8d4, #a78bfa)')}
       <div style={{ height: 1, background: C.border }} />
+      {renderRoutineSection('Afirmaciones del día', '🕊️', midday, 'linear-gradient(90deg, #7dd3fc, #a78bfa)')}
+      <div style={{ height: 1, background: C.border }} />
       {renderRoutineSection('Noche', '🌙', night, 'linear-gradient(90deg, #7c3aed, #4c1d95)')}
     </div>
   )
@@ -512,7 +523,7 @@ function App() {
   )
 
   /* ── FRASES ── */
-  const CATS = ['todas', 'espiritual', 'motivacional', 'gratitud', 'sabiduria']
+  const CATS = ['todas', 'espiritual', 'sanacion', 'serenidad', 'motivacional', 'sabiduria']
   const filteredQuotes = quoteFilter === 'todas' ? QUOTES : QUOTES.filter(q => q.cat === quoteFilter)
 
   const frasesView = (
@@ -533,7 +544,7 @@ function App() {
             fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
             textTransform: 'capitalize',
           }}>
-            {cat === 'sabiduria' ? 'Sabiduría' : cat === 'todas' ? 'Todas' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            {cat === 'sabiduria' ? 'Sabiduría' : cat === 'sanacion' ? 'Sanación' : cat === 'todas' ? 'Todas' : cat.charAt(0).toUpperCase() + cat.slice(1)}
           </button>
         ))}
       </div>
@@ -544,13 +555,13 @@ function App() {
           const globalIdx = QUOTES.indexOf(q)
           const isFav = favQuotes.includes(globalIdx)
           return (
-            <div key={idx} style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div key={idx} style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', borderLeft: q.author === 'Diana' ? `4px solid ${C.lavanda}` : 'none' }}>
               <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>"{q.text}"</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
                 <div>
-                  <span style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>— {q.author}</span>
+                  <span style={{ fontSize: 13, color: q.author === 'Diana' ? C.purple : C.muted, fontWeight: 600 }}>— {q.author}</span>
                   <span style={{ fontSize: 11, marginLeft: 8, background: C.border, padding: '2px 8px', borderRadius: 20, color: C.subtle, fontWeight: 600, textTransform: 'capitalize' }}>
-                    {q.cat === 'sabiduria' ? 'Sabiduría' : q.cat}
+                    {q.cat === 'sabiduria' ? 'Sabiduría' : q.cat === 'sanacion' ? 'Sanación' : q.cat}
                   </span>
                 </div>
                 <button onClick={() => toggleFavQuote(globalIdx)} style={{
