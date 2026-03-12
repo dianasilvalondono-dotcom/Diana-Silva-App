@@ -322,7 +322,7 @@ function App() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
-            🌿 Diana
+            🌿 Ronda
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: 500, marginTop: 2 }}>{formatDate()}</div>
         </div>
@@ -357,7 +357,7 @@ function App() {
       {/* Greeting */}
       <div style={{ padding: 20, background: 'linear-gradient(135deg, #7C9A72, #A8C49F)', borderRadius: 18, color: 'white' }}>
         <div style={{ fontSize: 24, fontWeight: 900 }}>{getGreeting()}, Diana</div>
-        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Hoy es un gran día para crecer 🌱</div>
+        <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>Tu ronda de crecimiento 🌱</div>
       </div>
 
       {/* Quote of the day */}
