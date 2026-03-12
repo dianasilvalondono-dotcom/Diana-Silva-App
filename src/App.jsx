@@ -307,7 +307,7 @@ function App() {
 
   const NAV = [
     { id: 'inicio',  label: 'Mi día',     icon: '🏡' },
-    { id: 'toolkit', label: 'Recursos',   icon: '🧰' },
+    { id: 'toolkit', label: 'Toolkit',     icon: '🧰' },
     { id: 'habitos', label: 'Mis hábitos',icon: '🌱' },
     { id: 'rutina',  label: 'Mi rutina',  icon: '🍃' },
     { id: 'diario',  label: 'Diario',     icon: '📔' },
@@ -322,17 +322,11 @@ function App() {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
-            🌿 Ronda
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 24, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>🌿 Ronda</span>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontStyle: 'italic' }}>Tu ronda de mujeres</span>
           </div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', fontWeight: 500, marginTop: 2 }}>{formatDate()}</div>
-        </div>
-        <div style={{
-          background: 'rgba(255,255,255,0.2)', borderRadius: 20, padding: '6px 14px',
-          fontSize: 13, fontWeight: 700, color: 'white', backdropFilter: 'blur(10px)',
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
-          Hábitos del día: {totalDone}/{totalHabits}
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginTop: 3 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
       </div>
     </div>
@@ -568,25 +562,39 @@ function App() {
         </button>
       </div>
 
-      {/* Entries */}
-      {entries.length > 0 && (
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Entradas anteriores
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {entries.map(e => (
-              <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{e.date} · {e.time}</span>
-                  <span style={{ fontSize: 20 }}>{MOODS[e.mood]}</span>
+      {/* Entries grouped by date */}
+      {entries.length > 0 && (() => {
+        const grouped = {}
+        entries.forEach(e => {
+          if (!grouped[e.date]) grouped[e.date] = []
+          grouped[e.date].push(e)
+        })
+        return (
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Tu histórico ({entries.length} {entries.length === 1 ? 'entrada' : 'entradas'})
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {Object.entries(grouped).map(([date, dayEntries]) => (
+                <div key={date}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, marginBottom: 6 }}>{date === todayKey() ? 'Hoy' : date}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {dayEntries.map(e => (
+                      <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{e.time}</span>
+                          <span style={{ fontSize: 20 }}>{MOODS[e.mood]}</span>
+                        </div>
+                        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {entries.length === 0 && (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
