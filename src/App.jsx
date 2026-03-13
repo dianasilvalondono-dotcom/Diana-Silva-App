@@ -345,10 +345,10 @@ function App() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {logo}
-            <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 13, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
+            <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.3)' }} />
+            <span style={{ fontSize: 16, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
         <button onClick={() => setView('perfil')} style={{
           width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
@@ -368,24 +368,32 @@ function App() {
     <div style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 600,
-      background: 'linear-gradient(135deg, #4A3035 0%, #6B4449 50%, #C4908A 100%)',
-      display: 'flex', padding: '8px 8px 20px', zIndex: 100,
-      boxShadow: '0 -4px 16px rgba(74,48,53,0.25)',
+      background: C.cream,
+      borderTop: `2px solid ${C.roseLight}`,
+      display: 'flex', padding: '8px 4px 20px', zIndex: 100,
+      boxShadow: '0 -4px 20px rgba(196,144,138,0.12)',
     }}>
       {NAV.map(n => {
         const isActive = view === n.id
         return (
           <button key={n.id} onClick={() => setView(n.id)} style={{
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-            background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0',
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
           }}>
-            <span style={{ fontSize: 22, filter: isActive ? 'none' : 'grayscale(0.5) opacity(0.7)' }}>{n.icon}</span>
+            <div style={{
+              width: 38, height: 38, borderRadius: '50%',
+              border: `2px solid ${isActive ? C.gold : C.roseLight}`,
+              background: isActive ? 'rgba(201,169,110,0.12)' : 'rgba(232,196,192,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 18, transition: 'all 0.2s',
+            }}>
+              {n.icon}
+            </div>
             <span style={{
-              fontSize: 10, fontWeight: isActive ? 800 : 600,
-              color: isActive ? '#E8D5A8' : 'rgba(255,255,255,0.6)',
-              fontFamily: 'inherit', letterSpacing: '0.02em',
+              fontSize: 11, fontWeight: isActive ? 800 : 600,
+              color: isActive ? C.text : C.muted,
+              fontFamily: 'inherit', letterSpacing: '0.01em',
             }}>{n.label}</span>
-            {isActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A96E', marginTop: 1 }} />}
           </button>
         )
       })}
