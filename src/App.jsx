@@ -313,13 +313,35 @@ function App() {
 
   const quote = getDayQuote()
 
+  /* ── Brand Icons (SVG, Ronda style) ── */
+  const BrandIcon = ({ children, active }) => (
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="14.5" stroke={active ? C.gold : C.rose} strokeWidth="2" fill={active ? 'rgba(201,169,110,0.1)' : 'none'} />
+      {children}
+    </svg>
+  )
+  const NAV_ICONS = {
+    /* Mi día — sol con rayos */
+    inicio: (a) => <BrandIcon active={a}><circle cx="16" cy="16" r="4" fill={a ? C.gold : C.rose} /><g stroke={a ? C.gold : C.rose} strokeWidth="1.5" strokeLinecap="round">{[[16,5,16,8],[16,24,16,27],[5,16,8,16],[24,16,27,16],[8.5,8.5,10.6,10.6],[21.4,21.4,23.5,23.5],[8.5,23.5,10.6,21.4],[21.4,10.6,23.5,8.5]].map(([x1,y1,x2,y2],i)=><line key={i} x1={x1} y1={y1} x2={x2} y2={y2}/>)}</g></BrandIcon>,
+    /* Toolkit — estrella de 4 puntas */
+    toolkit: (a) => <BrandIcon active={a}><path d="M16 7 L18 13 L24 16 L18 19 L16 25 L14 19 L8 16 L14 13 Z" fill={a ? C.gold : C.rose} opacity="0.85" /></BrandIcon>,
+    /* Mis hábitos — check/flama ascendente */
+    habitos: (a) => <BrandIcon active={a}><path d="M11 16.5 L14.5 20 L21 12" stroke={a ? C.gold : C.rose} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /></BrandIcon>,
+    /* Mi rutina — luna creciente */
+    rutina: (a) => <BrandIcon active={a}><path d="M18 9 A7 7 0 1 0 18 23 A5.5 5.5 0 0 1 18 9 Z" fill={a ? C.gold : C.rose} opacity="0.8" /></BrandIcon>,
+    /* Diario — corazón */
+    diario: (a) => <BrandIcon active={a}><path d="M16 22 C12 18 8 15.5 8 12.5 A3.5 3.5 0 0 1 16 11 A3.5 3.5 0 0 1 24 12.5 C24 15.5 20 18 16 22Z" fill={a ? C.gold : C.rose} opacity="0.8" /></BrandIcon>,
+    /* Frases — comillas */
+    frases: (a) => <BrandIcon active={a}><g fill={a ? C.gold : C.rose} opacity="0.85"><circle cx="12" cy="14" r="3" /><path d="M12 17 Q9 17 10 21 L13 20 Q14 17 12 17Z" /><circle cx="21" cy="14" r="3" /><path d="M21 17 Q18 17 19 21 L22 20 Q23 17 21 17Z" /></g></BrandIcon>,
+  }
+
   const NAV = [
-    { id: 'inicio',  label: 'Mi día',     icon: '🏡' },
-    { id: 'toolkit', label: 'Toolkit',     icon: '🧰' },
-    { id: 'habitos', label: 'Mis hábitos',icon: '🌱' },
-    { id: 'rutina',  label: 'Mi rutina',  icon: '🍃' },
-    { id: 'diario',  label: 'Diario',     icon: '📔' },
-    { id: 'frases',  label: 'Frases',     icon: '✨' },
+    { id: 'inicio',  label: 'Mi día' },
+    { id: 'toolkit', label: 'Toolkit' },
+    { id: 'habitos', label: 'Mis hábitos' },
+    { id: 'rutina',  label: 'Mi rutina' },
+    { id: 'diario',  label: 'Diario' },
+    { id: 'frases',  label: 'Frases' },
   ]
 
   /* ── Logo ── */
@@ -380,15 +402,7 @@ function App() {
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
             background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
           }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: '50%',
-              border: `2px solid ${isActive ? C.gold : C.roseLight}`,
-              background: isActive ? 'rgba(201,169,110,0.12)' : 'rgba(232,196,192,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 18, transition: 'all 0.2s',
-            }}>
-              {n.icon}
-            </div>
+            {NAV_ICONS[n.id](isActive)}
             <span style={{
               fontSize: 11, fontWeight: isActive ? 800 : 600,
               color: isActive ? C.text : C.muted,
