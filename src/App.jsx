@@ -322,28 +322,80 @@ function App() {
     { id: 'frases',  label: 'Frases',     icon: '✨' },
   ]
 
+  /* ── Logo options (pick one!) ── */
+  const [logoOpt, setLogoOpt] = useState(() => load('diana-logo-opt', 1))
+  const logos = {
+    1: /* ○ ronda — circle icon + lowercase elegant */
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#C9A96E' }} />
+        </div>
+        <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif', textTransform: 'lowercase' }}>ronda</span>
+      </div>,
+    2: /* R monogram + name */
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 32, height: 32, borderRadius: 8, background: '#C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 20, fontWeight: 700, color: '#4A3035', fontFamily: 'Georgia, "Times New Roman", serif' }}>R</span>
+        </div>
+        <span style={{ fontSize: 22, fontWeight: 700, color: 'white', letterSpacing: '0.06em', fontFamily: 'Georgia, "Times New Roman", serif' }}>RONDA</span>
+      </div>,
+    3: /* Thin elegant with gold accent line */
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontSize: 26, fontWeight: 400, color: 'white', letterSpacing: '0.25em', fontFamily: 'Georgia, "Times New Roman", serif', textTransform: 'uppercase' }}>RONDA</span>
+        <div style={{ height: 1.5, background: 'linear-gradient(90deg, #C9A96E, transparent)', marginTop: 2, width: '80%' }} />
+      </div>,
+    4: /* Bold R + light onda */
+      <span style={{ fontSize: 26, color: 'white', fontFamily: 'Georgia, "Times New Roman", serif' }}>
+        <span style={{ fontWeight: 700, color: '#C9A96E' }}>R</span>
+        <span style={{ fontWeight: 400, letterSpacing: '0.08em' }}>onda</span>
+      </span>,
+    5: /* Circle ring around R */
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 34, height: 34, borderRadius: '50%', border: '2px solid #E8C4C0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.08)' }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: '#E8D5A8', fontFamily: 'Georgia, "Times New Roman", serif' }}>R</span>
+        </div>
+        <span style={{ fontSize: 22, fontWeight: 400, color: 'white', letterSpacing: '0.12em', fontFamily: 'Georgia, "Times New Roman", serif', textTransform: 'lowercase' }}>ronda</span>
+      </div>,
+    6: /* Stacked: RONDA over tagline, all caps thin */
+      <div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: 'white', letterSpacing: '0.3em', fontFamily: 'Georgia, "Times New Roman", serif' }}>RONDA</div>
+        <div style={{ fontSize: 9, color: '#E8D5A8', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600, marginTop: 1 }}>CRECES TÚ · CRECEMOS TODAS</div>
+      </div>,
+  }
+
   /* ── Top Header ── */
   const header = (
     <div style={{
       background: 'linear-gradient(135deg, #4A3035 0%, #6B4449 50%, #C4908A 100%)',
       padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100,
     }}>
+      {/* Logo picker — tap the number to cycle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 26, fontWeight: 700, color: 'white', letterSpacing: '0.08em', fontFamily: 'Georgia, "Times New Roman", serif', textTransform: 'uppercase' }}>Ronda</span>
-            <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 13, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
+            {logos[logoOpt]}
+            {logoOpt !== 6 && <>
+              <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.3)' }} />
+              <span style={{ fontSize: 13, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
+            </>}
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
-        <button onClick={() => setView('perfil')} style={{
-          width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
-          background: 'rgba(201,169,110,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 20, cursor: 'pointer', flexShrink: 0,
-        }}>
-          {profile.emoji || '🌿'}
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <button onClick={() => setView('perfil')} style={{
+            width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
+            background: 'rgba(201,169,110,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 20, cursor: 'pointer', flexShrink: 0,
+          }}>
+            {profile.emoji || '🌿'}
+          </button>
+          <button onClick={() => { const next = logoOpt >= 6 ? 1 : logoOpt + 1; setLogoOpt(next); save('diana-logo-opt', next) }} style={{
+            background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 10, padding: '2px 8px',
+            color: 'white', fontSize: 10, cursor: 'pointer', fontWeight: 700,
+          }}>
+            Logo {logoOpt}/6
+          </button>
+        </div>
       </div>
     </div>
   )
