@@ -1,32 +1,33 @@
 import { useState, useEffect, useMemo } from 'react'
 import './App.css'
 
-/* ── Color tokens — Nude + Rosa Viejo + Dorado ── */
+/* ── Color tokens — Brand Book Ronda ── */
 const C = {
-  rose:     '#C4878E',
-  roseDark: '#A66B72',
-  roseLight:'#DDB3B7',
-  gold:     '#C8A96E',
-  goldDark: '#A68B52',
-  goldLight:'#E2D1A8',
-  nude:     '#F2E8DE',
-  cream:    '#FAF5F0',
-  card:     '#FFFFFF',
-  border:   '#E8DED4',
-  text:     '#2D2420',
-  muted:    '#8A7B72',
-  subtle:   '#B5A99E',
-  green:    '#7BA56E',
-  greenDone:'#9BBF90',
-  beige:    '#F2E8DE',
+  rose:     '#C4908A',   // Rosa Viejo — Primary (60%)
+  roseDark: '#A6716B',   // Rosa Viejo oscuro
+  roseLight:'#E8C4C0',   // Rosa Claro — Secondary
+  rosePale: '#F5E1DE',   // Rosa Pálido — Background accent
+  gold:     '#C9A96E',   // Dorado — Accent (15%)
+  goldDark: '#A68B52',   // Dorado oscuro
+  goldLight:'#E8D5A8',   // Dorado Claro — Accent Light
+  cream:    '#FBF6F3',   // Crema base (25%)
+  card:     '#FFFFFF',   // Cards
+  border:   '#E8DED4',   // Borders
+  text:     '#4A3035',   // Charcoal — Brand Book text
+  muted:    '#7A6065',   // Muted text
+  subtle:   '#B5A099',   // Subtle text
+  green:    '#7BA56E',   // Success
+  greenDone:'#9BBF90',   // Done state
+  nude:     '#F5E1DE',   // Background nude
+  beige:    '#F5E1DE',   // Beige = Rosa Pálido
 }
 
 /* ── Dimension config ── */
 const DIMS = {
-  espiritual: { emoji: '🕊️', color: '#C4878E', label: 'Espiritual' },
-  emocional:  { emoji: '🌻', color: '#C8A96E', label: 'Emocional' },
+  espiritual: { emoji: '🕊️', color: '#C4908A', label: 'Espiritual' },
+  emocional:  { emoji: '🌻', color: '#C9A96E', label: 'Emocional' },
   fisico:     { emoji: '💪', color: '#A68B52', label: 'Físico' },
-  mental:     { emoji: '🧠', color: '#A66B72', label: 'Mental' },
+  mental:     { emoji: '🧠', color: '#A6716B', label: 'Mental' },
 }
 
 /* ── Default habits ── */
@@ -94,14 +95,14 @@ const QUOTES = [
 
 /* ── Toolkit categories ── */
 const TOOLKIT_CATS = [
-  { id: 'podcast',    emoji: '🎙️', label: 'Podcasts',      color: '#C4878E' },
-  { id: 'libro',      emoji: '📚', label: 'Libros',        color: '#C8A96E' },
-  { id: 'curso',      emoji: '🎓', label: 'Cursos',        color: '#A66B72' },
+  { id: 'podcast',    emoji: '🎙️', label: 'Podcasts',      color: '#C4908A' },
+  { id: 'libro',      emoji: '📚', label: 'Libros',        color: '#C9A96E' },
+  { id: 'curso',      emoji: '🎓', label: 'Cursos',        color: '#A6716B' },
   { id: 'tedtalk',    emoji: '🎤', label: 'Ted Talks',     color: '#A68B52' },
-  { id: 'musica',     emoji: '🎵', label: 'Música',        color: '#C4878E' },
-  { id: 'masterclass',emoji: '🏆', label: 'Masterclasses', color: '#C8A96E' },
-  { id: 'wellness',   emoji: '🧘', label: 'Wellness',      color: '#A66B72' },
-  { id: 'otro',       emoji: '🔗', label: 'Otros',         color: '#B5A99E' },
+  { id: 'musica',     emoji: '🎵', label: 'Música',        color: '#C4908A' },
+  { id: 'masterclass',emoji: '🏆', label: 'Masterclasses', color: '#C9A96E' },
+  { id: 'wellness',   emoji: '🧘', label: 'Wellness',      color: '#A6716B' },
+  { id: 'otro',       emoji: '🔗', label: 'Otros',         color: '#B5A099' },
 ]
 
 /* ── Helpers ── */
@@ -324,21 +325,22 @@ function App() {
   /* ── Top Header ── */
   const header = (
     <div style={{
-      background: 'linear-gradient(135deg, #A66B72 0%, #C4878E 50%, #DDB3B7 100%)',
+      background: 'linear-gradient(135deg, #4A3035 0%, #6B4449 50%, #C4908A 100%)',
       padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 24, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>🌿 Ronda</span>
-            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontStyle: 'italic' }}>Creces tú, crecemos todas</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 26, fontWeight: 700, color: 'white', letterSpacing: '0.08em', fontFamily: 'Georgia, "Times New Roman", serif', textTransform: 'uppercase' }}>Ronda</span>
+            <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.3)' }} />
+            <span style={{ fontSize: 11, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
           </div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginTop: 3 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
         <button onClick={() => setView('perfil')} style={{
-          width: 42, height: 42, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.5)',
-          background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 22, cursor: 'pointer', flexShrink: 0,
+          width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
+          background: 'rgba(201,169,110,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 20, cursor: 'pointer', flexShrink: 0,
         }}>
           {profile.emoji || '🌿'}
         </button>
@@ -365,9 +367,9 @@ function App() {
   const inicioView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Greeting */}
-      <div style={{ padding: 20, background: 'linear-gradient(135deg, #C4878E, #DDB3B7)', borderRadius: 18, color: 'white' }}>
-        <div style={{ fontSize: 26, fontWeight: 900 }}>{getGreeting()}, Diana</div>
-        <div style={{ fontSize: 15, opacity: 0.9, marginTop: 6, fontWeight: 600, letterSpacing: '0.01em' }}>La mujer que quieres ser, empieza hoy ✨</div>
+      <div style={{ padding: 20, background: 'linear-gradient(135deg, #C4908A, #E8C4C0)', borderRadius: 18, color: 'white' }}>
+        <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{getGreeting()}, {profile.name || 'hermosa'}</div>
+        <div style={{ fontSize: 15, opacity: 0.9, marginTop: 6, fontWeight: 600, letterSpacing: '0.01em', fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>La mujer que quieres ser, empieza hoy ✨</div>
       </div>
 
       {/* Quote of the day */}
@@ -568,7 +570,7 @@ function App() {
         />
         <button onClick={addJournalEntry} disabled={!journalText.trim()} style={{
           marginTop: 10, width: '100%', padding: 12, borderRadius: 12, border: 'none',
-          background: journalText.trim() ? 'linear-gradient(135deg, #A66B72, #C4878E)' : C.border,
+          background: journalText.trim() ? 'linear-gradient(135deg, #C4908A, #A6716B)' : C.border,
           color: journalText.trim() ? 'white' : C.subtle,
           fontSize: 15, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
         }}>
@@ -628,7 +630,7 @@ function App() {
   const frasesView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Quote of the day */}
-      <div style={{ background: 'linear-gradient(135deg, #A66B72, #C4878E, #DDB3B7)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>✨ Frase del día</div>
         <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
         <div style={{ fontSize: 14, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
@@ -689,8 +691,8 @@ function App() {
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #A66B72, #C4878E, #DDB3B7)', borderRadius: 18, padding: 20, color: 'white' }}>
-        <div style={{ fontSize: 22, fontWeight: 900 }}>Mi Toolkit</div>
+      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 20, color: 'white' }}>
+        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Mi Toolkit</div>
         <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
         <div style={{ fontSize: 13, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
       </div>
@@ -832,9 +834,9 @@ function App() {
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
-      <div style={{ background: 'linear-gradient(135deg, #A66B72, #C4878E, #DDB3B7)', borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
+      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
         <div style={{ fontSize: 56, marginBottom: 8 }}>{profile.emoji || '🌿'}</div>
-        <div style={{ fontSize: 24, fontWeight: 900 }}>{profile.name || 'Tu nombre'}</div>
+        <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{profile.name || 'Tu nombre'}</div>
         {profile.city && <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>📍 {profile.city}</div>}
         {profile.bio && <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
         <button onClick={() => setEditingProfile(!editingProfile)} style={{
@@ -887,7 +889,7 @@ function App() {
 
           <button onClick={() => setEditingProfile(false)} style={{
             width: '100%', padding: 12, borderRadius: 12, border: 'none',
-            background: 'linear-gradient(135deg, #A66B72, #C4878E)', color: 'white',
+            background: 'linear-gradient(135deg, #C4908A, #A6716B)', color: 'white',
             fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
           }}>
             Guardar ✨
