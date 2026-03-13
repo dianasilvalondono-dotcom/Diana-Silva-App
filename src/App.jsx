@@ -211,6 +211,12 @@ function App() {
   const [newToolNote, setNewToolNote] = useState('')
   const [toolFilter, setToolFilter] = useState('todas')
 
+  // Profile
+  const [profile, setProfile] = useState(() => load('diana-profile', {
+    name: '', city: '', bio: '', intention: '', emoji: '🌿',
+  }))
+  const [editingProfile, setEditingProfile] = useState(false)
+
   // Habit editor
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitDim, setNewHabitDim] = useState('espiritual')
@@ -231,6 +237,7 @@ function App() {
   useEffect(() => { save('diana-journal', entries) }, [entries])
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
+  useEffect(() => { save('diana-profile', profile) }, [profile])
 
   // Stats
   const dimStats = useMemo(() => {
@@ -328,6 +335,13 @@ function App() {
           </div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginTop: 3 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
+        <button onClick={() => setView('perfil')} style={{
+          width: 42, height: 42, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.5)',
+          background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 22, cursor: 'pointer', flexShrink: 0,
+        }}>
+          {profile.emoji || '🌿'}
+        </button>
       </div>
     </div>
   )
@@ -798,6 +812,140 @@ function App() {
     </div>
   )
 
+  /* ── PERFIL ── */
+  const AVATARS = ['🌿','🌸','🦋','🌻','🌙','✨','🔮','🧘','💫','🌊','🪷','🕊️']
+  const profileStats = {
+    daysActive: (() => {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
+      return keys.length
+    })(),
+    totalEntries: entries.length,
+    totalHabitsEver: Object.values(streaks).reduce((s, v) => s + v, 0),
+    favQuotesCount: favQuotes.length,
+    toolkitCount: toolkitItems.length,
+  }
+
+  const updateProfile = (field, value) => {
+    setProfile(prev => ({ ...prev, [field]: value }))
+  }
+
+  const perfilView = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Avatar & Name card */}
+      <div style={{ background: 'linear-gradient(135deg, #A66B72, #C4878E, #DDB3B7)', borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
+        <div style={{ fontSize: 56, marginBottom: 8 }}>{profile.emoji || '🌿'}</div>
+        <div style={{ fontSize: 24, fontWeight: 900 }}>{profile.name || 'Tu nombre'}</div>
+        {profile.city && <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>📍 {profile.city}</div>}
+        {profile.bio && <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
+        <button onClick={() => setEditingProfile(!editingProfile)} style={{
+          marginTop: 14, padding: '8px 20px', borderRadius: 20, border: '2px solid rgba(255,255,255,0.5)',
+          background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 13, fontWeight: 700,
+          cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          {editingProfile ? 'Cerrar edición' : 'Editar perfil'}
+        </button>
+      </div>
+
+      {/* Edit form */}
+      {editingProfile && (
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 14 }}>Editar perfil</div>
+
+          {/* Avatar picker */}
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Tu avatar</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            {AVATARS.map(a => (
+              <button key={a} onClick={() => updateProfile('emoji', a)} style={{
+                fontSize: 28, padding: 6, borderRadius: 12, cursor: 'pointer',
+                border: profile.emoji === a ? `2px solid ${C.rose}` : '2px solid transparent',
+                background: profile.emoji === a ? C.beige : 'transparent',
+              }}>
+                {a}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</div>
+          <input value={profile.name} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
+          />
+
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Ciudad</div>
+          <input value={profile.city} onChange={e => updateProfile('city', e.target.value)} placeholder="¿De dónde eres?"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
+          />
+
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Bio</div>
+          <textarea value={profile.bio} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..."
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
+          />
+
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Mi intención</div>
+          <textarea value={profile.intention} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
+          />
+
+          <button onClick={() => setEditingProfile(false)} style={{
+            width: '100%', padding: 12, borderRadius: 12, border: 'none',
+            background: 'linear-gradient(135deg, #A66B72, #C4878E)', color: 'white',
+            fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
+          }}>
+            Guardar ✨
+          </button>
+        </div>
+      )}
+
+      {/* Intention card */}
+      {profile.intention && !editingProfile && (
+        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.gold}` }}>
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.gold, marginBottom: 6 }}>🎯 Mi intención</div>
+          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{profile.intention}</div>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mis estadísticas</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {[
+            { label: 'Días activa', value: profileStats.daysActive, icon: '📅', color: C.rose },
+            { label: 'Hábitos cumplidos', value: profileStats.totalHabitsEver, icon: '🔥', color: C.gold },
+            { label: 'Entradas diario', value: profileStats.totalEntries, icon: '📔', color: C.roseDark },
+            { label: 'Frases favoritas', value: profileStats.favQuotesCount, icon: '❤️', color: C.roseLight },
+            { label: 'Recursos guardados', value: profileStats.toolkitCount, icon: '🧰', color: C.goldDark },
+            { label: 'Hoy', value: `${totalDone}/${totalHabits}`, icon: '✅', color: C.green },
+          ].map((stat, i) => (
+            <div key={i} style={{ background: C.cream, borderRadius: 12, padding: 14, textAlign: 'center' }}>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>{stat.icon}</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, marginTop: 2 }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Dimensions breakdown */}
+      <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mis dimensiones hoy</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {Object.entries(DIMS).map(([dim, cfg]) => {
+            const s = dimStats[dim]
+            const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0
+            return (
+              <div key={dim}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: cfg.color }}>{cfg.emoji} {cfg.label}</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: cfg.color }}>{pct}%</span>
+                </div>
+                <Bar value={pct} color={cfg.color} />
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+
   /* ── Render ── */
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
@@ -809,6 +957,7 @@ function App() {
         {view === 'rutina'  && rutinaView}
         {view === 'diario'  && diarioView}
         {view === 'frases'  && frasesView}
+        {view === 'perfil'  && perfilView}
       </div>
       {bottomNav}
     </div>
