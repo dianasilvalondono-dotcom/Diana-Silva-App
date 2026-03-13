@@ -327,10 +327,10 @@ function App() {
     toolkit: (a) => <BrandIcon active={a}><path d="M16 7 L18 13 L24 16 L18 19 L16 25 L14 19 L8 16 L14 13 Z" fill={a ? C.gold : C.rose} opacity="0.85" /></BrandIcon>,
     /* Mis hábitos — check/flama ascendente */
     habitos: (a) => <BrandIcon active={a}><path d="M11 16.5 L14.5 20 L21 12" stroke={a ? C.gold : C.rose} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /></BrandIcon>,
-    /* Mi rutina — luna creciente */
-    rutina: (a) => <BrandIcon active={a}><path d="M18 9 A7 7 0 1 0 18 23 A5.5 5.5 0 0 1 18 9 Z" fill={a ? C.gold : C.rose} opacity="0.8" /></BrandIcon>,
-    /* Diario — corazón */
-    diario: (a) => <BrandIcon active={a}><path d="M16 22 C12 18 8 15.5 8 12.5 A3.5 3.5 0 0 1 16 11 A3.5 3.5 0 0 1 24 12.5 C24 15.5 20 18 16 22Z" fill={a ? C.gold : C.rose} opacity="0.8" /></BrandIcon>,
+    /* Mi rutina — luna creciente (más visible) */
+    rutina: (a) => <BrandIcon active={a}><path d="M19 8 A8 8 0 1 0 19 24 A6 6 0 0 1 19 8 Z" fill={a ? C.gold : C.rose} /><circle cx="20" cy="10" r="1" fill={a ? C.goldLight : C.roseLight} /><circle cx="22" cy="13" r="0.7" fill={a ? C.goldLight : C.roseLight} /></BrandIcon>,
+    /* Diario — burbuja de pensamiento */
+    diario: (a) => <BrandIcon active={a}><path d="M8 15 Q8 9 16 9 Q24 9 24 15 Q24 21 16 21 L13 21 L10 24 L11 21 Q8 20.5 8 15 Z" fill={a ? C.gold : C.rose} opacity="0.85" /><line x1="12" y1="13" x2="20" y2="13" stroke="white" strokeWidth="1.2" strokeLinecap="round" /><line x1="12" y1="16.5" x2="18" y2="16.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" /></BrandIcon>,
     /* Frases — comillas */
     frases: (a) => <BrandIcon active={a}><g fill={a ? C.gold : C.rose} opacity="0.85"><circle cx="12" cy="14" r="3" /><path d="M12 17 Q9 17 10 21 L13 20 Q14 17 12 17Z" /><circle cx="21" cy="14" r="3" /><path d="M21 17 Q18 17 19 21 L22 20 Q23 17 21 17Z" /></g></BrandIcon>,
   }
