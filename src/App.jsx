@@ -367,14 +367,28 @@ function App() {
   const bottomNav = (
     <div style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-      width: '100%', maxWidth: 600, background: 'rgba(255,255,255,0.95)',
-      backdropFilter: 'blur(20px)', borderTop: `1px solid ${C.border}`,
-      display: 'flex', padding: '6px 8px 18px', zIndex: 100,
-      boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+      width: '100%', maxWidth: 600,
+      background: 'linear-gradient(135deg, #4A3035 0%, #6B4449 50%, #C4908A 100%)',
+      display: 'flex', padding: '8px 8px 20px', zIndex: 100,
+      boxShadow: '0 -4px 16px rgba(74,48,53,0.25)',
     }}>
-      {NAV.map(n => (
-        <NavItem key={n.id} icon={n.icon} label={n.label} active={view === n.id} onClick={() => setView(n.id)} />
-      ))}
+      {NAV.map(n => {
+        const isActive = view === n.id
+        return (
+          <button key={n.id} onClick={() => setView(n.id)} style={{
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0',
+          }}>
+            <span style={{ fontSize: 22, filter: isActive ? 'none' : 'grayscale(0.5) opacity(0.7)' }}>{n.icon}</span>
+            <span style={{
+              fontSize: 10, fontWeight: isActive ? 800 : 600,
+              color: isActive ? '#E8D5A8' : 'rgba(255,255,255,0.6)',
+              fontFamily: 'inherit', letterSpacing: '0.02em',
+            }}>{n.label}</span>
+            {isActive && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#C9A96E', marginTop: 1 }} />}
+          </button>
+        )
+      })}
     </div>
   )
 
