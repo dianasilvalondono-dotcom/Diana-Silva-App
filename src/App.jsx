@@ -330,7 +330,7 @@ function App() {
         <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#C9A96E' }} />
         </div>
-        <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif', textTransform: 'lowercase' }}>ronda</span>
+        <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif' }}>Ronda</span>
       </div>,
     2: /* R monogram + name */
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
