@@ -214,7 +214,7 @@ function App() {
 
   // Profile
   const [profile, setProfile] = useState(() => load('diana-profile', {
-    name: '', city: '', bio: '', intention: '', emoji: '🌿',
+    name: '', city: '', bio: '', intention: '', emoji: '🌸',
   }))
   const [editingProfile, setEditingProfile] = useState(false)
 
@@ -830,6 +830,7 @@ function App() {
   )
 
   /* ── PERFIL ── */
+  const AVATARS = ['🌸','🦋','🌻','🌙','✨','🔮','🧘‍♀️','💫','🌊','🪷','🕊️','☀️','🫶','💜','🧿','🪬']
   const profileStats = {
     daysActive: (() => {
       const keys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
@@ -849,11 +850,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
       <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
-        <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', border: '3px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)' }}>
-            <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#C9A96E' }} />
-          </div>
-        </div>
+        <div style={{ fontSize: 56, marginBottom: 8 }}>{profile.emoji || '🌸'}</div>
         <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{profile.name || 'Tu nombre'}</div>
         {profile.city && <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>📍 {profile.city}</div>}
         {profile.bio && <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
@@ -870,6 +867,20 @@ function App() {
       {editingProfile && (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 14 }}>Editar perfil</div>
+
+          {/* Avatar picker */}
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Tu avatar</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+            {AVATARS.map(a => (
+              <button key={a} onClick={() => updateProfile('emoji', a)} style={{
+                fontSize: 28, padding: 6, borderRadius: 12, cursor: 'pointer',
+                border: profile.emoji === a ? `2px solid ${C.rose}` : '2px solid transparent',
+                background: profile.emoji === a ? C.beige : 'transparent',
+              }}>
+                {a}
+              </button>
+            ))}
+          </div>
 
           <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</div>
           <input value={profile.name} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?"
