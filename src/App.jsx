@@ -329,10 +329,10 @@ function App() {
     </div>
   )
   const logo = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <button onClick={() => setView('inicio')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
       {logoIcon}
       <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif' }}>Ronda</span>
-    </div>
+    </button>
   )
 
   /* ── Top Header ── */
