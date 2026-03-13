@@ -83,7 +83,7 @@ const QUOTES = [
   { text: 'Diana, te perdono por haberte dado el valor en la elección de otros. Te perdono por haber confundido poder con amor y atención con seguridad. Hoy te elijo yo.', author: 'Diana', cat: 'sanacion' },
   { text: 'Everybody is going through something. Be kind.', author: 'Diana', cat: 'sabiduria' },
   { text: 'God, I give to You all that I am and all that I will be for Your healing and direction.', author: 'Diana', cat: 'espiritual' },
-  { text: 'Quiero a quien me quiera y dejo ir lo que tiene que irse.', author: 'Diana', cat: 'serenidad' },
+  { text: 'Quiero a quien me quiera y dejo ir lo que tiene que irse.', author: 'Marta Botero', cat: 'serenidad' },
   { text: 'La paz viene de adentro. No la busques afuera.', author: 'Buda', cat: 'sabiduria' },
   { text: 'Cada mañana nacemos de nuevo. Lo que hacemos hoy es lo que más importa.', author: 'Buda', cat: 'espiritual' },
   { text: 'La felicidad no es algo hecho. Viene de tus propias acciones.', author: 'Dalai Lama', cat: 'sabiduria' },
@@ -333,7 +333,7 @@ function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 26, fontWeight: 700, color: 'white', letterSpacing: '0.08em', fontFamily: 'Georgia, "Times New Roman", serif', textTransform: 'uppercase' }}>Ronda</span>
             <span style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 11, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
+            <span style={{ fontSize: 13, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
@@ -368,7 +368,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Greeting */}
       <div style={{ padding: 20, background: 'linear-gradient(135deg, #C4908A, #E8C4C0)', borderRadius: 18, color: 'white' }}>
-        <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{getGreeting()}, {profile.name || 'hermosa'}</div>
+        <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
         <div style={{ fontSize: 15, opacity: 0.9, marginTop: 6, fontWeight: 600, letterSpacing: '0.01em', fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>La mujer que quieres ser, empieza hoy ✨</div>
       </div>
 
