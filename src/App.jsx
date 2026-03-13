@@ -218,6 +218,11 @@ function App() {
   }))
   const [editingProfile, setEditingProfile] = useState(false)
 
+  // Onboarding
+  const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
+  const [onboardStep, setOnboardStep] = useState(0)
+  const [onboardName, setOnboardName] = useState('')
+
   // Habit editor
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitDim, setNewHabitDim] = useState('espiritual')
@@ -998,6 +1003,168 @@ function App() {
       </div>
     </div>
   )
+
+  /* ── Onboarding ── */
+  const finishOnboarding = () => {
+    if (onboardName.trim()) {
+      setProfile(prev => ({ ...prev, name: onboardName.trim() }))
+      save('diana-profile', { ...profile, name: onboardName.trim() })
+    }
+    setOnboarded(true)
+    save('ronda-onboarded', true)
+  }
+
+  const onboardSlides = [
+    /* Slide 0 — Bienvenida */
+    <div key={0} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <div style={{ width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
+        </div>
+        <span style={{ fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif' }}>Ronda</span>
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
+        Tu espacio de crecimiento
+      </div>
+      <div style={{ fontSize: 18, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 40 }}>
+        Creces tú, crecemos todas
+      </div>
+      <div style={{ width: 60, height: 1, background: C.roseLight, marginBottom: 40 }} />
+      <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
+        Un lugar para cultivar tus hábitos, conectar con tu intención y crecer en cada dimensión de tu vida.
+      </div>
+    </div>,
+
+    /* Slide 1 — Las 4 dimensiones */
+    <div key={1} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        4 dimensiones, 1 tú
+      </div>
+      <div style={{ fontSize: 14, color: C.muted, marginBottom: 32, maxWidth: 280 }}>
+        En Ronda trabajamos tu crecimiento desde cuatro pilares fundamentales
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, width: '100%', maxWidth: 320 }}>
+        {Object.entries(DIMS).map(([dim, cfg]) => (
+          <div key={dim} style={{
+            background: C.card, borderRadius: 16, padding: 20, textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${cfg.color}20`,
+          }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>{cfg.emoji}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: cfg.color }}>{cfg.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>,
+
+    /* Slide 2 — Qué puedes hacer */
+    <div key={2} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Todo lo que necesitas
+      </div>
+      <div style={{ fontSize: 14, color: C.muted, marginBottom: 32 }}>
+        Herramientas diseñadas para tu crecimiento diario
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 320 }}>
+        {[
+          { icon: NAV_ICONS.inicio(false), title: 'Mi día', desc: 'Tu dashboard con el progreso del día' },
+          { icon: NAV_ICONS.habitos(false), title: 'Hábitos', desc: 'Trackea tus hábitos por dimensión' },
+          { icon: NAV_ICONS.rutina(false), title: 'Mi rutina', desc: 'Tu rutina de mañana y noche' },
+          { icon: NAV_ICONS.diario(false), title: 'Diario', desc: 'Reflexiona y registra tu estado' },
+          { icon: NAV_ICONS.frases(false), title: 'Frases', desc: 'Inspiración diaria para tu camino' },
+          { icon: NAV_ICONS.toolkit(false), title: 'Toolkit', desc: 'Tus podcasts, libros y recursos' },
+        ].map((item, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '12px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left' }}>
+            <div style={{ flexShrink: 0 }}>{item.icon}</div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>{item.title}</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>,
+
+    /* Slide 3 — Nombre */
+    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+        <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        ¿Cómo te llamas?
+      </div>
+      <div style={{ fontSize: 14, color: C.muted, marginBottom: 32 }}>
+        Queremos conocerte para personalizar tu experiencia
+      </div>
+      <input
+        value={onboardName}
+        onChange={e => setOnboardName(e.target.value)}
+        placeholder="Tu nombre"
+        style={{
+          width: '100%', maxWidth: 300, padding: '14px 18px', borderRadius: 14,
+          border: `2px solid ${C.roseLight}`, fontSize: 18, fontFamily: 'inherit',
+          textAlign: 'center', outline: 'none', color: C.text, background: C.card,
+        }}
+        onFocus={e => e.target.style.borderColor = C.gold}
+        onBlur={e => e.target.style.borderColor = C.roseLight}
+      />
+      <button onClick={finishOnboarding} style={{
+        marginTop: 32, padding: '14px 40px', borderRadius: 30,
+        background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+        color: 'white', fontSize: 17, fontWeight: 800, border: 'none',
+        cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
+        boxShadow: '0 4px 16px rgba(196,144,138,0.35)',
+      }}>
+        Comenzar mi Ronda ✨
+      </button>
+    </div>,
+  ]
+
+  /* ── Onboarding screen ── */
+  if (!onboarded) {
+    return (
+      <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+        {onboardSlides[onboardStep]}
+
+        {/* Dots + Navigation */}
+        <div style={{ position: 'fixed', bottom: 40, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+          {/* Dots */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {onboardSlides.map((_, i) => (
+              <div key={i} style={{
+                width: onboardStep === i ? 24 : 8, height: 8, borderRadius: 4,
+                background: onboardStep === i ? C.gold : C.roseLight,
+                transition: 'all 0.3s',
+              }} />
+            ))}
+          </div>
+
+          {/* Buttons */}
+          {onboardStep < 3 && (
+            <div style={{ display: 'flex', gap: 16 }}>
+              {onboardStep > 0 && (
+                <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
+                  padding: '12px 28px', borderRadius: 25, border: `2px solid ${C.roseLight}`,
+                  background: 'transparent', color: C.muted, fontSize: 15, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  Atrás
+                </button>
+              )}
+              <button onClick={() => setOnboardStep(onboardStep + 1)} style={{
+                padding: '12px 32px', borderRadius: 25, border: 'none',
+                background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+                color: 'white', fontSize: 15, fontWeight: 800,
+                cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 4px 12px rgba(196,144,138,0.3)',
+              }}>
+                Siguiente
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   /* ── Render ── */
   return (
