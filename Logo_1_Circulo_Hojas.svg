@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <defs>
+    <linearGradient id="roseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A66B72"/>
+      <stop offset="100%" style="stop-color:#C4878E"/>
+    </linearGradient>
+  </defs>
+  <!-- Circle of women / leaves forming a round -->
+  <g transform="translate(70, 100)">
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="42" fill="none" stroke="url(#roseGrad)" stroke-width="2.5" opacity="0.3"/>
+    <!-- Leaf 1 - top -->
+    <path d="M0,-30 C8,-22 8,-12 0,-8 C-8,-12 -8,-22 0,-30Z" fill="#C4878E" opacity="0.9"/>
+    <!-- Leaf 2 - top right -->
+    <path d="M0,-30 C8,-22 8,-12 0,-8 C-8,-12 -8,-22 0,-30Z" fill="#A66B72" opacity="0.85" transform="rotate(72)"/>
+    <!-- Leaf 3 - bottom right -->
+    <path d="M0,-30 C8,-22 8,-12 0,-8 C-8,-12 -8,-22 0,-30Z" fill="#C9A96E" opacity="0.8" transform="rotate(144)"/>
+    <!-- Leaf 4 - bottom left -->
+    <path d="M0,-30 C8,-22 8,-12 0,-8 C-8,-12 -8,-22 0,-30Z" fill="#C4878E" opacity="0.85" transform="rotate(216)"/>
+    <!-- Leaf 5 - top left -->
+    <path d="M0,-30 C8,-22 8,-12 0,-8 C-8,-12 -8,-22 0,-30Z" fill="#A66B72" opacity="0.9" transform="rotate(288)"/>
+    <!-- Center dot -->
+    <circle cx="0" cy="0" r="5" fill="#C9A96E"/>
+  </g>
+  <!-- Text -->
+  <text x="130" y="92" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="bold" fill="#4A3035" letter-spacing="6">RONDA</text>
+  <text x="130" y="118" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#C9A96E" font-style="italic" letter-spacing="1">Creces tu, crecemos todas</text>
+</svg>
