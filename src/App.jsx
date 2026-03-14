@@ -223,6 +223,13 @@ function App() {
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
 
+  // Morning/Night check-in
+  const [morningDone, setMorningDone] = useState(() => load(`ronda-morning-${todayKey()}`, false))
+  const [nightDone, setNightDone] = useState(() => load(`ronda-night-${todayKey()}`, false))
+  const [morningIntention, setMorningIntention] = useState('')
+  const [nightReflection, setNightReflection] = useState('')
+  const [nightMood, setNightMood] = useState(2)
+
   // Habit editor
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitDim, setNewHabitDim] = useState('espiritual')
@@ -244,6 +251,8 @@ function App() {
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
   useEffect(() => { save('diana-profile', profile) }, [profile])
+  useEffect(() => { save(`ronda-morning-${todayKey()}`, morningDone) }, [morningDone])
+  useEffect(() => { save(`ronda-night-${todayKey()}`, nightDone) }, [nightDone])
 
   // Stats
   const dimStats = useMemo(() => {
@@ -317,6 +326,38 @@ function App() {
   }
 
   const quote = getDayQuote()
+
+  const currentHour = new Date().getHours()
+  const isMorningTime = currentHour < 12
+  const isNightTime = currentHour >= 18
+  const showMorningCheckin = isMorningTime && !morningDone
+  const showNightCheckin = isNightTime && !nightDone
+
+  const completeMorningCheckin = () => {
+    if (morningIntention.trim()) {
+      const entry = {
+        id: Date.now(), date: todayKey(), text: `☀️ Intención del día: ${morningIntention}`,
+        mood: 3, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
+        type: 'morning',
+      }
+      setEntries([entry, ...entries])
+    }
+    setMorningDone(true)
+    setMorningIntention('')
+  }
+
+  const completeNightCheckin = () => {
+    if (nightReflection.trim()) {
+      const entry = {
+        id: Date.now(), date: todayKey(), text: `🌙 Reflexión de noche: ${nightReflection}`,
+        mood: nightMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
+        type: 'night',
+      }
+      setEntries([entry, ...entries])
+    }
+    setNightDone(true)
+    setNightReflection('')
+  }
 
   /* ── Brand Icons (SVG, Ronda style) ── */
   const BrandIcon = ({ children, active }) => (
@@ -427,6 +468,172 @@ function App() {
         <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
         <div style={{ fontSize: 15, opacity: 0.9, marginTop: 6, fontWeight: 600, letterSpacing: '0.01em', fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>La mujer que quieres ser, empieza hoy ✨</div>
       </div>
+
+      {/* ── MORNING CHECK-IN ── */}
+      {showMorningCheckin && (
+        <div style={{ background: C.card, borderRadius: 18, padding: 22, boxShadow: '0 2px 12px rgba(196,144,138,0.15)', border: `2px solid ${C.gold}30` }}>
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>☀️</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+              {profile.name ? `${profile.name}, ¿qué quieres lograr hoy?` : '¿Qué quieres lograr hoy?'}
+            </div>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 4 }}>Activa tus hábitos del día y define tu intención</div>
+          </div>
+
+          {/* Quick habit toggles */}
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+            Mis hábitos de hoy
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+            {habits.map(h => {
+              const dim = DIMS[h.dim]
+              return (
+                <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+                  background: checked[h.id] ? `${dim.color}10` : C.cream, borderRadius: 12,
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  border: checked[h.id] ? `1px solid ${dim.color}40` : `1px solid ${C.border}`,
+                }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked[h.id] ? C.green : dim.color}`,
+                    background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                  }}>
+                    {checked[h.id] && '✓'}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
+                    {dim.emoji} {h.name}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Morning intention */}
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+            Mi intención del día
+          </div>
+          <textarea
+            value={morningIntention}
+            onChange={e => setMorningIntention(e.target.value)}
+            placeholder="Hoy quiero..."
+            style={{
+              width: '100%', minHeight: 70, padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
+              fontSize: 15, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
+              boxSizing: 'border-box', background: C.cream,
+            }}
+          />
+
+          <button onClick={completeMorningCheckin} style={{
+            marginTop: 12, width: '100%', padding: 14, borderRadius: 14, border: 'none',
+            background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
+            color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+            boxShadow: '0 4px 12px rgba(201,169,110,0.3)',
+          }}>
+            Comenzar mi día ☀️
+          </button>
+        </div>
+      )}
+
+      {/* ── NIGHT CHECK-IN ── */}
+      {showNightCheckin && (
+        <div style={{ background: C.card, borderRadius: 18, padding: 22, boxShadow: '0 2px 12px rgba(74,48,53,0.12)', border: `2px solid ${C.roseDark}25` }}>
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🌙</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+              {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
+            </div>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 4 }}>Revisa tu día y cierra con una reflexión</div>
+          </div>
+
+          {/* Today's summary */}
+          <div style={{ background: C.cream, borderRadius: 14, padding: 16, marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+              Resumen del día
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: 12 }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.rose }}>{totalDone}</div>
+                <div style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>completados</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.subtle }}>{totalHabits - totalDone}</div>
+                <div style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>pendientes</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: C.gold }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</div>
+                <div style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>progreso</div>
+              </div>
+            </div>
+            {/* Show uncompleted habits */}
+            {habits.filter(h => !checked[h.id]).length > 0 && (
+              <div>
+                <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 6 }}>Puedes completar aún:</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {habits.filter(h => !checked[h.id]).map(h => (
+                    <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
+                      background: C.card, borderRadius: 10, cursor: 'pointer', border: `1px solid ${C.border}`,
+                    }}>
+                      <div style={{
+                        width: 18, height: 18, borderRadius: 5, border: `2px solid ${DIMS[h.dim].color}`,
+                        background: 'transparent', flexShrink: 0,
+                      }} />
+                      <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{DIMS[h.dim].emoji} {h.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mood */}
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8, textAlign: 'center' }}>
+            ¿Cómo te sientes?
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
+            {MOODS.map((m, i) => (
+              <button key={i} onClick={() => setNightMood(i)} style={{
+                fontSize: 28, background: nightMood === i ? C.beige : 'transparent',
+                border: nightMood === i ? `2px solid ${C.rose}` : '2px solid transparent',
+                borderRadius: 12, padding: 6, cursor: 'pointer', transition: 'all 0.15s',
+                transform: nightMood === i ? 'scale(1.15)' : 'scale(1)',
+              }}>
+                {m}
+              </button>
+            ))}
+          </div>
+
+          {/* Night reflection */}
+          <textarea
+            value={nightReflection}
+            onChange={e => setNightReflection(e.target.value)}
+            placeholder="¿Qué aprendiste hoy? ¿Qué agradeces?"
+            style={{
+              width: '100%', minHeight: 80, padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
+              fontSize: 15, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
+              boxSizing: 'border-box', background: C.cream,
+            }}
+          />
+
+          <button onClick={completeNightCheckin} style={{
+            marginTop: 12, width: '100%', padding: 14, borderRadius: 14, border: 'none',
+            background: `linear-gradient(135deg, ${C.roseDark}, ${C.rose})`,
+            color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+            boxShadow: '0 4px 12px rgba(166,113,107,0.3)',
+          }}>
+            Cerrar mi día 🌙
+          </button>
+        </div>
+      )}
+
+      {/* Morning done message */}
+      {morningDone && isMorningTime && (
+        <div style={{ background: `${C.gold}12`, borderRadius: 14, padding: 16, border: `1px solid ${C.gold}30`, textAlign: 'center' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.gold }}>☀️ Tu día está activado</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>¡A por tus hábitos! Te veo en la noche para tu reflexión.</div>
+        </div>
+      )}
 
       {/* Quote of the day */}
       <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.rose}` }}>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ronda - Bienestar, Comunidad, Poder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --rose: #C4878E;
+            --rose-dark: #A66B72;
+            --rose-light: #DDB3B7;
+            --gold: #C8A96E;
+            --cream: #FAF5F0;
+            --text: #2D2420;
+            --green: #7BA56E;
+            --white: #FFFFFF;
+            --shadow: 0 10px 30px rgba(45, 36, 32, 0.1);
+            --shadow-hover: 0 15px 40px rgba(45, 36, 32, 0.15);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text);
+            background-color: var(--cream);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--rose-dark) 0%, var(--rose) 50%, var(--rose-light) 100%);
+            color: var(--white);
+            text-align: center;
+            padding: 60px 20px;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-emoji {
+            font-size: 80px;
+            margin-bottom: 30px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .hero-tagline {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            opacity: 0.95;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.2;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            font-weight: 300;
+            opacity: 0.95;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: var(--gold);
+            color: var(--text);
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            background: #D4B47A;
+        }
+
+        .cta-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Floating CTA Button */
+        .floating-cta {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 28px;
+            background: var(--gold);
+            color: var(--text);
+            border: none;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow-hover);
+            z-index: 999;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(100px);
+            pointer-events: none;
+        }
+
+        .floating-cta.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .floating-cta:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        /* General Sections */
+        section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        section.full-width {
+            padding: 80px 20px;
+            width: 100%;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--rose-dark);
+            margin-bottom: 50px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 60px;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+
+        /* Problem Statement */
+        .problem {
+            background-color: var(--cream);
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .pain-point {
+            padding: 30px;
+            background: var(--white);
+            border-radius: 12px;
+            border-left: 4px solid var(--rose);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .pain-point:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .pain-point h3 {
+            color: var(--rose-dark);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* What is Ronda */
+        .pillars {
+            background: linear-gradient(180deg, var(--cream) 0%, rgba(196, 135, 142, 0.05) 100%);
+        }
+
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .pillar-card {
+            background: var(--white);
+            padding: 50px 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .pillar-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
+            border-top: 4px solid var(--gold);
+        }
+
+        .pillar-emoji {
+            font-size: 60px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .pillar-card h3 {
+            color: var(--rose-dark);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .pillar-card p {
+            color: var(--text);
+            font-size: 1rem;
+            line-height: 1.7;
+            opacity: 0.85;
+        }
+
+        /* How it Works */
+        .how-it-works {
+            background-color: var(--white);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+            position: relative;
+        }
+
+        .step {
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .step-number {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--rose) 0%, var(--gold) 100%);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 auto 25px;
+            box-shadow: var(--shadow);
+        }
+
+        .step h3 {
+            color: var(--rose-dark);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .step p {
+            color: var(--text);
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        /* Features Showcase */
+        .features {
+            background: linear-gradient(180deg, rgba(196, 135, 142, 0.05) 0%, var(--cream) 100%);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .feature-item {
+            background: var(--white);
+            padding: 35px 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out;
+            border: 2px solid transparent;
+        }
+
+        .feature-item:hover {
+            border-color: var(--gold);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .feature-item h4 {
+            color: var(--rose-dark);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        /* Social Proof */
+        .social-proof {
+            background-color: var(--white);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--rose-light) 0%, rgba(196, 135, 142, 0.2) 100%);
+            padding: 40px 30px;
+            border-radius: 12px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--rose-dark);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text);
+            opacity: 0.85;
+        }
+
+        /* Waitlist Section */
+        .waitlist {
+            background: linear-gradient(135deg, var(--rose-dark) 0%, var(--rose) 100%);
+            color: var(--white);
+            text-align: center;
+        }
+
+        .waitlist-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .waitlist-subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-input {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            background: var(--white);
+            color: var(--text);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: rgba(45, 36, 32, 0.5);
+        }
+
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .waitlist-cta {
+            background: var(--gold);
+            color: var(--text);
+            padding: 16px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .waitlist-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            background: #D4B47A;
+        }
+
+        .exclusive-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--text);
+            color: var(--white);
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-socials {
+            margin-bottom: 25px;
+        }
+
+        .footer-socials a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-socials a:hover {
+            color: var(--rose);
+        }
+
+        .footer-tagline {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .footer-copyright {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .hero-emoji {
+                font-size: 60px;
+            }
+
+            section {
+                padding: 60px 20px;
+            }
+
+            .pillars-grid,
+            .problem-grid,
+            .steps,
+            .features-grid,
+            .stats-grid {
+                gap: 25px;
+            }
+
+            .floating-cta {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .pillar-card {
+                padding: 35px 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 40px 20px;
+                min-height: auto;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 0.95rem;
+            }
+
+            .section-title {
+                font-size: 1.6rem;
+                margin-bottom: 30px;
+            }
+
+            .section-subtitle {
+                font-size: 1rem;
+                margin-bottom: 40px;
+            }
+
+            .hero-emoji {
+                font-size: 50px;
+                margin-bottom: 20px;
+            }
+
+            section {
+                padding: 50px 15px;
+            }
+
+            .cta-button {
+                padding: 12px 30px;
+                font-size: 0.95rem;
+            }
+
+            .pillar-emoji {
+                font-size: 45px;
+            }
+
+            .pillar-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .floating-cta {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 20px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Utility Classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-4 {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-emoji">🌿</div>
+            <p class="hero-tagline">Bienestar • Comunidad • Poder</p>
+            <h1>Creces tú, crecemos todas</h1>
+            <p>Tu bienestar. Tu comunidad. Tu poder.</p>
+            <button class="cta-button" onclick="scrollToWaitlist()">Únete a la Ronda 🌿</button>
+        </div>
+    </section>
+
+    <!-- Problem Statement -->
+    <section class="problem">
+        <h2 class="section-title">¿Te suena familiar?</h2>
+        <p class="section-subtitle">Sabemos lo que vives. Aquí está la solución.</p>
+        <div class="problem-grid">
+            <div class="pain-point">
+                <h3>Sola en tu viaje</h3>
+                <p>Sientes que nadie entiende realmente lo que estás pasando. La salud mental, el bienestar, los sueños... los cargas sola.</p>
+            </div>
+            <div class="pain-point">
+                <h3>Recursos dispersos</h3>
+                <p>Un podcast aquí, una terapeuta allá, aplicaciones diferentes para cada cosa. Es agotador buscar por todos lados.</p>
+            </div>
+            <div class="pain-point">
+                <h3>Sin comunidad que te entienda</h3>
+                <p>Quieres conectar con otras mujeres latinas que realmente entiendan tu cultura, tus retos, tus sueños.</p>
+            </div>
+            <div class="pain-point">
+                <h3>¿Por dónde empiezo?</h3>
+                <p>Tienes ganas de crecer pero no sabes por dónde comenzar. Necesitas una guía, un plan, apoyo real.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- What is Ronda -->
+    <section class="pillars">
+        <h2 class="section-title">¿Qué es Ronda?</h2>
+        <p class="section-subtitle">Tres pilares que cambian tu vida</p>
+        <div class="pillars-grid">
+            <div class="pillar-card">
+                <span class="pillar-emoji">🕊️</span>
+                <h3>Bienestar Personal</h3>
+                <p>Crea tus rutinas, registra tu progreso, cuida tu salud mental. Rastreo de hábitos 4D, journal, afirmaciones diarias y herramientas que te acompañan cada paso.</p>
+            </div>
+            <div class="pillar-card">
+                <span class="pillar-emoji">👩‍👩‍👧‍👦</span>
+                <h3>Comunidad de Mujeres</h3>
+                <p>Conecta con otras latinas. Grupos de apoyo, eventos locales, círculos seguros. Nunca estás sola. Crecemos juntas.</p>
+            </div>
+            <div class="pillar-card">
+                <span class="pillar-emoji">🛍️</span>
+                <h3>Marketplace de Servicios</h3>
+                <p>Encuentra coaches, terapeutas, nutricionistas y más mujeres empoderadas cerca de ti. Todos que entienden tu lengua, tu cultura, tu realidad.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section class="how-it-works">
+        <h2 class="section-title">¿Cómo funciona?</h2>
+        <p class="section-subtitle">Tres pasos simples para empezar tu transformación</p>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Crea tu perfil</h3>
+                <p>Cuéntanos sobre ti. Tus metas, tus intereses, lo que quieres lograr. Es rápido y seguro.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Encuentra tu ronda</h3>
+                <p>Conecta con mujeres con tus intereses. Explora servicios. Descubre herramientas para tu bienestar.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Crece con nosotras</h3>
+                <p>Avanza en tu camino, celebra logros, apoya a otras. Juntas somos más fuerte.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Showcase -->
+    <section class="features">
+        <h2 class="section-title">Características que te aman</h2>
+        <p class="section-subtitle">Herramientas diseñadas para ti</p>
+        <div class="features-grid">
+            <div class="feature-item">
+                <span class="feature-icon">📊</span>
+                <h4>Rastreo de Hábitos</h4>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📓</span>
+                <h4>Diario de Emociones</h4>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✨</span>
+                <h4>Afirmaciones Diarias</h4>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📚</span>
+                <h4>Biblioteca de Recursos</h4>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">💬</span>
+                <h4>Feed de Comunidad</h4>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔍</span>
+                <h4>Directorio de Servicios</h4>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📞</span>
+                <h4>Videollamadas</h4>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🎉</span>
+                <h4>Eventos Locales</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <h2 class="section-title">El Mercado es Real</h2>
+        <p class="section-subtitle">Y nosotras somos las primeras</p>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">$5.7B</div>
+                <div class="stat-label">Mercado global de bienestar para mujeres</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">17.8%</div>
+                <div class="stat-label">Crecimiento anual del sector wellness</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Apps que combinan los 3 pilares para Latinas</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Waitlist Section -->
+    <section class="waitlist" id="waitlist-section">
+        <h2 class="waitlist-title">Sé de las Primeras</h2>
+        <div class="exclusive-badge">Acceso temprano a la comunidad</div>
+        <p class="waitlist-subtitle">Únete a nuestra lista de espera. Te avisaremos cuando lanzamos.</p>
+        <div class="form-container">
+            <input type="text" class="form-input" id="name-input" placeholder="Tu nombre" required>
+            <input type="email" class="form-input" id="email-input" placeholder="Tu email" required>
+            <input type="text" class="form-input" id="city-input" placeholder="Tu ciudad">
+            <button class="waitlist-cta" onclick="submitWaitlist()">Únete a la Ronda 🌿</button>
+        </div>
+        <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.9;">Tu información está segura con nosotras. Sin spam, solo amor.</p>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-socials">
+                <a href="https://instagram.com/rondasapp" target="_blank">@rondasapp</a>
+            </div>
+            <p class="footer-tagline">Hecho con amor para mujeres que quieren volar 🌿</p>
+            <p class="footer-copyright">&copy; 2026 Ronda. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Floating CTA Button -->
+    <button class="floating-cta" onclick="scrollToWaitlist()">Únete a Ronda 🌿</button>
+
+    <script>
+        // Floating CTA visibility on scroll
+        const floatingCta = document.querySelector('.floating-cta');
+        const heroSection = document.querySelector('.hero');
+
+        window.addEventListener('scroll', () => {
+            const heroBottom = heroSection.offsetHeight;
+            if (window.scrollY > heroBottom) {
+                floatingCta.classList.add('visible');
+            } else {
+                floatingCta.classList.remove('visible');
+            }
+        });
+
+        // Scroll to waitlist section
+        function scrollToWaitlist() {
+            const waitlistSection = document.getElementById('waitlist-section');
+            waitlistSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Submit waitlist form
+        function submitWaitlist() {
+            const name = document.getElementById('name-input').value.trim();
+            const email = document.getElementById('email-input').value.trim();
+            const city = document.getElementById('city-input').value.trim();
+
+            if (!name || !email) {
+                alert('Por favor completa tu nombre y email.');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Por favor ingresa un email válido.');
+                return;
+            }
+
+            // Create mailto link with pre-filled info (for now)
+            const subject = encodeURIComponent('¡Quiero unirme a Ronda!');
+            const body = encodeURIComponent(`Hola Ronda,\n\nMe gustaría unirme a la lista de espera.\n\nNombre: ${name}\nEmail: ${email}\nCiudad: ${city}\n\n¡Nos vemos pronto!`);
+
+            // Show success message instead of opening mailto (better UX)
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '¡Bienvenida a Ronda! 💚';
+            button.style.background = 'var(--green)';
+
+            // Clear inputs
+            document.getElementById('name-input').value = '';
+            document.getElementById('email-input').value = '';
+            document.getElementById('city-input').value = '';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = 'var(--gold)';
+            }, 3000);
+
+            // Log the submission (in real app, this would send to server)
+            console.log('Waitlist submission:', { name, email, city });
+        }
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements with fade-in class
+        document.querySelectorAll('.section-title, .pain-point, .pillar-card, .step, .feature-item, .stat-card').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Allow Enter key to submit waitlist form
+        document.getElementById('city-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitWaitlist();
+            }
+        });
+
+        document.getElementById('email-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitWaitlist();
+            }
+        });
+    </script>
+</body>
+</html>
