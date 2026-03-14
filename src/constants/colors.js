@@ -1,0 +1,20 @@
+/* ── Color tokens — Brand Book Ronda ── */
+export const C = {
+  rose:     '#C4908A',
+  roseDark: '#A6716B',
+  roseLight:'#E8C4C0',
+  rosePale: '#F5E1DE',
+  gold:     '#C9A96E',
+  goldDark: '#A68B52',
+  goldLight:'#E8D5A8',
+  cream:    '#FBF6F3',
+  card:     '#FFFFFF',
+  border:   '#E8DED4',
+  text:     '#4A3035',
+  muted:    '#7A6065',
+  subtle:   '#B5A099',
+  green:    '#7BA56E',
+  greenDone:'#9BBF90',
+  nude:     '#F5E1DE',
+  beige:    '#F5E1DE',
+}
