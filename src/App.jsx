@@ -8,6 +8,9 @@ import {
   AVATARS, CATS, CAT_LABELS, getDayQuote,
 } from './constants/data'
 import { todayKey, load, save, getGreeting, formatDate, MOODS } from './utils/helpers'
+import { useAuth } from './lib/useAuth'
+import AuthScreen from './components/AuthScreen'
+import { syncFromLocal } from './lib/database'
 
 /* ── Reusable components ── */
 function Bar({ value, color = C.rose, height = 6 }) {
@@ -58,6 +61,9 @@ function NavItem({ icon, label, active, onClick }) {
 /* ═══════════════════════════════════════════ */
 
 function App() {
+  // Auth
+  const { user, loading: authLoading, isConfigured, signInWithGoogle, signInWithEmail, signUp, signOut } = useAuth()
+
   const [view, setView] = useState('inicio')
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
@@ -136,6 +142,13 @@ function App() {
   useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
   useEffect(() => { save(`ronda-morning-${todayKey()}`, morningDone) }, [morningDone])
   useEffect(() => { save(`ronda-night-${todayKey()}`, nightDone) }, [nightDone])
+
+  // Sync localStorage → Supabase on first login
+  useEffect(() => {
+    if (user && isConfigured) {
+      syncFromLocal(user.id)
+    }
+  }, [user, isConfigured])
 
   // Stats
   const dimStats = useMemo(() => {
@@ -1173,6 +1186,20 @@ function App() {
           })}
         </div>
       </div>
+
+      {/* Sign out */}
+      {isConfigured && user && (
+        <div style={{ textAlign: 'center', marginTop: 8 }}>
+          <div style={{ fontSize: 12, color: C.subtle, marginBottom: 8 }}>{user.email}</div>
+          <button onClick={signOut} style={{
+            padding: '10px 28px', borderRadius: 12, border: `1.5px solid ${C.border}`,
+            background: C.card, color: C.muted, fontSize: 14, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            Cerrar sesión
+          </button>
+        </div>
+      )}
     </div>
   )
 
@@ -1353,6 +1380,36 @@ function App() {
       </button>
     </div>,
   ]
+
+  /* ── Auth loading ── */
+  if (authLoading) {
+    return (
+      <div style={{
+        maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      }}>
+        <div style={{
+          width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+        }}>
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
+        </div>
+        <div style={{ fontSize: 16, color: C.muted, fontWeight: 600 }}>Cargando...</div>
+      </div>
+    )
+  }
+
+  /* ── Auth screen (only if Supabase is configured and no user) ── */
+  if (isConfigured && !user) {
+    return (
+      <AuthScreen
+        onSignInGoogle={signInWithGoogle}
+        onSignInEmail={signInWithEmail}
+        onSignUp={signUp}
+      />
+    )
+  }
 
   /* ── Onboarding screen ── */
   if (!onboarded) {
