@@ -22,12 +22,42 @@ const C = {
   beige:    '#F5E1DE',   // Beige = Rosa Pálido
 }
 
+/* ── Mini SVG Brand Icons ── */
+const MiniIcon = ({ children, size = 20, color = '#C4908A' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+    {children}
+  </svg>
+)
+
+const ICONS = {
+  /* Dimensions */
+  espiritual: (c = '#C4908A', s = 20) => <MiniIcon size={s} color={c}><path d="M12 3 C12 3 6 8 6 13 C6 16.3 8.7 19 12 19 C15.3 19 18 16.3 18 13 C18 8 12 3 12 3Z" stroke={c} strokeWidth="1.8" fill={`${c}20`} /><path d="M12 10 L12 16 M10 13 L14 13" stroke={c} strokeWidth="1.5" strokeLinecap="round" /></MiniIcon>,
+  emocional: (c = '#C9A96E', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="12" r="8.5" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M8 11 Q8 8 12 8 Q16 8 16 11" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 14 Q12 17 15 14" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" /></MiniIcon>,
+  fisico: (c = '#A68B52', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="5" r="2.5" stroke={c} strokeWidth="1.8" fill={`${c}20`} /><path d="M12 8 L12 15 M8 11 L16 11 M12 15 L9 20 M12 15 L15 20" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></MiniIcon>,
+  mental: (c = '#A6716B', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="12" r="8.5" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M8 12 Q8 8 12 8 Q16 8 16 12 Q16 14 14 14 L14 16" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" /><circle cx="14" cy="18" r="1" fill={c} /></MiniIcon>,
+  /* Programs */
+  tusa: (c = '#C4908A', s = 20) => <MiniIcon size={s} color={c}><path d="M12 6 C8 6 5 9 5 12.5 C5 17 12 21 12 21 C12 21 19 17 19 12.5 C19 9 16 6 12 6Z" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M9 12 L12 15 L15 10" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></MiniIcon>,
+  depresion: (c = '#A6716B', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="14" r="5" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M9 6 L9 9 M12 4 L12 8 M15 6 L15 9" stroke={c} strokeWidth="1.5" strokeLinecap="round" /><path d="M10 13 L14 13 M10 16 Q12 18 14 16" stroke={c} strokeWidth="1.3" strokeLinecap="round" fill="none" /></MiniIcon>,
+  ansiedad: (c = '#C9A96E', s = 20) => <MiniIcon size={s} color={c}><path d="M12 4 L12 8 M12 20 L12 16 M4 12 L8 12 M20 12 L16 12" stroke={c} strokeWidth="1.5" strokeLinecap="round" /><circle cx="12" cy="12" r="4" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><circle cx="12" cy="12" r="1.5" fill={c} /></MiniIcon>,
+  empezar: (c = '#7BA56E', s = 20) => <MiniIcon size={s} color={c}><path d="M12 20 L12 10" stroke={c} strokeWidth="1.8" strokeLinecap="round" /><path d="M12 10 C12 10 8 8 8 5 Q12 7 12 4 Q12 7 16 5 C16 8 12 10 12 10Z" fill={`${c}30`} stroke={c} strokeWidth="1.5" /></MiniIcon>,
+  autoestima: (c = '#C4908A', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="8" r="4" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M6 20 Q6 14 12 14 Q18 14 18 20" stroke={c} strokeWidth="1.8" fill="none" strokeLinecap="round" /><path d="M10 7 L11 9 L13 9 L14 7" stroke={c} strokeWidth="1.2" strokeLinecap="round" fill="none" /></MiniIcon>,
+  /* Types */
+  podcast: (c = '#C4908A', s = 20) => <MiniIcon size={s} color={c}><rect x="9" y="3" width="6" height="10" rx="3" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M6 11 Q6 16 12 16 Q18 16 18 11" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M12 16 L12 20 M9 20 L15 20" stroke={c} strokeWidth="1.5" strokeLinecap="round" /></MiniIcon>,
+  musica: (c = '#C9A96E', s = 20) => <MiniIcon size={s} color={c}><circle cx="8" cy="18" r="3" stroke={c} strokeWidth="1.8" fill={`${c}20`} /><path d="M11 18 L11 5 L19 3 L19 15" stroke={c} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /><circle cx="16" cy="15" r="3" stroke={c} strokeWidth="1.8" fill={`${c}20`} /></MiniIcon>,
+  habito: (c = '#7BA56E', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="12" r="9" stroke={c} strokeWidth="1.8" fill={`${c}10`} /><path d="M8 12 L11 15 L16 9" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></MiniIcon>,
+  libro: (c = '#C9A96E', s = 20) => <MiniIcon size={s} color={c}><path d="M4 4 L4 18 Q8 16 12 18 Q16 16 20 18 L20 4 Q16 6 12 4 Q8 6 4 4Z" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M12 4 L12 18" stroke={c} strokeWidth="1.2" /></MiniIcon>,
+  tedtalk: (c = '#A68B52', s = 20) => <MiniIcon size={s} color={c}><rect x="3" y="5" width="18" height="12" rx="2" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><polygon points="10,8 10,14 16,11" fill={c} /><path d="M8 20 L16 20" stroke={c} strokeWidth="1.5" strokeLinecap="round" /></MiniIcon>,
+  sol: (c = '#C9A96E', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="12" r="4" fill={c} /><g stroke={c} strokeWidth="1.5" strokeLinecap="round"><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></g></MiniIcon>,
+  luna: (c = '#A6716B', s = 20) => <MiniIcon size={s} color={c}><path d="M18 12 A7 7 0 1 1 10 5 A5.5 5.5 0 0 0 18 12Z" fill={`${c}25`} stroke={c} strokeWidth="1.8" /></MiniIcon>,
+  estrella: (c = '#C9A96E', s = 20) => <MiniIcon size={s} color={c}><path d="M12 3 L14 9 L20 9 L15 13 L17 19 L12 15 L7 19 L9 13 L4 9 L10 9Z" fill={`${c}20`} stroke={c} strokeWidth="1.5" strokeLinejoin="round" /></MiniIcon>,
+}
+
 /* ── Dimension config ── */
 const DIMS = {
-  espiritual: { emoji: '🕊️', color: '#C4908A', label: 'Espiritual' },
-  emocional:  { emoji: '🌻', color: '#C9A96E', label: 'Emocional' },
-  fisico:     { emoji: '💪', color: '#A68B52', label: 'Físico' },
-  mental:     { emoji: '🧠', color: '#A6716B', label: 'Mental' },
+  espiritual: { icon: 'espiritual', color: '#C4908A', label: 'Espiritual' },
+  emocional:  { icon: 'emocional',  color: '#C9A96E', label: 'Emocional' },
+  fisico:     { icon: 'fisico',     color: '#A68B52', label: 'Físico' },
+  mental:     { icon: 'mental',     color: '#A6716B', label: 'Mental' },
 }
 
 /* ── Default habits ── */
@@ -312,7 +342,7 @@ function DimCard({ dim, done, total, onClick }) {
       transition: 'transform 0.15s', ':hover': { transform: 'translateY(-2px)' },
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{d.emoji} {d.label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''} {d.label}</span>
         <span style={{ fontSize: 18, fontWeight: 900, color: d.color }}>{pct}%</span>
       </div>
       <Bar value={pct} color={d.color} />
@@ -695,7 +725,7 @@ function App() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: moodRec.color, marginBottom: 8 }}>{moodRec.label} — te recomendamos:</div>
                 {moodRec.items.slice(0, 3).map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <span style={{ fontSize: 16 }}>{item.emoji}</span>
+                    {ICONS[item.type] ? ICONS[item.type](moodRec.color, 18) : <span style={{ fontSize: 16 }}>{item.emoji}</span>}
                     <span style={{ fontSize: 13, fontWeight: 600, color: C.text, flex: 1 }}>{item.title}</span>
                     {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: moodRec.color, fontWeight: 700, textDecoration: 'none' }}>→</a>}
                   </div>
@@ -722,7 +752,7 @@ function App() {
             return (
               <div key={progId} style={{ marginBottom: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, color: prog.color, marginBottom: 4 }}>
-                  <span>{prog.emoji} {prog.title}</span>
+                  <span>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id} {prog.title}</span>
                   <span>{pct}%</span>
                 </div>
                 <Bar value={pct} color={prog.color} height={5} />
@@ -753,7 +783,7 @@ function App() {
         return (
           <div key={dim}>
             <div style={{ fontSize: 15, fontWeight: 800, color: cfg.color, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {cfg.emoji} {cfg.label}
+              {ICONS[cfg.icon] ? ICONS[cfg.icon](cfg.color, 16) : ''} {cfg.label}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {dimHabits.map(h => (
@@ -804,7 +834,7 @@ function App() {
                 color: newHabitDim === key ? 'white' : d.color,
                 fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                {d.emoji} {d.label}
+                {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''} {d.label}
               </button>
             ))}
           </div>
@@ -922,7 +952,7 @@ function App() {
                   display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
                   background: C.cream, borderRadius: 12, border: `1px solid ${C.border}`,
                 }}>
-                  <span style={{ fontSize: 22, flexShrink: 0 }}>{item.emoji}</span>
+                  {ICONS[item.type] ? ICONS[item.type](rec.color, 22) : <span style={{ fontSize: 22, flexShrink: 0 }}>{item.emoji}</span>}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{item.title}</div>
                     <div style={{ fontSize: 11, color: C.subtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{item.type}</div>
@@ -1020,7 +1050,7 @@ function App() {
                 <div key={progId} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.emoji} {prog.title}</div>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id} {prog.title}</div>
                       <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
                     </div>
                     <button onClick={() => quitProgram(progId)} style={{
@@ -1047,7 +1077,7 @@ function App() {
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 12, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                              Día {d.day} {d.emoji}
+                              Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
                             </div>
                             <div style={{ fontSize: 15, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
                               textDecoration: isDone ? 'line-through' : 'none' }}>
@@ -1086,7 +1116,7 @@ function App() {
               background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
               borderLeft: `4px solid ${prog.color}`,
             }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{prog.emoji}</div>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id}</div>
               <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
               <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
@@ -1116,10 +1146,10 @@ function App() {
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
               background: C.card, borderRadius: 12, border: `1px solid ${C.border}`,
             }}>
-              <span style={{ fontSize: 20 }}>{sh.emoji}</span>
+              {ICONS[DIMS[sh.dim].icon](DIMS[sh.dim].color, 20)}
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{sh.name}</div>
-                <div style={{ fontSize: 12, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].emoji} {DIMS[sh.dim].label}</div>
+                <div style={{ fontSize: 12, color: DIMS[sh.dim].color, fontWeight: 600 }}>{ICONS[DIMS[sh.dim].icon](DIMS[sh.dim].color, 14)} {DIMS[sh.dim].label}</div>
               </div>
               <button onClick={() => addSuggestedHabit(sh)} style={{
                 padding: '6px 14px', borderRadius: 20, border: `1px solid ${C.rose}`,
@@ -1226,7 +1256,7 @@ function App() {
               background: toolFilter === cat.id ? cat.color : C.card, color: toolFilter === cat.id ? 'white' : C.muted,
               fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>
-              {cat.emoji} {cat.label} ({toolkitCounts[cat.id]})
+              {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : cat.emoji} {cat.label} ({toolkitCounts[cat.id]})
             </button>
           )
         ))}
@@ -1258,7 +1288,7 @@ function App() {
                 color: newToolCat === cat.id ? 'white' : cat.color,
                 fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                {cat.emoji} {cat.label}
+                {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : cat.emoji} {cat.label}
               </button>
             ))}
           </div>
@@ -1291,7 +1321,7 @@ function App() {
                 background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 borderLeft: `3px solid ${cat.color}`, display: 'flex', alignItems: 'flex-start', gap: 12,
               }}>
-                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{cat.emoji}</span>
+                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : cat.emoji}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</div>
                   {item.note && <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.note}</div>}
@@ -1449,7 +1479,7 @@ function App() {
             return (
               <div key={dim}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: cfg.color }}>{cfg.emoji} {cfg.label}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: cfg.color }}>{ICONS[cfg.icon] ? ICONS[cfg.icon](cfg.color, 16) : ''} {cfg.label}</span>
                   <span style={{ fontSize: 14, fontWeight: 800, color: cfg.color }}>{pct}%</span>
                 </div>
                 <Bar value={pct} color={cfg.color} />
@@ -1505,44 +1535,107 @@ function App() {
           <div key={dim} style={{
             background: C.card, borderRadius: 16, padding: 20, textAlign: 'center',
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${cfg.color}20`,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
           }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>{cfg.emoji}</div>
+            {ICONS[cfg.icon](cfg.color, 40)}
             <div style={{ fontSize: 15, fontWeight: 800, color: cfg.color }}>{cfg.label}</div>
           </div>
         ))}
       </div>
     </div>,
 
-    /* Slide 2 — Qué puedes hacer */
+    /* Slide 2 — Cómo funciona tu día */
     <div key={2} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Tu día con Ronda
+      </div>
+      <div style={{ fontSize: 14, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+        Ronda te acompaña mañana y noche
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {ICONS.sol(C.gold, 32)}
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.gold }}>En la mañana</div>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Qué quieres lograr hoy?" y activas tus hábitos</div>
+          </div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {ICONS.habito(C.green, 32)}
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.green }}>Durante el día</div>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Trackea tus hábitos, sigue tu rutina y escucha recomendaciones según tu mood</div>
+          </div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {ICONS.luna(C.roseDark, 32)}
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.roseDark }}>En la noche</div>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Cómo te fue?" — revisa tu resumen y reflexiona</div>
+          </div>
+        </div>
+      </div>
+    </div>,
+
+    /* Slide 3 — Programas y recomendaciones */
+    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Programas paso a paso
+      </div>
+      <div style={{ fontSize: 14, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+        Caminos de 7 días para sanar, crecer y brillar. 1 minuto al día.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
+        {PROGRAMAS.slice(0, 4).map(prog => (
+          <div key={prog.id} style={{
+            background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12,
+            borderLeft: `3px solid ${prog.color}`,
+          }}>
+            {ICONS[prog.id](prog.color, 28)}
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{prog.title}</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{prog.days.length} días · 1 min/día</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 13, color: C.muted, marginTop: 20, maxWidth: 280, lineHeight: 1.5 }}>
+        Además, te recomendamos podcasts, música y hábitos según cómo te sientes cada día.
+      </div>
+    </div>,
+
+    /* Slide 4 — Herramientas */
+    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         Todo lo que necesitas
       </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 32 }}>
-        Herramientas diseñadas para tu crecimiento diario
+      <div style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>
+        Herramientas diseñadas para tu crecimiento
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 320 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
         {[
-          { icon: NAV_ICONS.inicio(false), title: 'Mi día', desc: 'Tu dashboard con el progreso del día' },
-          { icon: NAV_ICONS.habitos(false), title: 'Hábitos', desc: 'Trackea tus hábitos por dimensión' },
-          { icon: NAV_ICONS.rutina(false), title: 'Mi rutina', desc: 'Tu rutina de mañana y noche' },
-          { icon: NAV_ICONS.diario(false), title: 'Diario', desc: 'Reflexiona y registra tu estado' },
+          { icon: NAV_ICONS.inicio(false), title: 'Mi día', desc: 'Tu dashboard y progreso diario' },
+          { icon: NAV_ICONS.programas(false), title: 'Programas', desc: 'Caminos paso a paso para sanar y crecer' },
+          { icon: NAV_ICONS.habitos(false), title: 'Hábitos', desc: 'Crea y trackea tus hábitos por dimensión' },
+          { icon: NAV_ICONS.rutina(false), title: 'Mi rutina', desc: 'Tu rutina de mañana, tarde y noche' },
+          { icon: NAV_ICONS.diario(false), title: 'Diario', desc: 'Reflexiona y recibe recomendaciones' },
+          { icon: NAV_ICONS.toolkit(false), title: 'Toolkit', desc: 'Guarda tus podcasts, libros y recursos' },
           { icon: NAV_ICONS.frases(false), title: 'Frases', desc: 'Inspiración diaria para tu camino' },
-          { icon: NAV_ICONS.toolkit(false), title: 'Toolkit', desc: 'Tus podcasts, libros y recursos' },
         ].map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '12px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left' }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '10px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left' }}>
             <div style={{ flexShrink: 0 }}>{item.icon}</div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>{item.title}</div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.desc}</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{item.title}</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{item.desc}</div>
             </div>
           </div>
         ))}
       </div>
     </div>,
 
-    /* Slide 3 — Nombre */
-    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+    /* Slide 5 — Nombre */
+    <div key={5} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
       <div style={{ width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
         <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
       </div>
@@ -1571,7 +1664,7 @@ function App() {
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
         boxShadow: '0 4px 16px rgba(196,144,138,0.35)',
       }}>
-        Comenzar mi Ronda ✨
+        Comenzar mi Ronda
       </button>
     </div>,
   ]
@@ -1596,7 +1689,7 @@ function App() {
           </div>
 
           {/* Buttons */}
-          {onboardStep < 3 && (
+          {onboardStep < 5 && (
             <div style={{ display: 'flex', gap: 16 }}>
               {onboardStep > 0 && (
                 <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
@@ -1671,7 +1764,7 @@ function App() {
                 </div>
                 <span style={{ fontSize: 14, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
                   textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
-                  {dim.emoji} {h.name}
+                  {ICONS[dim.icon] ? ICONS[dim.icon](dim.color, 16) : ''} {h.name}
                 </span>
               </div>
             )
@@ -1750,7 +1843,7 @@ function App() {
                       width: 18, height: 18, borderRadius: 5, border: `2px solid ${DIMS[h.dim].color}`,
                       background: 'transparent', flexShrink: 0,
                     }} />
-                    <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{DIMS[h.dim].emoji} {h.name}</span>
+                    <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)} {h.name}</span>
                   </div>
                 ))}
               </div>
