@@ -105,6 +105,168 @@ const TOOLKIT_CATS = [
   { id: 'otro',       emoji: '🔗', label: 'Otros',         color: '#B5A099' },
 ]
 
+/* ── Mood-based recommendations ── */
+const MOOD_RECS = {
+  0: { /* 😢 Muy down */
+    label: 'Te abrazo desde aquí',
+    color: '#C4908A',
+    items: [
+      { type: 'podcast', title: 'Mel Robbins — "How to Stop Feeling So Overwhelmed"', url: 'https://open.spotify.com/show/5bGsRbA3MXzP8FpbEuFJRa', emoji: '🎙️' },
+      { type: 'podcast', title: 'Jay Shetty — "How to Heal a Broken Heart"', url: 'https://open.spotify.com/show/5EqqB52m2bsr4k1Ii7sStc', emoji: '🎙️' },
+      { type: 'musica', title: '🎵 "Rise Up" — Andra Day', url: 'https://open.spotify.com/track/0tBbt8CrmxbjRP0pueQkyU', emoji: '🎵' },
+      { type: 'musica', title: '🎵 "Fight Song" — Rachel Platten', url: 'https://open.spotify.com/track/7o2CTH4ctstm8TNelqjb51', emoji: '🎵' },
+      { type: 'habito', title: 'Respira 4-7-8: Inhala 4s, sostén 7s, exhala 8s', emoji: '🫁' },
+      { type: 'habito', title: 'Escribe 3 cosas por las que estás agradecida', emoji: '📝' },
+      { type: 'habito', title: 'Sal a caminar 5 minutos — solo respira', emoji: '🚶‍♀️' },
+    ],
+    programa: 'tusa',
+  },
+  1: { /* 😐 Regular */
+    label: 'Un empujoncito de energía',
+    color: '#C9A96E',
+    items: [
+      { type: 'podcast', title: 'Mel Robbins — "The 5 Second Rule"', url: 'https://open.spotify.com/show/5bGsRbA3MXzP8FpbEuFJRa', emoji: '🎙️' },
+      { type: 'podcast', title: 'Brené Brown — "Unlocking Us"', url: 'https://open.spotify.com/show/4P86ZzHf7EOlRG7do9jkXm', emoji: '🎙️' },
+      { type: 'musica', title: '🎵 "Happy" — Pharrell Williams', url: 'https://open.spotify.com/track/60nZcImufyMA1MKQY3dcCH', emoji: '🎵' },
+      { type: 'habito', title: '1 minuto de baile — pon tu canción favorita', emoji: '💃' },
+      { type: 'habito', title: 'Haz una lista de 3 cosas que sí puedes controlar hoy', emoji: '📋' },
+    ],
+  },
+  2: { /* 🙂 Bien */
+    label: 'Mantén esa energía',
+    color: '#A6716B',
+    items: [
+      { type: 'podcast', title: 'Jay Shetty — "On Purpose: Finding Your Passion"', url: 'https://open.spotify.com/show/5EqqB52m2bsr4k1Ii7sStc', emoji: '🎙️' },
+      { type: 'podcast', title: 'TED Talks Daily — "The Power of Vulnerability"', url: 'https://open.spotify.com/show/1VXcH8QHkjRcTCEd88U3ti', emoji: '🎤' },
+      { type: 'musica', title: '🎵 "Don\'t Stop Me Now" — Queen', url: 'https://open.spotify.com/track/5T8EDUDqKcs6OSOwEsfqG7', emoji: '🎵' },
+      { type: 'habito', title: 'Medita 5 minutos — enfócate en tu respiración', emoji: '🧘' },
+      { type: 'habito', title: 'Escríbele a alguien que quieres y dile que la amas', emoji: '💌' },
+    ],
+  },
+  3: { /* 😊 Muy bien */
+    label: 'Aprovecha tu buena vibra',
+    color: '#7BA56E',
+    items: [
+      { type: 'podcast', title: 'Lewis Howes — "The School of Greatness"', url: 'https://open.spotify.com/show/07GQhOZboEZOE1ysnFLipT', emoji: '🎙️' },
+      { type: 'libro', title: '📚 "Atomic Habits" — James Clear', url: 'https://www.amazon.com/Atomic-Habits-James-Clear/dp/0735211299', emoji: '📚' },
+      { type: 'musica', title: '🎵 "Walking on Sunshine" — Katrina & The Waves', url: 'https://open.spotify.com/track/05wIrZSwuaVWhcv5FfqeH0', emoji: '🎵' },
+      { type: 'habito', title: 'Haz journaling de gratitud — 5 cosas increíbles de hoy', emoji: '✨' },
+      { type: 'habito', title: 'Planifica algo lindo para mañana', emoji: '🗓️' },
+    ],
+  },
+  4: { /* 🤩 Increíble */
+    label: '¡Estás brillando!',
+    color: '#C9A96E',
+    items: [
+      { type: 'podcast', title: 'Tony Robbins — "Unleash the Power Within"', url: 'https://open.spotify.com/show/6fZXOzfGDmPzIEMl8qzmmq', emoji: '🎙️' },
+      { type: 'tedtalk', title: '🎤 "Your Body Language Shapes Who You Are" — Amy Cuddy', url: 'https://www.ted.com/talks/amy_cuddy_your_body_language_may_shape_who_you_are', emoji: '🎤' },
+      { type: 'musica', title: '🎵 "Run the World (Girls)" — Beyoncé', url: 'https://open.spotify.com/track/0MBr7DLYRJtAcefJBkhEtd', emoji: '🎵' },
+      { type: 'habito', title: 'Reto: haz algo que te dé miedo hoy — crece', emoji: '🦋' },
+      { type: 'habito', title: 'Comparte tu energía — ayuda a alguien hoy', emoji: '🫶' },
+    ],
+  },
+}
+
+/* ── Programas paso a paso ── */
+const PROGRAMAS = [
+  {
+    id: 'tusa',
+    title: 'Salir de una tusa',
+    emoji: '💔→🦋',
+    desc: 'Un camino de 7 días para sanar tu corazón, un minuto a la vez',
+    color: '#C4908A',
+    days: [
+      { day: 1, title: 'Acepta lo que sientes', task: 'Escribe lo que sientes sin filtro. Solo 1 minuto. No lo juzgues.', emoji: '📝' },
+      { day: 2, title: 'Llora si necesitas', task: 'Pon una canción que te haga sentir y déjate llorar. El llanto sana.', emoji: '🎵' },
+      { day: 3, title: 'Corta el contacto', task: 'Silencia o elimina sus redes. 1 minuto que cambia todo. Tú primero.', emoji: '📵' },
+      { day: 4, title: 'Mueve tu cuerpo', task: 'Camina 10 minutos. El movimiento cambia la química de tu cerebro.', emoji: '🚶‍♀️' },
+      { day: 5, title: 'Reconéctate contigo', task: 'Escribe 5 cosas que amas de ti. Lee esto cada mañana.', emoji: '💛' },
+      { day: 6, title: 'Haz algo nuevo', task: 'Cocina algo nuevo, toma otra ruta, escucha música diferente. Rompe patrones.', emoji: '🌱' },
+      { day: 7, title: 'Carta de perdón', task: 'Escríbele una carta (no la envíes). Perdona y suelta. Eres libre.', emoji: '🕊️' },
+    ],
+  },
+  {
+    id: 'depresion',
+    title: 'Vencer la depresión',
+    emoji: '🌧️→☀️',
+    desc: '7 días de micro-hábitos para recuperar tu luz interior',
+    color: '#A6716B',
+    days: [
+      { day: 1, title: 'Levántate y abre una ventana', task: '1 minuto de luz solar. La luz activa tu serotonina.', emoji: '☀️' },
+      { day: 2, title: 'Ducha de agua fría (30 seg)', task: 'Solo 30 segundos al final de tu ducha. Activa tu sistema nervioso.', emoji: '🚿' },
+      { day: 3, title: '3 cosas de gratitud', task: 'Escribe 3 cosas por mínimas que sean. "Estoy viva" cuenta.', emoji: '📝' },
+      { day: 4, title: 'Llama a alguien', task: '1 minuto. Llama a alguien que te quiere. La conexión humana sana.', emoji: '📞' },
+      { day: 5, title: 'Cocina algo simple', task: 'Un huevo, una fruta. Nutrir tu cuerpo es nutrir tu mente.', emoji: '🍳' },
+      { day: 6, title: 'Sal de tu casa', task: 'Aunque sea a la puerta. 5 minutos afuera. El aire fresco cambia todo.', emoji: '🌿' },
+      { day: 7, title: 'Escríbete a ti misma', task: 'Escríbete una carta de amor. "Querida yo, estoy orgullosa de ti porque..."', emoji: '💌' },
+    ],
+  },
+  {
+    id: 'ansiedad',
+    title: 'Calmar la ansiedad',
+    emoji: '😰→🧘',
+    desc: '7 días para recuperar la calma, paso a paso',
+    color: '#C9A96E',
+    days: [
+      { day: 1, title: 'Respiración 4-7-8', task: 'Inhala 4s, sostén 7s, exhala 8s. Repite 3 veces. Tu sistema nervioso se calma.', emoji: '🫁' },
+      { day: 2, title: 'Grounding: 5-4-3-2-1', task: '5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.', emoji: '🌍' },
+      { day: 3, title: 'Escribe tus miedos', task: 'Ponlos en papel. Al verlos escritos, pierden poder sobre ti.', emoji: '📝' },
+      { day: 4, title: 'Meditación guiada', task: '5 minutos. Pon una meditación guiada y solo escucha.', emoji: '🧘' },
+      { day: 5, title: 'Desconexión digital', task: '1 hora sin celular. Lee, dibuja, respira. Tu mente necesita silencio.', emoji: '📵' },
+      { day: 6, title: 'Yoga suave', task: '10 minutos de estiramientos suaves. Tu cuerpo guarda la ansiedad.', emoji: '🧘‍♀️' },
+      { day: 7, title: 'Carta a tu ansiedad', task: '"Querida ansiedad, te escucho pero ya no te obedezco." Escríbela.', emoji: '✉️' },
+    ],
+  },
+  {
+    id: 'empezar',
+    title: 'Empezar de cero',
+    emoji: '🌱→🌳',
+    desc: '7 días para reinventarte y construir la vida que quieres',
+    color: '#7BA56E',
+    days: [
+      { day: 1, title: 'Define tu "por qué"', task: '¿Por qué quieres cambiar? Escríbelo en 1 frase. Eso es tu motor.', emoji: '🎯' },
+      { day: 2, title: 'Limpia un espacio', task: 'Tu escritorio, tu mesa, un cajón. Espacio limpio = mente clara.', emoji: '🧹' },
+      { day: 3, title: '1 hábito nuevo, 1 minuto', task: 'Escoge 1 hábito y hazlo solo 1 minuto. Mañana serán 2.', emoji: '⏱️' },
+      { day: 4, title: 'Elimina 1 distracción', task: 'Borra una app, silencia un grupo, di no a un compromiso.', emoji: '✂️' },
+      { day: 5, title: 'Aprende algo nuevo', task: '10 minutos de un podcast, un TED Talk, un artículo. Alimenta tu mente.', emoji: '📚' },
+      { day: 6, title: 'Haz algo que te dé miedo', task: 'Ese mensaje, esa llamada, esa decisión. Hazlo hoy. El miedo es la señal.', emoji: '🦋' },
+      { day: 7, title: 'Escribe tu visión', task: '¿Cómo es tu vida ideal en 1 año? Descríbela con detalle. Ya empezaste.', emoji: '✨' },
+    ],
+  },
+  {
+    id: 'autoestima',
+    title: 'Reconstruir mi autoestima',
+    emoji: '🪞→👑',
+    desc: '7 días para recordar quién eres y cuánto vales',
+    color: '#C4908A',
+    days: [
+      { day: 1, title: 'Mírate al espejo', task: 'Mírate 1 minuto y dite: "Te veo, te quiero, estoy contigo."', emoji: '🪞' },
+      { day: 2, title: '5 logros de tu vida', task: 'Escribe 5 cosas que has logrado. Grandes o pequeñas. Son tuyas.', emoji: '🏆' },
+      { day: 3, title: 'Deja de compararte', task: 'Hoy no abras redes sociales. Compárate solo con quien eras ayer.', emoji: '📵' },
+      { day: 4, title: 'Pon límites', task: 'Di "no" a algo que no quieres hacer. Tu tiempo es valioso.', emoji: '🚫' },
+      { day: 5, title: 'Vístete para ti', task: 'Ponte algo que te haga sentir poderosa. Arréglate para TI.', emoji: '👗' },
+      { day: 6, title: 'Afirmaciones', task: '"Soy suficiente. Merezco amor. Mi valor no depende de nadie." Repite 5 veces.', emoji: '💛' },
+      { day: 7, title: 'Carta de tu yo futura', task: 'Tu yo del futuro te escribe: "Gracias por no rendirte. Mírate ahora."', emoji: '💌' },
+    ],
+  },
+]
+
+/* ── Suggested habits for new users ── */
+const SUGGESTED_HABITS = [
+  { name: 'Meditar 5 minutos', dim: 'espiritual', emoji: '🧘' },
+  { name: 'Caminar 15 minutos', dim: 'fisico', emoji: '🚶‍♀️' },
+  { name: 'Escribir 3 gratitudes', dim: 'emocional', emoji: '📝' },
+  { name: 'Leer 10 páginas', dim: 'mental', emoji: '📚' },
+  { name: 'Tomar 8 vasos de agua', dim: 'fisico', emoji: '💧' },
+  { name: 'Respiración consciente 1 min', dim: 'emocional', emoji: '🫁' },
+  { name: 'Oración / momento espiritual', dim: 'espiritual', emoji: '🙏' },
+  { name: 'Journaling — escribir reflexión', dim: 'emocional', emoji: '📔' },
+  { name: 'Estiramiento o yoga 10 min', dim: 'fisico', emoji: '🧘‍♀️' },
+  { name: 'Aprender algo nuevo 15 min', dim: 'mental', emoji: '🧠' },
+  { name: 'Skincare mañana y noche', dim: 'fisico', emoji: '🧴' },
+  { name: 'No celular 1 hora antes de dormir', dim: 'mental', emoji: '📵' },
+]
+
 /* ── Helpers ── */
 const todayKey = () => new Date().toISOString().slice(0, 10)
 const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback } catch { return fallback } }
@@ -230,6 +392,10 @@ function App() {
   const [nightReflection, setNightReflection] = useState('')
   const [nightMood, setNightMood] = useState(2)
 
+  // Programs (paso a paso)
+  const [activePrograms, setActivePrograms] = useState(() => load('ronda-programs', {}))
+  // activePrograms = { tusa: { startDate: '2026-03-14', completedDays: [1,2] }, ... }
+
   // Habit editor
   const [newHabitName, setNewHabitName] = useState('')
   const [newHabitDim, setNewHabitDim] = useState('espiritual')
@@ -251,6 +417,7 @@ function App() {
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
   useEffect(() => { save('diana-profile', profile) }, [profile])
+  useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
   useEffect(() => { save(`ronda-morning-${todayKey()}`, morningDone) }, [morningDone])
   useEffect(() => { save(`ronda-night-${todayKey()}`, nightDone) }, [nightDone])
 
@@ -302,6 +469,24 @@ function App() {
 
   const toggleFavQuote = (idx) => {
     setFavQuotes(prev => prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx])
+  }
+
+  const startProgram = (progId) => {
+    setActivePrograms(prev => ({ ...prev, [progId]: { startDate: todayKey(), completedDays: [] } }))
+  }
+  const completeProgDay = (progId, day) => {
+    setActivePrograms(prev => {
+      const prog = prev[progId] || { startDate: todayKey(), completedDays: [] }
+      const completed = prog.completedDays.includes(day) ? prog.completedDays.filter(d => d !== day) : [...prog.completedDays, day]
+      return { ...prev, [progId]: { ...prog, completedDays: completed } }
+    })
+  }
+  const quitProgram = (progId) => {
+    setActivePrograms(prev => { const next = { ...prev }; delete next[progId]; return next })
+  }
+  const addSuggestedHabit = (habit) => {
+    const id = Date.now()
+    setHabits(prev => [...prev, { id, name: habit.name, dim: habit.dim }])
   }
 
   const addToolkitItem = () => {
@@ -379,15 +564,18 @@ function App() {
     diario: (a) => <BrandIcon active={a}><path d="M8 15 Q8 9 16 9 Q24 9 24 15 Q24 21 16 21 L13 21 L10 24 L11 21 Q8 20.5 8 15 Z" fill={a ? C.gold : C.rose} opacity="0.85" /><line x1="12" y1="13" x2="20" y2="13" stroke="white" strokeWidth="1.2" strokeLinecap="round" /><line x1="12" y1="16.5" x2="18" y2="16.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" /></BrandIcon>,
     /* Frases — comillas */
     frases: (a) => <BrandIcon active={a}><g fill={a ? C.gold : C.rose} opacity="0.85"><circle cx="12" cy="14" r="3" /><path d="M12 17 Q9 17 10 21 L13 20 Q14 17 12 17Z" /><circle cx="21" cy="14" r="3" /><path d="M21 17 Q18 17 19 21 L22 20 Q23 17 21 17Z" /></g></BrandIcon>,
+    /* Programas — camino/steps */
+    programas: (a) => <BrandIcon active={a}><path d="M10 24 L10 20 L16 17 L16 13 L22 10 L22 7" stroke={a ? C.gold : C.rose} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><circle cx="10" cy="24" r="2.5" fill={a ? C.gold : C.rose} opacity="0.5" /><circle cx="16" cy="15" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><circle cx="22" cy="7" r="2.5" fill={a ? C.gold : C.rose} /></BrandIcon>,
   }
 
   const NAV = [
-    { id: 'inicio',  label: 'Mi día' },
-    { id: 'toolkit', label: 'Toolkit' },
-    { id: 'habitos', label: 'Mis hábitos' },
-    { id: 'rutina',  label: 'Mi rutina' },
-    { id: 'diario',  label: 'Diario' },
-    { id: 'frases',  label: 'Frases' },
+    { id: 'inicio',    label: 'Mi día' },
+    { id: 'programas', label: 'Programas' },
+    { id: 'habitos',   label: 'Hábitos' },
+    { id: 'rutina',    label: 'Rutina' },
+    { id: 'diario',    label: 'Diario' },
+    { id: 'toolkit',   label: 'Toolkit' },
+    { id: 'frases',    label: 'Frases' },
   ]
 
   /* ── Logo ── */
@@ -493,11 +681,54 @@ function App() {
         ))}
       </div>
 
-      {/* Today's mood */}
-      {entries.length > 0 && entries[0].date === todayKey() && (
-        <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Estado de ánimo hoy</div>
-          <div style={{ fontSize: 36 }}>{MOODS[entries[0].mood]}</div>
+      {/* Today's mood + recommendation */}
+      {entries.length > 0 && entries[0].date === todayKey() && (() => {
+        const moodRec = MOOD_RECS[entries[0].mood]
+        return (
+          <div style={{ background: C.card, borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Estado de ánimo hoy</div>
+              <div style={{ fontSize: 36 }}>{MOODS[entries[0].mood]}</div>
+            </div>
+            {moodRec && (
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: moodRec.color, marginBottom: 8 }}>{moodRec.label} — te recomendamos:</div>
+                {moodRec.items.slice(0, 3).map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 16 }}>{item.emoji}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: C.text, flex: 1 }}>{item.title}</span>
+                    {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: moodRec.color, fontWeight: 700, textDecoration: 'none' }}>→</a>}
+                  </div>
+                ))}
+                <button onClick={() => setView('diario')} style={{
+                  marginTop: 6, fontSize: 12, color: moodRec.color, fontWeight: 700, background: 'none',
+                  border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+                }}>Ver todas las recomendaciones →</button>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* Active programs preview */}
+      {Object.keys(activePrograms).length > 0 && (
+        <div style={{ background: C.card, borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer' }}
+          onClick={() => setView('programas')}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 8 }}>Mis programas activos</div>
+          {Object.entries(activePrograms).map(([progId, progress]) => {
+            const prog = PROGRAMAS.find(p => p.id === progId)
+            if (!prog) return null
+            const pct = Math.round((progress.completedDays.length / prog.days.length) * 100)
+            return (
+              <div key={progId} style={{ marginBottom: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, color: prog.color, marginBottom: 4 }}>
+                  <span>{prog.emoji} {prog.title}</span>
+                  <span>{pct}%</span>
+                </div>
+                <Bar value={pct} color={prog.color} height={5} />
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
@@ -675,6 +906,50 @@ function App() {
         </button>
       </div>
 
+      {/* ── Mood Recommendations ── */}
+      {(() => {
+        const rec = MOOD_RECS[journalMood]
+        if (!rec) return null
+        return (
+          <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', border: `2px solid ${rec.color}20` }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: rec.color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+              {MOODS[journalMood]} {rec.label}
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>Basado en cómo te sientes, te recomendamos:</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {rec.items.map((item, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+                  background: C.cream, borderRadius: 12, border: `1px solid ${C.border}`,
+                }}>
+                  <span style={{ fontSize: 22, flexShrink: 0 }}>{item.emoji}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{item.title}</div>
+                    <div style={{ fontSize: 11, color: C.subtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{item.type}</div>
+                  </div>
+                  {item.url && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{
+                      fontSize: 12, color: rec.color, fontWeight: 700, textDecoration: 'none',
+                      padding: '4px 10px', borderRadius: 20, border: `1px solid ${rec.color}40`,
+                      flexShrink: 0,
+                    }}>Abrir</a>
+                  )}
+                </div>
+              ))}
+            </div>
+            {rec.programa && (
+              <button onClick={() => { startProgram(rec.programa); setView('programas') }} style={{
+                marginTop: 12, width: '100%', padding: 12, borderRadius: 12, border: `2px solid ${rec.color}`,
+                background: 'transparent', color: rec.color, fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                Ver programa paso a paso →
+              </button>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Entries grouped by date */}
       {entries.length > 0 && (() => {
         const grouped = {}
@@ -716,6 +991,147 @@ function App() {
           <div style={{ fontSize: 14, marginTop: 4 }}>Escribe tu primera reflexión arriba</div>
         </div>
       )}
+    </div>
+  )
+
+  /* ── PROGRAMAS ── */
+  const programasView = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 22, color: 'white' }}>
+        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
+        <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
+        <div style={{ fontSize: 13, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
+      </div>
+
+      {/* Active programs */}
+      {Object.keys(activePrograms).length > 0 && (
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+            Mis programas activos
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {Object.entries(activePrograms).map(([progId, progress]) => {
+              const prog = PROGRAMAS.find(p => p.id === progId)
+              if (!prog) return null
+              const completedCount = progress.completedDays.length
+              const pct = Math.round((completedCount / prog.days.length) * 100)
+              return (
+                <div key={progId} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.emoji} {prog.title}</div>
+                      <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
+                    </div>
+                    <button onClick={() => quitProgram(progId)} style={{
+                      background: 'none', border: 'none', fontSize: 12, color: C.subtle, cursor: 'pointer', padding: 4,
+                    }}>✕</button>
+                  </div>
+                  <Bar value={pct} color={prog.color} height={6} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 }}>
+                    {prog.days.map(d => {
+                      const isDone = progress.completedDays.includes(d.day)
+                      return (
+                        <div key={d.day} onClick={() => completeProgDay(progId, d.day)} style={{
+                          display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+                          background: isDone ? `${prog.color}08` : C.cream, borderRadius: 14,
+                          cursor: 'pointer', border: `1px solid ${isDone ? `${prog.color}30` : C.border}`,
+                          opacity: isDone ? 0.7 : 1, transition: 'all 0.15s',
+                        }}>
+                          <div style={{
+                            width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
+                            background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0, marginTop: 2,
+                          }}>
+                            {isDone && '✓'}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                              Día {d.day} {d.emoji}
+                            </div>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
+                              textDecoration: isDone ? 'line-through' : 'none' }}>
+                              {d.title}
+                            </div>
+                            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
+                              {d.task}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {pct === 100 && (
+                    <div style={{ textAlign: 'center', marginTop: 14, padding: 16, background: `${prog.color}10`, borderRadius: 14 }}>
+                      <div style={{ fontSize: 36, marginBottom: 6 }}>🎉</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: prog.color }}>¡Completaste el programa!</div>
+                      <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Eres increíble. Cada paso cuenta.</div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Available programs */}
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          {Object.keys(activePrograms).length > 0 ? 'Más programas' : 'Escoge tu camino'}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {PROGRAMAS.filter(p => !activePrograms[p.id]).map(prog => (
+            <div key={prog.id} style={{
+              background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+              borderLeft: `4px solid ${prog.color}`,
+            }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>{prog.emoji}</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
+              <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
+              <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
+              <button onClick={() => startProgram(prog.id)} style={{
+                marginTop: 12, padding: '10px 20px', borderRadius: 12, border: 'none',
+                background: `linear-gradient(135deg, ${prog.color}, ${prog.color}CC)`,
+                color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                Empezar programa →
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Suggested habits */}
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          Hábitos sugeridos para agregar
+        </div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 10 }}>
+          ¿Quieres agregar alguno a tu lista diaria?
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {SUGGESTED_HABITS.filter(sh => !habits.some(h => h.name === sh.name)).map((sh, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+              background: C.card, borderRadius: 12, border: `1px solid ${C.border}`,
+            }}>
+              <span style={{ fontSize: 20 }}>{sh.emoji}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{sh.name}</div>
+                <div style={{ fontSize: 12, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].emoji} {DIMS[sh.dim].label}</div>
+              </div>
+              <button onClick={() => addSuggestedHabit(sh)} style={{
+                padding: '6px 14px', borderRadius: 20, border: `1px solid ${C.rose}`,
+                background: 'transparent', color: C.rose, fontSize: 12, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                + Agregar
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 
@@ -1388,13 +1804,14 @@ function App() {
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       {header}
       <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 80 }}>
-        {view === 'inicio'  && inicioView}
-        {view === 'toolkit' && toolkitView}
-        {view === 'habitos' && habitosView}
-        {view === 'rutina'  && rutinaView}
-        {view === 'diario'  && diarioView}
-        {view === 'frases'  && frasesView}
-        {view === 'perfil'  && perfilView}
+        {view === 'inicio'    && inicioView}
+        {view === 'programas' && programasView}
+        {view === 'toolkit'   && toolkitView}
+        {view === 'habitos'   && habitosView}
+        {view === 'rutina'    && rutinaView}
+        {view === 'diario'    && diarioView}
+        {view === 'frases'    && frasesView}
+        {view === 'perfil'    && perfilView}
       </div>
       {bottomNav}
       {morningModal}
