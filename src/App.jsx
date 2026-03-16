@@ -68,7 +68,7 @@ function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   // Habits
-  const [habits, setHabits] = useState(() => load('diana-habits', DEFAULT_HABITS))
+  const [habits, setHabits] = useState(() => load('diana-habits', []))
   const [checked, setChecked] = useState(() => load(`diana-checked-${todayKey()}`, {}))
   const [streaks, setStreaks] = useState(() => load('diana-streaks', {}))
 
@@ -143,10 +143,14 @@ function App() {
   useEffect(() => { save(`ronda-morning-${todayKey()}`, morningDone) }, [morningDone])
   useEffect(() => { save(`ronda-night-${todayKey()}`, nightDone) }, [nightDone])
 
-  // Sync localStorage → Supabase on first login
+  // Sync localStorage → Supabase on first login + update profile name from auth
   useEffect(() => {
     if (user && isConfigured) {
       syncFromLocal(user.id)
+      const authName = user.user_metadata?.name || user.user_metadata?.full_name
+      if (authName && authName !== profile.name) {
+        setProfile(prev => ({ ...prev, name: authName }))
+      }
     }
   }, [user, isConfigured])
 
@@ -474,6 +478,19 @@ function App() {
         </div>
         <Bar value={totalHabits > 0 ? (totalDone / totalHabits) * 100 : 0} />
       </div>
+
+      {/* Empty state — invite to pick habits */}
+      {habits.length === 0 && (
+        <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>✨</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            Escoge tus hábitos
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, marginBottom: 14 }}>
+            Agrega hábitos de la lista de sugeridos o crea los tuyos propios
+          </div>
+        </div>
+      )}
 
       {/* Habits by dimension */}
       {Object.entries(DIMS).map(([dim, cfg]) => {
@@ -1487,31 +1504,44 @@ function App() {
         <div style={{ fontSize: 12, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
           Mis hábitos de hoy
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
-          {habits.map(h => {
-            const dim = DIMS[h.dim]
-            return (
-              <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-                background: checked[h.id] ? `${C.green}12` : C.cream, borderRadius: 12,
-                cursor: 'pointer', transition: 'all 0.15s',
-                border: checked[h.id] ? `1px solid ${C.green}40` : `1px solid ${C.border}`,
-              }}>
-                <div style={{
-                  width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked[h.id] ? C.green : dim.color}`,
-                  background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+        {habits.length === 0 ? (
+          <div style={{ padding: '16px 14px', background: C.cream, borderRadius: 12, border: `1px dashed ${C.roseLight}`, marginBottom: 18, textAlign: 'center' }}>
+            <div style={{ fontSize: 14, color: C.muted, marginBottom: 8 }}>Aún no tienes hábitos</div>
+            <button onClick={() => { setShowMorningCheckin(false); setView('habitos') }} style={{
+              padding: '8px 18px', borderRadius: 20, border: 'none',
+              background: C.rose, color: 'white', fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              Escoger mis hábitos
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
+            {habits.map(h => {
+              const dim = DIMS[h.dim]
+              return (
+                <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+                  background: checked[h.id] ? `${C.green}12` : C.cream, borderRadius: 12,
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  border: checked[h.id] ? `1px solid ${C.green}40` : `1px solid ${C.border}`,
                 }}>
-                  {checked[h.id] && '✓'}
+                  <div style={{
+                    width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked[h.id] ? C.green : dim.color}`,
+                    background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                  }}>
+                    {checked[h.id] && '✓'}
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
+                    textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
+                    {ICONS[dim.icon] ? ICONS[dim.icon](dim.color, 16) : ''} {h.name}
+                  </span>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
-                  textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
-                  {ICONS[dim.icon] ? ICONS[dim.icon](dim.color, 16) : ''} {h.name}
-                </span>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Intention */}
         <div style={{ fontSize: 12, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
