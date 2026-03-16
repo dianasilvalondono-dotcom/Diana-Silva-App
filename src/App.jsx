@@ -106,6 +106,7 @@ function App() {
   const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
+  const [onboardHabits, setOnboardHabits] = useState([])
 
   // Morning/Night check-in
   const [morningDone, setMorningDone] = useState(() => load(`ronda-morning-${todayKey()}`, false))
@@ -1226,6 +1227,10 @@ function App() {
       setProfile(prev => ({ ...prev, name: onboardName.trim() }))
       save('diana-profile', { ...profile, name: onboardName.trim() })
     }
+    if (onboardHabits.length > 0) {
+      const newHabits = onboardHabits.map((sh, i) => ({ id: Date.now() + i, name: sh.name, dim: sh.dim }))
+      setHabits(newHabits)
+    }
     setOnboarded(true)
     save('ronda-onboarded', true)
   }
@@ -1363,31 +1368,47 @@ function App() {
       </div>
     </div>,
 
-    /* Slide 5 — Nombre */
-    <div key={5} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-        <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
+    /* Slide 5 — Escoge tus hábitos */
+    <div key={5} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', textAlign: 'center', padding: '32px 24px' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 6 }}>
+        Escoge tus hábitos
       </div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        ¿Cómo te llamas?
+      <div style={{ fontSize: 14, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
+        Toca los que quieras practicar. Siempre puedes cambiarlos después.
       </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 32 }}>
-        Queremos conocerte para personalizar tu experiencia
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 8 }}>
+        {onboardHabits.length} seleccionados
       </div>
-      <input
-        value={onboardName}
-        onChange={e => setOnboardName(e.target.value)}
-        placeholder="Tu nombre"
-        style={{
-          width: '100%', maxWidth: 300, padding: '14px 18px', borderRadius: 14,
-          border: `2px solid ${C.roseLight}`, fontSize: 18, fontFamily: 'inherit',
-          textAlign: 'center', outline: 'none', color: C.text, background: C.card,
-        }}
-        onFocus={e => e.target.style.borderColor = C.gold}
-        onBlur={e => e.target.style.borderColor = C.roseLight}
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 340, marginBottom: 24 }}>
+        {SUGGESTED_HABITS.map((sh, i) => {
+          const selected = onboardHabits.some(h => h.name === sh.name)
+          const dim = DIMS[sh.dim]
+          return (
+            <div key={i} onClick={() => {
+              setOnboardHabits(prev => selected ? prev.filter(h => h.name !== sh.name) : [...prev, sh])
+            }} style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px',
+              background: selected ? `${dim.color}15` : C.card, borderRadius: 12,
+              border: selected ? `2px solid ${dim.color}` : `1px solid ${C.border}`,
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: 6, border: `2px solid ${selected ? dim.color : C.border}`,
+                background: selected ? dim.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+              }}>
+                {selected && '✓'}
+              </div>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{sh.name}</div>
+                <div style={{ fontSize: 11, color: dim.color, fontWeight: 700 }}>{dim.label}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
       <button onClick={finishOnboarding} style={{
-        marginTop: 32, padding: '14px 40px', borderRadius: 30,
+        padding: '14px 40px', borderRadius: 30,
         background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
         color: 'white', fontSize: 17, fontWeight: 800, border: 'none',
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
@@ -1395,6 +1416,9 @@ function App() {
       }}>
         Comenzar mi Ronda
       </button>
+      <div style={{ fontSize: 12, color: C.muted, marginTop: 12 }}>
+        También puedes crear hábitos propios después
+      </div>
     </div>,
   ]
 
