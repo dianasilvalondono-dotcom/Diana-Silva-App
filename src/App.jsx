@@ -859,26 +859,29 @@ function App() {
           La historia detrás de Ronda
         </div>
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 14 }}>
-          "Yo estaba entregándole mi poder a los externos y no a los internos"
+          "He sido miles de mujeres en una sola mujer"
         </div>
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Ronda nació de una tusa. Me enamoré de alguien que no estaba disponible — ni emocional, ni física, ni de ninguna manera. Cuando él se fue, toda la ilusión de mi vida se fue con él. Me tocó reinventarme.
+          Yo sí algo sé: es reinventarme. Me divorcié a los 25 con tres maletas, una mano adelante y una atrás, hecha pa'lante. He tenido muchas vidas dentro de mi vida. La vida me ha puesto obstáculos una y otra vez — y cada vez me tocó reconstruirme.
         </div>
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
           Empecé a ponerme rutinas: ir al gimnasio, salir de mi casa, tomar el sol, meditar en las escaleras de mi edificio, bajarme con un libro para buscar vida por fuera. Me empecé a fortalecer.
         </div>
         {showFullStory && <>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Vivo con TLP — trastorno límite de la personalidad — desde los 16 años. Pasé por malos diagnósticos, por depresión, por un intento de suicidio. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia sin saber para dónde iba.
+            Vivo con TLP — trastorno límite de la personalidad — desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia sin saber para dónde iba. Nunca pensé que iba a echarme un viaje a Europa sola.
           </div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            En ese viaje sentí que había mucha soledad, que faltaba conexión. Yo quería ayudar más, quería que me ayudaran, y no sabía pedir ayuda. En los momentos de crisis uno busca apoyo y la psicóloga tiene citas. No está disponible. Entonces pensé: ¿cómo conectamos con gente? ¿Cómo tengo a alguien ahí cuando lo necesito?
+            En ese camino sentí que había mucha soledad, que faltaba conexión. En los momentos de crisis uno busca apoyo y la psicóloga tiene citas — no está disponible. Entonces pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado, no importa de dónde, pero que esté ahí.
           </div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Mi proceso ha sido largo, de muchos golpes, de estrellarme contra paredes, de relaciones inviables, de metas a veces inalcanzables — y alcanzarlas. Todo esto al lado de una carrera profesional exitosa, porque yo siempre tuve la habilidad de separar mi vida personal de la profesional. Pero al final se permea y termina afectando lo que más te importa.
+            Mi proceso ha sido largo, de muchos golpes, de estrellarme contra paredes, de metas a veces inalcanzables — y alcanzarlas. He tenido una carrera profesional exitosa, pero al final la vida personal se permea y termina afectando lo que más te importa. Yo estaba entregándole mi poder a los externos y no a mí misma.
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            He sido personajes de mujeres de las que no me he sentido orgullosa. Hoy quiero seguir construyendo a esa mujer que me hace sentir orgullosa.
           </div>
           <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
-            Yo no quiero que le pase eso a otras mujeres. Quiero devolverle al mundo ese perdón de los errores que he cometido. Por eso creé Ronda: para que ninguna mujer tenga que reconstruirse sola.
+            Por eso creé Ronda: porque la vida te pone momentos para reinventarte todo el tiempo, y está en ti hacerlo. Yo no quiero que ninguna mujer tenga que hacerlo sola. Quiero devolverle al mundo ese perdón de los errores que he cometido.
           </div>
         </>}
         <button onClick={() => setShowFullStory(!showFullStory)} style={{
