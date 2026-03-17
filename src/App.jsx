@@ -461,6 +461,37 @@ function App() {
         </div>
       )}
 
+      {/* Hook emocional — enganchar con un programa */}
+      {(() => {
+        const hooks = [
+          { q: '¿Estás pasando por una tusa?', sub: 'Yo también la viví. Tengo un camino de 7 días para ti.', prog: 'tusa', color: '#C4908A' },
+          { q: '¿Sientes que la ansiedad no te deja en paz?', sub: 'Respira. Hay un programa paso a paso para recuperar la calma.', prog: 'ansiedad', color: '#C9A96E' },
+          { q: '¿Hay días que sientes que no puedes más?', sub: 'No estás sola. Aprende a navegar esas olas, un minuto a la vez.', prog: 'depresion', color: '#A6716B' },
+          { q: '¿Quieres empezar de cero?', sub: 'Yo me reinventé muchas veces. Déjame acompañarte 7 días.', prog: 'empezar', color: '#7BA56E' },
+          { q: '¿Sientes que perdiste la confianza en ti?', sub: 'Tu valor no depende de nadie. Vamos a recordarlo juntas.', prog: 'autoestima', color: '#C4908A' },
+        ]
+        const dayIdx = new Date().getDate() % hooks.length
+        const hook = hooks[dayIdx]
+        if (activePrograms[hook.prog]) return null
+        return (
+          <div onClick={() => setView('programas')} style={{
+            background: `linear-gradient(135deg, ${hook.color}15, ${hook.color}08)`,
+            borderRadius: 18, padding: 20, cursor: 'pointer',
+            border: `1px solid ${hook.color}30`,
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: C.text, lineHeight: 1.4, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+              {hook.q}
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
+              {hook.sub}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: hook.color, marginTop: 10 }}>
+              Ver programa →
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Conoce a Diana — sutil */}
       <div onClick={() => setView('programas')} style={{
         display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
