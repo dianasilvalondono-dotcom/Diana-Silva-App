@@ -385,88 +385,35 @@ function App() {
 
   /* ── INICIO ── */
   const inicioView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Greeting */}
-      <div style={{ padding: 20, background: 'linear-gradient(135deg, #C4908A, #E8C4C0)', borderRadius: 18, color: 'white' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {/* Greeting + Progress combined */}
+      <div style={{ padding: 24, background: 'linear-gradient(135deg, #C4908A, #E8C4C0)', borderRadius: 20, color: 'white' }}>
         <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
-        <div style={{ fontSize: 15, opacity: 0.9, marginTop: 6, fontWeight: 600, letterSpacing: '0.01em', fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>La mujer que quieres ser, empieza hoy ✨</div>
-      </div>
-
-      {/* Conoce a Diana */}
-      <div onClick={() => setView('programas')} style={{
-        display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-        background: C.card, borderRadius: 16, cursor: 'pointer',
-        border: `1px solid ${C.roseLight}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-      }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 16, fontWeight: 700, flexShrink: 0,
-        }}>D</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Conoce cómo nació Ronda</div>
-          <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>La historia de Diana y por qué creó este espacio para ti</div>
-        </div>
-        <div style={{ fontSize: 18, color: C.rose }}>→</div>
+        <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>La mujer que quieres ser, empieza hoy</div>
+        {totalHabits > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.9 }}>{totalDone} de {totalHabits} hábitos</span>
+              <span style={{ fontSize: 18, fontWeight: 900 }}>{Math.round((totalDone / totalHabits) * 100)}%</span>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.3)', borderRadius: 6, height: 6, overflow: 'hidden' }}>
+              <div style={{ width: `${(totalDone / totalHabits) * 100}%`, height: '100%', background: 'white', borderRadius: 6, transition: 'width 0.3s' }} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quote of the day */}
-      <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.rose}` }}>
-        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.rose, marginBottom: 8 }}>✨ Frase del día</div>
-        <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
-        <div style={{ fontSize: 14, marginTop: 8, color: C.muted, fontWeight: 600 }}>— {quote.author}</div>
+      <div style={{ padding: '18px 20px', borderLeft: `3px solid ${C.gold}` }}>
+        <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
+        <div style={{ fontSize: 13, marginTop: 6, color: C.muted }}>— {quote.author}</div>
       </div>
-
-      {/* Progress ring */}
-      <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <span style={{ fontSize: 16, fontWeight: 800, color: C.text }}>Progreso de hoy</span>
-          <span style={{ fontSize: 24, fontWeight: 900, color: C.rose }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</span>
-        </div>
-        <Bar value={totalHabits > 0 ? (totalDone / totalHabits) * 100 : 0} height={8} />
-        <div style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>{totalDone} de {totalHabits} hábitos completados</div>
-      </div>
-
-      {/* Dimension cards — clickable to navigate */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {Object.keys(DIMS).map(dim => (
-          <DimCard key={dim} dim={dim} done={dimStats[dim].done} total={dimStats[dim].total} onClick={() => setView('habitos')} />
-        ))}
-      </div>
-
-      {/* Today's mood + recommendation */}
-      {entries.length > 0 && entries[0].date === todayKey() && (() => {
-        const moodRec = MOOD_RECS[entries[0].mood]
-        return (
-          <div style={{ background: C.card, borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-            <div style={{ textAlign: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Estado de ánimo hoy</div>
-              <div style={{ fontSize: 36 }}>{MOODS[entries[0].mood]}</div>
-            </div>
-            {moodRec && (
-              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: moodRec.color, marginBottom: 8 }}>{moodRec.label} — te recomendamos:</div>
-                {moodRec.items.slice(0, 3).map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    {ICONS[item.type] ? ICONS[item.type](moodRec.color, 18) : <span style={{ fontSize: 16 }}>{item.emoji}</span>}
-                    <span style={{ fontSize: 13, fontWeight: 600, color: C.text, flex: 1 }}>{item.title}</span>
-                    {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: moodRec.color, fontWeight: 700, textDecoration: 'none' }}>→</a>}
-                  </div>
-                ))}
-                <button onClick={() => setView('diario')} style={{
-                  marginTop: 6, fontSize: 12, color: moodRec.color, fontWeight: 700, background: 'none',
-                  border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-                }}>Ver todas las recomendaciones →</button>
-              </div>
-            )}
-          </div>
-        )
-      })()}
 
       {/* Active programs preview */}
       {Object.keys(activePrograms).length > 0 && (
-        <div style={{ background: C.card, borderRadius: 14, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer' }}
+        <div style={{ background: C.card, borderRadius: 16, padding: 16, cursor: 'pointer' }}
           onClick={() => setView('programas')}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: C.text, marginBottom: 8 }}>Mis programas activos</div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 10 }}>Mis programas</div>
           {Object.entries(activePrograms).map(([progId, progress]) => {
             const prog = PROGRAMAS.find(p => p.id === progId)
             if (!prog) return null
@@ -474,15 +421,27 @@ function App() {
             return (
               <div key={progId} style={{ marginBottom: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, color: prog.color, marginBottom: 4 }}>
-                  <span>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id} {prog.title}</span>
+                  <span>{prog.title}</span>
                   <span>{pct}%</span>
                 </div>
-                <Bar value={pct} color={prog.color} height={5} />
+                <Bar value={pct} color={prog.color} height={4} />
               </div>
             )
           })}
         </div>
       )}
+
+      {/* Conoce a Diana — sutil */}
+      <div onClick={() => setView('programas')} style={{
+        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+        borderRadius: 14, cursor: 'pointer', border: `1px solid ${C.border}`,
+      }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 14, fontWeight: 700, flexShrink: 0,
+        }}>D</div>
+        <div style={{ fontSize: 13, color: C.muted, flex: 1 }}>Conoce cómo nació Ronda →</div>
+      </div>
     </div>
   )
 
