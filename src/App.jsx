@@ -4,7 +4,7 @@ import { C } from './constants/colors'
 import { ICONS } from './constants/icons'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
-  QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, SUGGESTED_HABITS,
+  QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, CATS, CAT_LABELS, getDayQuote,
 } from './constants/data'
 import { todayKey, load, save, getGreeting, formatDate, MOODS } from './utils/helpers'
@@ -847,6 +847,66 @@ function App() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Programa Premium 21 días */}
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          Programas de transformación
+        </div>
+        {PROGRAMAS_PREMIUM.map(prog => (
+          <div key={prog.id} style={{
+            background: `linear-gradient(135deg, ${C.cream}, #FFF8F0)`, borderRadius: 20, padding: 22,
+            border: `2px solid ${C.gold}40`, boxShadow: '0 4px 16px rgba(201,169,110,0.15)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{ background: C.gold, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.05em' }}>PREMIUM</div>
+              <div style={{ fontSize: 12, color: C.gold, fontWeight: 700 }}>{prog.duration}</div>
+            </div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 6 }}>{prog.title}</div>
+            <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6, marginBottom: 16 }}>{prog.desc}</div>
+
+            {/* 3 fases */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              {prog.phases.map((phase, i) => (
+                <div key={i} style={{
+                  flex: 1, background: C.card, borderRadius: 12, padding: '10px 8px', textAlign: 'center',
+                  border: `1px solid ${C.border}`,
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: C.gold, marginBottom: 2 }}>Días {phase.days}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{phase.name}</div>
+                  <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{phase.desc}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Neuro badge */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+              background: '#F5F0E8', borderRadius: 12, marginBottom: 16,
+            }}>
+              {ICONS.mental('#A6716B', 22)}
+              <div style={{ fontSize: 12, color: '#6B5A4E', lineHeight: 1.5 }}>
+                <span style={{ fontWeight: 800 }}>Basado en neurociencia:</span> cada día incluye el porqué científico detrás de tu micro-acción.
+              </div>
+            </div>
+
+            {/* Price + CTA */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>${prog.price} USD</div>
+              <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>Pago único · Acceso para siempre</div>
+              <button style={{
+                width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
+                background: `linear-gradient(135deg, ${C.gold}, #D4B87A)`,
+                color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 4px 16px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
+              }}>
+                Próximamente
+              </button>
+              <div style={{ fontSize: 11, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Suggested habits */}
