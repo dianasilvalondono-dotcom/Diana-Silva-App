@@ -403,6 +403,36 @@ function App() {
         )}
       </div>
 
+      {/* Lo que sigue — next routine item */}
+      {(() => {
+        const now = new Date()
+        const nowMin = now.getHours() * 60 + now.getMinutes()
+        const allRoutine = [...morning, ...midday, ...night]
+        const next = allRoutine.find(item => {
+          if (!item.time) return false
+          const [h, m] = item.time.split(':').map(Number)
+          return h * 60 + m > nowMin
+        })
+        if (!next) return null
+        return (
+          <div onClick={() => setView('rutina')} style={{
+            display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+            background: C.card, borderRadius: 16, cursor: 'pointer',
+            border: `1px solid ${C.border}`,
+          }}>
+            <div style={{
+              fontSize: 13, fontWeight: 800, color: C.gold, minWidth: 46, textAlign: 'center',
+            }}>{next.time}</div>
+            <div style={{ width: 1, height: 28, background: C.border }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{next.task}</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>Lo que sigue</div>
+            </div>
+            <div style={{ fontSize: 16, color: C.muted }}>→</div>
+          </div>
+        )
+      })()}
+
       {/* Quote of the day */}
       <div style={{ padding: '18px 20px', borderLeft: `3px solid ${C.gold}` }}>
         <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
