@@ -159,8 +159,8 @@ export const PROGRAMAS = [
     ],
   },
   {
-    id: 'depresion', title: 'Vencer la depresión', emoji: '🌧️→☀️',
-    desc: '7 días de micro-hábitos para recuperar tu luz interior', color: '#A6716B',
+    id: 'depresion', title: 'Navegar la depresión', emoji: '🌊→🏄‍♀️',
+    desc: 'La vida es como olas del mar. 7 días para aprender a surfearlas, no a hundirte en ellas.', color: '#A6716B',
     days: [
       { day: 1, title: 'Levántate y abre una ventana', task: '1 minuto de luz solar. La luz activa tu serotonina.', emoji: '☀️' },
       { day: 2, title: 'Ducha de agua fría (30 seg)', task: 'Solo 30 segundos al final de tu ducha. Activa tu sistema nervioso.', emoji: '🚿' },
