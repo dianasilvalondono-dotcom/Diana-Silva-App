@@ -546,7 +546,8 @@ function App() {
           <div onClick={() => setView('programas')} style={{
             display: 'flex', gap: 14, padding: '16px 18px', alignItems: 'flex-start',
             background: C.card, borderRadius: 16, cursor: 'pointer',
-            border: `1px solid ${card.color}25`,
+            border: `1.5px solid ${card.color}40`, boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            marginBottom: 8,
           }}>
             <div style={{ flexShrink: 0, marginTop: 2 }}>{ICONS[card.icon](card.color, 28)}</div>
             <div>
