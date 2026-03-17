@@ -107,6 +107,7 @@ function App() {
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
+  const [showFullStory, setShowFullStory] = useState(false)
 
   // Morning/Night check-in
   const [morningDone, setMorningDone] = useState(() => load(`ronda-morning-${todayKey()}`, false))
@@ -846,6 +847,55 @@ function App() {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Historia de Diana */}
+      <div style={{
+        background: C.card, borderRadius: 20, padding: 24,
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}`,
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>
+          La historia detrás de Ronda
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 14 }}>
+          "Yo estaba entregándole mi poder a los externos y no a los internos"
+        </div>
+        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+          Ronda nació de una tusa. Me enamoré de alguien que no estaba disponible — ni emocional, ni física, ni de ninguna manera. Cuando él se fue, toda la ilusión de mi vida se fue con él. Me tocó reinventarme.
+        </div>
+        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+          Empecé a ponerme rutinas: ir al gimnasio, salir de mi casa, tomar el sol, meditar en las escaleras de mi edificio, bajarme con un libro para buscar vida por fuera. Me empecé a fortalecer.
+        </div>
+        {showFullStory && <>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            Vivo con TLP — trastorno límite de la personalidad — desde los 16 años. Pasé por malos diagnósticos, por depresión, por un intento de suicidio. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia sin saber para dónde iba.
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            En ese viaje sentí que había mucha soledad, que faltaba conexión. Yo quería ayudar más, quería que me ayudaran, y no sabía pedir ayuda. En los momentos de crisis uno busca apoyo y la psicóloga tiene citas. No está disponible. Entonces pensé: ¿cómo conectamos con gente? ¿Cómo tengo a alguien ahí cuando lo necesito?
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            Mi proceso ha sido largo, de muchos golpes, de estrellarme contra paredes, de relaciones inviables, de metas a veces inalcanzables — y alcanzarlas. Todo esto al lado de una carrera profesional exitosa, porque yo siempre tuve la habilidad de separar mi vida personal de la profesional. Pero al final se permea y termina afectando lo que más te importa.
+          </div>
+          <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
+            Yo no quiero que le pase eso a otras mujeres. Quiero devolverle al mundo ese perdón de los errores que he cometido. Por eso creé Ronda: para que ninguna mujer tenga que reconstruirse sola.
+          </div>
+        </>}
+        <button onClick={() => setShowFullStory(!showFullStory)} style={{
+          background: 'none', border: 'none', color: C.rose, fontSize: 14, fontWeight: 700,
+          cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+        }}>
+          {showFullStory ? 'Leer menos ↑' : 'Leer mi historia completa →'}
+        </button>
+        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700,
+          }}>D</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Diana Silva</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Fundadora de Ronda · Profesora de yoga · Sobreviviente</div>
+          </div>
         </div>
       </div>
 
