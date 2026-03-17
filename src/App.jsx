@@ -492,17 +492,34 @@ function App() {
         )
       })()}
 
-      {/* Conoce a Diana — sutil */}
-      <div onClick={() => setView('programas')} style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-        borderRadius: 14, cursor: 'pointer', border: `1px solid ${C.border}`,
-      }}>
-        <div style={{
-          width: 34, height: 34, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 14, fontWeight: 700, flexShrink: 0,
-        }}>D</div>
-        <div style={{ fontSize: 13, color: C.muted, flex: 1 }}>Conoce cómo nació Ronda →</div>
-      </div>
+      {/* Mundo Ronda — cards que rotan y conectan con distintas personas */}
+      {(() => {
+        const cards = [
+          { icon: 'mental', color: '#A6716B', title: 'Tu cerebro puede cambiar', desc: 'Ronda está basada en neuroplasticidad: la ciencia que demuestra que puedes reprogramar tu mente con micro-hábitos diarios.', cta: 'Conoce la ciencia →' },
+          { icon: 'emocional', color: '#C9A96E', title: 'DBT me salvó la vida', desc: 'Diana vive con TLP y encontró en la Terapia Dialéctica Conductual las herramientas para transformar su relación con sus emociones.', cta: 'Conoce su historia →' },
+          { icon: 'espiritual', color: '#C4908A', title: 'Un Dios más amoroso', desc: 'Ronda nació de una conexión espiritual profunda: soltar el control, rendirse, y descubrir un Dios que no castiga sino que acompaña.', cta: 'Explora lo espiritual →' },
+          { icon: 'fisico', color: '#A68B52', title: 'Del mat a la vida', desc: 'Diana se certificó como profesora de yoga buscando sanar. El cuerpo guarda todo — moverlo es la primera forma de liberarse.', cta: 'Conoce el camino →' },
+          { icon: 'emocional', color: '#C9A96E', title: '¿Por qué Ronda?', desc: '"He sido miles de mujeres en una sola mujer." Diana creó Ronda para que ninguna mujer tenga que reinventarse sola.', cta: 'Lee la historia completa →' },
+          { icon: 'mental', color: '#A6716B', title: 'Tus hábitos son arquitectura cerebral', desc: 'Cada vez que repites un hábito, tu cerebro fortalece esa conexión neuronal. En 21 días creas un camino nuevo. En 60, una autopista.', cta: 'Empieza tu programa →' },
+          { icon: 'espiritual', color: '#C4908A', title: 'No estás sola', desc: 'En los momentos de crisis, a veces solo necesitas que alguien conteste del otro lado. Ronda quiere ser ese espacio de conexión.', cta: 'Conoce la visión →' },
+        ]
+        const idx = new Date().getHours() % cards.length
+        const card = cards[idx]
+        return (
+          <div onClick={() => setView('programas')} style={{
+            display: 'flex', gap: 14, padding: '16px 18px', alignItems: 'flex-start',
+            background: C.card, borderRadius: 16, cursor: 'pointer',
+            border: `1px solid ${card.color}25`,
+          }}>
+            <div style={{ flexShrink: 0, marginTop: 2 }}>{ICONS[card.icon](card.color, 28)}</div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 4 }}>{card.title}</div>
+              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{card.desc}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: card.color, marginTop: 8 }}>{card.cta}</div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 
