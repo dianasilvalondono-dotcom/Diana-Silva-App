@@ -212,6 +212,48 @@ export const PROGRAMAS = [
   },
 ]
 
+/* ── Programas Premium (21 días) ── */
+export const PROGRAMAS_PREMIUM = [
+  {
+    id: 'despertar21', title: 'Despertar — 21 días para crear tu hábito',
+    desc: '3 semanas para sembrar, construir e integrar el hábito que va a cambiar tu vida. 1-2 minutos al día.',
+    color: '#C9A96E', price: 9.99, duration: '21 días',
+    phases: [
+      { name: 'Sembrar', days: '1-7', desc: 'Conocerte y despertar' },
+      { name: 'Construir', days: '8-14', desc: 'Fortalecer tu hábito' },
+      { name: 'Integrar', days: '15-21', desc: 'Hacerlo parte de ti' },
+    ],
+    days: [
+      /* === SEMANA 1: SEMBRAR — Despertar tu cerebro al cambio === */
+      { day: 1, title: 'Tu intención', dim: 'emocional', task: 'Escribe en una frase: ¿qué quiero sentir al final de estos 21 días? Esa es tu brújula.', prompt: '¿Qué estoy buscando realmente con este cambio?', neuro: 'Cuando escribes una intención, activas tu corteza prefrontal — la parte del cerebro que planifica y toma decisiones. Estás literalmente programando tu GPS interno.' },
+      { day: 2, title: 'Respira y llega', dim: 'espiritual', task: 'Respiración 4-7-8: inhala 4s, sostén 7s, exhala 8s. Repite 3 veces. Estás aquí.', prompt: '¿Cuándo fue la última vez que me sentí en paz?', neuro: 'La respiración lenta activa tu nervio vago y apaga la respuesta de "pelear o huir". En 60 segundos puedes cambiar tu estado nervioso de estrés a calma.' },
+      { day: 3, title: 'Mueve tu cuerpo', dim: 'fisico', task: 'Estira tu cuerpo 2 minutos. Cuello, hombros, espalda. Tu cuerpo guarda todo.', prompt: '¿Dónde siento tensión en mi cuerpo hoy?', neuro: 'El movimiento libera BDNF (factor neurotrófico), que es como fertilizante para tu cerebro. Mover el cuerpo literalmente hace crecer nuevas neuronas.' },
+      { day: 4, title: 'Observa tu mente', dim: 'mental', task: 'Por 1 minuto, solo observa tus pensamientos. No los juzgues. Solo míralos pasar.', prompt: '¿Qué pensamientos se repiten más en mi cabeza?', neuro: 'Observar tus pensamientos sin reaccionar fortalece tu corteza prefrontal. Es como hacer pesas para tu cerebro — se llama metacognición.' },
+      { day: 5, title: '3 gratitudes', dim: 'emocional', task: 'Escribe 3 cosas por las que estás agradecida hoy. Pueden ser pequeñas.', prompt: '¿Qué tengo hoy que antes soñaba con tener?', neuro: 'La gratitud aumenta la dopamina y serotonina — los neurotransmisores de la felicidad. Es un antidepresivo natural sin efectos secundarios.' },
+      { day: 6, title: 'Conexión espiritual', dim: 'espiritual', task: 'Dedica 2 minutos a lo que te conecta: oración, naturaleza, silencio, música.', prompt: '¿Qué me hace sentir que soy parte de algo más grande?', neuro: 'La conexión espiritual activa la red neuronal por defecto (DMN), que procesa el sentido de vida y pertenencia. Tu cerebro necesita estos momentos.' },
+      { day: 7, title: 'Revisa tu semana', dim: 'mental', task: 'Mira atrás: 6 días cumplidos. Escribe qué fue fácil y qué difícil.', prompt: '¿Qué aprendí de mí esta semana?', neuro: 'La reflexión activa la consolidación de memoria. Al revisar tu semana, tu hipocampo convierte las experiencias en aprendizaje permanente.' },
+
+      /* === SEMANA 2: CONSTRUIR — Crear las conexiones neuronales === */
+      { day: 8, title: 'Define tu hábito', dim: 'mental', task: 'Escoge 1 hábito que quieres para siempre. Escríbelo claro: "Yo hago X cada día a las Y".', prompt: '¿Por qué este hábito y no otro? ¿Qué cambia si lo logro?', neuro: 'Un hábito claro y específico activa los ganglios basales — la zona del cerebro que automatiza comportamientos. Mientras más específico, más fácil de automatizar.' },
+      { day: 9, title: 'Tu ancla neuronal', dim: 'emocional', task: 'Conecta tu hábito a algo que ya haces. Ejemplo: "Después de mi café, medito 2 min."', prompt: '¿A qué momento del día puedo anclar este nuevo hábito?', neuro: 'Esto se llama "habit stacking" — conectas una red neuronal nueva a una que ya existe. Es como colgar una hamaca de dos árboles que ya están firmes.' },
+      { day: 10, title: 'Hazlo ridículamente fácil', dim: 'fisico', task: 'Reduce tu hábito a 1 minuto. Si es gym, pon los tenis. Si es leer, abre el libro. Solo eso.', prompt: '¿Cuál es la versión más pequeña de mi hábito que puedo hacer sin excusas?', neuro: 'Tu cerebro resiste el cambio grande (homeostasis). Pero cambios pequeños pasan por debajo del radar de la amígdala — no activan el miedo al cambio.' },
+      { day: 11, title: 'Celebra cada vez', dim: 'emocional', task: 'Cada vez que hagas tu hábito hoy, sonríe y dite "¡Eso!". La celebración crea dopamina.', prompt: '¿Cómo me siento cuando cumplo lo que me propongo?', neuro: 'La dopamina no solo es placer — es la señal que le dice a tu cerebro "repite esto". Celebrar después del hábito crea un loop de recompensa que lo vuelve adictivo.' },
+      { day: 12, title: 'Diseña tu entorno', dim: 'fisico', task: 'Haz que tu hábito sea fácil: deja la ropa lista, el libro visible, la app abierta.', prompt: '¿Qué puedo cambiar en mi espacio para que sea más fácil cumplir?', neuro: 'Tu cerebro toma el 95% de decisiones en piloto automático basándose en el entorno. Cambia el entorno y cambias el comportamiento sin usar fuerza de voluntad.' },
+      { day: 13, title: 'El día difícil', dim: 'espiritual', task: 'Hoy haz tu hábito aunque no quieras. La consistencia importa más que la perfección.', prompt: '¿Qué me digo a mí misma cuando no tengo ganas?', neuro: 'Cada vez que haces algo difícil, se fortalece tu mielina — la capa que recubre tus conexiones neuronales y las hace más rápidas. La dificultad es el entrenamiento.' },
+      { day: 14, title: 'Revisa tu progreso', dim: 'mental', task: '2 semanas. Mira tu tracking. ¿Cuántos días cumpliste? Escribe qué sientes.', prompt: '¿En qué he cambiado desde el día 1?', neuro: 'Ver tu progreso visual activa el circuito de recompensa. Los estudios muestran que las personas que trackean sus hábitos tienen un 40% más de probabilidad de mantenerlos.' },
+
+      /* === SEMANA 3: INTEGRAR — De hábito a identidad === */
+      { day: 15, title: 'Sube el nivel', dim: 'fisico', task: 'Aumenta tu hábito un poquito. Si eran 2 minutos, haz 5. Si era 1 página, lee 3.', prompt: '¿Estoy lista para pedirme un poco más?', neuro: 'Esto es neuroplasticidad en acción: tus neuronas ya formaron la conexión base. Ahora cada repetición la hace más gruesa y fuerte, como un camino que se vuelve carretera.' },
+      { day: 16, title: 'Comparte tu camino', dim: 'emocional', task: 'Cuéntale a alguien lo que estás haciendo. La vulnerabilidad crea responsabilidad.', prompt: '¿A quién le puedo contar lo que estoy construyendo?', neuro: 'Hablar sobre tus metas activa neuronas espejo en quien te escucha Y en ti. La conexión social libera oxitocina, que reduce el cortisol (estrés) y fortalece tu compromiso.' },
+      { day: 17, title: 'Identidad neuronal', dim: 'mental', task: 'Ya no es "quiero meditar". Es "soy una persona que medita". Escribe: "Yo soy alguien que..."', prompt: '¿Quién me estoy convirtiendo con este hábito?', neuro: 'Cuando cambias tu identidad, activas tu red de autoconcepto en la corteza prefrontal medial. Tu cerebro empieza a filtrar el mundo para confirmar quien ERES, no quien quieres ser.' },
+      { day: 18, title: 'Perdónate', dim: 'espiritual', task: 'Si fallaste algún día, está bien. Escribe: "Me perdono por no ser perfecta. Sigo aquí."', prompt: '¿Qué necesito soltar para seguir avanzando?', neuro: 'La autocompasión reduce la actividad de la amígdala (centro del miedo) y activa la corteza prefrontal. Castigarte activa el modo amenaza. Perdonarte activa el modo crecimiento.' },
+      { day: 19, title: 'Tu ritual sagrado', dim: 'espiritual', task: 'Tu hábito ya no es una tarea — es un ritual. Hazlo hoy con intención y presencia.', prompt: '¿Cómo puedo hacer de este hábito algo sagrado para mí?', neuro: 'Los rituales activan la ínsula — la zona del cerebro que conecta cuerpo y emociones. Por eso los rituales se sienten diferentes a las rutinas: involucran todo tu ser.' },
+      { day: 20, title: 'Visualiza tu futuro', dim: 'emocional', task: 'Cierra los ojos 2 min. Imagínate dentro de 60 días con este hábito firme. ¿Cómo te ves?', prompt: '¿Cómo es mi vida cuando este hábito es automático?', neuro: 'La visualización activa las mismas áreas motoras que la acción real. Tu cerebro no distingue bien entre imaginar y hacer — por eso los atletas visualizan antes de competir.' },
+      { day: 21, title: 'Ya eres otra', dim: 'mental', task: 'Escribe una carta a la tú del día 1. Cuéntale todo lo que lograste. Estás lista para los 60 días.', prompt: '¿Qué le diría a la persona que empezó hace 21 días?', neuro: 'En 21 días tu cerebro ha creado nuevas sinapsis, fortalecido conexiones y empezado a mielinizar este nuevo camino neuronal. Ya no es fuerza de voluntad — es arquitectura cerebral.' },
+    ],
+  },
+]
+
 /* ── Suggested habits for new users ── */
 export const SUGGESTED_HABITS = [
   { name: 'Meditar 5 minutos', dim: 'espiritual', emoji: '🧘' },
