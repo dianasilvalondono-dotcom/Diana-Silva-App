@@ -22,27 +22,22 @@ export const DEFAULT_HABITS = [
   { id: 12, name: 'Momento Mori — Take nothing personally',       dim: 'mental' },
 ]
 
-/* ── Default routines ── */
+/* ── Default routines (sugerencias para nuevas usuarias — editables) ── */
 export const DEFAULT_MORNING = [
-  { id: 1, time: '7:05', task: 'Intención del día: Oración y gratitud', emoji: '🙏' },
-  { id: 2, time: '7:20', task: 'Caldo + Paseo', emoji: '🚶‍♀️' },
-  { id: 3, time: '7:35', task: 'Meditación', emoji: '🧘' },
-  { id: 4, time: '7:40', task: 'Afirmación: Momento Mori. Solo tengo hoy.', emoji: '⏳' },
-  { id: 5, time: '8:00', task: 'Gym', emoji: '💪' },
-  { id: 6, time: '9:35', task: 'Proteína + Creatina', emoji: '🥤' },
+  { id: 1, time: '7:00', task: 'Intención del día', emoji: '🙏' },
+  { id: 2, time: '7:15', task: 'Paseo o movimiento suave', emoji: '🚶‍♀️' },
+  { id: 3, time: '7:30', task: 'Meditación o respiración', emoji: '🧘' },
+  { id: 4, time: '8:00', task: 'Ejercicio', emoji: '💪' },
 ]
 export const DEFAULT_MIDDAY = [
-  { id: 20, time: '10:45', task: 'Oración de serenidad', emoji: '🕊️' },
-  { id: 21, time: '11:45', task: 'Respira Profundo — Estoy a salvo', emoji: '🌬️' },
-  { id: 22, time: '14:00', task: 'Entrega a Dios — Tú eres el poder y la sanidad', emoji: '✝️' },
-  { id: 23, time: '15:45', task: 'Libero el dolor y doy la bienvenida al amor', emoji: '💛' },
-  { id: 24, time: '16:30', task: 'Respira y Pausa Activa', emoji: '🧘‍♀️' },
+  { id: 20, time: '11:00', task: 'Pausa activa — respira profundo', emoji: '🌬️' },
+  { id: 21, time: '14:00', task: 'Momento de gratitud', emoji: '💛' },
+  { id: 22, time: '16:00', task: 'Estiramiento o caminata corta', emoji: '🧘‍♀️' },
 ]
 export const DEFAULT_NIGHT = [
-  { id: 7,  time: '18:30', task: 'Lectura noche', emoji: '📖' },
-  { id: 8,  time: '19:00', task: 'Meditación de noche', emoji: '🧘' },
-  { id: 9,  time: '19:35', task: 'Soltar y rendirme a Dios', emoji: '🙏' },
-  { id: 10, time: '21:00', task: 'Me perdono y descanso en Dios', emoji: '🌙' },
+  { id: 7,  time: '19:00', task: 'Lectura', emoji: '📖' },
+  { id: 8,  time: '20:00', task: 'Reflexión del día', emoji: '✨' },
+  { id: 9,  time: '21:00', task: 'Soltar el día y descansar', emoji: '🌙' },
 ]
 
 /* ── Quotes collection ── */

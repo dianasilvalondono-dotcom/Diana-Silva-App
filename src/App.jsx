@@ -72,11 +72,19 @@ function App() {
   const [checked, setChecked] = useState(() => load(`diana-checked-${todayKey()}`, {}))
   const [streaks, setStreaks] = useState(() => load('diana-streaks', {}))
 
-  // Routines
-  const [morning] = useState(() => load('diana-morning', DEFAULT_MORNING))
-  const [midday] = useState(() => load('diana-midday', DEFAULT_MIDDAY))
-  const [night] = useState(() => load('diana-night', DEFAULT_NIGHT))
+  // Routines (editable by each user)
+  const [morning, setMorning] = useState(() => load('diana-morning', DEFAULT_MORNING))
+  const [midday, setMidday] = useState(() => load('diana-midday', DEFAULT_MIDDAY))
+  const [night, setNight] = useState(() => load('diana-night', DEFAULT_NIGHT))
   const [routineChecked, setRoutineChecked] = useState(() => load(`diana-routine-${todayKey()}`, {}))
+  const [editingRoutine, setEditingRoutine] = useState(false)
+  const [newRoutineTask, setNewRoutineTask] = useState('')
+  const [newRoutineTime, setNewRoutineTime] = useState('')
+  const [newRoutineEmoji, setNewRoutineEmoji] = useState('✨')
+  const [newRoutineSection, setNewRoutineSection] = useState('morning')
+  // Tomorrow planning (night ritual)
+  const [tomorrowTasks, setTomorrowTasks] = useState(() => load(`ronda-tomorrow-${todayKey()}`, []))
+  const [newTomorrowTask, setNewTomorrowTask] = useState('')
 
   // Journal
   const [entries, setEntries] = useState(() => load('diana-journal', []))
@@ -144,6 +152,10 @@ function App() {
   useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
   useEffect(() => { save(`ronda-morning-${todayKey()}`, morningDone) }, [morningDone])
   useEffect(() => { save(`ronda-night-${todayKey()}`, nightDone) }, [nightDone])
+  useEffect(() => { save('diana-morning', morning) }, [morning])
+  useEffect(() => { save('diana-midday', midday) }, [midday])
+  useEffect(() => { save('diana-night', night) }, [night])
+  useEffect(() => { save(`ronda-tomorrow-${todayKey()}`, tomorrowTasks) }, [tomorrowTasks])
 
   // Sync localStorage → Supabase on first login + update profile name from auth
   useEffect(() => {
@@ -180,6 +192,31 @@ function App() {
 
   const toggleRoutine = (id) => {
     setRoutineChecked(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const addRoutineItem = () => {
+    if (!newRoutineTask.trim() || !newRoutineTime.trim()) return
+    const newItem = { id: Date.now(), time: newRoutineTime, task: newRoutineTask, emoji: newRoutineEmoji }
+    if (newRoutineSection === 'morning') setMorning(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
+    else if (newRoutineSection === 'midday') setMidday(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
+    else setNight(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
+    setNewRoutineTask(''); setNewRoutineTime(''); setNewRoutineEmoji('✨')
+  }
+
+  const removeRoutineItem = (section, id) => {
+    if (section === 'morning') setMorning(prev => prev.filter(i => i.id !== id))
+    else if (section === 'midday') setMidday(prev => prev.filter(i => i.id !== id))
+    else setNight(prev => prev.filter(i => i.id !== id))
+  }
+
+  const addTomorrowTask = () => {
+    if (!newTomorrowTask.trim()) return
+    setTomorrowTasks(prev => [...prev, { id: Date.now(), task: newTomorrowTask, done: false }])
+    setNewTomorrowTask('')
+  }
+
+  const toggleTomorrowTask = (id) => {
+    setTomorrowTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t))
   }
 
   const addJournalEntry = () => {
@@ -496,10 +533,10 @@ function App() {
       {(() => {
         const cards = [
           { icon: 'mental', color: '#A6716B', title: 'Tu cerebro puede cambiar', desc: 'Ronda está basada en neuroplasticidad: la ciencia que demuestra que puedes reprogramar tu mente con micro-hábitos diarios.', cta: 'Conoce la ciencia →' },
-          { icon: 'emocional', color: '#C9A96E', title: 'DBT me salvó la vida', desc: 'Diana vive con TLP y encontró en la Terapia Dialéctica Conductual las herramientas para transformar su relación con sus emociones.', cta: 'Conoce su historia →' },
+          { icon: 'emocional', color: '#C9A96E', title: 'DBT: herramientas reales', desc: 'La Terapia Dialéctica Conductual le ha dado herramientas a miles de mujeres para transformar su relación con sus emociones.', cta: 'Conoce las herramientas →' },
           { icon: 'espiritual', color: '#C4908A', title: 'Un Dios más amoroso', desc: 'Ronda nació de una conexión espiritual profunda: soltar el control, rendirse, y descubrir un Dios que no castiga sino que acompaña.', cta: 'Explora lo espiritual →' },
-          { icon: 'fisico', color: '#A68B52', title: 'Del mat a la vida', desc: 'Diana se certificó como profesora de yoga buscando sanar. El cuerpo guarda todo — moverlo es la primera forma de liberarse.', cta: 'Conoce el camino →' },
-          { icon: 'emocional', color: '#C9A96E', title: '¿Por qué Ronda?', desc: '"He sido miles de mujeres en una sola mujer." Diana creó Ronda para que ninguna mujer tenga que reinventarse sola.', cta: 'Lee la historia completa →' },
+          { icon: 'fisico', color: '#A68B52', title: 'Del mat a la vida', desc: 'El cuerpo guarda todo. Moverlo es la primera forma de liberarse. El yoga conecta lo que la mente separa.', cta: 'Conoce el camino →' },
+          { icon: 'emocional', color: '#C9A96E', title: '¿Por qué Ronda?', desc: 'Ronda es la historia de muchas mujeres. Abuelas, madres, amigas que se reinventaron. Ninguna lo hizo sola — y tú tampoco tienes que hacerlo.', cta: 'Lee la historia →' },
           { icon: 'mental', color: '#A6716B', title: 'Tus hábitos son arquitectura cerebral', desc: 'Cada vez que repites un hábito, tu cerebro fortalece esa conexión neuronal. En 21 días creas un camino nuevo. En 60, una autopista.', cta: 'Empieza tu programa →' },
           { icon: 'espiritual', color: '#C4908A', title: 'No estás sola', desc: 'En los momentos de crisis, a veces solo necesitas que alguien conteste del otro lado. Ronda quiere ser ese espacio de conexión.', cta: 'Conoce la visión →' },
         ]
@@ -631,44 +668,152 @@ function App() {
   )
 
   /* ── RUTINA ── */
-  const renderRoutineSection = (title, emoji, items, color) => (
+  const renderRoutineSection = (title, emoji, items, color, sectionKey) => (
     <div>
       <div style={{ fontSize: 18, fontWeight: 800, color: color, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
         {emoji} {title}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {items.map(item => (
-          <div key={item.id} onClick={() => toggleRoutine(item.id)} style={{
+          <div key={item.id} style={{
             background: C.card, borderRadius: 12, padding: '11px 14px',
-            display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 10,
             boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
             opacity: routineChecked[item.id] ? 0.55 : 1, transition: 'all 0.15s',
           }}>
-            <div style={{
+            <div onClick={() => toggleRoutine(item.id)} style={{
               width: 22, height: 22, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.greenDone : C.roseLight}`,
               background: routineChecked[item.id] ? C.greenDone : 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11, flexShrink: 0, cursor: 'pointer',
             }}>
               {routineChecked[item.id] && '✓'}
             </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: C.gold, minWidth: 44 }}>{item.time}</span>
+            <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 14, fontWeight: 700, color: C.gold, minWidth: 44, cursor: 'pointer' }}>{item.time}</span>
             <span style={{ fontSize: 18, flexShrink: 0 }}>{item.emoji}</span>
-            <span style={{ fontSize: 15, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none' }}>
+            <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 15, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
               {item.task}
             </span>
+            {editingRoutine && (
+              <button onClick={() => removeRoutineItem(sectionKey, item.id)} style={{
+                background: 'none', border: 'none', color: '#e57373', fontSize: 18, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
+              }}>×</button>
+            )}
           </div>
         ))}
       </div>
     </div>
   )
 
+  const ROUTINE_EMOJIS = ['✨', '🙏', '🧘', '💪', '📖', '🚶‍♀️', '🌬️', '💛', '☕', '🎵', '📝', '🌸', '🕊️', '🌙', '🧠', '🍵']
+
   const rutinaView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {renderRoutineSection('Mañana', '☀️', morning, C.rose)}
+      {/* Edit toggle */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button onClick={() => setEditingRoutine(!editingRoutine)} style={{
+          background: editingRoutine ? C.rose : 'transparent', color: editingRoutine ? 'white' : C.rose,
+          border: `1.5px solid ${C.rose}`, borderRadius: 20, padding: '6px 16px',
+          fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          {editingRoutine ? '✓ Listo' : '✏️ Editar mi rutina'}
+        </button>
+      </div>
+
+      {renderRoutineSection('Mañana', '☀️', morning, C.rose, 'morning')}
       <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Afirmaciones del día', '🕊️', midday, C.gold)}
+      {renderRoutineSection('Afirmaciones del día', '🕊️', midday, C.gold, 'midday')}
       <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Noche', '🌙', night, C.roseDark)}
+      {renderRoutineSection('Noche', '🌙', night, C.roseDark, 'night')}
+
+      {/* Add new routine item */}
+      {editingRoutine && (
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 12 }}>➕ Agregar a mi rutina</div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+            {[{k:'morning',l:'☀️ Mañana'},{k:'midday',l:'🕊️ Día'},{k:'night',l:'🌙 Noche'}].map(s => (
+              <button key={s.k} onClick={() => setNewRoutineSection(s.k)} style={{
+                padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit', border: `1.5px solid ${C.rose}`,
+                background: newRoutineSection === s.k ? C.rose : 'transparent',
+                color: newRoutineSection === s.k ? 'white' : C.rose,
+              }}>{s.l}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+            <input value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)} placeholder="Hora (ej: 7:30)"
+              style={{ width: 80, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }} />
+            <input value={newRoutineTask} onChange={e => setNewRoutineTask(e.target.value)} placeholder="¿Qué quieres hacer?"
+              style={{ flex: 1, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }}
+              onKeyDown={e => e.key === 'Enter' && addRoutineItem()} />
+          </div>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
+            {ROUTINE_EMOJIS.map(e => (
+              <button key={e} onClick={() => setNewRoutineEmoji(e)} style={{
+                fontSize: 20, padding: 4, background: newRoutineEmoji === e ? C.beige : 'transparent',
+                border: newRoutineEmoji === e ? `2px solid ${C.rose}` : '2px solid transparent',
+                borderRadius: 8, cursor: 'pointer',
+              }}>{e}</button>
+            ))}
+          </div>
+          <button onClick={addRoutineItem} disabled={!newRoutineTask.trim() || !newRoutineTime.trim()} style={{
+            width: '100%', padding: 10, borderRadius: 12, border: 'none', fontSize: 14, fontWeight: 700,
+            fontFamily: 'inherit', cursor: newRoutineTask.trim() && newRoutineTime.trim() ? 'pointer' : 'default',
+            background: newRoutineTask.trim() && newRoutineTime.trim() ? C.rose : C.border,
+            color: newRoutineTask.trim() && newRoutineTime.trim() ? 'white' : C.subtle,
+          }}>Agregar</button>
+        </div>
+      )}
+
+      <div style={{ height: 1, background: C.border }} />
+
+      {/* Night ritual: Plan tomorrow */}
+      <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.gold}30` }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: C.gold, marginBottom: 4 }}>🌙 Ritual de noche</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
+          Planifica tu mañana para soltar la ansiedad de hoy. Escribir lo que viene te ayuda a descansar.
+        </div>
+
+        {/* What I accomplished today */}
+        {(() => {
+          const todayDone = Object.entries(routineChecked).filter(([, v]) => v).length
+          const todayTotal = morning.length + midday.length + night.length
+          return todayDone > 0 && (
+            <div style={{ background: `${C.greenDone}15`, borderRadius: 12, padding: 12, marginBottom: 14 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.greenDone }}>
+                ✓ Hoy completaste {todayDone} de {todayTotal} cosas de tu rutina
+              </div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Ya puedes soltar el día. Lo hiciste bien. 💛</div>
+            </div>
+          )
+        })()}
+
+        {/* Tomorrow tasks */}
+        <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+          {tomorrowTasks.map(t => (
+            <div key={t.id} onClick={() => toggleTomorrowTask(t.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: C.cream,
+              borderRadius: 10, cursor: 'pointer',
+            }}>
+              <div style={{
+                width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.roseLight}`,
+                background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontSize: 10, flexShrink: 0,
+              }}>{t.done && '✓'}</div>
+              <span style={{ fontSize: 14, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }}
+            onKeyDown={e => e.key === 'Enter' && addTomorrowTask()} />
+          <button onClick={addTomorrowTask} disabled={!newTomorrowTask.trim()} style={{
+            padding: '8px 16px', borderRadius: 10, border: 'none', background: newTomorrowTask.trim() ? C.gold : C.border,
+            color: newTomorrowTask.trim() ? 'white' : C.subtle, fontSize: 14, fontWeight: 700, cursor: newTomorrowTask.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
+          }}>+</button>
+        </div>
+      </div>
     </div>
   )
 
@@ -806,7 +951,7 @@ function App() {
         <div style={{ fontSize: 13, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
       </div>
 
-      {/* Historia de Diana — arriba para conectar antes del proceso */}
+      {/* Historia de Ronda — no egocéntrica, Diana como puente de muchas mujeres */}
       <div style={{
         background: C.card, borderRadius: 20, padding: 24,
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}`,
@@ -815,39 +960,36 @@ function App() {
           La historia detrás de Ronda
         </div>
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 14 }}>
-          "He sido miles de mujeres en una sola mujer"
+          "Soy el puente de miles de mujeres"
         </div>
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Yo sí algo sé: es reinventarme. Me divorcié a los 25 con tres maletas y a echar pa'lante. Sin diploma, me fui pa' Nueva York a perseguir un sueño. Me gradué magna cum laude de mi maestría, me devolví pa' Colombia y empecé mi proceso político. He tenido muchas vidas dentro de mi vida — y cada vez que me caí, me levanté y me tocó reconstruirme.
+          Ronda nació de las mujeres que me formaron. Mis dos abuelas quedaron viudas muy jóvenes y sacaron adelante familias enteras con las manos y con el alma. Crecí rodeada de mujeres poderosas — tías, primas, amigas — que se reinventaban una y otra vez sin pedir permiso.
         </div>
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Empecé a ponerme rutinas: ir al gimnasio, salir de mi casa, tomar el sol, meditar en las escaleras de mi edificio, bajarme con un libro para buscar vida por fuera. Me empecé a fortalecer.
+          Yo también he tenido muchas vidas. Me divorcié a los 25 con tres maletas y a echar pa'lante. Me fui pa' Nueva York sin diploma, me gradué magna cum laude, me devolví pa' Colombia. Y cada vez que me caí, me levanté — pero nunca sola. Siempre hubo una mujer del otro lado tendiéndome la mano.
         </div>
         <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
-          Y sé que a ti también te ha pasado. Por eso quiero darte herramientas que me han funcionado a mí y a muchas mujeres que conozco — para recuperarse, para reencontrarse con ellas mismas, para reinventarse.
+          Cada mujer que Dios me ha puesto en el camino me ha enseñado algo. Y sé que a ti también te ha pasado: alguien te sostuvo cuando no podías más.
         </div>
         {showFullStory && <>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Vivo con TLP — trastorno límite de la personalidad — desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia sin saber para dónde iba. Nunca pensé que iba a echarme un viaje a Europa sola.
+            Vivo con TLP desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia. En ese camino sentí que había mucha soledad — y que faltaba conexión.
           </div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            En ese camino sentí que había mucha soledad, que faltaba conexión. En los momentos de crisis uno busca apoyo y la psicóloga tiene citas — no está disponible. Entonces pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado, no importa de dónde, pero que esté ahí.
+            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy. He sido personajes de mujeres de las que no me he sentido orgullosa. Pero las lecciones que me dejaron esas mujeres que me rodean — mis abuelas, mis maestras, mis amigas — esas me han sostenido.
           </div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Mi proceso ha sido largo, de muchos golpes, de estrellarme contra paredes, de metas a veces inalcanzables — y alcanzarlas. He tenido una carrera profesional exitosa, pero al final la vida personal se permea y termina afectando lo que más te importa. Yo estaba entregándole mi poder a los externos y no a mí misma.
-          </div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy, pero me enseñaron lecciones muy profundas. He sido personajes de mujeres de las que no me he sentido orgullosa. Hoy quiero seguir construyendo a esa mujer que me hace sentir orgullosa.
+            En los momentos de crisis buscaba apoyo y la psicóloga tenía citas — no estaba disponible. Pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado. No importa de dónde, pero que esté ahí.
           </div>
           <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
-            Por eso creé Ronda: porque la vida te pone momentos para reinventarte todo el tiempo, y está en ti hacerlo. Yo no quiero que ninguna mujer tenga que hacerlo sola. Quiero devolverle al mundo ese perdón de los errores que he cometido.
+            Ronda es mi forma de devolver todo lo que recibí. No es mi historia — es la historia de todas las mujeres que me construyeron. Y yo solo quiero ser puente para que tú también tengas esa red, esas herramientas, esa ronda de mujeres que te acompaña.
           </div>
         </>}
         <button onClick={() => setShowFullStory(!showFullStory)} style={{
           background: 'none', border: 'none', color: C.rose, fontSize: 14, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit', padding: 0,
         }}>
-          {showFullStory ? 'Leer menos ↑' : 'Leer mi historia completa →'}
+          {showFullStory ? 'Leer menos ↑' : 'Leer la historia completa →'}
         </button>
         <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
@@ -856,7 +998,7 @@ function App() {
           }}>D</div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Diana Silva</div>
-            <div style={{ fontSize: 12, color: C.muted }}>Fundadora de Ronda · Profesora de yoga · Sobreviviente</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Fundadora de Ronda · Puente de miles de mujeres</div>
           </div>
         </div>
       </div>
