@@ -752,6 +752,58 @@ function App() {
         <div style={{ fontSize: 13, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
       </div>
 
+      {/* Historia de Diana — arriba para conectar antes del proceso */}
+      <div style={{
+        background: C.card, borderRadius: 20, padding: 24,
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}`,
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>
+          La historia detrás de Ronda
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 14 }}>
+          "He sido miles de mujeres en una sola mujer"
+        </div>
+        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+          Yo sí algo sé: es reinventarme. Me divorcié a los 25 con tres maletas, una mano adelante y una atrás, hecha pa'lante. He tenido muchas vidas dentro de mi vida. La vida me ha puesto obstáculos una y otra vez — y cada vez me tocó reconstruirme.
+        </div>
+        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+          Empecé a ponerme rutinas: ir al gimnasio, salir de mi casa, tomar el sol, meditar en las escaleras de mi edificio, bajarme con un libro para buscar vida por fuera. Me empecé a fortalecer.
+        </div>
+        {showFullStory && <>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            Vivo con TLP — trastorno límite de la personalidad — desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia sin saber para dónde iba. Nunca pensé que iba a echarme un viaje a Europa sola.
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            En ese camino sentí que había mucha soledad, que faltaba conexión. En los momentos de crisis uno busca apoyo y la psicóloga tiene citas — no está disponible. Entonces pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado, no importa de dónde, pero que esté ahí.
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            Mi proceso ha sido largo, de muchos golpes, de estrellarme contra paredes, de metas a veces inalcanzables — y alcanzarlas. He tenido una carrera profesional exitosa, pero al final la vida personal se permea y termina afectando lo que más te importa. Yo estaba entregándole mi poder a los externos y no a mí misma.
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
+            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy, pero me enseñaron lecciones muy profundas. He sido personajes de mujeres de las que no me he sentido orgullosa. Hoy quiero seguir construyendo a esa mujer que me hace sentir orgullosa.
+          </div>
+          <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
+            Por eso creé Ronda: porque la vida te pone momentos para reinventarte todo el tiempo, y está en ti hacerlo. Yo no quiero que ninguna mujer tenga que hacerlo sola. Quiero devolverle al mundo ese perdón de los errores que he cometido.
+          </div>
+        </>}
+        <button onClick={() => setShowFullStory(!showFullStory)} style={{
+          background: 'none', border: 'none', color: C.rose, fontSize: 14, fontWeight: 700,
+          cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+        }}>
+          {showFullStory ? 'Leer menos ↑' : 'Leer mi historia completa →'}
+        </button>
+        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700,
+          }}>D</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Diana Silva</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Fundadora de Ronda · Profesora de yoga · Sobreviviente</div>
+          </div>
+        </div>
+      </div>
+
       {/* Active programs */}
       {Object.keys(activePrograms).length > 0 && (
         <div>
@@ -847,58 +899,6 @@ function App() {
               </button>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Historia de Diana */}
-      <div style={{
-        background: C.card, borderRadius: 20, padding: 24,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}`,
-      }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>
-          La historia detrás de Ronda
-        </div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 14 }}>
-          "He sido miles de mujeres en una sola mujer"
-        </div>
-        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Yo sí algo sé: es reinventarme. Me divorcié a los 25 con tres maletas, una mano adelante y una atrás, hecha pa'lante. He tenido muchas vidas dentro de mi vida. La vida me ha puesto obstáculos una y otra vez — y cada vez me tocó reconstruirme.
-        </div>
-        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Empecé a ponerme rutinas: ir al gimnasio, salir de mi casa, tomar el sol, meditar en las escaleras de mi edificio, bajarme con un libro para buscar vida por fuera. Me empecé a fortalecer.
-        </div>
-        {showFullStory && <>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Vivo con TLP — trastorno límite de la personalidad — desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia sin saber para dónde iba. Nunca pensé que iba a echarme un viaje a Europa sola.
-          </div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            En ese camino sentí que había mucha soledad, que faltaba conexión. En los momentos de crisis uno busca apoyo y la psicóloga tiene citas — no está disponible. Entonces pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado, no importa de dónde, pero que esté ahí.
-          </div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Mi proceso ha sido largo, de muchos golpes, de estrellarme contra paredes, de metas a veces inalcanzables — y alcanzarlas. He tenido una carrera profesional exitosa, pero al final la vida personal se permea y termina afectando lo que más te importa. Yo estaba entregándole mi poder a los externos y no a mí misma.
-          </div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy, pero me enseñaron lecciones muy profundas. He sido personajes de mujeres de las que no me he sentido orgullosa. Hoy quiero seguir construyendo a esa mujer que me hace sentir orgullosa.
-          </div>
-          <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
-            Por eso creé Ronda: porque la vida te pone momentos para reinventarte todo el tiempo, y está en ti hacerlo. Yo no quiero que ninguna mujer tenga que hacerlo sola. Quiero devolverle al mundo ese perdón de los errores que he cometido.
-          </div>
-        </>}
-        <button onClick={() => setShowFullStory(!showFullStory)} style={{
-          background: 'none', border: 'none', color: C.rose, fontSize: 14, fontWeight: 700,
-          cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-        }}>
-          {showFullStory ? 'Leer menos ↑' : 'Leer mi historia completa →'}
-        </button>
-        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700,
-          }}>D</div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Diana Silva</div>
-            <div style={{ fontSize: 12, color: C.muted }}>Fundadora de Ronda · Profesora de yoga · Sobreviviente</div>
-          </div>
         </div>
       </div>
 
