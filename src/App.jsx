@@ -764,7 +764,7 @@ function App() {
           "He sido miles de mujeres en una sola mujer"
         </div>
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Yo sí algo sé: es reinventarme. Me divorcié a los 25 con tres maletas y a echar pa'lante. Sin diploma, me fui pa' Nueva York a perseguir un sueño. Me gradué magna cum laude de mi maestría, me devolví pa' Colombia y empecé mi proceso político. He tenido muchas vidas dentro de mi vida — y cada vez me tocó reconstruirme.
+          Yo sí algo sé: es reinventarme. Me divorcié a los 25 con tres maletas y a echar pa'lante. Sin diploma, me fui pa' Nueva York a perseguir un sueño. Me gradué magna cum laude de mi maestría, me devolví pa' Colombia y empecé mi proceso político. He tenido muchas vidas dentro de mi vida — y cada vez que me caí, me levanté y me tocó reconstruirme.
         </div>
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
           Empecé a ponerme rutinas: ir al gimnasio, salir de mi casa, tomar el sol, meditar en las escaleras de mi edificio, bajarme con un libro para buscar vida por fuera. Me empecé a fortalecer.
