@@ -878,7 +878,7 @@ function App() {
             Mi proceso ha sido largo, de muchos golpes, de estrellarme contra paredes, de metas a veces inalcanzables — y alcanzarlas. He tenido una carrera profesional exitosa, pero al final la vida personal se permea y termina afectando lo que más te importa. Yo estaba entregándole mi poder a los externos y no a mí misma.
           </div>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            He sido personajes de mujeres de las que no me he sentido orgullosa. Hoy quiero seguir construyendo a esa mujer que me hace sentir orgullosa.
+            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy, pero me enseñaron lecciones muy profundas. He sido personajes de mujeres de las que no me he sentido orgullosa. Hoy quiero seguir construyendo a esa mujer que me hace sentir orgullosa.
           </div>
           <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
             Por eso creé Ronda: porque la vida te pone momentos para reinventarte todo el tiempo, y está en ti hacerlo. Yo no quiero que ninguna mujer tenga que hacerlo sola. Quiero devolverle al mundo ese perdón de los errores que he cometido.
