@@ -769,6 +769,9 @@ function App() {
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
           Empecé a ponerme rutinas: ir al gimnasio, salir de mi casa, tomar el sol, meditar en las escaleras de mi edificio, bajarme con un libro para buscar vida por fuera. Me empecé a fortalecer.
         </div>
+        <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
+          Y sé que a ti también te ha pasado. Por eso quiero darte herramientas que me han funcionado a mí y a muchas mujeres que conozco — para recuperarse, para reencontrarse con ellas mismas, para reinventarse.
+        </div>
         {showFullStory && <>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
             Vivo con TLP — trastorno límite de la personalidad — desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia sin saber para dónde iba. Nunca pensé que iba a echarme un viaje a Europa sola.
