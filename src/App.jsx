@@ -392,6 +392,23 @@ function App() {
         <div style={{ fontSize: 15, opacity: 0.9, marginTop: 6, fontWeight: 600, letterSpacing: '0.01em', fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>La mujer que quieres ser, empieza hoy ✨</div>
       </div>
 
+      {/* Conoce a Diana */}
+      <div onClick={() => setView('programas')} style={{
+        display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
+        background: C.card, borderRadius: 16, cursor: 'pointer',
+        border: `1px solid ${C.roseLight}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 16, fontWeight: 700, flexShrink: 0,
+        }}>D</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Conoce cómo nació Ronda</div>
+          <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>La historia de Diana y por qué creó este espacio para ti</div>
+        </div>
+        <div style={{ fontSize: 18, color: C.rose }}>→</div>
+      </div>
+
       {/* Quote of the day */}
       <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.rose}` }}>
         <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.rose, marginBottom: 8 }}>✨ Frase del día</div>
