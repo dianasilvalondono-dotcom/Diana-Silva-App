@@ -117,6 +117,14 @@ function App() {
   const [onboardHabits, setOnboardHabits] = useState([])
   const [showFullStory, setShowFullStory] = useState(false)
 
+  // Panic button / Crisis mode
+  const [showPanic, setShowPanic] = useState(false)
+  const [panicScreen, setPanicScreen] = useState('home') // home, breathe, ground, dbt, accept
+  const [breathePhase, setBreathePhase] = useState('inhale') // inhale, hold, exhale
+  const [breatheCount, setBreatheCount] = useState(0)
+  const [breatheActive, setBreatheActive] = useState(false)
+  const [groundStep, setGroundStep] = useState(0)
+
   // Morning/Night check-in
   const [morningDone, setMorningDone] = useState(() => load(`ronda-morning-${todayKey()}`, false))
   const [nightDone, setNightDone] = useState(() => load(`ronda-night-${todayKey()}`, false))
@@ -2001,6 +2009,343 @@ function App() {
     </div>
   )
 
+  /* ── Panic Button (floating) ── */
+  const panicFab = !showPanic && (
+    <button
+      onClick={() => { setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0) }}
+      style={{
+        position: 'fixed', bottom: 90, right: 20, zIndex: 200,
+        width: 56, height: 56, borderRadius: '50%',
+        background: 'linear-gradient(135deg, #C4908A, #A6716B)',
+        border: 'none', cursor: 'pointer',
+        boxShadow: '0 4px 20px rgba(196,144,138,0.5)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        animation: 'pulse-gentle 3s ease-in-out infinite',
+      }}
+      aria-label="Botón de emergencia"
+    >
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/>
+      </svg>
+    </button>
+  )
+
+  /* ── Panic Modal — Full Crisis Support ── */
+  const GROUND_STEPS = [
+    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#7BA56E' },
+    { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#C9A96E' },
+    { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#C4908A' },
+    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#A6716B' },
+    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#4A3035' },
+  ]
+
+  const DBT_SKILLS = [
+    { name: 'TIPP', icon: '🧊', desc: 'Temperatura · Ejercicio Intenso · Respiración Pautada · Relajación Muscular',
+      steps: ['Pon hielo o agua fría en tu cara 30 segundos', 'Haz ejercicio intenso 5-10 minutos (correr, saltar)', 'Respira 4 segundos inhala, 8 exhala × 5 veces', 'Tensa y relaja cada grupo muscular de pies a cabeza'] },
+    { name: 'STOP', icon: '🛑', desc: 'Para · Toma distancia · Observa · Procede con conciencia',
+      steps: ['PARA: Congélate. No reacciones aún.', 'TOMA DISTANCIA: Da un paso atrás mentalmente.', 'OBSERVA: ¿Qué sientes en el cuerpo? ¿Qué piensas?', 'PROCEDE: Actúa con la mente sabia, no la emocional.'] },
+    { name: 'Acción Opuesta', icon: '🔄', desc: 'Haz lo contrario de lo que la emoción te pide',
+      steps: ['Identifica la emoción: ¿qué sientes exactamente?', 'Identifica el impulso: ¿qué te pide hacer esa emoción?', 'Haz lo OPUESTO con todo el cuerpo', 'Si quieres aislarte → llama a alguien. Si quieres gritar → habla suave.'] },
+    { name: 'Aceptación Radical', icon: '🙏', desc: 'Aceptar la realidad tal como es, sin luchar contra ella',
+      steps: ['Reconoce: "Esto es lo que está pasando ahora mismo."', 'Suelta la lucha: resistir el dolor crea más sufrimiento.', 'Respira y repite: "Puedo aceptar esto sin aprobarlo."', 'El dolor es inevitable. El sufrimiento es la resistencia al dolor.'] },
+  ]
+
+  // Breathing timer effect
+  useEffect(() => {
+    if (!breatheActive) return
+    const phases = [
+      { name: 'inhale', label: 'Inhala', duration: 4000 },
+      { name: 'hold', label: 'Sostén', duration: 7000 },
+      { name: 'exhale', label: 'Exhala', duration: 8000 },
+    ]
+    let phaseIndex = 0
+    let cycleCount = breatheCount
+
+    const runPhase = () => {
+      if (cycleCount >= 5 || !breatheActive) return
+      setBreathePhase(phases[phaseIndex].name)
+      const t = setTimeout(() => {
+        phaseIndex++
+        if (phaseIndex >= 3) {
+          phaseIndex = 0
+          cycleCount++
+          setBreatheCount(cycleCount)
+        }
+        if (cycleCount < 5 && breatheActive) runPhase()
+        else { setBreatheActive(false) }
+      }, phases[phaseIndex].duration)
+      return t
+    }
+    const t = runPhase()
+    return () => clearTimeout(t)
+  }, [breatheActive])
+
+  const [panicDbtExpanded, setPanicDbtExpanded] = useState(null)
+
+  const panicModal = showPanic && (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: panicScreen === 'breathe'
+        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #2D3748, #4A3035)'
+          : breathePhase === 'hold' ? 'linear-gradient(180deg, #4A3035, #2D3748)'
+          : 'linear-gradient(180deg, #1A202C, #2D3748)')
+        : 'linear-gradient(180deg, #4A3035 0%, #2D1B1E 100%)',
+      zIndex: 1000, display: 'flex', flexDirection: 'column',
+      animation: 'fadeIn 0.3s ease',
+      overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+    }}>
+      {/* Close button */}
+      <button onClick={() => { setShowPanic(false); setBreatheActive(false) }} style={{
+        position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.15)',
+        border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+      }}>
+        <span style={{ color: 'white', fontSize: 20, lineHeight: 1 }}>✕</span>
+      </button>
+
+      {/* Back button */}
+      {panicScreen !== 'home' && (
+        <button onClick={() => { setPanicScreen('home'); setBreatheActive(false); setPanicDbtExpanded(null) }} style={{
+          position: 'absolute', top: 16, left: 16, background: 'rgba(255,255,255,0.15)',
+          border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+        }}>
+          <span style={{ color: 'white', fontSize: 18, lineHeight: 1 }}>←</span>
+        </button>
+      )}
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, maxWidth: 440, margin: '0 auto', width: '100%' }}>
+
+        {/* ── HOME: Main crisis menu ── */}
+        {panicScreen === 'home' && <>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>💛</div>
+          <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 8 }}>
+            Estás a salvo.
+          </div>
+          <div style={{ fontSize: 16, color: '#E8C4C0', textAlign: 'center', marginBottom: 8 }}>
+            Respira. Este momento va a pasar.
+          </div>
+          <div style={{ fontSize: 13, color: '#C4908A', textAlign: 'center', marginBottom: 32 }}>
+            Escoge lo que necesitas ahora mismo:
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+            {[
+              { id: 'breathe', icon: '🌬️', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#7BA56E' },
+              { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#C9A96E' },
+              { id: 'dbt', icon: '🧠', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#C4908A' },
+              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#A6716B' },
+            ].map(opt => (
+              <button key={opt.id} onClick={() => {
+                setPanicScreen(opt.id)
+                if (opt.id === 'breathe') { setBreatheActive(true); setBreatheCount(0); setBreathePhase('inhale') }
+                if (opt.id === 'ground') { setGroundStep(0) }
+              }} style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+                background: 'rgba(255,255,255,0.08)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)',
+                cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+              }}>
+                <div style={{ fontSize: 28, minWidth: 40, textAlign: 'center' }}>{opt.icon}</div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{opt.title}</div>
+                  <div style={{ fontSize: 12, color: '#E8C4C0', marginTop: 2 }}>{opt.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 32, textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: '#C4908A', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
+            <a href="tel:106" style={{
+              display: 'inline-block', padding: '10px 24px', borderRadius: 20,
+              background: '#A6716B', color: 'white', fontWeight: 700, fontSize: 14,
+              textDecoration: 'none',
+            }}>
+              📞 Línea 106 — Atención en crisis
+            </a>
+          </div>
+        </>}
+
+        {/* ── BREATHE: 4-7-8 Guided Breathing ── */}
+        {panicScreen === 'breathe' && <>
+          <div style={{
+            width: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
+            height: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
+            borderRadius: '50%',
+            background: breathePhase === 'inhale'
+              ? 'radial-gradient(circle, rgba(196,144,138,0.6), rgba(196,144,138,0.1))'
+              : breathePhase === 'hold'
+              ? 'radial-gradient(circle, rgba(201,169,110,0.6), rgba(201,169,110,0.1))'
+              : 'radial-gradient(circle, rgba(123,165,110,0.6), rgba(123,165,110,0.1))',
+            transition: 'all 1.5s ease-in-out',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 32,
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+              {breathePhase === 'inhale' ? 'Inhala' : breathePhase === 'hold' ? 'Sostén' : 'Exhala'}
+            </div>
+          </div>
+
+          <div style={{ fontSize: 14, color: '#E8C4C0', textAlign: 'center', marginBottom: 8 }}>
+            {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
+             breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
+             '8 segundos — suelta todo, deja ir'}
+          </div>
+          <div style={{ fontSize: 13, color: '#C4908A', marginBottom: 24 }}>
+            Ciclo {Math.min(breatheCount + 1, 5)} de 5
+          </div>
+
+          {!breatheActive && breatheCount > 0 && (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
+              <div style={{ fontSize: 14, color: '#E8C4C0', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
+              <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
+                padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 14,
+                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Repetir</button>
+            </div>
+          )}
+        </>}
+
+        {/* ── GROUND: 5-4-3-2-1 Sensory Grounding ── */}
+        {panicScreen === 'ground' && <>
+          {groundStep < 5 ? (<>
+            <div style={{ fontSize: 64, marginBottom: 16 }}>{GROUND_STEPS[groundStep].sense.split(' ')[0]}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>
+              {GROUND_STEPS[groundStep].sense}
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.4, marginBottom: 24 }}>
+              {GROUND_STEPS[groundStep].prompt}
+            </div>
+            <div style={{ fontSize: 14, color: '#E8C4C0', marginBottom: 32, textAlign: 'center' }}>
+              Tómate tu tiempo. No hay prisa.
+            </div>
+            <button onClick={() => setGroundStep(groundStep + 1)} style={{
+              padding: '14px 36px', borderRadius: 20,
+              background: GROUND_STEPS[groundStep].color, color: 'white',
+              fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              Listo → {groundStep < 4 ? 'Siguiente sentido' : 'Terminar'}
+            </button>
+          </>) : (<>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>🌟</div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 12 }}>
+              Estás aquí. Estás presente.
+            </div>
+            <div style={{ fontSize: 15, color: '#E8C4C0', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+              Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.
+            </div>
+            <button onClick={() => setGroundStep(0)} style={{
+              padding: '12px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 14,
+              fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginRight: 10,
+            }}>Repetir</button>
+            <button onClick={() => setPanicScreen('home')} style={{
+              padding: '12px 28px', borderRadius: 20, background: C.rose,
+              border: 'none', color: 'white', fontSize: 14,
+              fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+            }}>Volver</button>
+          </>)}
+        </>}
+
+        {/* ── DBT: Skills menu ── */}
+        {panicScreen === 'dbt' && <>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 6 }}>
+            Skills DBT
+          </div>
+          <div style={{ fontSize: 13, color: '#E8C4C0', textAlign: 'center', marginBottom: 24 }}>
+            Herramientas de regulación emocional. Escoge la que necesitas.
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
+            {DBT_SKILLS.map((skill, idx) => (
+              <div key={skill.name}>
+                <button onClick={() => setPanicDbtExpanded(panicDbtExpanded === idx ? null : idx)} style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+                  background: panicDbtExpanded === idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
+                  borderRadius: panicDbtExpanded === idx ? '16px 16px 0 0' : 16,
+                  border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', textAlign: 'left',
+                }}>
+                  <div style={{ fontSize: 26 }}>{skill.icon}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{skill.name}</div>
+                    <div style={{ fontSize: 11, color: '#E8C4C0', marginTop: 2 }}>{skill.desc}</div>
+                  </div>
+                  <span style={{ color: '#C4908A', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
+                </button>
+                {panicDbtExpanded === idx && (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.06)', borderRadius: '0 0 16px 16px',
+                    border: '1px solid rgba(255,255,255,0.12)', borderTop: 'none',
+                    padding: '14px 16px',
+                  }}>
+                    {skill.steps.map((step, si) => (
+                      <div key={si} style={{
+                        display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: si < skill.steps.length - 1 ? 12 : 0,
+                      }}>
+                        <div style={{
+                          minWidth: 24, height: 24, borderRadius: '50%', background: C.rose,
+                          color: 'white', fontSize: 12, fontWeight: 800,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
+                        }}>{si + 1}</div>
+                        <div style={{ fontSize: 14, color: '#E8C4C0', lineHeight: 1.5 }}>{step}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>}
+
+        {/* ── ACCEPT: Radical Acceptance guided ── */}
+        {panicScreen === 'accept' && <>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🙏</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 12 }}>
+            Aceptación Radical
+          </div>
+          <div style={{ fontSize: 14, color: '#E8C4C0', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
+            No significa que apruebas lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
+          </div>
+
+          {[
+            { num: 1, text: 'Reconoce lo que sientes. Ponle nombre. "Siento dolor. Siento miedo. Siento rabia." No lo juzgues.' },
+            { num: 2, text: 'Observa dónde lo sientes en tu cuerpo. Pecho apretado. Mandíbula tensa. Estómago cerrado. Solo observa.' },
+            { num: 3, text: 'Respira hacia ese lugar. Imagina que el aire llega exactamente ahí y suaviza.' },
+            { num: 4, text: 'Repite en silencio: "Esto es lo que está pasando. No tengo que luchar contra esto. Puedo estar aquí."' },
+            { num: 5, text: 'Suelta las manos. Abre las palmas hacia arriba. Relaja los hombros. Deja que la gravedad te sostenga.' },
+            { num: 6, text: 'Repite: "El dolor es parte de la vida. El sufrimiento es resistir ese dolor. Hoy elijo soltar la resistencia."' },
+          ].map(step => (
+            <div key={step.num} style={{
+              display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16, width: '100%',
+            }}>
+              <div style={{
+                minWidth: 28, height: 28, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #C4908A, #C9A96E)',
+                color: 'white', fontSize: 13, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>{step.num}</div>
+              <div style={{ fontSize: 14, color: '#E8C4C0', lineHeight: 1.6 }}>{step.text}</div>
+            </div>
+          ))}
+
+          <div style={{
+            marginTop: 16, padding: 18, borderRadius: 16,
+            background: 'rgba(201,169,110,0.15)', border: '1px solid rgba(201,169,110,0.3)',
+            textAlign: 'center', width: '100%',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#C9A96E', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.5 }}>
+              "No puedo controlar lo que pasa.<br/>Pero puedo elegir cómo respondo.<br/>Y hoy elijo la paz."
+            </div>
+          </div>
+        </>}
+
+      </div>
+    </div>
+  )
+
   /* ── Render ── */
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
@@ -2015,6 +2360,8 @@ function App() {
         {view === 'frases'    && frasesView}
         {view === 'perfil'    && perfilView}
       </div>
+      {panicFab}
+      {panicModal}
       {bottomNav}
       {morningModal}
       {nightModal}
