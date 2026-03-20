@@ -65,6 +65,7 @@ function App() {
   const { user, loading: authLoading, isConfigured, signInWithGoogle, signInWithEmail, signUp, signOut } = useAuth()
 
   const [view, setView] = useState('inicio')
+  const [subTab, setSubTab] = useState('') // sub-navigation within tabs
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   // Habits
@@ -358,17 +359,20 @@ function App() {
     programas: (a) => <BrandIcon active={a}><path d="M10 24 L10 20 L16 17 L16 13 L22 10 L22 7" stroke={a ? C.gold : C.rose} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><circle cx="10" cy="24" r="2.5" fill={a ? C.gold : C.rose} opacity="0.5" /><circle cx="16" cy="15" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><circle cx="22" cy="7" r="2.5" fill={a ? C.gold : C.rose} /></BrandIcon>,
     /* Board — manos unidas / círculo de apoyo */
     board: (a) => <BrandIcon active={a}><circle cx="16" cy="10" r="3" fill={a ? C.gold : C.rose} opacity="0.9" /><circle cx="9" cy="20" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><circle cx="23" cy="20" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><path d="M9 17 Q16 14 23 17" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 22.5 Q16 26 23 22.5" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
+    /* Crecer — semilla/planta creciendo */
+    crecer: (a) => <BrandIcon active={a}><path d="M16 24 L16 14" stroke={a ? C.gold : C.rose} strokeWidth="2" strokeLinecap="round" /><path d="M16 14 Q12 10 16 6 Q20 10 16 14Z" fill={a ? C.gold : C.rose} opacity="0.85" /><path d="M16 18 Q11 16 10 12" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M16 18 Q21 16 22 12" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
+    /* Directorio — tienda/storefront */
+    directorio: (a) => <BrandIcon active={a}><path d="M6 13 L6 24 L26 24 L26 13" stroke={a ? C.gold : C.rose} strokeWidth="1.8" fill="none" strokeLinecap="round" /><path d="M4 13 L16 6 L28 13" stroke={a ? C.gold : C.rose} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /><rect x="13" y="17" width="6" height="7" rx="1" fill={a ? C.gold : C.rose} opacity="0.6" /><circle cx="10" cy="18" r="1.5" fill={a ? C.gold : C.rose} opacity="0.5" /><circle cx="22" cy="18" r="1.5" fill={a ? C.gold : C.rose} opacity="0.5" /></BrandIcon>,
+    /* Yo — persona/perfil */
+    yo: (a) => <BrandIcon active={a}><circle cx="16" cy="11" r="4" fill={a ? C.gold : C.rose} opacity="0.85" /><path d="M8 24 Q8 18 16 18 Q24 18 24 24" fill={a ? C.gold : C.rose} opacity="0.6" /></BrandIcon>,
   }
 
   const NAV = [
-    { id: 'inicio',    label: 'Mi día' },
-    { id: 'programas', label: 'Programas' },
-    { id: 'board',     label: 'Comunidad' },
-    { id: 'habitos',   label: 'Hábitos' },
-    { id: 'rutina',    label: 'Rutina' },
-    { id: 'diario',    label: 'Diario' },
-    { id: 'toolkit',   label: 'Toolkit' },
-    { id: 'frases',    label: 'Frases' },
+    { id: 'inicio',     label: 'Mi día' },
+    { id: 'crecer',     label: 'Crecer' },
+    { id: 'board',      label: 'Comunidad' },
+    { id: 'directorio', label: 'Ronda' },
+    { id: 'yo',         label: 'Yo' },
   ]
 
   /* ── Logo ── */
@@ -399,7 +403,7 @@ function App() {
           </div>
           <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
-        <button onClick={() => setView('perfil')} style={{
+        <button onClick={() => { setView('yo'); setSubTab('perfil') }} style={{
           width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
           background: 'rgba(201,169,110,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0, padding: 0,
@@ -425,7 +429,7 @@ function App() {
       {NAV.map(n => {
         const isActive = view === n.id
         return (
-          <button key={n.id} onClick={() => setView(n.id)} style={{
+          <button key={n.id} onClick={() => { setView(n.id); setSubTab('') }} style={{
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
             background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
           }}>
@@ -1660,6 +1664,151 @@ function App() {
     </div>
   )
 
+  /* ── Sub-tab navigation (pill style) ── */
+  const SubTabs = ({ tabs, active, onChange }) => (
+    <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
+      {tabs.map(t => (
+        <button key={t.id} onClick={() => onChange(t.id)} style={{
+          padding: '8px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
+          background: active === t.id ? C.rose : C.card,
+          color: active === t.id ? 'white' : C.muted,
+          fontSize: 13, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+          boxShadow: active === t.id ? '0 2px 8px rgba(196,144,138,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+          transition: 'all 0.15s',
+        }}>
+          {t.icon} {t.label}
+        </button>
+      ))}
+    </div>
+  )
+
+  /* ── Directorio / Marketplace ── */
+  const DIRECTORIO_CATS = [
+    { id: 'todas', label: 'Todas', icon: '🌿' },
+    { id: 'salud_mental', label: 'Salud Mental', icon: '🧠' },
+    { id: 'coaching', label: 'Coaching', icon: '🎯' },
+    { id: 'yoga', label: 'Yoga & Movimiento', icon: '🧘‍♀️' },
+    { id: 'nutricion', label: 'Nutrición', icon: '🥗' },
+    { id: 'legal', label: 'Legal & Finanzas', icon: '⚖️' },
+    { id: 'belleza', label: 'Belleza & Bienestar', icon: '💆‍♀️' },
+    { id: 'negocios', label: 'Negocios', icon: '💼' },
+    { id: 'educacion', label: 'Educación', icon: '📚' },
+  ]
+
+  const [dirFilter, setDirFilter] = useState('todas')
+
+  const SEED_DIRECTORIO = [
+    { id: 'd1', name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica', cat: 'salud_mental', city: 'Cartagena', desc: 'Especialista en ansiedad, depresión y TLP. 8 años de experiencia. Terapia DBT y cognitivo-conductual.', price: 'Desde $120.000/sesión', verified: true, rating: 4.9, reviews: 47 },
+    { id: 'd2', name: 'María José Herrera', title: 'Coach de bienestar certificada', cat: 'coaching', city: 'Bogotá', desc: 'Certificada en DBT y coaching ontológico. Te acompaño en transiciones de vida, separaciones y reinvención personal.', price: 'Desde $150.000/sesión', verified: true, rating: 4.8, reviews: 32 },
+    { id: 'd3', name: 'Studio Shakti Yoga', title: 'Yoga & Meditación', cat: 'yoga', city: 'Cartagena', desc: 'Clases de Vinyasa, Yin Yoga y meditación guiada. Grupos pequeños y clases privadas. Fundada por mujeres.', price: 'Desde $35.000/clase', verified: true, rating: 5.0, reviews: 89 },
+    { id: 'd4', name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal', cat: 'salud_mental', city: 'Medellín', desc: 'Maternidad consciente, depresión postparto, crianza respetuosa. Sesiones presenciales y virtuales.', price: 'Desde $130.000/sesión', verified: true, rating: 4.9, reviews: 61 },
+    { id: 'd5', name: 'Laura Martínez Coaching', title: 'Coach ejecutiva', cat: 'coaching', city: 'Bogotá', desc: 'Emprendimiento femenino, liderazgo y marca personal. Programas grupales e individuales para mujeres que quieren crecer.', price: 'Desde $180.000/sesión', verified: true, rating: 4.7, reviews: 28 },
+    { id: 'd6', name: 'Nutrición Vital', title: 'Nutricionista clínica', cat: 'nutricion', city: 'Cartagena', desc: 'Alimentación consciente, planes personalizados, relación sana con la comida. Sin dietas restrictivas — bienestar real.', price: 'Desde $100.000/consulta', verified: true, rating: 4.8, reviews: 53 },
+    { id: 'd7', name: 'Abogadas con Alma', title: 'Derecho de familia', cat: 'legal', city: 'Cartagena', desc: 'Divorcios, custodia, violencia intrafamiliar. Equipo de abogadas que entiende lo que estás pasando. Consulta inicial gratis.', price: 'Consulta inicial gratis', verified: true, rating: 4.9, reviews: 37 },
+    { id: 'd8', name: 'Manos de Luna', title: 'Spa & Bienestar', cat: 'belleza', city: 'Cartagena', desc: 'Masajes terapéuticos, aromaterapia, reflexología. Un espacio creado por mujeres para reconectar con tu cuerpo.', price: 'Desde $80.000/sesión', verified: true, rating: 4.9, reviews: 72 },
+    { id: 'd9', name: 'Cuentas Claras', title: 'Contabilidad para emprendedoras', cat: 'negocios', city: 'Virtual', desc: 'Facturación, impuestos, registro de empresa. Te ayudamos a formalizar tu negocio sin enredos. Precios especiales para emprendedoras.', price: 'Desde $200.000/mes', verified: true, rating: 4.6, reviews: 19 },
+    { id: 'd10', name: 'Escuela Renacer', title: 'Talleres de empoderamiento', cat: 'educacion', city: 'Virtual', desc: 'Talleres de autoestima, finanzas personales, comunicación asertiva y liderazgo femenino. Grupos de máximo 15 mujeres.', price: 'Desde $50.000/taller', verified: true, rating: 4.8, reviews: 44 },
+  ]
+
+  const filteredDir = dirFilter === 'todas' ? SEED_DIRECTORIO : SEED_DIRECTORIO.filter(d => d.cat === dirFilter)
+
+  const directorioView = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+          Directorio Ronda
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
+          Mujeres que te acompañan en el camino
+        </div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+          Profesionales y negocios verificados por la comunidad ✓
+        </div>
+      </div>
+
+      {/* Category filters */}
+      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
+        {DIRECTORIO_CATS.map(cat => (
+          <button key={cat.id} onClick={() => setDirFilter(cat.id)} style={{
+            padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
+            background: dirFilter === cat.id ? C.rose : C.card,
+            color: dirFilter === cat.id ? 'white' : C.muted,
+            fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            boxShadow: dirFilter === cat.id ? '0 2px 8px rgba(196,144,138,0.3)' : 'none',
+          }}>
+            {cat.icon} {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Listings */}
+      {filteredDir.map(item => (
+        <div key={item.id} style={{
+          background: C.card, borderRadius: 16, padding: 18,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: `1px solid ${C.border}`,
+        }}>
+          <div style={{ display: 'flex', gap: 14 }}>
+            {/* Avatar */}
+            <div style={{
+              width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
+              background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontSize: 20, fontWeight: 700,
+            }}>{item.name.charAt(0)}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</span>
+                {item.verified && <span style={{
+                  fontSize: 9, background: C.gold, color: 'white', padding: '2px 6px',
+                  borderRadius: 8, fontWeight: 700,
+                }}>✓ VERIFICADA</span>}
+              </div>
+              <div style={{ fontSize: 12, color: C.rose, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>📍 {item.city}</div>
+            </div>
+          </div>
+
+          <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, marginTop: 12 }}>
+            {item.desc}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.gold }}>⭐ {item.rating}</span>
+              <span style={{ fontSize: 11, color: C.subtle }}>({item.reviews} reseñas)</span>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.roseDark }}>{item.price}</span>
+          </div>
+
+          <button style={{
+            marginTop: 12, width: '100%', padding: '10px 16px', borderRadius: 12, border: 'none',
+            background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white',
+            fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            Contactar →
+          </button>
+        </div>
+      ))}
+
+      {/* CTA to register business */}
+      <div style={{
+        textAlign: 'center', padding: 24, background: C.card, borderRadius: 16,
+        border: `1px solid ${C.roseLight}`,
+      }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>
+          ¿Tienes un negocio o eres profesional?
+        </div>
+        <div style={{ fontSize: 12, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+          Registra tu negocio en el Directorio Ronda y conecta con miles de mujeres.
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose }}>
+          Regístrate → hola@rondahub.com
+        </div>
+      </div>
+    </div>
+  )
+
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
@@ -2610,15 +2759,43 @@ function App() {
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       {header}
       <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 80 }}>
-        {view === 'inicio'    && inicioView}
-        {view === 'programas' && programasView}
-        {view === 'board'     && boardView}
-        {view === 'toolkit'   && toolkitView}
-        {view === 'habitos'   && habitosView}
-        {view === 'rutina'    && rutinaView}
-        {view === 'diario'    && diarioView}
-        {view === 'frases'    && frasesView}
-        {view === 'perfil'    && perfilView}
+        {view === 'inicio' && inicioView}
+
+        {view === 'crecer' && <>
+          <SubTabs
+            tabs={[
+              { id: 'programas', label: 'Programas', icon: '🧠' },
+              { id: 'frases', label: 'Frases', icon: '✨' },
+            ]}
+            active={subTab || 'programas'}
+            onChange={setSubTab}
+          />
+          {(subTab || 'programas') === 'programas' && programasView}
+          {subTab === 'frases' && frasesView}
+        </>}
+
+        {view === 'board' && boardView}
+
+        {view === 'directorio' && directorioView}
+
+        {view === 'yo' && <>
+          <SubTabs
+            tabs={[
+              { id: 'habitos', label: 'Hábitos', icon: '✅' },
+              { id: 'rutina', label: 'Rutina', icon: '∞' },
+              { id: 'diario', label: 'Diario', icon: '📝' },
+              { id: 'toolkit', label: 'Toolkit', icon: '⭐' },
+              { id: 'perfil', label: 'Perfil', icon: '👤' },
+            ]}
+            active={subTab || 'habitos'}
+            onChange={setSubTab}
+          />
+          {(subTab || 'habitos') === 'habitos' && habitosView}
+          {subTab === 'rutina' && rutinaView}
+          {subTab === 'diario' && diarioView}
+          {subTab === 'toolkit' && toolkitView}
+          {subTab === 'perfil' && perfilView}
+        </>}
       </div>
       {panicFab}
       {panicModal}
