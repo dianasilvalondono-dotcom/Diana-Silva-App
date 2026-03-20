@@ -125,6 +125,14 @@ function App() {
   const [breatheActive, setBreatheActive] = useState(false)
   const [groundStep, setGroundStep] = useState(0)
 
+  // Board (Bulletin Board 24/7)
+  const [boardPosts, setBoardPosts] = useState(() => load('ronda-board', []))
+  const [boardFilter, setBoardFilter] = useState('todas')
+  const [boardNewText, setBoardNewText] = useState('')
+  const [boardNewCat, setBoardNewCat] = useState('general')
+  const [boardShowForm, setBoardShowForm] = useState(false)
+  const [boardHearts, setBoardHearts] = useState(() => load('ronda-board-hearts', {}))
+
   // Morning/Night check-in
   const [morningDone, setMorningDone] = useState(() => load(`ronda-morning-${todayKey()}`, false))
   const [nightDone, setNightDone] = useState(() => load(`ronda-night-${todayKey()}`, false))
@@ -158,6 +166,8 @@ function App() {
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
   useEffect(() => { save('diana-profile', profile) }, [profile])
   useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
+  useEffect(() => { save('ronda-board', boardPosts) }, [boardPosts])
+  useEffect(() => { save('ronda-board-hearts', boardHearts) }, [boardHearts])
   useEffect(() => { save(`ronda-morning-${todayKey()}`, morningDone) }, [morningDone])
   useEffect(() => { save(`ronda-night-${todayKey()}`, nightDone) }, [nightDone])
   useEffect(() => { save('diana-morning', morning) }, [morning])
@@ -346,11 +356,14 @@ function App() {
     frases: (a) => <BrandIcon active={a}><g fill={a ? C.gold : C.rose} opacity="0.85"><circle cx="12" cy="14" r="3" /><path d="M12 17 Q9 17 10 21 L13 20 Q14 17 12 17Z" /><circle cx="21" cy="14" r="3" /><path d="M21 17 Q18 17 19 21 L22 20 Q23 17 21 17Z" /></g></BrandIcon>,
     /* Programas — camino/steps */
     programas: (a) => <BrandIcon active={a}><path d="M10 24 L10 20 L16 17 L16 13 L22 10 L22 7" stroke={a ? C.gold : C.rose} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><circle cx="10" cy="24" r="2.5" fill={a ? C.gold : C.rose} opacity="0.5" /><circle cx="16" cy="15" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><circle cx="22" cy="7" r="2.5" fill={a ? C.gold : C.rose} /></BrandIcon>,
+    /* Board — manos unidas / círculo de apoyo */
+    board: (a) => <BrandIcon active={a}><circle cx="16" cy="10" r="3" fill={a ? C.gold : C.rose} opacity="0.9" /><circle cx="9" cy="20" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><circle cx="23" cy="20" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><path d="M9 17 Q16 14 23 17" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 22.5 Q16 26 23 22.5" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
   }
 
   const NAV = [
     { id: 'inicio',    label: 'Mi día' },
     { id: 'programas', label: 'Programas' },
+    { id: 'board',     label: 'Comunidad' },
     { id: 'habitos',   label: 'Hábitos' },
     { id: 'rutina',    label: 'Rutina' },
     { id: 'diario',    label: 'Diario' },
@@ -1411,6 +1424,242 @@ function App() {
     setProfile(prev => ({ ...prev, [field]: value }))
   }
 
+  /* ── Board categories ── */
+  const BOARD_CATS = [
+    { id: 'todas', label: 'Todas', icon: '🌿' },
+    { id: 'ansiedad', label: 'Ansiedad', icon: '🌊' },
+    { id: 'relaciones', label: 'Relaciones', icon: '💔' },
+    { id: 'autoestima', label: 'Autoestima', icon: '🪞' },
+    { id: 'maternidad', label: 'Maternidad', icon: '🤱' },
+    { id: 'duelo', label: 'Duelo', icon: '🕊️' },
+    { id: 'emprendimiento', label: 'Emprender', icon: '🚀' },
+    { id: 'general', label: 'General', icon: '💬' },
+  ]
+
+  /* ── Seed board data (MVP — will be replaced by Supabase) ── */
+  const SEED_POSTS = [
+    { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
+      replies: [{ pro: { name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica · Especialista en ansiedad', verified: true },
+        text: 'Lo que describes suena a ansiedad anticipatoria — tu mente está tratando de "resolver" el futuro desde la cama. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." El cerebro necesita sentir que no va a olvidar para poder soltar. Si esto persiste más de 2 semanas, busca ayuda profesional. Estoy aquí. 💛' }] },
+    { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
+      replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
+        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
+    { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
+      replies: [{ pro: { name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal · Maternidad consciente', verified: true },
+        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Se llama "pérdida de identidad materna" y afecta al 70% de las mamás. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 💛' }] },
+    { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
+      replies: [{ pro: { name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica · Especialista en ansiedad', verified: true },
+        text: 'Los patrones de relación se forman en la infancia — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro confunde la ansiedad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es trabajar tu estilo de apego. DBT y terapia de esquemas pueden ayudarte a reprogramar lo que tu cerebro busca en una pareja. No estás "rota" — estás programada, y eso se puede cambiar. 🧠' }] },
+    { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
+      replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
+        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 🕊️' }] },
+    { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
+      replies: [{ pro: { name: 'Laura Martínez', title: 'Coach ejecutiva · Emprendimiento femenino', verified: true },
+        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar. 🚀' }] },
+  ]
+
+  const allBoardPosts = [...SEED_POSTS, ...boardPosts]
+  const filteredBoardPosts = boardFilter === 'todas' ? allBoardPosts : allBoardPosts.filter(p => p.cat === boardFilter)
+
+  const addBoardPost = () => {
+    if (!boardNewText.trim()) return
+    const newPost = {
+      id: `u${Date.now()}`,
+      cat: boardNewCat,
+      content: boardNewText.trim(),
+      time: 'Ahora',
+      hearts: 0,
+      replies: [],
+    }
+    setBoardPosts(prev => [newPost, ...prev])
+    setBoardNewText('')
+    setBoardShowForm(false)
+  }
+
+  const toggleBoardHeart = (postId) => {
+    setBoardHearts(prev => ({ ...prev, [postId]: !prev[postId] }))
+  }
+
+  /* ── Board View ── */
+  const boardView = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+          Comunidad Ronda
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
+          No estás sola. Pregunta lo que necesites.
+        </div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+          Tú eres anónima. Nuestras profesionales están verificadas ✓
+        </div>
+      </div>
+
+      {/* Category filters */}
+      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
+        {BOARD_CATS.map(cat => (
+          <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
+            padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
+            background: boardFilter === cat.id ? C.rose : C.card,
+            color: boardFilter === cat.id ? 'white' : C.muted,
+            fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            boxShadow: boardFilter === cat.id ? '0 2px 8px rgba(196,144,138,0.3)' : 'none',
+          }}>
+            {cat.icon} {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* New post button */}
+      {!boardShowForm ? (
+        <button onClick={() => setBoardShowForm(true)} style={{
+          padding: '14px 18px', borderRadius: 16, border: `2px dashed ${C.roseLight}`,
+          background: C.card, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+        }}>
+          <div style={{ fontSize: 14, color: C.muted }}>💬 ¿Qué necesitas hoy? Escribe aquí...</div>
+          <div style={{ fontSize: 11, color: C.subtle, marginTop: 4 }}>Tu publicación es anónima. Solo profesionales verificadas responden.</div>
+        </button>
+      ) : (
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            🔒 Publicación anónima
+          </div>
+          {/* Category selector */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+            {BOARD_CATS.filter(c => c.id !== 'todas').map(cat => (
+              <button key={cat.id} onClick={() => setBoardNewCat(cat.id)} style={{
+                padding: '4px 10px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                background: boardNewCat === cat.id ? C.rose : C.cream,
+                color: boardNewCat === cat.id ? 'white' : C.muted,
+                fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+              }}>
+                {cat.icon} {cat.label}
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={boardNewText}
+            onChange={e => setBoardNewText(e.target.value)}
+            placeholder="Escribe lo que sientes, lo que te preocupa, lo que necesitas saber. Este es tu espacio seguro."
+            rows={4}
+            style={{
+              width: '100%', border: `1px solid ${C.border}`, borderRadius: 12, padding: 14,
+              fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none',
+              lineHeight: 1.6, background: C.cream, color: C.text, boxSizing: 'border-box',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+            <button onClick={() => setBoardShowForm(false)} style={{
+              flex: 1, padding: '10px 16px', borderRadius: 12, border: `1px solid ${C.border}`,
+              background: 'none', color: C.muted, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+            }}>Cancelar</button>
+            <button onClick={addBoardPost} style={{
+              flex: 1, padding: '10px 16px', borderRadius: 12, border: 'none',
+              background: boardNewText.trim() ? C.rose : C.border, color: 'white',
+              fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+            }}>Publicar 💛</button>
+          </div>
+        </div>
+      )}
+
+      {/* Posts */}
+      {filteredBoardPosts.map(post => (
+        <div key={post.id} style={{
+          background: C.card, borderRadius: 16, padding: 18,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: `1px solid ${C.border}`,
+        }}>
+          {/* Post header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%', background: C.cream,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+              }}>🔒</div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Anónima</div>
+                <div style={{ fontSize: 11, color: C.subtle }}>{post.time}</div>
+              </div>
+            </div>
+            <span style={{
+              padding: '3px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600,
+              background: `${C.rose}15`, color: C.roseDark,
+            }}>
+              {(BOARD_CATS.find(c => c.id === post.cat) || {}).icon} {(BOARD_CATS.find(c => c.id === post.cat) || {}).label}
+            </span>
+          </div>
+
+          {/* Post content */}
+          <div style={{ fontSize: 14, color: C.text, lineHeight: 1.7, marginBottom: 12 }}>
+            {post.content}
+          </div>
+
+          {/* Hearts */}
+          <button onClick={() => toggleBoardHeart(post.id)} style={{
+            display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+            borderRadius: 20, border: `1px solid ${boardHearts[post.id] ? C.rose : C.border}`,
+            background: boardHearts[post.id] ? `${C.rose}12` : 'none',
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '💛' : '🤍'}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
+              {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
+            </span>
+          </button>
+
+          {/* Professional replies */}
+          {post.replies && post.replies.length > 0 && post.replies.map((reply, ri) => (
+            <div key={ri} style={{
+              marginTop: 14, padding: 16, borderRadius: 14,
+              background: 'linear-gradient(135deg, #FBF6F3, #F5E1DE40)',
+              border: `1px solid ${C.roseLight}`,
+            }}>
+              {/* Professional header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'white', fontSize: 14, fontWeight: 700,
+                }}>{reply.pro.name.charAt(0)}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{reply.pro.name}</span>
+                    {reply.pro.verified && <span style={{
+                      fontSize: 10, background: C.gold, color: 'white', padding: '1px 6px',
+                      borderRadius: 8, fontWeight: 700,
+                    }}>✓ Verificada</span>}
+                  </div>
+                  <div style={{ fontSize: 11, color: C.muted }}>{reply.pro.title}</div>
+                </div>
+              </div>
+              {/* Reply content */}
+              <div style={{ fontSize: 13, color: C.text, lineHeight: 1.7 }}>
+                {reply.text}
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+
+      {/* Bottom CTA */}
+      <div style={{
+        textAlign: 'center', padding: 24, background: C.card, borderRadius: 16,
+        border: `1px solid ${C.roseLight}`,
+      }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>
+          ¿Eres profesional de la salud mental?
+        </div>
+        <div style={{ fontSize: 12, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+          Únete como profesional verificada y ayuda a miles de mujeres que necesitan apoyo.
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose }}>
+          Escríbenos → hola@rondahub.com
+        </div>
+      </div>
+    </div>
+  )
+
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
@@ -2154,7 +2403,17 @@ function App() {
             ))}
           </div>
 
-          <div style={{ marginTop: 32, textAlign: 'center' }}>
+          {/* Go to community */}
+          <button onClick={() => { setShowPanic(false); setView('board') }} style={{
+            marginTop: 24, width: '100%', padding: '14px 18px',
+            background: 'rgba(201,169,110,0.2)', borderRadius: 16,
+            border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#C9A96E' }}>💬 Ir a la Comunidad</div>
+            <div style={{ fontSize: 12, color: '#E8C4C0', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
+          </button>
+
+          <div style={{ marginTop: 20, textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: '#C4908A', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
             <a href="tel:106" style={{
               display: 'inline-block', padding: '10px 24px', borderRadius: 20,
@@ -2353,6 +2612,7 @@ function App() {
       <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 80 }}>
         {view === 'inicio'    && inicioView}
         {view === 'programas' && programasView}
+        {view === 'board'     && boardView}
         {view === 'toolkit'   && toolkitView}
         {view === 'habitos'   && habitosView}
         {view === 'rutina'    && rutinaView}
