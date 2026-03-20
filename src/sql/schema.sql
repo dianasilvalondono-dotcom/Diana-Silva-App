@@ -129,3 +129,71 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ═══════════════════════════════════════════
+--  BOARD — Bulletin Board 24/7
+-- ═══════════════════════════════════════════
+
+-- Professionals (verified therapists, coaches, etc.)
+CREATE TABLE IF NOT EXISTS professionals (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  title TEXT NOT NULL, -- "Psicóloga clínica", "Coach de bienestar"
+  specialty TEXT[] DEFAULT '{}', -- ['ansiedad','depresion','relaciones']
+  bio TEXT DEFAULT '',
+  verified BOOLEAN DEFAULT FALSE,
+  photo_url TEXT DEFAULT '',
+  city TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view verified professionals" ON professionals FOR SELECT USING (verified = TRUE);
+CREATE POLICY "Professionals can manage own profile" ON professionals FOR ALL USING (auth.uid() = user_id);
+CREATE INDEX idx_professionals_verified ON professionals(verified);
+
+-- Board posts (anonymous by default)
+CREATE TABLE IF NOT EXISTS board_posts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  category TEXT NOT NULL, -- ansiedad, relaciones, maternidad, autoestima, duelo, emprendimiento, general
+  content TEXT NOT NULL,
+  is_anonymous BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE board_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view board posts" ON board_posts FOR SELECT USING (TRUE);
+CREATE POLICY "Users can create posts" ON board_posts FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own posts" ON board_posts FOR DELETE USING (auth.uid() = user_id);
+CREATE INDEX idx_board_posts_cat ON board_posts(category);
+CREATE INDEX idx_board_posts_date ON board_posts(created_at DESC);
+
+-- Board replies (only from verified professionals)
+CREATE TABLE IF NOT EXISTS board_replies (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID REFERENCES board_posts(id) ON DELETE CASCADE NOT NULL,
+  professional_id UUID REFERENCES professionals(id) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE board_replies ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view replies" ON board_replies FOR SELECT USING (TRUE);
+CREATE POLICY "Professionals can reply" ON board_replies FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM professionals WHERE id = professional_id AND user_id = auth.uid() AND verified = TRUE)
+);
+CREATE INDEX idx_board_replies_post ON board_replies(post_id);
+
+-- Board hearts (support without words)
+CREATE TABLE IF NOT EXISTS board_hearts (
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  post_id UUID REFERENCES board_posts(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (user_id, post_id)
+);
+
+ALTER TABLE board_hearts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage hearts" ON board_hearts FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Anyone can view heart counts" ON board_hearts FOR SELECT USING (TRUE);
