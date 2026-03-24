@@ -69,7 +69,7 @@ function App() {
   const [view, setView] = useState('inicio')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
   // Admin check — Diana sees everything, others see paywall
-  const ADMIN_EMAILS = ['dianasilvalondono@gmail.com', 'diana@rondahub.com']
+  const ADMIN_EMAILS = ['dianasilva.londono@gmail.com', 'dianasilvalondono@gmail.com', 'diana@rondahub.com']
   const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase())
   const isPremium = isAdmin // Later: check Stripe subscription
 
@@ -94,6 +94,7 @@ function App() {
   const [night, setNight] = useState(() => load('diana-night', DEFAULT_NIGHT))
   const [routineChecked, setRoutineChecked] = useState(() => load(`diana-routine-${todayKey()}`, {}))
   const [editingRoutine, setEditingRoutine] = useState(false)
+  const [editingRoutineItem, setEditingRoutineItem] = useState(null) // { sectionKey, id, time, task, emoji }
   const [newRoutineTask, setNewRoutineTask] = useState('')
   const [newRoutineTime, setNewRoutineTime] = useState('')
   const [newRoutineEmoji, setNewRoutineEmoji] = useState('✨')
@@ -267,6 +268,16 @@ function App() {
     if (section === 'morning') setMorning(prev => prev.filter(i => i.id !== id))
     else if (section === 'midday') setMidday(prev => prev.filter(i => i.id !== id))
     else setNight(prev => prev.filter(i => i.id !== id))
+  }
+
+  const saveRoutineItemEdit = () => {
+    if (!editingRoutineItem) return
+    const { sectionKey, id, time, task, emoji } = editingRoutineItem
+    const updater = prev => prev.map(i => i.id === id ? { ...i, time, task, emoji } : i)
+    if (sectionKey === 'morning') setMorning(updater)
+    else if (sectionKey === 'midday') setMidday(updater)
+    else setNight(updater)
+    setEditingRoutineItem(null)
   }
 
   const addTomorrowTask = () => {
@@ -759,30 +770,66 @@ function App() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {items.map(item => (
-          <div key={item.id} style={{
-            background: C.card, borderRadius: 12, padding: '11px 14px',
-            display: 'flex', alignItems: 'center', gap: 10,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-            opacity: routineChecked[item.id] ? 0.55 : 1, transition: 'all 0.15s',
-          }}>
-            <div onClick={() => toggleRoutine(item.id)} style={{
-              width: 22, height: 22, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.greenDone : C.roseLight}`,
-              background: routineChecked[item.id] ? C.greenDone : 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11, flexShrink: 0, cursor: 'pointer',
+          editingRoutineItem && editingRoutineItem.id === item.id ? (
+            /* Inline edit mode */
+            <div key={item.id} style={{
+              background: C.card, borderRadius: 12, padding: 14,
+              boxShadow: '0 2px 8px rgba(196,144,138,0.15)', border: `2px solid ${C.rose}`,
             }}>
-              {routineChecked[item.id] && '✓'}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <input value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
+                  style={{ width: 70, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', fontWeight: 700, color: C.gold }} />
+                <input value={editingRoutineItem.task} onChange={e => setEditingRoutineItem(prev => ({...prev, task: e.target.value}))}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }}
+                  onKeyDown={e => e.key === 'Enter' && saveRoutineItemEdit()} />
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
+                {ROUTINE_EMOJIS.map(e => (
+                  <button key={e} onClick={() => setEditingRoutineItem(prev => ({...prev, emoji: e}))} style={{
+                    fontSize: 18, padding: 3, background: editingRoutineItem.emoji === e ? C.beige : 'transparent',
+                    border: editingRoutineItem.emoji === e ? `2px solid ${C.rose}` : '2px solid transparent',
+                    borderRadius: 6, cursor: 'pointer',
+                  }}>{e}</button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={saveRoutineItemEdit} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: C.rose, color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  ✓ Guardar
+                </button>
+                <button onClick={() => setEditingRoutineItem(null)} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+                  Cancelar
+                </button>
+              </div>
             </div>
-            <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 14, fontWeight: 700, color: C.gold, minWidth: 44, cursor: 'pointer' }}>{item.time}</span>
-            <span style={{ fontSize: 18, flexShrink: 0 }}>{item.emoji}</span>
-            <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 15, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
-              {item.task}
-            </span>
-            {editingRoutine && (
-              <button onClick={() => removeRoutineItem(sectionKey, item.id)} style={{
-                background: 'none', border: 'none', color: '#e57373', fontSize: 18, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
-              }}>×</button>
-            )}
-          </div>
+          ) : (
+            <div key={item.id} style={{
+              background: C.card, borderRadius: 12, padding: '11px 14px',
+              display: 'flex', alignItems: 'center', gap: 10,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              opacity: routineChecked[item.id] ? 0.55 : 1, transition: 'all 0.15s',
+            }}>
+              <div onClick={() => toggleRoutine(item.id)} style={{
+                width: 22, height: 22, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.greenDone : C.roseLight}`,
+                background: routineChecked[item.id] ? C.greenDone : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11, flexShrink: 0, cursor: 'pointer',
+              }}>
+                {routineChecked[item.id] && '✓'}
+              </div>
+              <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 14, fontWeight: 700, color: C.gold, minWidth: 44, cursor: 'pointer' }}>{item.time}</span>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>{item.emoji}</span>
+              <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 15, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
+                {item.task}
+              </span>
+              {editingRoutine && <>
+                <button onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: item.time, task: item.task, emoji: item.emoji })} style={{
+                  background: 'none', border: 'none', color: C.gold, fontSize: 16, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
+                }}>✏️</button>
+                <button onClick={() => removeRoutineItem(sectionKey, item.id)} style={{
+                  background: 'none', border: 'none', color: '#e57373', fontSize: 18, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
+                }}>×</button>
+              </>}
+            </div>
+          )
         ))}
       </div>
     </div>
