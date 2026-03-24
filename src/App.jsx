@@ -390,33 +390,33 @@ function App() {
   /* ── Brand Icons (SVG, Ronda style) ── */
   const BrandIcon = ({ children, active }) => (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="14.5" stroke={active ? C.gold : C.rose} strokeWidth="2" fill={active ? 'rgba(201,169,110,0.1)' : 'none'} />
+      <circle cx="16" cy="16" r="14.5" stroke={active ? C.teal : C.subtle} strokeWidth="2" fill={active ? 'rgba(27,138,122,0.1)' : 'none'} />
       {children}
     </svg>
   )
   const NAV_ICONS = {
     /* Mi día — sol con rayos */
-    inicio: (a) => <BrandIcon active={a}><circle cx="16" cy="16" r="4" fill={a ? C.gold : C.rose} /><g stroke={a ? C.gold : C.rose} strokeWidth="1.5" strokeLinecap="round">{[[16,5,16,8],[16,24,16,27],[5,16,8,16],[24,16,27,16],[8.5,8.5,10.6,10.6],[21.4,21.4,23.5,23.5],[8.5,23.5,10.6,21.4],[21.4,10.6,23.5,8.5]].map(([x1,y1,x2,y2],i)=><line key={i} x1={x1} y1={y1} x2={x2} y2={y2}/>)}</g></BrandIcon>,
+    inicio: (a) => <BrandIcon active={a}><circle cx="16" cy="16" r="4" fill={a ? C.teal : C.subtle} /><g stroke={a ? C.teal : C.subtle} strokeWidth="1.5" strokeLinecap="round">{[[16,5,16,8],[16,24,16,27],[5,16,8,16],[24,16,27,16],[8.5,8.5,10.6,10.6],[21.4,21.4,23.5,23.5],[8.5,23.5,10.6,21.4],[21.4,10.6,23.5,8.5]].map(([x1,y1,x2,y2],i)=><line key={i} x1={x1} y1={y1} x2={x2} y2={y2}/>)}</g></BrandIcon>,
     /* Toolkit — estrella de 4 puntas */
-    toolkit: (a) => <BrandIcon active={a}><path d="M16 7 L18 13 L24 16 L18 19 L16 25 L14 19 L8 16 L14 13 Z" fill={a ? C.gold : C.rose} opacity="0.85" /></BrandIcon>,
+    toolkit: (a) => <BrandIcon active={a}><path d="M16 7 L18 13 L24 16 L18 19 L16 25 L14 19 L8 16 L14 13 Z" fill={a ? C.teal : C.subtle} opacity="0.85" /></BrandIcon>,
     /* Mis hábitos — check/flama ascendente */
-    habitos: (a) => <BrandIcon active={a}><path d="M11 16.5 L14.5 20 L21 12" stroke={a ? C.gold : C.rose} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /></BrandIcon>,
+    habitos: (a) => <BrandIcon active={a}><path d="M11 16.5 L14.5 20 L21 12" stroke={a ? C.teal : C.subtle} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /></BrandIcon>,
     /* Mi rutina — infinito */
-    rutina: (a) => <BrandIcon active={a}><path d="M9 16 C9 12.5 12 12.5 14 14.5 L18 17.5 C20 19.5 23 19.5 23 16 C23 12.5 20 12.5 18 14.5 L14 17.5 C12 19.5 9 19.5 9 16 Z" stroke={a ? C.gold : C.rose} strokeWidth="2.2" strokeLinecap="round" fill="none" /></BrandIcon>,
+    rutina: (a) => <BrandIcon active={a}><path d="M9 16 C9 12.5 12 12.5 14 14.5 L18 17.5 C20 19.5 23 19.5 23 16 C23 12.5 20 12.5 18 14.5 L14 17.5 C12 19.5 9 19.5 9 16 Z" stroke={a ? C.teal : C.subtle} strokeWidth="2.2" strokeLinecap="round" fill="none" /></BrandIcon>,
     /* Diario — burbuja de pensamiento */
-    diario: (a) => <BrandIcon active={a}><path d="M8 15 Q8 9 16 9 Q24 9 24 15 Q24 21 16 21 L13 21 L10 24 L11 21 Q8 20.5 8 15 Z" fill={a ? C.gold : C.rose} opacity="0.85" /><line x1="12" y1="13" x2="20" y2="13" stroke="white" strokeWidth="1.2" strokeLinecap="round" /><line x1="12" y1="16.5" x2="18" y2="16.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" /></BrandIcon>,
+    diario: (a) => <BrandIcon active={a}><path d="M8 15 Q8 9 16 9 Q24 9 24 15 Q24 21 16 21 L13 21 L10 24 L11 21 Q8 20.5 8 15 Z" fill={a ? C.teal : C.subtle} opacity="0.85" /><line x1="12" y1="13" x2="20" y2="13" stroke="white" strokeWidth="1.2" strokeLinecap="round" /><line x1="12" y1="16.5" x2="18" y2="16.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" /></BrandIcon>,
     /* Frases — comillas */
-    frases: (a) => <BrandIcon active={a}><g fill={a ? C.gold : C.rose} opacity="0.85"><circle cx="12" cy="14" r="3" /><path d="M12 17 Q9 17 10 21 L13 20 Q14 17 12 17Z" /><circle cx="21" cy="14" r="3" /><path d="M21 17 Q18 17 19 21 L22 20 Q23 17 21 17Z" /></g></BrandIcon>,
+    frases: (a) => <BrandIcon active={a}><g fill={a ? C.teal : C.subtle} opacity="0.85"><circle cx="12" cy="14" r="3" /><path d="M12 17 Q9 17 10 21 L13 20 Q14 17 12 17Z" /><circle cx="21" cy="14" r="3" /><path d="M21 17 Q18 17 19 21 L22 20 Q23 17 21 17Z" /></g></BrandIcon>,
     /* Programas — camino/steps */
-    programas: (a) => <BrandIcon active={a}><path d="M10 24 L10 20 L16 17 L16 13 L22 10 L22 7" stroke={a ? C.gold : C.rose} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><circle cx="10" cy="24" r="2.5" fill={a ? C.gold : C.rose} opacity="0.5" /><circle cx="16" cy="15" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><circle cx="22" cy="7" r="2.5" fill={a ? C.gold : C.rose} /></BrandIcon>,
+    programas: (a) => <BrandIcon active={a}><path d="M10 24 L10 20 L16 17 L16 13 L22 10 L22 7" stroke={a ? C.teal : C.subtle} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><circle cx="10" cy="24" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.5" /><circle cx="16" cy="15" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><circle cx="22" cy="7" r="2.5" fill={a ? C.teal : C.subtle} /></BrandIcon>,
     /* Board — manos unidas / círculo de apoyo */
-    board: (a) => <BrandIcon active={a}><circle cx="16" cy="10" r="3" fill={a ? C.gold : C.rose} opacity="0.9" /><circle cx="9" cy="20" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><circle cx="23" cy="20" r="2.5" fill={a ? C.gold : C.rose} opacity="0.7" /><path d="M9 17 Q16 14 23 17" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 22.5 Q16 26 23 22.5" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
+    board: (a) => <BrandIcon active={a}><circle cx="16" cy="10" r="3" fill={a ? C.teal : C.subtle} opacity="0.9" /><circle cx="9" cy="20" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><circle cx="23" cy="20" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><path d="M9 17 Q16 14 23 17" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 22.5 Q16 26 23 22.5" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
     /* Crecer — semilla/planta creciendo */
-    crecer: (a) => <BrandIcon active={a}><path d="M16 24 L16 14" stroke={a ? C.gold : C.rose} strokeWidth="2" strokeLinecap="round" /><path d="M16 14 Q12 10 16 6 Q20 10 16 14Z" fill={a ? C.gold : C.rose} opacity="0.85" /><path d="M16 18 Q11 16 10 12" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M16 18 Q21 16 22 12" stroke={a ? C.gold : C.rose} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
+    crecer: (a) => <BrandIcon active={a}><path d="M16 24 L16 14" stroke={a ? C.teal : C.subtle} strokeWidth="2" strokeLinecap="round" /><path d="M16 14 Q12 10 16 6 Q20 10 16 14Z" fill={a ? C.teal : C.subtle} opacity="0.85" /><path d="M16 18 Q11 16 10 12" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M16 18 Q21 16 22 12" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
     /* Directorio — tienda/storefront */
-    directorio: (a) => <BrandIcon active={a}><path d="M6 13 L6 24 L26 24 L26 13" stroke={a ? C.gold : C.rose} strokeWidth="1.8" fill="none" strokeLinecap="round" /><path d="M4 13 L16 6 L28 13" stroke={a ? C.gold : C.rose} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /><rect x="13" y="17" width="6" height="7" rx="1" fill={a ? C.gold : C.rose} opacity="0.6" /><circle cx="10" cy="18" r="1.5" fill={a ? C.gold : C.rose} opacity="0.5" /><circle cx="22" cy="18" r="1.5" fill={a ? C.gold : C.rose} opacity="0.5" /></BrandIcon>,
+    directorio: (a) => <BrandIcon active={a}><path d="M6 13 L6 24 L26 24 L26 13" stroke={a ? C.teal : C.subtle} strokeWidth="1.8" fill="none" strokeLinecap="round" /><path d="M4 13 L16 6 L28 13" stroke={a ? C.teal : C.subtle} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /><rect x="13" y="17" width="6" height="7" rx="1" fill={a ? C.teal : C.subtle} opacity="0.6" /><circle cx="10" cy="18" r="1.5" fill={a ? C.teal : C.subtle} opacity="0.5" /><circle cx="22" cy="18" r="1.5" fill={a ? C.teal : C.subtle} opacity="0.5" /></BrandIcon>,
     /* Yo — persona/perfil */
-    yo: (a) => <BrandIcon active={a}><circle cx="16" cy="11" r="4" fill={a ? C.gold : C.rose} opacity="0.85" /><path d="M8 24 Q8 18 16 18 Q24 18 24 24" fill={a ? C.gold : C.rose} opacity="0.6" /></BrandIcon>,
+    yo: (a) => <BrandIcon active={a}><circle cx="16" cy="11" r="4" fill={a ? C.teal : C.subtle} opacity="0.85" /><path d="M8 24 Q8 18 16 18 Q24 18 24 24" fill={a ? C.teal : C.subtle} opacity="0.6" /></BrandIcon>,
   }
 
   const NAV = [
@@ -443,7 +443,7 @@ function App() {
   /* ── Top Header ── */
   const header = (
     <div style={{
-      background: 'linear-gradient(135deg, #A6716B 0%, #C4908A 50%, #E4A5A0 100%)',
+      background: 'linear-gradient(135deg, #1B8A7A 0%, #2A9D8F 35%, #7ED4BC 65%, #E4A5A0 100%)',
       padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -474,10 +474,10 @@ function App() {
     <div style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 600,
-      background: C.cream,
-      borderTop: `2px solid ${C.roseLight}`,
+      background: 'linear-gradient(180deg, #FEFBF6 0%, #F0FAF7 100%)',
+      borderTop: `1.5px solid ${C.mintLight}`,
       display: 'flex', padding: '8px 4px 20px', zIndex: 100,
-      boxShadow: '0 -4px 20px rgba(196,144,138,0.12)',
+      boxShadow: '0 -2px 12px rgba(27,138,122,0.08)',
     }}>
       {NAV.map(n => {
         const isActive = view === n.id
@@ -489,7 +489,7 @@ function App() {
             {NAV_ICONS[n.id](isActive)}
             <span style={{
               fontSize: 11, fontWeight: isActive ? 800 : 600,
-              color: isActive ? C.text : C.muted,
+              color: isActive ? C.teal : C.subtle,
               fontFamily: 'inherit', letterSpacing: '0.01em',
             }}>{n.label}</span>
           </button>
@@ -1424,7 +1424,7 @@ function App() {
               background: toolFilter === cat.id ? cat.color : C.card, color: toolFilter === cat.id ? 'white' : C.muted,
               fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>
-              {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />} {cat.label} ({toolkitCounts[cat.id]})
+              {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label} ({toolkitCounts[cat.id]})
             </button>
           )
         ))}
@@ -1456,7 +1456,7 @@ function App() {
                 color: newToolCat === cat.id ? 'white' : cat.color,
                 fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />} {cat.label}
+                {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label}
               </button>
             ))}
           </div>
@@ -1489,7 +1489,7 @@ function App() {
                 background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 borderLeft: `3px solid ${cat.color}`, display: 'flex', alignItems: 'flex-start', gap: 12,
               }}>
-                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />}</span>
+                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</div>
                   {item.note && <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.note}</div>}
@@ -1625,7 +1625,7 @@ function App() {
             boxShadow: boardFilter === cat.id ? '0 2px 8px rgba(27,138,122,0.25)' : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: boardFilter === cat.id ? 'white' : cat.color, flexShrink: 0 }} />
+            <span style={{ flexShrink: 0, display: 'flex' }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](boardFilter === cat.id ? 'white' : cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: boardFilter === cat.id ? 'white' : cat.color }} />}</span>
             {cat.label}
           </button>
         ))}
@@ -1655,7 +1655,7 @@ function App() {
                 fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', gap: 4,
               }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: boardNewCat === cat.id ? 'white' : cat.color }} />
+                <span style={{ flexShrink: 0, display: 'flex' }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](boardNewCat === cat.id ? 'white' : cat.color, 14) : <span style={{ width: 6, height: 6, borderRadius: '50%', background: boardNewCat === cat.id ? 'white' : cat.color }} />}</span>
                 {cat.label}
               </button>
             ))}
@@ -1707,7 +1707,7 @@ function App() {
               padding: '3px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600,
               background: `${C.rose}15`, color: C.roseDark,
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: (BOARD_CATS.find(c => c.id === post.cat) || {}).color, display: 'inline-block', marginRight: 4 }} />
+              {ICONS['cat_'+post.cat] ? ICONS['cat_'+post.cat]((BOARD_CATS.find(c => c.id === post.cat) || {}).color, 14) : null}
               {(BOARD_CATS.find(c => c.id === post.cat) || {}).label}
             </span>
           </div>
@@ -1856,7 +1856,7 @@ function App() {
             boxShadow: dirFilter === cat.id ? '0 2px 8px rgba(27,138,122,0.25)' : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: dirFilter === cat.id ? 'white' : cat.color, flexShrink: 0 }} />
+            <span style={{ flexShrink: 0, display: 'flex' }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](dirFilter === cat.id ? 'white' : cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: dirFilter === cat.id ? 'white' : cat.color }} />}</span>
             {cat.label}
           </button>
         ))}
