@@ -979,7 +979,7 @@ function App() {
         />
         <button onClick={addJournalEntry} disabled={!journalText.trim()} style={{
           marginTop: 10, width: '100%', padding: 12, borderRadius: 12, border: 'none',
-          background: journalText.trim() ? 'linear-gradient(135deg, #C4908A, #1B8A7A)' : C.border,
+          background: journalText.trim() ? C.teal : C.border,
           color: journalText.trim() ? 'white' : C.subtle,
           fontSize: 15, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
         }}>
@@ -1114,7 +1114,7 @@ function App() {
         </button>
         <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 48, height: 48, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+            width: 48, height: 48, borderRadius: '50%', background: `${C.teal}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700,
           }}>D</div>
           <div>
@@ -1748,7 +1748,7 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+                  background: `${C.teal}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'white', fontSize: 14, fontWeight: 700,
                 }}>{reply.pro.name.charAt(0)}</div>
@@ -1882,7 +1882,7 @@ function App() {
             {/* Avatar */}
             <div style={{
               width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-              background: `linear-gradient(135deg, ${C.lavanda}, ${C.roseBloom})`,
+              background: `${C.lavanda}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontSize: 20, fontWeight: 700,
             }}>{item.name.charAt(0)}</div>
@@ -2197,7 +2197,7 @@ function App() {
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
-      <div style={{ background: `linear-gradient(135deg, ${C.teal}, ${C.mint}, ${C.roseBloom})`, borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
+      <div style={{ background: `${C.teal}`, borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
         <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, fontFamily: 'Georgia, serif', border: '2px solid rgba(255,255,255,0.5)' }}>
           {(profile.name || 'R').charAt(0).toUpperCase()}
         </div>
@@ -2254,7 +2254,7 @@ function App() {
 
           <button onClick={() => setEditingProfile(false)} style={{
             width: '100%', padding: 12, borderRadius: 12, border: 'none',
-            background: 'linear-gradient(135deg, #C4908A, #1B8A7A)', color: 'white',
+            background: C.teal, color: 'white',
             fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
           }}>
             Guardar ✨
@@ -2517,7 +2517,7 @@ function App() {
       </div>
       <button onClick={finishOnboarding} style={{
         padding: '14px 40px', borderRadius: 30,
-        background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+        background: `${C.teal}`,
         color: 'white', fontSize: 17, fontWeight: 800, border: 'none',
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
         boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
@@ -2593,7 +2593,7 @@ function App() {
               )}
               <button onClick={() => setOnboardStep(onboardStep + 1)} style={{
                 padding: '12px 32px', borderRadius: 25, border: 'none',
-                background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+                background: `${C.teal}`,
                 color: 'white', fontSize: 15, fontWeight: 800,
                 cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 12px rgba(27,138,122,0.3)',
@@ -2802,19 +2802,20 @@ function App() {
       style={{
         position: 'fixed', bottom: 90, right: 16, zIndex: 200,
         display: 'flex', alignItems: 'center', gap: 10,
-        background: 'linear-gradient(135deg, #1B8A7A, #C4908A)',
+        background: C.lavanda,
         border: 'none', cursor: 'pointer', padding: '10px 16px 10px 14px',
-        borderRadius: 28, boxShadow: '0 4px 20px rgba(74,48,53,0.4)',
+        borderRadius: 28, boxShadow: '0 4px 20px rgba(184,169,201,0.5)',
         animation: 'pulse-gentle 3s ease-in-out infinite',
       }}
       aria-label="Botón de emergencia — Respiración, grounding y herramientas DBT"
     >
       <div style={{
         width: 36, height: 36, borderRadius: '50%',
-        background: 'linear-gradient(135deg, #C4908A, #1B8A7A)',
+        background: 'rgba(255,255,255,0.25)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        border: '2px solid rgba(255,255,255,0.4)',
       }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/>
         </svg>
       </div>
