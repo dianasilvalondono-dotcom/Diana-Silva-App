@@ -519,7 +519,7 @@ function App() {
         })
         if (!next) return null
         return (
-          <div onClick={() => setView('rutina')} style={{
+          <div onClick={() => { setView('yo'); setSubTab('rutina') }} style={{
             display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
             background: C.card, borderRadius: 16, cursor: 'pointer',
             border: `1px solid ${C.border}`,
@@ -546,7 +546,7 @@ function App() {
       {/* Active programs preview */}
       {Object.keys(activePrograms).length > 0 && (
         <div style={{ background: C.card, borderRadius: 16, padding: 16, cursor: 'pointer' }}
-          onClick={() => setView('programas')}>
+          onClick={() => { setView('crecer'); setSubTab('programas') }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 10 }}>Mis programas</div>
           {Object.entries(activePrograms).map(([progId, progress]) => {
             const prog = PROGRAMAS.find(p => p.id === progId)
@@ -578,7 +578,7 @@ function App() {
         const hook = hooks[dayIdx]
         if (activePrograms[hook.prog]) return null
         return (
-          <div onClick={() => setView('programas')} style={{
+          <div onClick={() => { setView('crecer'); setSubTab('programas') }} style={{
             background: `linear-gradient(135deg, ${hook.color}15, ${hook.color}08)`,
             borderRadius: 18, padding: 20, cursor: 'pointer',
             border: `1px solid ${hook.color}30`,
@@ -626,7 +626,7 @@ function App() {
         const idx = new Date().getHours() % cards.length
         const card = cards[idx]
         return (
-          <div onClick={() => setView('programas')} style={{
+          <div onClick={() => { setView('crecer'); setSubTab('programas') }} style={{
             display: 'flex', gap: 14, padding: '16px 18px', alignItems: 'flex-start',
             background: C.card, borderRadius: 16, cursor: 'pointer',
             border: `1.5px solid ${card.color}40`, boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
@@ -969,7 +969,7 @@ function App() {
               ))}
             </div>
             {rec.programa && (
-              <button onClick={() => { startProgram(rec.programa); setView('programas') }} style={{
+              <button onClick={() => { startProgram(rec.programa); setView('crecer'); setSubTab('programas') }} style={{
                 marginTop: 12, width: '100%', padding: 12, borderRadius: 12, border: `2px solid ${rec.color}`,
                 background: 'transparent', color: rec.color, fontSize: 14, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -2593,7 +2593,7 @@ function App() {
         {habits.length === 0 ? (
           <div style={{ padding: '16px 14px', background: C.cream, borderRadius: 12, border: `1px dashed ${C.roseLight}`, marginBottom: 18, textAlign: 'center' }}>
             <div style={{ fontSize: 14, color: C.muted, marginBottom: 8 }}>Aún no tienes hábitos</div>
-            <button onClick={() => { setShowMorningCheckin(false); setView('habitos') }} style={{
+            <button onClick={() => { setShowMorningCheckin(false); setView('yo'); setSubTab('habitos') }} style={{
               padding: '8px 18px', borderRadius: 20, border: 'none',
               background: C.rose, color: 'white', fontSize: 13, fontWeight: 700,
               cursor: 'pointer', fontFamily: 'inherit',
@@ -2751,24 +2751,39 @@ function App() {
   )
 
   /* ── Panic Button (floating) ── */
+  const [panicTooltipSeen, setPanicTooltipSeen] = useState(() => load('ronda-panic-tooltip', false))
   const panicFab = !showPanic && (
-    <button
-      onClick={() => { setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0) }}
-      style={{
-        position: 'fixed', bottom: 90, right: 20, zIndex: 200,
-        width: 56, height: 56, borderRadius: '50%',
-        background: 'linear-gradient(135deg, #C4908A, #A6716B)',
-        border: 'none', cursor: 'pointer',
-        boxShadow: '0 4px 20px rgba(196,144,138,0.5)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        animation: 'pulse-gentle 3s ease-in-out infinite',
-      }}
-      aria-label="Botón de emergencia"
-    >
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/>
-      </svg>
-    </button>
+    <div style={{ position: 'fixed', bottom: 90, right: 20, zIndex: 200, display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* Tooltip — shows once until tapped */}
+      {!panicTooltipSeen && (
+        <div style={{
+          background: '#4A3035', color: 'white', padding: '10px 14px', borderRadius: 14,
+          fontSize: 12, fontWeight: 600, lineHeight: 1.4, maxWidth: 180,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.2)', animation: 'fadeIn 0.5s ease',
+        }}>
+          ¿Necesitas apoyo ahora? Tócame. Respiración, grounding y herramientas DBT aquí.
+          <div style={{ position: 'absolute', right: -6, top: '50%', marginTop: -6,
+            width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '6px solid #4A3035' }} />
+        </div>
+      )}
+      <button
+        onClick={() => { setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicTooltipSeen(true); save('ronda-panic-tooltip', true) }}
+        style={{
+          width: 56, height: 56, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #C4908A, #A6716B)',
+          border: 'none', cursor: 'pointer',
+          boxShadow: '0 4px 20px rgba(196,144,138,0.5)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+          animation: 'pulse-gentle 3s ease-in-out infinite',
+        }}
+        aria-label="Botón de emergencia — Respiración, grounding y herramientas DBT"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/>
+        </svg>
+        <span style={{ fontSize: 7, fontWeight: 800, color: 'white', letterSpacing: '0.1em' }}>SOS</span>
+      </button>
+    </div>
   )
 
   /* ── Panic Modal — Full Crisis Support ── */
