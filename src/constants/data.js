@@ -1,9 +1,9 @@
 /* ── Dimension config ── */
 export const DIMS = {
-  espiritual: { icon: 'espiritual', color: '#C4908A', label: 'Espiritual' },
-  emocional:  { icon: 'emocional',  color: '#C9A96E', label: 'Emocional' },
-  fisico:     { icon: 'fisico',     color: '#A68B52', label: 'Físico' },
-  mental:     { icon: 'mental',     color: '#A6716B', label: 'Mental' },
+  espiritual: { icon: 'espiritual', color: '#B8A9C9', label: 'Espiritual' },
+  emocional:  { icon: 'emocional',  color: '#E8736D', label: 'Emocional' },
+  fisico:     { icon: 'fisico',     color: '#2A9D8F', label: 'Físico' },
+  mental:     { icon: 'mental',     color: '#1B8A7A', label: 'Mental' },
 }
 
 /* ── Default habits ── */
@@ -71,13 +71,13 @@ export function getDayQuote() {
 
 /* ── Toolkit categories ── */
 export const TOOLKIT_CATS = [
-  { id: 'podcast',    emoji: '🎙️', label: 'Podcasts',      color: '#C4908A' },
+  { id: 'podcast',    emoji: '🎙️', label: 'Podcasts',      color: '#E8736D' },
   { id: 'libro',      emoji: '📚', label: 'Libros',        color: '#C9A96E' },
-  { id: 'curso',      emoji: '🎓', label: 'Cursos',        color: '#A6716B' },
-  { id: 'tedtalk',    emoji: '🎤', label: 'Ted Talks',     color: '#A68B52' },
-  { id: 'musica',     emoji: '🎵', label: 'Música',        color: '#C4908A' },
-  { id: 'masterclass',emoji: '🏆', label: 'Masterclasses', color: '#C9A96E' },
-  { id: 'wellness',   emoji: '🧘', label: 'Wellness',      color: '#A6716B' },
+  { id: 'curso',      emoji: '🎓', label: 'Cursos',        color: '#1B8A7A' },
+  { id: 'tedtalk',    emoji: '🎤', label: 'Ted Talks',     color: '#14695E' },
+  { id: 'musica',     emoji: '🎵', label: 'Música',        color: '#B8A9C9' },
+  { id: 'masterclass',emoji: '🏆', label: 'Masterclasses', color: '#E4A5A0' },
+  { id: 'wellness',   emoji: '🧘', label: 'Wellness',      color: '#2A9D8F' },
   { id: 'otro',       emoji: '🔗', label: 'Otros',         color: '#B5A099' },
 ]
 
@@ -107,7 +107,7 @@ export const MOOD_RECS = {
     ],
   },
   2: {
-    label: 'Mantén esa energía', color: '#A6716B',
+    label: 'Mantén esa energía', color: '#1B8A7A',
     items: [
       { type: 'podcast', title: 'Jay Shetty — "On Purpose: Finding Your Passion"', url: 'https://open.spotify.com/show/5EqqB52m2bsr4k1Ii7sStc', emoji: '🎙️' },
       { type: 'podcast', title: 'TED Talks Daily — "The Power of Vulnerability"', url: 'https://open.spotify.com/show/1VXcH8QHkjRcTCEd88U3ti', emoji: '🎤' },
@@ -155,7 +155,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'depresion', title: 'Navegar la depresión', emoji: '🌊→🏄‍♀️',
-    desc: 'La vida es como olas del mar. 7 días para aprender a surfearlas, no a hundirte en ellas.', color: '#A6716B',
+    desc: 'La vida es como olas del mar. 7 días para aprender a surfearlas, no a hundirte en ellas.', color: '#1B8A7A',
     days: [
       { day: 1, title: 'Levántate y abre una ventana', task: '1 minuto de luz solar. La luz activa tu serotonina.', emoji: '☀️' },
       { day: 2, title: 'Ducha de agua fría (30 seg)', task: 'Solo 30 segundos al final de tu ducha. Activa tu sistema nervioso.', emoji: '🚿' },
@@ -234,7 +234,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'mama', title: 'Volver a mí (para mamás)', emoji: '👩‍👧→👑',
-    desc: 'Ser mamá no es perderte. 7 días para reconectarte contigo sin culpa.', color: '#E8C4C0',
+    desc: 'Ser mamá no es perderte. 7 días para reconectarte contigo sin culpa.', color: '#D4F0EA',
     days: [
       { day: 1, title: 'Tu nombre primero', task: 'Hoy no eres "la mamá de...". Escribe: "Mi nombre es ___ y hoy me elijo."', emoji: '💛' },
       { day: 2, title: '15 minutos solo para ti', task: 'Léete algo, toma un café en silencio, respira. 15 minutos que son tuyos.', emoji: '☕' },
