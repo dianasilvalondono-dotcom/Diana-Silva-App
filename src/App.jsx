@@ -81,6 +81,7 @@ function App() {
   const [aiError, setAiError] = useState('')
   const [aiSaved, setAiSaved] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [dirFilter, setDirFilter] = useState('todas')
 
   // Habits
   const [habits, setHabits] = useState(() => load('diana-habits', []))
@@ -1726,7 +1727,6 @@ function App() {
     { id: 'educacion', label: 'Educación', icon: '📚' },
   ]
 
-  const [dirFilter, setDirFilter] = useState('todas')
 
   const SEED_DIRECTORIO = [
     { id: 'd1', name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica', cat: 'salud_mental', city: 'Cartagena', desc: 'Especialista en ansiedad, depresión y TLP. 8 años de experiencia. Terapia DBT y cognitivo-conductual.', price: 'Desde $120.000/sesión', verified: true, rating: 4.9, reviews: 47 },
