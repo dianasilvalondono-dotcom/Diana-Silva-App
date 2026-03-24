@@ -443,7 +443,7 @@ function App() {
   /* ── Top Header ── */
   const header = (
     <div style={{
-      background: 'linear-gradient(135deg, #4A3035 0%, #6B4449 50%, #C4908A 100%)',
+      background: 'linear-gradient(135deg, #14695E 0%, #1B8A7A 50%, #2A9D8F 100%)',
       padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -454,7 +454,8 @@ function App() {
             <span style={{ fontSize: 16, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
             {isAdmin && <span style={{ fontSize: 8, background: '#C9A96E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
           </div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
+          <div style={{ fontSize: 11, color: 'rgba(126,212,188,0.7)', fontWeight: 500, marginTop: 2, fontStyle: 'italic' }}>Tu hub para crecer, sanar y volar — en ronda, nunca sola.</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 2 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
         <button onClick={() => { setView('yo'); setSubTab('perfil') }} style={{
           width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
@@ -1076,7 +1077,7 @@ function App() {
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #14695E, #1B8A7A, #7ED4BC)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
         <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
         <div style={{ fontSize: 13, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
@@ -1365,7 +1366,7 @@ function App() {
   const frasesView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Quote of the day */}
-      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #14695E, #1B8A7A, #7ED4BC)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>✨ Frase del día</div>
         <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
         <div style={{ fontSize: 14, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
@@ -1426,7 +1427,7 @@ function App() {
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 20, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #14695E, #1B8A7A, #7ED4BC)', borderRadius: 18, padding: 20, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Mi Toolkit</div>
         <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
         <div style={{ fontSize: 13, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
@@ -2202,7 +2203,7 @@ function App() {
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
-      <div style={{ background: 'linear-gradient(135deg, #4A3035, #C4908A, #E8C4C0)', borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
+      <div style={{ background: 'linear-gradient(135deg, #14695E, #1B8A7A, #7ED4BC)', borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
         <div style={{ fontSize: 56, marginBottom: 8 }}>{profile.emoji || '🌸'}</div>
         <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{profile.name || 'Tu nombre'}</div>
         {profile.city && <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>📍 {profile.city}</div>}
@@ -2804,7 +2805,7 @@ function App() {
       style={{
         position: 'fixed', bottom: 90, right: 16, zIndex: 200,
         display: 'flex', alignItems: 'center', gap: 10,
-        background: 'linear-gradient(135deg, #4A3035, #6B4449)',
+        background: 'linear-gradient(135deg, #14695E, #1B8A7A)',
         border: 'none', cursor: 'pointer', padding: '10px 16px 10px 14px',
         borderRadius: 28, boxShadow: '0 4px 20px rgba(74,48,53,0.4)',
         animation: 'pulse-gentle 3s ease-in-out infinite',
@@ -2830,7 +2831,7 @@ function App() {
     { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#C9A96E' },
     { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#C4908A' },
     { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#A6716B' },
-    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#4A3035' },
+    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#1B8A7A' },
   ]
 
   const DBT_SKILLS = [
@@ -2848,10 +2849,10 @@ function App() {
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: panicScreen === 'breathe'
-        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #2D3748, #4A3035)'
-          : breathePhase === 'hold' ? 'linear-gradient(180deg, #4A3035, #2D3748)'
+        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #14695E, #1B8A7A)'
+          : breathePhase === 'hold' ? 'linear-gradient(180deg, #1B8A7A, #14695E)'
           : 'linear-gradient(180deg, #1A202C, #2D3748)')
-        : 'linear-gradient(180deg, #4A3035 0%, #2D1B1E 100%)',
+        : 'linear-gradient(180deg, #14695E 0%, #0D4A42 100%)',
       zIndex: 1000, display: 'flex', flexDirection: 'column',
       animation: 'fadeIn 0.3s ease',
       overflowY: 'auto', WebkitOverflowScrolling: 'touch',
