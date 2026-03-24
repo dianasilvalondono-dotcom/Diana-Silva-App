@@ -2,7 +2,7 @@
 export const C = {
   /* Rosa family — el alma de Ronda */
   rose:      '#C4908A',
-  roseDark:  '#A6716B',
+  roseDark:  '#9B6B66',
   roseBloom: '#E4A5A0',
   roseLight: '#F5E1DE',
 

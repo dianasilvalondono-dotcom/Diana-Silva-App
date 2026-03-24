@@ -636,7 +636,7 @@ function App() {
       {/* Empty state — invite to pick habits */}
       {habits.length === 0 && (
         <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>✨</div>
+          <div style={{ fontSize: 28, marginBottom: 8, color: C.gold, opacity: 0.5 }}>●</div>
           <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: 'Georgia, "Times New Roman", serif' }}>
             Escoge tus hábitos
           </div>
@@ -740,7 +740,7 @@ function App() {
             /* Inline edit mode */
             <div key={item.id} style={{
               background: C.card, borderRadius: 12, padding: 14,
-              boxShadow: '0 2px 8px rgba(196,144,138,0.15)', border: `2px solid ${C.rose}`,
+              boxShadow: '0 2px 8px rgba(27,138,122,0.15)', border: `2px solid ${C.rose}`,
             }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <input value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
@@ -801,7 +801,7 @@ function App() {
     </div>
   )
 
-  const ROUTINE_EMOJIS = ['✨', '🙏', '🧘', '💪', '📖', '🚶‍♀️', '🌬️', '💛', '☕', '🎵', '📝', '🌸', '🕊️', '🌙', '🧠', '🍵']
+  const ROUTINE_EMOJIS = ['✨', '🙏', '🧘', '💪', '📖', '🚶‍♀️', '🌬️', '', '☕', '🎵', '📝', '🌸', '🕊️', '🌙', '🧠', '🍵']
 
   const rutinaView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -825,7 +825,7 @@ function App() {
       {/* Add new routine item */}
       {editingRoutine && (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 12 }}>➕ Agregar a mi rutina</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 12 }}>+ Agregar a mi rutina</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
             {[{k:'morning',l:'☀️ Mañana'},{k:'midday',l:'🕊️ Día'},{k:'night',l:'🌙 Noche'}].map(s => (
               <button key={s.k} onClick={() => setNewRoutineSection(s.k)} style={{
@@ -865,7 +865,7 @@ function App() {
 
       {/* Night ritual: Plan tomorrow */}
       <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.gold}30` }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: C.gold, marginBottom: 4 }}>🌙 Ritual de noche</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: C.gold, marginBottom: 4 }}>Ritual de noche</div>
         <div style={{ fontSize: 13, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
           Planifica tu mañana para soltar la ansiedad de hoy. Escribir lo que viene te ayuda a descansar.
         </div>
@@ -879,7 +879,7 @@ function App() {
               <div style={{ fontSize: 14, fontWeight: 700, color: C.greenDone }}>
                 ✓ Hoy completaste {todayDone} de {todayTotal} cosas de tu rutina
               </div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Ya puedes soltar el día. Lo hiciste bien. 💛</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Ya puedes soltar el día. Lo hiciste bien. </div>
             </div>
           )
         })()}
@@ -942,7 +942,7 @@ function App() {
         />
         <button onClick={addJournalEntry} disabled={!journalText.trim()} style={{
           marginTop: 10, width: '100%', padding: 12, borderRadius: 12, border: 'none',
-          background: journalText.trim() ? 'linear-gradient(135deg, #C4908A, #A6716B)' : C.border,
+          background: journalText.trim() ? 'linear-gradient(135deg, #C4908A, #1B8A7A)' : C.border,
           color: journalText.trim() ? 'white' : C.subtle,
           fontSize: 15, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
         }}>
@@ -1030,7 +1030,7 @@ function App() {
 
       {entries.length === 0 && (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>📔</div>
+          <div style={{ fontSize: 36, marginBottom: 10, color: C.lavanda, opacity: 0.4 }}>●</div>
           <div style={{ fontSize: 15, fontWeight: 600 }}>Tu diario está vacío</div>
           <div style={{ fontSize: 14, marginTop: 4 }}>Escribe tu primera reflexión arriba</div>
         </div>
@@ -1157,7 +1157,7 @@ function App() {
                   </div>
                   {pct === 100 && (
                     <div style={{ textAlign: 'center', marginTop: 14, padding: 16, background: `${prog.color}10`, borderRadius: 14 }}>
-                      <div style={{ fontSize: 36, marginBottom: 6 }}>🎉</div>
+                      <div style={{ fontSize: 28, marginBottom: 6, color: C.teal }}>●</div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: prog.color }}>¡Completaste el programa!</div>
                       <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Eres increíble. Cada paso cuenta.</div>
                     </div>
@@ -1277,7 +1277,7 @@ function App() {
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
               background: '#F5F0E8', borderRadius: 12, marginBottom: 16,
             }}>
-              {ICONS.mental('#A6716B', 22)}
+              {ICONS.mental('#1B8A7A', 22)}
               <div style={{ fontSize: 12, color: '#6B5A4E', lineHeight: 1.5 }}>
                 <span style={{ fontWeight: 800 }}>Basado en neurociencia:</span> cada día incluye el porqué científico detrás de tu micro-acción.
               </div>
@@ -1342,7 +1342,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Quote of the day */}
       <div style={{ background: 'linear-gradient(135deg, #C9A96E, #E8D5A8)', borderRadius: 18, padding: 22, color: 'white' }}>
-        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>✨ Frase del día</div>
+        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>Frase del día</div>
         <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
         <div style={{ fontSize: 14, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
       </div>
@@ -1515,7 +1515,7 @@ function App() {
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
-          <div style={{ fontSize: 36, marginBottom: 10 }}>🧰</div>
+          <div style={{ fontSize: 36, marginBottom: 10, color: C.mint, opacity: 0.4 }}>●</div>
           <div style={{ fontSize: 15, fontWeight: 600 }}>
             {toolFilter === 'todas' ? 'Tu toolkit está vacío' : 'No hay recursos en esta categoría'}
           </div>
@@ -1551,20 +1551,20 @@ function App() {
     { id: 'maternidad', label: 'Maternidad', color: '#E4A5A0' },
     { id: 'duelo', label: 'Duelo', color: '#B8A9C9' },
     { id: 'emprendimiento', label: 'Emprender', color: '#7ED4BC' },
-    { id: 'general', label: 'General', color: '#A6716B' },
+    { id: 'general', label: 'General', color: '#1B8A7A' },
   ]
 
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
       replies: [{ pro: { name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica · Especialista en ansiedad', verified: true },
-        text: 'Lo que describes suena a ansiedad anticipatoria — tu mente está tratando de "resolver" el futuro desde la cama. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." El cerebro necesita sentir que no va a olvidar para poder soltar. Si esto persiste más de 2 semanas, busca ayuda profesional. Estoy aquí. 💛' }] },
+        text: 'Lo que describes suena a ansiedad anticipatoria — tu mente está tratando de "resolver" el futuro desde la cama. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." El cerebro necesita sentir que no va a olvidar para poder soltar. Si esto persiste más de 2 semanas, busca ayuda profesional. Estoy aquí. ' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
       replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
         text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
       replies: [{ pro: { name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal · Maternidad consciente', verified: true },
-        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Se llama "pérdida de identidad materna" y afecta al 70% de las mamás. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 💛' }] },
+        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Se llama "pérdida de identidad materna" y afecta al 70% de las mamás. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. ' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
       replies: [{ pro: { name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica · Especialista en ansiedad', verified: true },
         text: 'Los patrones de relación se forman en la infancia — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro confunde la ansiedad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es trabajar tu estilo de apego. DBT y terapia de esquemas pueden ayudarte a reprogramar lo que tu cerebro busca en una pareja. No estás "rota" — estás programada, y eso se puede cambiar. 🧠' }] },
@@ -1637,7 +1637,7 @@ function App() {
           padding: '14px 18px', borderRadius: 16, border: `2px dashed ${C.roseLight}`,
           background: C.card, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
         }}>
-          <div style={{ fontSize: 14, color: C.muted }}>💬 ¿Qué necesitas hoy? Escribe aquí...</div>
+          <div style={{ fontSize: 14, color: C.muted }}>¿Qué necesitas hoy? Escribe aquí...</div>
           <div style={{ fontSize: 11, color: C.subtle, marginTop: 4 }}>Tu publicación es anónima. Solo profesionales verificadas responden.</div>
         </button>
       ) : (
@@ -1680,7 +1680,7 @@ function App() {
               flex: 1, padding: '10px 16px', borderRadius: 12, border: 'none',
               background: boardNewText.trim() ? C.rose : C.border, color: 'white',
               fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}>Publicar 💛</button>
+            }}>Publicar </button>
           </div>
         </div>
       )}
@@ -1724,7 +1724,7 @@ function App() {
             background: boardHearts[post.id] ? `${C.rose}12` : 'none',
             cursor: 'pointer', fontFamily: 'inherit',
           }}>
-            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '💛' : '🤍'}</span>
+            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '' : '🤍'}</span>
             <span style={{ fontSize: 12, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
               {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
             </span>
@@ -1811,7 +1811,7 @@ function App() {
     { id: 'legal', label: 'Legal', color: '#C9A96E' },
     { id: 'belleza', label: 'Belleza', color: '#E4A5A0' },
     { id: 'negocios', label: 'Negocios', color: '#14695E' },
-    { id: 'educacion', label: 'Educación', color: '#A6716B' },
+    { id: 'educacion', label: 'Educación', color: '#1B8A7A' },
   ]
 
 
@@ -1885,7 +1885,7 @@ function App() {
                 }}>✓ VERIFICADA</span>}
               </div>
               <div style={{ fontSize: 12, color: C.rose, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>📍 {item.city}</div>
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{item.city}</div>
             </div>
           </div>
 
@@ -1895,7 +1895,7 @@ function App() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.gold }}>⭐ {item.rating}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.gold }}>{item.rating}</span>
               <span style={{ fontSize: 11, color: C.subtle }}>({item.reviews} reseñas)</span>
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: C.roseDark }}>{item.price}</span>
@@ -1935,7 +1935,7 @@ function App() {
       textAlign: 'center', padding: 32, background: `linear-gradient(135deg, ${C.rose}08, ${C.gold}08)`,
       borderRadius: 20, border: `1.5px solid ${C.roseLight}`,
     }}>
-      <div style={{ fontSize: 44, marginBottom: 12 }}>🔒</div>
+      <div style={{ fontSize: 40, marginBottom: 12, color: C.teal, opacity: 0.3 }}>●</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         {feature}
       </div>
@@ -1946,7 +1946,7 @@ function App() {
       <div style={{ fontSize: 12, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
       <button style={{
         padding: '14px 32px', borderRadius: 14, border: 'none',
-        background: `linear-gradient(135deg, ${C.gold}, #A68B52)`, color: 'white',
+        background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
         fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         boxShadow: '0 4px 16px rgba(201,169,110,0.3)',
       }}>
@@ -2001,7 +2001,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <div style={{ fontSize: 40, marginBottom: 8 }}>🤖✨</div>
+        <div style={{ fontSize: 36, marginBottom: 8, color: C.teal, opacity: 0.4 }}>●</div>
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
           Crea tu programa personalizado
         </div>
@@ -2020,7 +2020,7 @@ function App() {
             { goal: 'Quiero dejar de comer azúcar', icon: '🍫→🥗' },
             { goal: 'Quiero empezar a meditar', icon: '🧘→☮️' },
             { goal: 'Quiero dormir mejor', icon: '😴→💤' },
-            { goal: 'Quiero dejar de procrastinar', icon: '📵→🎯' },
+            { goal: 'Quiero dejar de procrastinar', icon: '' },
             { goal: 'Quiero fortalecer mi relación de pareja', icon: '💑→❤️' },
             { goal: 'Quiero aprender a decir que no', icon: '😓→💪' },
           ].map((ex, i) => (
@@ -2103,7 +2103,7 @@ function App() {
       {/* Step 2: Generating (loading) */}
       {aiStep === 3 && (
         <div style={{ textAlign: 'center', padding: 40 }}>
-          <div style={{ fontSize: 48, marginBottom: 16, animation: 'pulse 1.5s ease-in-out infinite' }}>🧠</div>
+          <div style={{ fontSize: 44, marginBottom: 16, color: C.teal, animation: 'pulse 1.5s ease-in-out infinite' }}>●</div>
           <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 8 }}>
             Creando tu programa...
           </div>
@@ -2161,13 +2161,13 @@ function App() {
               }}>Empezar de nuevo</button>
               <button onClick={saveAiProgram} style={{
                 flex: 2, padding: '14px', borderRadius: 14, border: 'none',
-                background: `linear-gradient(135deg, ${C.gold}, #A68B52)`, color: 'white',
+                background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
                 fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>Guardar y empezar 🚀</button>
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: 20, background: `${C.green}10`, borderRadius: 16, border: `1px solid ${C.green}30` }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
+              <div style={{ fontSize: 24, marginBottom: 8, color: C.teal }}>●</div>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.green }}>¡Programa guardado!</div>
               <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
               <button onClick={resetAiAgent} style={{
@@ -2185,10 +2185,12 @@ function App() {
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
-      <div style={{ background: 'linear-gradient(135deg, #C4908A, #E4A5A0, #F5E1DE)', borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
-        <div style={{ fontSize: 56, marginBottom: 8 }}>{profile.emoji || '🌸'}</div>
+      <div style={{ background: `linear-gradient(135deg, ${C.teal}, ${C.mint}, ${C.roseBloom})`, borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, fontFamily: 'Georgia, serif', border: '2px solid rgba(255,255,255,0.5)' }}>
+          {(profile.name || 'R').charAt(0).toUpperCase()}
+        </div>
         <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{profile.name || 'Tu nombre'}</div>
-        {profile.city && <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>📍 {profile.city}</div>}
+        {profile.city && <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
         {profile.bio && <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
         <button onClick={() => setEditingProfile(!editingProfile)} style={{
           marginTop: 14, padding: '8px 20px', borderRadius: 20, border: '2px solid rgba(255,255,255,0.5)',
@@ -2240,7 +2242,7 @@ function App() {
 
           <button onClick={() => setEditingProfile(false)} style={{
             width: '100%', padding: 12, borderRadius: 12, border: 'none',
-            background: 'linear-gradient(135deg, #C4908A, #A6716B)', color: 'white',
+            background: 'linear-gradient(135deg, #C4908A, #1B8A7A)', color: 'white',
             fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
           }}>
             Guardar ✨
@@ -2261,17 +2263,19 @@ function App() {
         <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mis estadísticas</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {[
-            { label: 'Días activa', value: profileStats.daysActive, icon: '📅', color: C.rose },
-            { label: 'Hábitos cumplidos', value: profileStats.totalHabitsEver, icon: '🔥', color: C.gold },
-            { label: 'Entradas diario', value: profileStats.totalEntries, icon: '📔', color: C.roseDark },
-            { label: 'Frases favoritas', value: profileStats.favQuotesCount, icon: '❤️', color: C.roseLight },
-            { label: 'Recursos guardados', value: profileStats.toolkitCount, icon: '🧰', color: C.goldDark },
-            { label: 'Hoy', value: `${totalDone}/${totalHabits}`, icon: '✅', color: C.green },
+            { label: 'Días activa', value: profileStats.daysActive, color: C.teal },
+            { label: 'Hábitos cumplidos', value: profileStats.totalHabitsEver, color: C.coral },
+            { label: 'Entradas diario', value: profileStats.totalEntries, color: C.lavanda },
+            { label: 'Frases favoritas', value: profileStats.favQuotesCount, color: C.gold },
+            { label: 'Recursos guardados', value: profileStats.toolkitCount, color: C.mint },
+            { label: 'Hoy', value: `${totalDone}/${totalHabits}`, color: C.rose },
           ].map((stat, i) => (
-            <div key={i} style={{ background: C.cream, borderRadius: 12, padding: 14, textAlign: 'center' }}>
-              <div style={{ fontSize: 24, marginBottom: 4 }}>{stat.icon}</div>
+            <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 16, textAlign: 'center', border: `1px solid ${C.border}` }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${stat.color}15`, margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 14, height: 14, borderRadius: '50%', background: stat.color }} />
+              </div>
               <div style={{ fontSize: 22, fontWeight: 900, color: stat.color }}>{stat.value}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, marginTop: 2 }}>{stat.label}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: C.muted, marginTop: 4 }}>{stat.label}</div>
             </div>
           ))}
         </div>
@@ -2504,7 +2508,7 @@ function App() {
         background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
         color: 'white', fontSize: 17, fontWeight: 800, border: 'none',
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
-        boxShadow: '0 4px 16px rgba(196,144,138,0.35)',
+        boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
       }}>
         Comenzar mi Ronda
       </button>
@@ -2580,7 +2584,7 @@ function App() {
                 background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
                 color: 'white', fontSize: 15, fontWeight: 800,
                 cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 4px 12px rgba(196,144,138,0.3)',
+                boxShadow: '0 4px 12px rgba(27,138,122,0.3)',
               }}>
                 Siguiente
               </button>
@@ -2787,7 +2791,7 @@ function App() {
       style={{
         position: 'fixed', bottom: 90, right: 16, zIndex: 200,
         display: 'flex', alignItems: 'center', gap: 10,
-        background: 'linear-gradient(135deg, #A6716B, #C4908A)',
+        background: 'linear-gradient(135deg, #1B8A7A, #C4908A)',
         border: 'none', cursor: 'pointer', padding: '10px 16px 10px 14px',
         borderRadius: 28, boxShadow: '0 4px 20px rgba(74,48,53,0.4)',
         animation: 'pulse-gentle 3s ease-in-out infinite',
@@ -2796,7 +2800,7 @@ function App() {
     >
       <div style={{
         width: 36, height: 36, borderRadius: '50%',
-        background: 'linear-gradient(135deg, #C4908A, #A6716B)',
+        background: 'linear-gradient(135deg, #C4908A, #1B8A7A)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -2812,7 +2816,7 @@ function App() {
     { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#7BA56E' },
     { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#C9A96E' },
     { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#C4908A' },
-    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#A6716B' },
+    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#1B8A7A' },
     { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#1B8A7A' },
   ]
 
@@ -2863,11 +2867,11 @@ function App() {
 
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>💛</div>
+          <div style={{ fontSize: 56, marginBottom: 16 }}></div>
           <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 8 }}>
             Estás a salvo.
           </div>
-          <div style={{ fontSize: 16, color: '#E8C4C0', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 16, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
             Respira. Este momento va a pasar.
           </div>
           <div style={{ fontSize: 13, color: '#C4908A', textAlign: 'center', marginBottom: 32 }}>
@@ -2879,7 +2883,7 @@ function App() {
               { id: 'breathe', icon: '🌬️', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#7BA56E' },
               { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#C9A96E' },
               { id: 'dbt', icon: '🧠', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#C4908A' },
-              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#A6716B' },
+              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#1B8A7A' },
             ].map(opt => (
               <button key={opt.id} onClick={() => {
                 setPanicScreen(opt.id)
@@ -2893,7 +2897,7 @@ function App() {
                 <div style={{ fontSize: 28, minWidth: 40, textAlign: 'center' }}>{opt.icon}</div>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{opt.title}</div>
-                  <div style={{ fontSize: 12, color: '#E8C4C0', marginTop: 2 }}>{opt.sub}</div>
+                  <div style={{ fontSize: 12, color: '#D4F0EA', marginTop: 2 }}>{opt.sub}</div>
                 </div>
               </button>
             ))}
@@ -2906,14 +2910,14 @@ function App() {
             border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',
           }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#C9A96E' }}>💬 Ir a la Comunidad</div>
-            <div style={{ fontSize: 12, color: '#E8C4C0', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
+            <div style={{ fontSize: 12, color: '#D4F0EA', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
           </button>
 
           <div style={{ marginTop: 20, textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: '#C4908A', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
             <a href="tel:106" style={{
               display: 'inline-block', padding: '10px 24px', borderRadius: 20,
-              background: '#A6716B', color: 'white', fontWeight: 700, fontSize: 14,
+              background: '#1B8A7A', color: 'white', fontWeight: 700, fontSize: 14,
               textDecoration: 'none',
             }}>
               📞 Línea 106 — Atención en crisis
@@ -2928,7 +2932,7 @@ function App() {
             height: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
             borderRadius: '50%',
             background: breathePhase === 'inhale'
-              ? 'radial-gradient(circle, rgba(196,144,138,0.6), rgba(196,144,138,0.1))'
+              ? 'radial-gradient(circle, rgba(27,138,122,0.6), rgba(27,138,122,0.1))'
               : breathePhase === 'hold'
               ? 'radial-gradient(circle, rgba(201,169,110,0.6), rgba(201,169,110,0.1))'
               : 'radial-gradient(circle, rgba(123,165,110,0.6), rgba(123,165,110,0.1))',
@@ -2941,7 +2945,7 @@ function App() {
             </div>
           </div>
 
-          <div style={{ fontSize: 14, color: '#E8C4C0', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 14, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
             {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
              breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
              '8 segundos — suelta todo, deja ir'}
@@ -2954,7 +2958,7 @@ function App() {
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
-              <div style={{ fontSize: 14, color: '#E8C4C0', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
+              <div style={{ fontSize: 14, color: '#D4F0EA', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
               <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
                 padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
                 border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 14,
@@ -2974,7 +2978,7 @@ function App() {
             <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.4, marginBottom: 24 }}>
               {GROUND_STEPS[groundStep].prompt}
             </div>
-            <div style={{ fontSize: 14, color: '#E8C4C0', marginBottom: 32, textAlign: 'center' }}>
+            <div style={{ fontSize: 14, color: '#D4F0EA', marginBottom: 32, textAlign: 'center' }}>
               Tómate tu tiempo. No hay prisa.
             </div>
             <button onClick={() => setGroundStep(groundStep + 1)} style={{
@@ -2989,7 +2993,7 @@ function App() {
             <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 12 }}>
               Estás aquí. Estás presente.
             </div>
-            <div style={{ fontSize: 15, color: '#E8C4C0', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 15, color: '#D4F0EA', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.
             </div>
             <button onClick={() => setGroundStep(0)} style={{
@@ -3010,7 +3014,7 @@ function App() {
           <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 6 }}>
             Skills DBT
           </div>
-          <div style={{ fontSize: 13, color: '#E8C4C0', textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ fontSize: 13, color: '#D4F0EA', textAlign: 'center', marginBottom: 24 }}>
             Herramientas de regulación emocional. Escoge la que necesitas.
           </div>
 
@@ -3026,7 +3030,7 @@ function App() {
                   <div style={{ fontSize: 26 }}>{skill.icon}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{skill.name}</div>
-                    <div style={{ fontSize: 11, color: '#E8C4C0', marginTop: 2 }}>{skill.desc}</div>
+                    <div style={{ fontSize: 11, color: '#D4F0EA', marginTop: 2 }}>{skill.desc}</div>
                   </div>
                   <span style={{ color: '#C4908A', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
                 </button>
@@ -3045,7 +3049,7 @@ function App() {
                           color: 'white', fontSize: 12, fontWeight: 800,
                           display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
                         }}>{si + 1}</div>
-                        <div style={{ fontSize: 14, color: '#E8C4C0', lineHeight: 1.5 }}>{step}</div>
+                        <div style={{ fontSize: 14, color: '#D4F0EA', lineHeight: 1.5 }}>{step}</div>
                       </div>
                     ))}
                   </div>
@@ -3061,7 +3065,7 @@ function App() {
           <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 12 }}>
             Aceptación Radical
           </div>
-          <div style={{ fontSize: 14, color: '#E8C4C0', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 14, color: '#D4F0EA', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
             No significa que apruebas lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
           </div>
 
@@ -3082,7 +3086,7 @@ function App() {
                 color: 'white', fontSize: 13, fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{step.num}</div>
-              <div style={{ fontSize: 14, color: '#E8C4C0', lineHeight: 1.6 }}>{step.text}</div>
+              <div style={{ fontSize: 14, color: '#D4F0EA', lineHeight: 1.6 }}>{step.text}</div>
             </div>
           ))}
 
@@ -3105,7 +3109,7 @@ function App() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       {header}
-      <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 80 }}>
+      <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 120 }}>
         {view === 'inicio' && inicioView}
 
         {view === 'crecer' && <>
