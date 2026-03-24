@@ -501,24 +501,27 @@ function App() {
   /* ── INICIO ── */
   const inicioView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {/* Greeting + Progress combined */}
-      <div style={{ padding: 24, background: 'linear-gradient(135deg, #C4908A, #E8C4C0)', borderRadius: 20, color: 'white' }}>
-        <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
-        <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>La mujer que quieres ser, empieza hoy</div>
+      {/* Greeting — clean, white, with colored circle accent */}
+      <div style={{ padding: 24, background: C.card, borderRadius: 20, border: `1px solid ${C.border}`, position: 'relative', overflow: 'hidden' }}>
+        {/* Decorative circles */}
+        <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: C.mint, opacity: 0.15 }} />
+        <div style={{ position: 'absolute', bottom: -15, right: 30, width: 50, height: 50, borderRadius: '50%', background: C.coral, opacity: 0.1 }} />
+        <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif', color: C.text }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
+        <div style={{ fontSize: 14, marginTop: 6, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', color: C.rose }}>La mujer que quieres ser, empieza hoy</div>
         {totalHabits > 0 && (
           <div style={{ marginTop: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.9 }}>{totalDone} de {totalHabits} hábitos</span>
-              <span style={{ fontSize: 18, fontWeight: 900 }}>{Math.round((totalDone / totalHabits) * 100)}%</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{totalDone} de {totalHabits} hábitos</span>
+              <span style={{ fontSize: 18, fontWeight: 900, color: C.teal }}>{Math.round((totalDone / totalHabits) * 100)}%</span>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.3)', borderRadius: 6, height: 6, overflow: 'hidden' }}>
-              <div style={{ width: `${(totalDone / totalHabits) * 100}%`, height: '100%', background: 'white', borderRadius: 6, transition: 'width 0.3s' }} />
+            <div style={{ background: C.mintLight, borderRadius: 6, height: 6, overflow: 'hidden' }}>
+              <div style={{ width: `${(totalDone / totalHabits) * 100}%`, height: '100%', background: C.teal, borderRadius: 6, transition: 'width 0.3s' }} />
             </div>
           </div>
         )}
       </div>
 
-      {/* Lo que sigue — next routine item */}
+      {/* Lo que sigue — with colored circle */}
       {(() => {
         const now = new Date()
         const nowMin = now.getHours() * 60 + now.getMinutes()
@@ -536,22 +539,31 @@ function App() {
             border: `1px solid ${C.border}`,
           }}>
             <div style={{
-              fontSize: 13, fontWeight: 800, color: C.gold, minWidth: 46, textAlign: 'center',
-            }}>{next.time}</div>
-            <div style={{ width: 1, height: 28, background: C.border }} />
+              width: 44, height: 44, borderRadius: '50%', background: `${C.teal}15`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: C.teal }}>{next.time}</div>
+            </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{next.task}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{next.task}</div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>Lo que sigue</div>
             </div>
-            <div style={{ fontSize: 16, color: C.muted }}>→</div>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: `${C.coral}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 14, color: C.coral }}>→</span>
+            </div>
           </div>
         )
       })()}
 
-      {/* Quote of the day */}
-      <div style={{ padding: '18px 20px', borderLeft: `3px solid ${C.gold}` }}>
-        <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
-        <div style={{ fontSize: 13, marginTop: 6, color: C.muted }}>— {quote.author}</div>
+      {/* Quote — with colored accent circle */}
+      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 18px', background: C.card, borderRadius: 16, border: `1px solid ${C.border}` }}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${C.gold}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.gold }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
+          <div style={{ fontSize: 13, marginTop: 6, color: C.rose, fontWeight: 600 }}>— {quote.author}</div>
+        </div>
       </div>
 
       {/* Active programs preview */}
@@ -1168,20 +1180,26 @@ function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {PROGRAMAS.filter(p => !activePrograms[p.id] && ['ejercicio','dios','mama','disciplina','amor_propio'].includes(p.id)).map(prog => (
             <div key={prog.id} style={{
-              background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-              borderLeft: `4px solid ${prog.color}`,
+              background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              border: `1px solid ${C.border}`, display: 'flex', gap: 16, alignItems: 'flex-start',
             }}>
-              <div style={{ marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 36) : <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} /></div>}</div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
-              <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-              <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
-              <button onClick={() => startProgram(prog.id)} style={{
-                marginTop: 12, padding: '10px 20px', borderRadius: 12, border: 'none',
-                background: `linear-gradient(135deg, ${prog.color}, ${prog.color}CC)`,
-                color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              <div style={{
+                width: 52, height: 52, borderRadius: '50%', background: `${prog.color}15`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                Empezar programa →
-              </button>
+                {ICONS[prog.id] ? ICONS[prog.id](prog.color, 28) : <div style={{ width: 20, height: 20, borderRadius: '50%', background: prog.color }} />}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{prog.title}</div>
+                <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
+                <div style={{ fontSize: 12, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
+                <button onClick={() => startProgram(prog.id)} style={{
+                  marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
+                  background: prog.color, color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  Empezar →
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -1198,20 +1216,26 @@ function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {PROGRAMAS.filter(p => !activePrograms[p.id] && ['tusa','depresion','ansiedad','empezar','autoestima'].includes(p.id)).map(prog => (
             <div key={prog.id} style={{
-              background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-              borderLeft: `4px solid ${prog.color}`,
+              background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              border: `1px solid ${C.border}`, display: 'flex', gap: 16, alignItems: 'flex-start',
             }}>
-              <div style={{ marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 36) : <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} /></div>}</div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
-              <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-              <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
-              <button onClick={() => startProgram(prog.id)} style={{
-                marginTop: 12, padding: '10px 20px', borderRadius: 12, border: 'none',
-                background: `linear-gradient(135deg, ${prog.color}, ${prog.color}CC)`,
-                color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              <div style={{
+                width: 52, height: 52, borderRadius: '50%', background: `${prog.color}15`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                Empezar programa →
-              </button>
+                {ICONS[prog.id] ? ICONS[prog.id](prog.color, 28) : <div style={{ width: 20, height: 20, borderRadius: '50%', background: prog.color }} />}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{prog.title}</div>
+                <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
+                <div style={{ fontSize: 12, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
+                <button onClick={() => startProgram(prog.id)} style={{
+                  marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
+                  background: prog.color, color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  Empezar →
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -1756,17 +1780,17 @@ function App() {
 
   /* ── Sub-tab navigation (pill style) ── */
   const SubTabs = ({ tabs, active, onChange }) => (
-    <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
+    <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
       {tabs.map(t => (
         <button key={t.id} onClick={() => onChange(t.id)} style={{
-          padding: '8px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
-          background: active === t.id ? C.rose : C.card,
-          color: active === t.id ? 'white' : C.muted,
+          padding: '8px 18px', borderRadius: 20, border: active === t.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+          background: active === t.id ? C.teal : C.card,
+          color: active === t.id ? 'white' : C.text,
           fontSize: 13, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-          boxShadow: active === t.id ? '0 2px 8px rgba(196,144,138,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+          boxShadow: active === t.id ? '0 2px 10px rgba(27,138,122,0.25)' : 'none',
           transition: 'all 0.15s',
         }}>
-          {t.icon} {t.label}
+          {t.label}
         </button>
       ))}
     </div>
