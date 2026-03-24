@@ -139,6 +139,7 @@ function App() {
   const [breathePhase, setBreathePhase] = useState('inhale') // inhale, hold, exhale
   const [breatheCount, setBreatheCount] = useState(0)
   const [breatheActive, setBreatheActive] = useState(false)
+  const [panicDbtExpanded, setPanicDbtExpanded] = useState(null)
   const [groundStep, setGroundStep] = useState(0)
 
   // Board (Bulletin Board 24/7)
@@ -190,6 +191,31 @@ function App() {
   useEffect(() => { save('diana-midday', midday) }, [midday])
   useEffect(() => { save('diana-night', night) }, [night])
   useEffect(() => { save(`ronda-tomorrow-${todayKey()}`, tomorrowTasks) }, [tomorrowTasks])
+
+  // Breathing timer for panic button
+  useEffect(() => {
+    if (!breatheActive) return
+    const phases = [
+      { name: 'inhale', label: 'Inhala', duration: 4000 },
+      { name: 'hold', label: 'Sostén', duration: 7000 },
+      { name: 'exhale', label: 'Exhala', duration: 8000 },
+    ]
+    let phaseIndex = 0
+    let cycleCount = breatheCount
+    const runPhase = () => {
+      if (cycleCount >= 5 || !breatheActive) return
+      setBreathePhase(phases[phaseIndex].name)
+      const t = setTimeout(() => {
+        phaseIndex++
+        if (phaseIndex >= 3) { phaseIndex = 0; cycleCount++; setBreatheCount(cycleCount) }
+        if (cycleCount < 5 && breatheActive) runPhase()
+        else { setBreatheActive(false) }
+      }, phases[phaseIndex].duration)
+      return t
+    }
+    const t = runPhase()
+    return () => clearTimeout(t)
+  }, [breatheActive])
 
   // Sync localStorage → Supabase on first login + update profile name from auth
   useEffect(() => {
@@ -2731,38 +2757,6 @@ function App() {
     { name: 'Aceptación Radical', icon: '🙏', desc: 'Aceptar la realidad tal como es, sin luchar contra ella',
       steps: ['Reconoce: "Esto es lo que está pasando ahora mismo."', 'Suelta la lucha: resistir el dolor crea más sufrimiento.', 'Respira y repite: "Puedo aceptar esto sin aprobarlo."', 'El dolor es inevitable. El sufrimiento es la resistencia al dolor.'] },
   ]
-
-  // Breathing timer effect
-  useEffect(() => {
-    if (!breatheActive) return
-    const phases = [
-      { name: 'inhale', label: 'Inhala', duration: 4000 },
-      { name: 'hold', label: 'Sostén', duration: 7000 },
-      { name: 'exhale', label: 'Exhala', duration: 8000 },
-    ]
-    let phaseIndex = 0
-    let cycleCount = breatheCount
-
-    const runPhase = () => {
-      if (cycleCount >= 5 || !breatheActive) return
-      setBreathePhase(phases[phaseIndex].name)
-      const t = setTimeout(() => {
-        phaseIndex++
-        if (phaseIndex >= 3) {
-          phaseIndex = 0
-          cycleCount++
-          setBreatheCount(cycleCount)
-        }
-        if (cycleCount < 5 && breatheActive) runPhase()
-        else { setBreatheActive(false) }
-      }, phases[phaseIndex].duration)
-      return t
-    }
-    const t = runPhase()
-    return () => clearTimeout(t)
-  }, [breatheActive])
-
-  const [panicDbtExpanded, setPanicDbtExpanded] = useState(null)
 
   const panicModal = showPanic && (
     <div style={{
