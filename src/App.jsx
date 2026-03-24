@@ -66,6 +66,13 @@ function App() {
 
   const [view, setView] = useState('inicio')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
+  // AI Agent state
+  const [aiGoal, setAiGoal] = useState('')
+  const [aiContext, setAiContext] = useState('')
+  const [aiStep, setAiStep] = useState(0) // 0=intro, 1=goal, 2=context, 3=generating, 4=result
+  const [aiProgram, setAiProgram] = useState(null)
+  const [aiError, setAiError] = useState('')
+  const [aiSaved, setAiSaved] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   // Habits
@@ -1809,6 +1816,230 @@ function App() {
     </div>
   )
 
+  /* ── AI Agent: Generate custom program ── */
+  const generateAiProgram = async () => {
+    setAiStep(3)
+    setAiError('')
+    try {
+      const resp = await fetch('/api/generate-program', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goal: aiGoal, context: aiContext }),
+      })
+      const data = await resp.json()
+      if (data.error) throw new Error(data.error)
+      setAiProgram(data.program)
+      setAiStep(4)
+    } catch (err) {
+      setAiError(err.message || 'Error generando tu programa')
+      setAiStep(2)
+    }
+  }
+
+  const saveAiProgram = () => {
+    if (!aiProgram) return
+    const id = 'custom_' + Date.now()
+    const prog = { ...aiProgram, id, color: '#C4908A', custom: true }
+    const saved = JSON.parse(localStorage.getItem('diana-custom-programs') || '[]')
+    saved.push(prog)
+    localStorage.setItem('diana-custom-programs', JSON.stringify(saved))
+    // Also activate it
+    const ap = { ...activePrograms }
+    ap[id] = { startDate: new Date().toISOString().split('T')[0], completedDays: [] }
+    setActivePrograms(ap)
+    localStorage.setItem('diana-active-programs', JSON.stringify(ap))
+    setAiSaved(true)
+  }
+
+  const resetAiAgent = () => {
+    setAiGoal(''); setAiContext(''); setAiStep(0); setAiProgram(null); setAiError(''); setAiSaved(false)
+  }
+
+  const aiAgentView = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <div style={{ fontSize: 40, marginBottom: 8 }}>🤖✨</div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
+          Crea tu programa personalizado
+        </div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+          Dime qué quieres lograr y te armo un programa paso a paso, a tu ritmo.
+        </div>
+      </div>
+
+      {/* Step 0: Intro / Examples */}
+      {aiStep === 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            ¿Qué quieres lograr? Por ejemplo:
+          </div>
+          {[
+            { goal: 'Quiero dejar de comer azúcar', icon: '🍫→🥗' },
+            { goal: 'Quiero empezar a meditar', icon: '🧘→☮️' },
+            { goal: 'Quiero dormir mejor', icon: '😴→💤' },
+            { goal: 'Quiero dejar de procrastinar', icon: '📵→🎯' },
+            { goal: 'Quiero fortalecer mi relación de pareja', icon: '💑→❤️' },
+            { goal: 'Quiero aprender a decir que no', icon: '😓→💪' },
+          ].map((ex, i) => (
+            <button key={i} onClick={() => { setAiGoal(ex.goal); setAiStep(1) }} style={{
+              padding: '14px 18px', borderRadius: 14, border: `1px solid ${C.border}`,
+              background: C.card, cursor: 'pointer', textAlign: 'left',
+              display: 'flex', alignItems: 'center', gap: 12,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            }}>
+              <span style={{ fontSize: 22 }}>{ex.icon}</span>
+              <span style={{ fontSize: 14, color: C.text, fontWeight: 600, fontFamily: 'inherit' }}>{ex.goal}</span>
+            </button>
+          ))}
+          <div style={{ textAlign: 'center', fontSize: 12, color: C.subtle, marginTop: 4 }}>
+            O escribe el tuyo propio ↓
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={aiGoal}
+              onChange={e => setAiGoal(e.target.value)}
+              placeholder="Escribe tu meta aquí..."
+              style={{
+                flex: 1, padding: '14px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`,
+                fontSize: 14, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none',
+              }}
+            />
+            <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} style={{
+              padding: '14px 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
+              background: aiGoal.trim() ? C.rose : C.border, color: 'white',
+              fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+            }}>→</button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 1: Confirm goal */}
+      {aiStep === 1 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{
+            background: `linear-gradient(135deg, ${C.rose}15, ${C.gold}10)`,
+            borderRadius: 16, padding: 20, border: `1px solid ${C.roseLight}`,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+              Tu meta
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.text, lineHeight: 1.4 }}>
+              "{aiGoal}"
+            </div>
+          </div>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>
+            ¿Quieres contarme algo más? Por ejemplo: hace cuánto lo intentas, qué te ha costado, tu situación actual. Entre más me cuentes, mejor tu programa.
+          </div>
+          <textarea
+            value={aiContext}
+            onChange={e => setAiContext(e.target.value)}
+            placeholder="Opcional: cuéntame un poco más... (ej: llevo 2 años intentando, me cuesta más en las noches...)"
+            rows={3}
+            style={{
+              padding: '14px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`,
+              fontSize: 14, fontFamily: 'inherit', background: C.cream, color: C.text,
+              outline: 'none', resize: 'none', lineHeight: 1.6,
+            }}
+          />
+          {aiError && <div style={{ fontSize: 13, color: '#D32F2F', fontWeight: 600 }}>{aiError}</div>}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{
+              flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
+              background: C.card, color: C.muted, fontSize: 14, fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}>← Atrás</button>
+            <button onClick={generateAiProgram} style={{
+              flex: 2, padding: '14px', borderRadius: 14, border: 'none',
+              background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white',
+              fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+            }}>Crear mi programa ✨</button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: Generating (loading) */}
+      {aiStep === 3 && (
+        <div style={{ textAlign: 'center', padding: 40 }}>
+          <div style={{ fontSize: 48, marginBottom: 16, animation: 'pulse 1.5s ease-in-out infinite' }}>🧠</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 8 }}>
+            Creando tu programa...
+          </div>
+          <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
+            Estoy analizando tu meta y armando cada paso para que sea alcanzable, suave y progresivo. Dame un momento.
+          </div>
+          <style>{`@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }`}</style>
+        </div>
+      )}
+
+      {/* Step 4: Result */}
+      {aiStep === 4 && aiProgram && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Program header */}
+          <div style={{
+            background: `linear-gradient(135deg, ${C.rose}15, ${C.gold}10)`,
+            borderRadius: 16, padding: 20, border: `1px solid ${C.roseLight}`, textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>{aiProgram.emoji}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+              {aiProgram.title}
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 6 }}>{aiProgram.desc}</div>
+            <div style={{ fontSize: 11, color: C.rose, fontWeight: 700, marginTop: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              {aiProgram.days?.length || 7} días · Creado por IA para ti
+            </div>
+          </div>
+
+          {/* Days */}
+          {aiProgram.days?.map(d => (
+            <div key={d.day} style={{
+              padding: '14px 16px', background: C.card, borderRadius: 14,
+              border: `1px solid ${C.border}`, display: 'flex', alignItems: 'flex-start', gap: 12,
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 10, background: `${C.rose}15`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                fontSize: 16,
+              }}>{d.emoji}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.rose, textTransform: 'uppercase' }}>Día {d.day}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginTop: 2 }}>{d.title}</div>
+                <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{d.task}</div>
+              </div>
+            </div>
+          ))}
+
+          {/* Actions */}
+          {!aiSaved ? (
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={resetAiAgent} style={{
+                flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
+                background: C.card, color: C.muted, fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>Empezar de nuevo</button>
+              <button onClick={saveAiProgram} style={{
+                flex: 2, padding: '14px', borderRadius: 14, border: 'none',
+                background: `linear-gradient(135deg, ${C.gold}, #A68B52)`, color: 'white',
+                fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Guardar y empezar 🚀</button>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: 20, background: `${C.green}10`, borderRadius: 16, border: `1px solid ${C.green}30` }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.green }}>¡Programa guardado!</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
+              <button onClick={resetAiAgent} style={{
+                marginTop: 12, padding: '10px 24px', borderRadius: 12, border: 'none',
+                background: C.rose, color: 'white', fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>Crear otro programa</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
@@ -2765,12 +2996,14 @@ function App() {
           <SubTabs
             tabs={[
               { id: 'programas', label: 'Programas', icon: '🧠' },
-              { id: 'frases', label: 'Frases', icon: '✨' },
+              { id: 'ai', label: 'Crea el tuyo', icon: '✨' },
+              { id: 'frases', label: 'Frases', icon: '💬' },
             ]}
             active={subTab || 'programas'}
-            onChange={setSubTab}
+            onChange={(t) => { setSubTab(t); if (t === 'ai') resetAiAgent() }}
           />
           {(subTab || 'programas') === 'programas' && programasView}
+          {subTab === 'ai' && aiAgentView}
           {subTab === 'frases' && frasesView}
         </>}
 
