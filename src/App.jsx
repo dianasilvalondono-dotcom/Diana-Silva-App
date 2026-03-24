@@ -1080,7 +1080,7 @@ function App() {
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #C4908A, #E4A5A0, #F5E1DE)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #1B8A7A, #2A9D8F, #7ED4BC)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
         <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
         <div style={{ fontSize: 13, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
@@ -1317,7 +1317,7 @@ function App() {
   const frasesView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Quote of the day */}
-      <div style={{ background: 'linear-gradient(135deg, #C4908A, #E4A5A0, #F5E1DE)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #C9A96E, #E8D5A8)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>✨ Frase del día</div>
         <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
         <div style={{ fontSize: 14, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
@@ -1378,7 +1378,7 @@ function App() {
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #C4908A, #E4A5A0, #F5E1DE)', borderRadius: 18, padding: 20, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #B8A9C9, #D4C4E0)', borderRadius: 18, padding: 20, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Mi Toolkit</div>
         <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
         <div style={{ fontSize: 13, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
