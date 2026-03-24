@@ -117,7 +117,7 @@ export const MOOD_RECS = {
     ],
   },
   3: {
-    label: 'Aprovecha tu buena vibra', color: '#7BA56E',
+    label: 'Aprovecha tu buena vibra', color: '#2A9D8F',
     items: [
       { type: 'podcast', title: 'Lewis Howes — "The School of Greatness"', url: 'https://open.spotify.com/show/07GQhOZboEZOE1ysnFLipT' },
       { type: 'libro', title: '📚 "Atomic Habits" — James Clear', url: 'https://www.amazon.com/Atomic-Habits-James-Clear/dp/0735211299' },
@@ -181,7 +181,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'empezar', title: 'Empezar de cero',
-    desc: '7 días para reinventarte y construir la vida que quieres', color: '#7BA56E',
+    desc: '7 días para reinventarte y construir la vida que quieres', color: '#2A9D8F',
     days: [
       { day: 1, title: 'Define tu "por qué"', task: '¿Por qué quieres cambiar? Escríbelo en 1 frase. Eso es tu motor.' },
       { day: 2, title: 'Limpia un espacio', task: 'Tu escritorio, tu mesa, un cajón. Espacio limpio = mente clara.' },
@@ -208,7 +208,7 @@ export const PROGRAMAS = [
   /* ── Programas positivos / aspiracionales ── */
   {
     id: 'ejercicio', title: 'Volver a moverme',
-    desc: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo', color: '#7BA56E',
+    desc: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo', color: '#2A9D8F',
     days: [
       { day: 1, title: 'Estira 2 minutos', task: 'Cuello, hombros, espalda. No necesitas más. Solo empezar.' },
       { day: 2, title: 'Camina 10 minutos', task: 'Afuera, con música que te guste. Caminar es el mejor antidepresivo natural.' },

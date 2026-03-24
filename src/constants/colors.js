@@ -35,8 +35,8 @@ export const C = {
   subtle:    '#B5A099',
 
   /* Funcionales */
-  green:     '#7BA56E',
-  greenDone: '#9BBF90',
+  green:     '#2A9D8F',
+  greenDone: '#7ED4BC',
   beige:     '#F5E1DE',
   nude:      '#F5E1DE',
 }
