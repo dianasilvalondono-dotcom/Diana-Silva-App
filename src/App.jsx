@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import './App.css'
 import { C } from './constants/colors'
-import { ICONS } from './constants/icons'
+import { ICONS, MOOD_ICONS } from './constants/icons'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, CATS, CAT_LABELS, getDayQuote,
 } from './constants/data'
-import { todayKey, load, save, getGreeting, formatDate, MOODS } from './utils/helpers'
+import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD_COLORS } from './utils/helpers'
 import { useAuth } from './lib/useAuth'
 import { useNotifications } from './lib/useNotifications'
 import AuthScreen from './components/AuthScreen'
@@ -123,7 +123,7 @@ function App() {
 
   // Profile
   const [profile, setProfile] = useState(() => load('diana-profile', {
-    name: '', city: '', bio: '', intention: '', emoji: '🌸',
+    name: '', city: '', bio: '', intention: '', emoji: '',
   }))
   const [editingProfile, setEditingProfile] = useState(false)
 
@@ -364,7 +364,7 @@ function App() {
   const completeMorningCheckin = () => {
     if (morningIntention.trim()) {
       const entry = {
-        id: Date.now(), date: todayKey(), text: `☀️ Intención del día: ${morningIntention}`,
+        id: Date.now(), date: todayKey(), text: `Intención del día: ${morningIntention}`,
         mood: 3, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
         type: 'morning',
       }
@@ -377,7 +377,7 @@ function App() {
   const completeNightCheckin = () => {
     if (nightReflection.trim()) {
       const entry = {
-        id: Date.now(), date: todayKey(), text: `🌙 Reflexión de noche: ${nightReflection}`,
+        id: Date.now(), date: todayKey(), text: `Reflexión de noche: ${nightReflection}`,
         mood: nightMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
         type: 'night',
       }
@@ -443,10 +443,14 @@ function App() {
   /* ── Top Header ── */
   const header = (
     <div style={{
-      background: 'linear-gradient(135deg, #1B8A7A 0%, #2A9D8F 35%, #7ED4BC 65%, #E4A5A0 100%)',
-      padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100,
+      background: '#1B8A7A',
+      padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100, overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Decorative Ronda circles */}
+      <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: 'rgba(126,212,188,0.15)' }} />
+      <div style={{ position: 'absolute', bottom: -20, right: 60, width: 60, height: 60, borderRadius: '50%', background: 'rgba(184,169,201,0.12)' }} />
+      <div style={{ position: 'absolute', top: 5, left: -20, width: 50, height: 50, borderRadius: '50%', background: 'rgba(201,169,110,0.1)' }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {logo}
@@ -676,7 +680,7 @@ function App() {
                   </span>
                   {streaks[h.id] > 0 && (
                     <span style={{ fontSize: 12, fontWeight: 700, color: C.gold, background: C.beige, padding: '2px 7px', borderRadius: 20 }}>
-                      🔥 {streaks[h.id]}
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.coral, display: 'inline-block', marginRight: 3 }} />{streaks[h.id]}
                     </span>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); removeHabit(h.id) }} style={{
@@ -815,14 +819,14 @@ function App() {
                 {routineChecked[item.id] && '✓'}
               </div>
               <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 14, fontWeight: 700, color: C.gold, minWidth: 44, cursor: 'pointer' }}>{item.time}</span>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{item.emoji}</span>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0, opacity: 0.6 }} />
               <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 15, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
                 {item.task}
               </span>
               {editingRoutine && <>
                 <button onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: item.time, task: item.task, emoji: item.emoji })} style={{
                   background: 'none', border: 'none', color: C.gold, fontSize: 16, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
-                }}>✏️</button>
+                }}>✎</button>
                 <button onClick={() => removeRoutineItem(sectionKey, item.id)} style={{
                   background: 'none', border: 'none', color: '#e57373', fontSize: 18, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
                 }}>×</button>
@@ -834,7 +838,7 @@ function App() {
     </div>
   )
 
-  const ROUTINE_EMOJIS = ['✨', '🙏', '🧘', '💪', '📖', '🚶‍♀️', '🌬️', '', '☕', '🎵', '📝', '🌸', '🕊️', '🌙', '🧠', '🍵']
+  const ROUTINE_EMOJIS = []
 
   const rutinaView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -845,22 +849,22 @@ function App() {
           border: `1.5px solid ${C.rose}`, borderRadius: 20, padding: '6px 16px',
           fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          {editingRoutine ? '✓ Listo' : '✏️ Editar mi rutina'}
+          {editingRoutine ? '✓ Listo' : '✎ Editar mi rutina'}
         </button>
       </div>
 
-      {renderRoutineSection('Mañana', '☀️', morning, C.rose, 'morning')}
+      {renderRoutineSection('Mañana', '', morning, C.rose, 'morning')}
       <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Afirmaciones del día', '🕊️', midday, C.gold, 'midday')}
+      {renderRoutineSection('Afirmaciones del día', '', midday, C.gold, 'midday')}
       <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Noche', '🌙', night, C.roseDark, 'night')}
+      {renderRoutineSection('Noche', '', night, C.roseDark, 'night')}
 
       {/* Add new routine item */}
       {editingRoutine && (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 12 }}>+ Agregar a mi rutina</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-            {[{k:'morning',l:'☀️ Mañana'},{k:'midday',l:'🕊️ Día'},{k:'night',l:'🌙 Noche'}].map(s => (
+            {[{k:'morning',l:'Mañana'},{k:'midday',l:'Día'},{k:'night',l:'Noche'}].map(s => (
               <button key={s.k} onClick={() => setNewRoutineSection(s.k)} style={{
                 padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'inherit', border: `1.5px solid ${C.rose}`,
@@ -954,14 +958,13 @@ function App() {
       <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
         <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10, color: C.text }}>¿Cómo te sientes hoy?</div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 14, justifyContent: 'center' }}>
-          {MOODS.map((m, i) => (
+          {MOOD_ICONS.map((icon, i) => (
             <button key={i} onClick={() => setJournalMood(i)} style={{
-              fontSize: 28, background: journalMood === i ? C.beige : 'transparent',
-              border: journalMood === i ? `2px solid ${C.rose}` : '2px solid transparent',
-              borderRadius: 12, padding: 6, cursor: 'pointer', transition: 'all 0.15s',
-              transform: journalMood === i ? 'scale(1.15)' : 'scale(1)',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              transition: 'all 0.15s', transform: journalMood === i ? 'scale(1.2)' : 'scale(1)', padding: 4,
             }}>
-              {m}
+              {icon(36, journalMood === i)}
+              <div style={{ fontSize: 9, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
             </button>
           ))}
         </div>
@@ -979,7 +982,7 @@ function App() {
           color: journalText.trim() ? 'white' : C.subtle,
           fontSize: 15, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
         }}>
-          Guardar reflexión 🌱
+          Guardar reflexión
         </button>
       </div>
 
@@ -990,7 +993,7 @@ function App() {
         return (
           <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', border: `2px solid ${rec.color}20` }}>
             <div style={{ fontSize: 14, fontWeight: 800, color: rec.color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-              {MOODS[journalMood]} {rec.label}
+              {MOOD_LABELS[journalMood]} — {rec.label}
             </div>
             <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>Basado en cómo te sientes, te recomendamos:</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1048,7 +1051,7 @@ function App() {
                       <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                           <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{e.time}</span>
-                          <span style={{ fontSize: 20 }}>{MOODS[e.mood]}</span>
+                          <span style={{ fontSize: 20 }}>MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](20, true) : MOOD_LABELS[e.mood]</span>
                         </div>
                         <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
                       </div>
@@ -1570,10 +1573,10 @@ function App() {
         text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Se llama "pérdida de identidad materna" y afecta al 70% de las mamás. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. ' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
       replies: [{ pro: { name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica · Especialista en ansiedad', verified: true },
-        text: 'Los patrones de relación se forman en la infancia — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro confunde la ansiedad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es trabajar tu estilo de apego. DBT y terapia de esquemas pueden ayudarte a reprogramar lo que tu cerebro busca en una pareja. No estás "rota" — estás programada, y eso se puede cambiar. 🧠' }] },
+        text: 'Los patrones de relación se forman en la infancia — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro confunde la ansiedad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es trabajar tu estilo de apego. DBT y terapia de esquemas pueden ayudarte a reprogramar lo que tu cerebro busca en una pareja. No estás "rota" — estás programada, y eso se puede cambiar.' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
       replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
-        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 🕊️' }] },
+        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte.' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
       replies: [{ pro: { name: 'Laura Martínez', title: 'Coach ejecutiva · Emprendimiento femenino', verified: true },
         text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar. 🚀' }] },
@@ -1875,7 +1878,7 @@ function App() {
             {/* Avatar */}
             <div style={{
               width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-              background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+              background: `linear-gradient(135deg, ${C.lavanda}, ${C.roseBloom})`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontSize: 20, fontWeight: 700,
             }}>{item.name.charAt(0)}</div>
@@ -1883,11 +1886,11 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</span>
                 {item.verified && <span style={{
-                  fontSize: 9, background: C.gold, color: 'white', padding: '2px 6px',
+                  fontSize: 9, background: C.lavanda, color: 'white', padding: '2px 6px',
                   borderRadius: 8, fontWeight: 700,
                 }}>✓ VERIFICADA</span>}
               </div>
-              <div style={{ fontSize: 12, color: C.rose, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
+              <div style={{ fontSize: 12, color: C.lavanda, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{item.city}</div>
             </div>
           </div>
@@ -1898,7 +1901,7 @@ function App() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.gold }}>{item.rating}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.lavanda }}>{item.rating}</span>
               <span style={{ fontSize: 11, color: C.subtle }}>({item.reviews} reseñas)</span>
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: C.roseDark }}>{item.price}</span>
@@ -1906,7 +1909,7 @@ function App() {
 
           <button style={{
             marginTop: 12, width: '100%', padding: '10px 16px', borderRadius: 12, border: 'none',
-            background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white',
+            background: `linear-gradient(135deg, ${C.lavanda}, #9B8FC0)`, color: 'white',
             fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}>
             Contactar →
@@ -2618,7 +2621,7 @@ function App() {
     <div style={modalOverlay}>
       <div style={modalCard}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 48, marginBottom: 10 }}>☀️</div>
+          <div style={{ fontSize: 36, marginBottom: 10, color: '#C9A96E' }}>●</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿qué quieres lograr hoy?` : '¿Qué quieres lograr hoy?'}
           </div>
@@ -2689,7 +2692,7 @@ function App() {
           color: 'white', fontSize: 17, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
           boxShadow: '0 6px 20px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
         }}>
-          Comenzar mi día ☀️
+          Comenzar mi día
         </button>
       </div>
     </div>
@@ -2700,7 +2703,7 @@ function App() {
     <div style={modalOverlay}>
       <div style={modalCard}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 48, marginBottom: 10 }}>🌙</div>
+          <div style={{ fontSize: 36, marginBottom: 10, color: '#B8A9C9' }}>●</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
           </div>
@@ -2753,14 +2756,13 @@ function App() {
           ¿Cómo te sientes?
         </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center' }}>
-          {MOODS.map((m, i) => (
+          {MOOD_ICONS.map((icon, i) => (
             <button key={i} onClick={() => setNightMood(i)} style={{
-              fontSize: 30, background: nightMood === i ? C.beige : 'transparent',
-              border: nightMood === i ? `2px solid ${C.rose}` : '2px solid transparent',
-              borderRadius: 14, padding: 8, cursor: 'pointer', transition: 'all 0.15s',
-              transform: nightMood === i ? 'scale(1.15)' : 'scale(1)',
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              transition: 'all 0.15s', transform: nightMood === i ? 'scale(1.2)' : 'scale(1)', padding: 4,
             }}>
-              {m}
+              {icon(36, nightMood === i)}
+              <div style={{ fontSize: 9, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
             </button>
           ))}
         </div>
@@ -2783,7 +2785,7 @@ function App() {
           color: 'white', fontSize: 17, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
           boxShadow: '0 6px 20px rgba(166,113,107,0.35)', letterSpacing: '0.02em',
         }}>
-          Cerrar mi día 🌙
+          Cerrar mi día
         </button>
       </div>
     </div>
@@ -2885,9 +2887,9 @@ function App() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
             {[
-              { id: 'breathe', icon: '🌬️', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#2A9D8F' },
+              { id: 'breathe', icon: '', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#2A9D8F' },
               { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#C9A96E' },
-              { id: 'dbt', icon: '🧠', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#C4908A' },
+              { id: 'dbt', icon: '', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#C4908A' },
               { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#1B8A7A' },
             ].map(opt => (
               <button key={opt.id} onClick={() => {
@@ -3120,7 +3122,7 @@ function App() {
         {view === 'crecer' && <>
           <SubTabs
             tabs={[
-              { id: 'programas', label: 'Programas', icon: '🧠' },
+              { id: 'programas', label: 'Programas', icon: '' },
               { id: 'ai', label: 'Crea el tuyo', icon: '✨' },
               { id: 'historia', label: 'Nuestra historia', icon: '🌿' },
               { id: 'frases', label: 'Frases', icon: '💬' },
