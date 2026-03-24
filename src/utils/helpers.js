@@ -21,4 +21,6 @@ export function formatDate() {
   return `${days[d.getDay()]} ${d.getDate()} de ${months[d.getMonth()]}`
 }
 
-export const MOODS = ['😢','😐','🙂','😊','🤩']
+export const MOOD_LABELS = ['Difícil', 'Meh', 'Bien', 'Genial', 'Increíble']
+export const MOOD_COLORS = ['#E8736D', '#B8A9C9', '#C9A96E', '#7ED4BC', '#1B8A7A']
+export const MOODS = ['😢','😐','🙂','😊','🤩'] // kept for backward compat with saved data
