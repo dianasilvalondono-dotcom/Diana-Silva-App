@@ -9,6 +9,7 @@ import {
 } from './constants/data'
 import { todayKey, load, save, getGreeting, formatDate, MOODS } from './utils/helpers'
 import { useAuth } from './lib/useAuth'
+import { useNotifications } from './lib/useNotifications'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal } from './lib/database'
 
@@ -63,6 +64,7 @@ function NavItem({ icon, label, active, onClick }) {
 function App() {
   // Auth
   const { user, loading: authLoading, isConfigured, signInWithGoogle, signInWithEmail, signUp, signOut } = useAuth()
+  const { isSubscribed, isReady: notifReady, requestPermission } = useNotifications()
 
   const [view, setView] = useState('inicio')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
@@ -566,6 +568,22 @@ function App() {
           </div>
         )
       })()}
+
+      {/* Notification prompt */}
+      {notifReady && !isSubscribed && (
+        <button onClick={requestPermission} style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+          padding: '14px 18px', background: `linear-gradient(135deg, ${C.gold}15, ${C.rose}10)`,
+          borderRadius: 14, border: `1px solid ${C.gold}40`, cursor: 'pointer', textAlign: 'left',
+          fontFamily: 'inherit',
+        }}>
+          <span style={{ fontSize: 24 }}>🔔</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Activa tus recordatorios</div>
+            <div style={{ fontSize: 12, color: C.muted }}>Te aviso cuando sea hora de tu rutina o hábito</div>
+          </div>
+        </button>
+      )}
 
       {/* Mundo Ronda — cards que rotan y conectan con distintas personas */}
       {(() => {
