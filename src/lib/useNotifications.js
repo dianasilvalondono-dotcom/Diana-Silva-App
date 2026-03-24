@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import OneSignal from 'react-onesignal'
 
-const APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID
+const APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID || '7ae00782-88c2-4963-a660-aa62a85891ad'
 
 export function useNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false)
