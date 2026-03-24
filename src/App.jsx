@@ -752,8 +752,8 @@ function App() {
                   <div style={{ fontSize: 11, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].label}</div>
                 </div>
                 <button onClick={() => addSuggestedHabit(sh)} style={{
-                  padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${C.teal}`,
-                  background: 'transparent', color: C.teal, fontSize: 12, fontWeight: 700,
+                  padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${DIMS[sh.dim].color}`,
+                  background: 'transparent', color: DIMS[sh.dim].color, fontSize: 12, fontWeight: 700,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}>
                   + Agregar
@@ -1626,10 +1626,10 @@ function App() {
         {BOARD_CATS.map(cat => (
           <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
             padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
-            background: boardFilter === cat.id ? C.teal : C.card,
+            background: boardFilter === cat.id ? cat.color : C.card,
             color: boardFilter === cat.id ? 'white' : C.text,
             fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            boxShadow: boardFilter === cat.id ? '0 2px 8px rgba(27,138,122,0.25)' : 'none',
+            boxShadow: boardFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
             <span style={{ flexShrink: 0, display: 'flex' }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](boardFilter === cat.id ? 'white' : cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: boardFilter === cat.id ? 'white' : cat.color }} />}</span>
@@ -1791,20 +1791,23 @@ function App() {
   )
 
   /* ── Sub-tab navigation (pill style) ── */
-  const SubTabs = ({ tabs, active, onChange }) => (
-    <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
-      {tabs.map(t => (
+  const TAB_COLORS = [C.teal, C.coral, C.lavanda, C.gold, C.rose, C.mint]
+  const SubTabs = ({ tabs, active, onChange, accentColor }) => (
+    <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      {tabs.map((t, i) => {
+        const color = accentColor || TAB_COLORS[i % TAB_COLORS.length]
+        return (
         <button key={t.id} onClick={() => onChange(t.id)} style={{
           padding: '8px 18px', borderRadius: 20, border: active === t.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
-          background: active === t.id ? C.teal : C.card,
+          background: active === t.id ? color : C.card,
           color: active === t.id ? 'white' : C.text,
           fontSize: 13, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-          boxShadow: active === t.id ? '0 2px 10px rgba(27,138,122,0.25)' : 'none',
+          boxShadow: active === t.id ? `0 2px 10px ${color}40` : 'none',
           transition: 'all 0.15s',
         }}>
           {t.label}
         </button>
-      ))}
+      )})}
     </div>
   )
 
@@ -1857,10 +1860,10 @@ function App() {
         {DIRECTORIO_CATS.map(cat => (
           <button key={cat.id} onClick={() => setDirFilter(cat.id)} style={{
             padding: '6px 14px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
-            background: dirFilter === cat.id ? C.teal : C.card,
+            background: dirFilter === cat.id ? cat.color : C.card,
             color: dirFilter === cat.id ? 'white' : C.text,
             fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            boxShadow: dirFilter === cat.id ? '0 2px 8px rgba(27,138,122,0.25)' : 'none',
+            boxShadow: dirFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
             <span style={{ flexShrink: 0, display: 'flex' }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](dirFilter === cat.id ? 'white' : cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: dirFilter === cat.id ? 'white' : cat.color }} />}</span>
