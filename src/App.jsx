@@ -679,8 +679,9 @@ function App() {
                     {h.name}
                   </span>
                   {streaks[h.id] > 0 && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.gold, background: C.beige, padding: '2px 7px', borderRadius: 20 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.coral, display: 'inline-block', marginRight: 3 }} />{streaks[h.id]}
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.coral, background: `${C.coral}12`, padding: '3px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 C12 2 8 7 8 12 C8 16 10 18 12 20 C14 18 16 16 16 12 C16 7 12 2 12 2Z" fill={C.coral} opacity="0.8" /><path d="M12 8 C12 8 10 11 10 13 C10 15 11 16 12 17 C13 16 14 15 14 13 C14 11 12 8 12 8Z" fill="white" opacity="0.5" /></svg>
+                      {streaks[h.id]}
                     </span>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); removeHabit(h.id) }} style={{
@@ -1051,7 +1052,7 @@ function App() {
                       <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                           <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{e.time}</span>
-                          <span style={{ fontSize: 20 }}>MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](20, true) : MOOD_LABELS[e.mood]</span>
+                          {MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](22, true) : <span style={{ fontSize: 12, fontWeight: 700, color: MOOD_COLORS[e.mood] }}>{MOOD_LABELS[e.mood]}</span>}
                         </div>
                         <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
                       </div>
