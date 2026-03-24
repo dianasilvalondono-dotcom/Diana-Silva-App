@@ -1158,18 +1158,51 @@ function App() {
         </div>
       )}
 
-      {/* Available programs */}
+      {/* Available programs — positivos primero */}
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-          {Object.keys(activePrograms).length > 0 ? 'Más programas' : 'Escoge tu camino'}
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          Crece a tu ritmo
+        </div>
+        <div style={{ fontSize: 14, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+          No tienes que estar pasando por algo difícil para empezar. Estos programas son para ti, ahora.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {PROGRAMAS.filter(p => !activePrograms[p.id]).map(prog => (
+          {PROGRAMAS.filter(p => !activePrograms[p.id] && ['ejercicio','dios','mama','disciplina','amor_propio'].includes(p.id)).map(prog => (
             <div key={prog.id} style={{
               background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
               borderLeft: `4px solid ${prog.color}`,
             }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id}</div>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.emoji}</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
+              <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
+              <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
+              <button onClick={() => startProgram(prog.id)} style={{
+                marginTop: 12, padding: '10px 20px', borderRadius: 12, border: 'none',
+                background: `linear-gradient(135deg, ${prog.color}, ${prog.color}CC)`,
+                color: 'white', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                Empezar programa →
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Programas de sanación */}
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          Cuando necesites apoyo
+        </div>
+        <div style={{ fontSize: 14, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+          Si estás pasando por algo difícil, estos programas te acompañan paso a paso.
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {PROGRAMAS.filter(p => !activePrograms[p.id] && ['tusa','depresion','ansiedad','empezar','autoestima'].includes(p.id)).map(prog => (
+            <div key={prog.id} style={{
+              background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+              borderLeft: `4px solid ${prog.color}`,
+            }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.emoji}</div>
               <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
               <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
