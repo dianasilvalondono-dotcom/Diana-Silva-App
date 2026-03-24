@@ -819,7 +819,9 @@ function App() {
               }}>
                 {routineChecked[item.id] && '✓'}
               </div>
-              <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 14, fontWeight: 700, color: color, minWidth: 44, cursor: 'pointer' }}>{item.time}</span>
+              <div onClick={() => toggleRoutine(item.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: color }}>{item.time}</span>
+              </div>
               <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 15, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
                 {item.task}
               </span>
