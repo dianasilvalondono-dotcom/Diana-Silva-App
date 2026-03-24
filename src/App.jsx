@@ -1526,7 +1526,7 @@ function App() {
   )
 
   /* ── PERFIL ── */
-  const AVATARS = ['🌸','🦋','🌻','🌙','✨','🔮','🧘‍♀️','💫','🌊','🪷','🕊️','☀️','🫶','💜','🧿','🪬']
+  const AVATARS = []
   const profileStats = {
     daysActive: (() => {
       const keys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
@@ -2017,12 +2017,12 @@ function App() {
             ¿Qué quieres lograr? Por ejemplo:
           </div>
           {[
-            { goal: 'Quiero dejar de comer azúcar', icon: '🍫→🥗' },
-            { goal: 'Quiero empezar a meditar', icon: '🧘→☮️' },
-            { goal: 'Quiero dormir mejor', icon: '😴→💤' },
+            { goal: 'Quiero dejar de comer azúcar', icon: '' },
+            { goal: 'Quiero empezar a meditar', icon: '' },
+            { goal: 'Quiero dormir mejor', icon: '' },
             { goal: 'Quiero dejar de procrastinar', icon: '' },
-            { goal: 'Quiero fortalecer mi relación de pareja', icon: '💑→❤️' },
-            { goal: 'Quiero aprender a decir que no', icon: '😓→💪' },
+            { goal: 'Quiero fortalecer mi relación de pareja', icon: '' },
+            { goal: 'Quiero aprender a decir que no', icon: '' },
           ].map((ex, i) => (
             <button key={i} onClick={() => { setAiGoal(ex.goal); setAiStep(1) }} style={{
               padding: '14px 18px', borderRadius: 14, border: `1px solid ${C.border}`,
@@ -2030,7 +2030,9 @@ function App() {
               display: 'flex', alignItems: 'center', gap: 12,
               boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
             }}>
-              <span style={{ fontSize: 22 }}>{ex.icon}</span>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${[C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i]}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 12, height: 12, borderRadius: '50%', background: [C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i] }} />
+              </div>
               <span style={{ fontSize: 14, color: C.text, fontWeight: 600, fontFamily: 'inherit' }}>{ex.goal}</span>
             </button>
           ))}
@@ -2253,7 +2255,7 @@ function App() {
       {/* Intention card */}
       {profile.intention && !editingProfile && (
         <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.gold}` }}>
-          <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.gold, marginBottom: 6 }}>🎯 Mi intención</div>
+          <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.gold, marginBottom: 6 }}>Mi intención</div>
           <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{profile.intention}</div>
         </div>
       )}
