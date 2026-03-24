@@ -1,3 +1,6 @@
+// OneSignal push notification support
+importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
+
 const CACHE = 'ronda-v1'
 const ASSETS = ['/', '/index.html']
 
