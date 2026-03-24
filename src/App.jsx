@@ -2751,39 +2751,30 @@ function App() {
   )
 
   /* ── Panic Button (floating) ── */
-  const [panicTooltipSeen, setPanicTooltipSeen] = useState(() => load('ronda-panic-tooltip', false))
   const panicFab = !showPanic && (
-    <div style={{ position: 'fixed', bottom: 90, right: 20, zIndex: 200, display: 'flex', alignItems: 'center', gap: 10 }}>
-      {/* Tooltip — shows once until tapped */}
-      {!panicTooltipSeen && (
-        <div style={{
-          background: '#4A3035', color: 'white', padding: '10px 14px', borderRadius: 14,
-          fontSize: 12, fontWeight: 600, lineHeight: 1.4, maxWidth: 180,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.2)', animation: 'fadeIn 0.5s ease',
-        }}>
-          ¿Necesitas apoyo ahora? Tócame. Respiración, grounding y herramientas DBT aquí.
-          <div style={{ position: 'absolute', right: -6, top: '50%', marginTop: -6,
-            width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '6px solid #4A3035' }} />
-        </div>
-      )}
-      <button
-        onClick={() => { setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicTooltipSeen(true); save('ronda-panic-tooltip', true) }}
-        style={{
-          width: 56, height: 56, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #C4908A, #A6716B)',
-          border: 'none', cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(196,144,138,0.5)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
-          animation: 'pulse-gentle 3s ease-in-out infinite',
-        }}
-        aria-label="Botón de emergencia — Respiración, grounding y herramientas DBT"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <button
+      onClick={() => { setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0) }}
+      style={{
+        position: 'fixed', bottom: 90, right: 16, zIndex: 200,
+        display: 'flex', alignItems: 'center', gap: 10,
+        background: 'linear-gradient(135deg, #4A3035, #6B4449)',
+        border: 'none', cursor: 'pointer', padding: '10px 16px 10px 14px',
+        borderRadius: 28, boxShadow: '0 4px 20px rgba(74,48,53,0.4)',
+        animation: 'pulse-gentle 3s ease-in-out infinite',
+      }}
+      aria-label="Botón de emergencia — Respiración, grounding y herramientas DBT"
+    >
+      <div style={{
+        width: 36, height: 36, borderRadius: '50%',
+        background: 'linear-gradient(135deg, #C4908A, #A6716B)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/>
         </svg>
-        <span style={{ fontSize: 7, fontWeight: 800, color: 'white', letterSpacing: '0.1em' }}>SOS</span>
-      </button>
-    </div>
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>¿Necesitas apoyo?</span>
+    </button>
   )
 
   /* ── Panic Modal — Full Crisis Support ── */
