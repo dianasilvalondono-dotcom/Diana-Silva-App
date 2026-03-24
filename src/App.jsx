@@ -454,8 +454,7 @@ function App() {
             <span style={{ fontSize: 16, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
             {isAdmin && <span style={{ fontSize: 8, background: '#C9A96E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
           </div>
-          <div style={{ fontSize: 11, color: 'rgba(126,212,188,0.7)', fontWeight: 500, marginTop: 2, fontStyle: 'italic' }}>Tu hub para crecer, sanar y volar — en ronda, nunca sola.</div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 2 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
         <button onClick={() => { setView('yo'); setSubTab('perfil') }} style={{
           width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
@@ -577,14 +576,14 @@ function App() {
         </div>
       )}
 
-      {/* Hook emocional — enganchar con un programa */}
+      {/* Hook emocional — UN solo card que rota diario */}
       {(() => {
         const hooks = [
           { q: '¿Estás pasando por una tusa?', sub: 'Yo también la viví. Tengo un camino de 7 días para ti.', prog: 'tusa', color: '#C4908A' },
           { q: '¿Sientes que la ansiedad no te deja en paz?', sub: 'Respira. Hay un programa paso a paso para recuperar la calma.', prog: 'ansiedad', color: '#C9A96E' },
-          { q: '¿Hay días que sientes que no puedes más?', sub: 'No estás sola. Aprende a navegar esas olas, un minuto a la vez.', prog: 'depresion', color: '#A6716B' },
-          { q: '¿Quieres empezar de cero?', sub: 'Yo me reinventé muchas veces. Déjame acompañarte 7 días.', prog: 'empezar', color: '#7BA56E' },
-          { q: '¿Sientes que perdiste la confianza en ti?', sub: 'Tu valor no depende de nadie. Vamos a recordarlo juntas.', prog: 'autoestima', color: '#C4908A' },
+          { q: '¿Quieres volver a moverte?', sub: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo.', prog: 'ejercicio', color: '#7BA56E' },
+          { q: '¿Quieres reconectar con Dios?', sub: '7 días para cultivar tu espiritualidad y encontrar paz interior.', prog: 'dios', color: '#C9A96E' },
+          { q: '¿Quieres volver a ti?', sub: 'Ser mamá no es perderte. 7 días para reconectarte contigo.', prog: 'mama', color: '#E4A5A0' },
         ]
         const dayIdx = new Date().getDate() % hooks.length
         const hook = hooks[dayIdx]
@@ -603,52 +602,6 @@ function App() {
             </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: hook.color, marginTop: 10 }}>
               Ver programa →
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* Notification prompt */}
-      {notifReady && !isSubscribed && (
-        <button onClick={requestPermission} style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-          padding: '14px 18px', background: `linear-gradient(135deg, ${C.gold}15, ${C.rose}10)`,
-          borderRadius: 14, border: `1px solid ${C.gold}40`, cursor: 'pointer', textAlign: 'left',
-          fontFamily: 'inherit',
-        }}>
-          <span style={{ fontSize: 24 }}>🔔</span>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Activa tus recordatorios</div>
-            <div style={{ fontSize: 12, color: C.muted }}>Te aviso cuando sea hora de tu rutina o hábito</div>
-          </div>
-        </button>
-      )}
-
-      {/* Mundo Ronda — cards que rotan y conectan con distintas personas */}
-      {(() => {
-        const cards = [
-          { icon: 'mental', color: '#A6716B', title: 'Tu cerebro puede cambiar', desc: 'Ronda está basada en neuroplasticidad: la ciencia que demuestra que puedes reprogramar tu mente con micro-hábitos diarios.', cta: 'Conoce la ciencia →' },
-          { icon: 'emocional', color: '#C9A96E', title: 'DBT: herramientas reales', desc: 'La Terapia Dialéctica Conductual le ha dado herramientas a miles de mujeres para transformar su relación con sus emociones.', cta: 'Conoce las herramientas →' },
-          { icon: 'espiritual', color: '#C4908A', title: 'Un Dios más amoroso', desc: 'Ronda nació de una conexión espiritual profunda: soltar el control, rendirse, y descubrir un Dios que no castiga sino que acompaña.', cta: 'Explora lo espiritual →' },
-          { icon: 'fisico', color: '#A68B52', title: 'Del mat a la vida', desc: 'El cuerpo guarda todo. Moverlo es la primera forma de liberarse. El yoga conecta lo que la mente separa.', cta: 'Conoce el camino →' },
-          { icon: 'emocional', color: '#C9A96E', title: '¿Por qué Ronda?', desc: 'Ronda es la historia de muchas mujeres. Abuelas, madres, amigas que se reinventaron. Ninguna lo hizo sola — y tú tampoco tienes que hacerlo.', cta: 'Lee la historia →' },
-          { icon: 'mental', color: '#A6716B', title: 'Tus hábitos son arquitectura cerebral', desc: 'Cada vez que repites un hábito, tu cerebro fortalece esa conexión neuronal. En 21 días creas un camino nuevo. En 60, una autopista.', cta: 'Empieza tu programa →' },
-          { icon: 'espiritual', color: '#C4908A', title: 'No estás sola', desc: 'En los momentos de crisis, a veces solo necesitas que alguien conteste del otro lado. Ronda quiere ser ese espacio de conexión.', cta: 'Conoce la visión →' },
-        ]
-        const idx = new Date().getHours() % cards.length
-        const card = cards[idx]
-        return (
-          <div onClick={() => { setView('crecer'); setSubTab('programas') }} style={{
-            display: 'flex', gap: 14, padding: '16px 18px', alignItems: 'flex-start',
-            background: C.card, borderRadius: 16, cursor: 'pointer',
-            border: `1.5px solid ${card.color}40`, boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            marginBottom: 8,
-          }}>
-            <div style={{ flexShrink: 0, marginTop: 2 }}>{ICONS[card.icon](card.color, 28)}</div>
-            <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 4 }}>{card.title}</div>
-              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{card.desc}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: card.color, marginTop: 8 }}>{card.cta}</div>
             </div>
           </div>
         )
@@ -1074,6 +1027,56 @@ function App() {
   )
 
   /* ── PROGRAMAS ── */
+  /* ── HISTORIA DE RONDA ── */
+  const historiaView = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: C.card, borderRadius: 20, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 16 }}>
+          "Soy el puente de miles de mujeres"
+        </div>
+        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+          Ronda nació de las mujeres que me formaron. Mis dos abuelas quedaron viudas muy jóvenes y sacaron adelante familias enteras con las manos y con el alma. Crecí rodeada de mujeres poderosas — tías, primas, amigas — que se reinventaban una y otra vez sin pedir permiso.
+        </div>
+        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+          Yo también he tenido muchas vidas. Me divorcié a los 25 con tres maletas y a echar pa'lante. Me fui pa' Nueva York sin diploma, me gradué magna cum laude, me devolví pa' Colombia. Y cada vez que me caí, me levanté — pero nunca sola. Siempre hubo una mujer del otro lado tendiéndome la mano.
+        </div>
+        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
+          Cada mujer que Dios me ha puesto en el camino me ha enseñado algo. Y sé que a ti también te ha pasado: alguien te sostuvo cuando no podías más.
+        </div>
+        {showFullStory && <>
+          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+            Vivo con TLP desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días a Grecia con 20 mujeres. En ese camino vi el potencial: mujeres creciendo juntas. Eso tenía que ser una plataforma.
+          </div>
+          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy. He sido personajes de mujeres de las que no me he sentido orgullosa. Pero las lecciones que me dejaron esas mujeres que me rodean — mis abuelas, mis maestras, mis amigas — esas me han sostenido.
+          </div>
+          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+            En los momentos de crisis buscaba apoyo y la psicóloga tenía citas — no estaba disponible. Pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado. No importa de dónde, pero que esté ahí.
+          </div>
+          <div style={{ fontSize: 15, color: C.rose, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
+            Ronda es mi forma de devolver todo lo que recibí. No es mi historia — es la historia de todas las mujeres que me construyeron. Y yo solo quiero ser puente para que tú también tengas esa red, esas herramientas, esa ronda de mujeres que te acompaña.
+          </div>
+        </>}
+        <button onClick={() => setShowFullStory(!showFullStory)} style={{
+          background: 'none', border: 'none', color: C.rose, fontSize: 15, fontWeight: 700,
+          cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+        }}>
+          {showFullStory ? 'Leer menos ↑' : 'Leer la historia completa →'}
+        </button>
+        <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700,
+          }}>D</div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>Diana Silva</div>
+            <div style={{ fontSize: 13, color: C.muted }}>Fundadora de Ronda · Puente de miles de mujeres</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
@@ -1081,58 +1084,6 @@ function App() {
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
         <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
         <div style={{ fontSize: 13, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
-      </div>
-
-      {/* Historia de Ronda — no egocéntrica, Diana como puente de muchas mujeres */}
-      <div style={{
-        background: C.card, borderRadius: 20, padding: 24,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}`,
-      }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }}>
-          La historia detrás de Ronda
-        </div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 14 }}>
-          "Soy el puente de miles de mujeres"
-        </div>
-        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Ronda nació de las mujeres que me formaron. Mis dos abuelas quedaron viudas muy jóvenes y sacaron adelante familias enteras con las manos y con el alma. Crecí rodeada de mujeres poderosas — tías, primas, amigas — que se reinventaban una y otra vez sin pedir permiso.
-        </div>
-        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-          Yo también he tenido muchas vidas. Me divorcié a los 25 con tres maletas y a echar pa'lante. Me fui pa' Nueva York sin diploma, me gradué magna cum laude, me devolví pa' Colombia. Y cada vez que me caí, me levanté — pero nunca sola. Siempre hubo una mujer del otro lado tendiéndome la mano.
-        </div>
-        <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
-          Cada mujer que Dios me ha puesto en el camino me ha enseñado algo. Y sé que a ti también te ha pasado: alguien te sostuvo cuando no podías más.
-        </div>
-        {showFullStory && <>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Vivo con TLP desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días sola a Grecia. En ese camino sentí que había mucha soledad — y que faltaba conexión.
-          </div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy. He sido personajes de mujeres de las que no me he sentido orgullosa. Pero las lecciones que me dejaron esas mujeres que me rodean — mis abuelas, mis maestras, mis amigas — esas me han sostenido.
-          </div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 14 }}>
-            En los momentos de crisis buscaba apoyo y la psicóloga tenía citas — no estaba disponible. Pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado. No importa de dónde, pero que esté ahí.
-          </div>
-          <div style={{ fontSize: 14, color: C.text, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
-            Ronda es mi forma de devolver todo lo que recibí. No es mi historia — es la historia de todas las mujeres que me construyeron. Y yo solo quiero ser puente para que tú también tengas esa red, esas herramientas, esa ronda de mujeres que te acompaña.
-          </div>
-        </>}
-        <button onClick={() => setShowFullStory(!showFullStory)} style={{
-          background: 'none', border: 'none', color: C.rose, fontSize: 14, fontWeight: 700,
-          cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-        }}>
-          {showFullStory ? 'Leer menos ↑' : 'Leer la historia completa →'}
-        </button>
-        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: '50%', background: `linear-gradient(135deg, ${C.rose}, ${C.gold})`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700,
-          }}>D</div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>Diana Silva</div>
-            <div style={{ fontSize: 12, color: C.muted }}>Fundadora de Ronda · Puente de miles de mujeres</div>
-          </div>
-        </div>
       </div>
 
       {/* Active programs */}
@@ -1220,7 +1171,9 @@ function App() {
               background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
               borderLeft: `4px solid ${prog.color}`,
             }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.emoji}</div>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                <div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} />
+              </div>
               <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
               <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
@@ -1250,7 +1203,9 @@ function App() {
               background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
               borderLeft: `4px solid ${prog.color}`,
             }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.emoji}</div>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                <div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} />
+              </div>
               <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
               <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
@@ -3131,6 +3086,7 @@ function App() {
             tabs={[
               { id: 'programas', label: 'Programas', icon: '🧠' },
               { id: 'ai', label: 'Crea el tuyo', icon: '✨' },
+              { id: 'historia', label: 'Nuestra historia', icon: '🌿' },
               { id: 'frases', label: 'Frases', icon: '💬' },
             ]}
             active={subTab || 'programas'}
@@ -3138,6 +3094,7 @@ function App() {
           />
           {(subTab || 'programas') === 'programas' && programasView}
           {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Crea tu programa con IA" price="$9.99/mes" desc="Dile a nuestra IA qué quieres lograr y te arma un programa personalizado, paso a paso, a tu ritmo. Sin presión." />)}
+          {subTab === 'historia' && historiaView}
           {subTab === 'frases' && frasesView}
         </>}
 
