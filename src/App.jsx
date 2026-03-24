@@ -66,6 +66,11 @@ function App() {
 
   const [view, setView] = useState('inicio')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
+  // Admin check — Diana sees everything, others see paywall
+  const ADMIN_EMAILS = ['dianasilvalondono@gmail.com', 'diana@rondahub.com']
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase())
+  const isPremium = isAdmin // Later: check Stripe subscription
+
   // AI Agent state
   const [aiGoal, setAiGoal] = useState('')
   const [aiContext, setAiContext] = useState('')
@@ -407,6 +412,7 @@ function App() {
             {logo}
             <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.3)' }} />
             <span style={{ fontSize: 16, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
+            {isAdmin && <span style={{ fontSize: 8, background: '#C9A96E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
           </div>
           <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
@@ -1816,6 +1822,35 @@ function App() {
     </div>
   )
 
+  /* ── Paywall component ── */
+  const Paywall = ({ feature, price, desc }) => (
+    <div style={{
+      textAlign: 'center', padding: 32, background: `linear-gradient(135deg, ${C.rose}08, ${C.gold}08)`,
+      borderRadius: 20, border: `1.5px solid ${C.roseLight}`,
+    }}>
+      <div style={{ fontSize: 44, marginBottom: 12 }}>🔒</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        {feature}
+      </div>
+      <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
+        {desc}
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{price}</div>
+      <div style={{ fontSize: 12, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
+      <button style={{
+        padding: '14px 32px', borderRadius: 14, border: 'none',
+        background: `linear-gradient(135deg, ${C.gold}, #A68B52)`, color: 'white',
+        fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        boxShadow: '0 4px 16px rgba(201,169,110,0.3)',
+      }}>
+        Desbloquear Ronda Premium ✨
+      </button>
+      <div style={{ fontSize: 11, color: C.subtle, marginTop: 12 }}>
+        Próximamente · Te avisamos cuando esté disponible
+      </div>
+    </div>
+  )
+
   /* ── AI Agent: Generate custom program ── */
   const generateAiProgram = async () => {
     setAiStep(3)
@@ -3003,7 +3038,7 @@ function App() {
             onChange={(t) => { setSubTab(t); if (t === 'ai') resetAiAgent() }}
           />
           {(subTab || 'programas') === 'programas' && programasView}
-          {subTab === 'ai' && aiAgentView}
+          {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Crea tu programa con IA" price="$9.99/mes" desc="Dile a nuestra IA qué quieres lograr y te arma un programa personalizado, paso a paso, a tu ritmo. Sin presión." />)}
           {subTab === 'frases' && frasesView}
         </>}
 
