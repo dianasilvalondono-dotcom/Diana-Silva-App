@@ -591,11 +591,12 @@ function App() {
       {/* Hook emocional — UN solo card que rota diario */}
       {(() => {
         const hooks = [
-          { q: '¿Estás pasando por una tusa?', sub: 'Yo también la viví. Tengo un camino de 7 días para ti.', prog: 'tusa', color: '#C4908A' },
-          { q: '¿Sientes que la ansiedad no te deja en paz?', sub: 'Respira. Hay un programa paso a paso para recuperar la calma.', prog: 'ansiedad', color: '#C9A96E' },
-          { q: '¿Quieres volver a moverte?', sub: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo.', prog: 'ejercicio', color: '#7BA56E' },
-          { q: '¿Quieres reconectar con Dios?', sub: '7 días para cultivar tu espiritualidad y encontrar paz interior.', prog: 'dios', color: '#C9A96E' },
-          { q: '¿Quieres volver a ti?', sub: 'Ser mamá no es perderte. 7 días para reconectarte contigo.', prog: 'mama', color: '#E4A5A0' },
+          { q: '¿Quieres empezar a tratarte mejor?', sub: '7 días para enamorarte de ti. Porque tú mereces el mismo amor que le das a los demás.', prog: 'amor_propio', color: C.coral },
+          { q: '¿Quieres volver a moverte?', sub: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo.', prog: 'ejercicio', color: C.teal },
+          { q: '¿Quieres más disciplina en tu vida?', sub: 'No es motivación, es decisión. 7 días para entrenar tu mente.', prog: 'disciplina', color: C.tealDark },
+          { q: '¿Quieres reconectar con tu espiritualidad?', sub: '7 días para cultivar paz interior y soltar el control.', prog: 'dios', color: C.gold },
+          { q: '¿Quieres empezar de cero?', sub: 'Yo me reinventé muchas veces. 7 días para construir la vida que quieres.', prog: 'empezar', color: C.mint },
+          { q: '¿Sientes que la ansiedad no te deja en paz?', sub: 'Respira. Hay un programa paso a paso para recuperar la calma.', prog: 'ansiedad', color: C.lavanda },
         ]
         const dayIdx = new Date().getDate() % hooks.length
         const hook = hooks[dayIdx]
