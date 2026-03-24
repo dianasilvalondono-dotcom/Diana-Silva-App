@@ -726,6 +726,38 @@ function App() {
           + Agregar hábito
         </button>
       )}
+
+      {/* Suggested habits */}
+      {SUGGESTED_HABITS.filter(sh => !habits.some(h => h.name === sh.name)).length > 0 && (
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.teal, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 8 }}>
+            Sugeridos para ti
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {SUGGESTED_HABITS.filter(sh => !habits.some(h => h.name === sh.name)).map((sh, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
+                background: C.card, borderRadius: 12, border: `1px solid ${C.border}`,
+              }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${DIMS[sh.dim].color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {ICONS[DIMS[sh.dim].icon](DIMS[sh.dim].color, 18)}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{sh.name}</div>
+                  <div style={{ fontSize: 11, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].label}</div>
+                </div>
+                <button onClick={() => addSuggestedHabit(sh)} style={{
+                  padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${C.teal}`,
+                  background: 'transparent', color: C.teal, fontSize: 12, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  + Agregar
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 
@@ -1302,36 +1334,6 @@ function App() {
         ))}
       </div>
 
-      {/* Suggested habits */}
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-          Hábitos sugeridos para agregar
-        </div>
-        <div style={{ fontSize: 13, color: C.muted, marginBottom: 10 }}>
-          ¿Quieres agregar alguno a tu lista diaria?
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {SUGGESTED_HABITS.filter(sh => !habits.some(h => h.name === sh.name)).map((sh, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-              background: C.card, borderRadius: 12, border: `1px solid ${C.border}`,
-            }}>
-              {ICONS[DIMS[sh.dim].icon](DIMS[sh.dim].color, 20)}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{sh.name}</div>
-                <div style={{ fontSize: 12, color: DIMS[sh.dim].color, fontWeight: 600 }}>{ICONS[DIMS[sh.dim].icon](DIMS[sh.dim].color, 14)} {DIMS[sh.dim].label}</div>
-              </div>
-              <button onClick={() => addSuggestedHabit(sh)} style={{
-                padding: '6px 14px', borderRadius: 20, border: `1px solid ${C.rose}`,
-                background: 'transparent', color: C.rose, fontSize: 12, fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}>
-                + Agregar
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 
