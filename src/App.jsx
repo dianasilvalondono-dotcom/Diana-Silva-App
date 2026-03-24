@@ -1356,7 +1356,7 @@ function App() {
       </div>
 
       {/* Filter chips */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
         {CATS.map(cat => (
           <button key={cat} onClick={() => setQuoteFilter(cat)} style={{
             padding: '6px 14px', borderRadius: 20, border: `2px solid ${quoteFilter === cat ? C.rose : C.border}`,
@@ -1417,7 +1417,7 @@ function App() {
       </div>
 
       {/* Category chips with counts */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
         <button onClick={() => setToolFilter('todas')} style={{
           padding: '6px 14px', borderRadius: 20, border: `2px solid ${toolFilter === 'todas' ? C.rose : C.border}`,
           background: toolFilter === 'todas' ? C.rose : C.card, color: toolFilter === 'todas' ? 'white' : C.muted,
@@ -1623,7 +1623,7 @@ function App() {
       </div>
 
       {/* Category filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {BOARD_CATS.map(cat => (
           <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
             padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
@@ -1857,7 +1857,7 @@ function App() {
       </div>
 
       {/* Category filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {DIRECTORIO_CATS.map(cat => (
           <button key={cat.id} onClick={() => setDirFilter(cat.id)} style={{
             padding: '6px 14px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
