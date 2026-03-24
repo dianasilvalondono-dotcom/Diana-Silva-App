@@ -1,48 +1,59 @@
 import { useEffect, useState } from 'react'
-import OneSignal from 'react-onesignal'
 
-const APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID || '7ae00782-88c2-4963-a660-aa62a85891ad'
+const APP_ID = '7ae00782-88c2-4963-a660-aa62a85891ad'
 
 export function useNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    if (!APP_ID || window.__oneSignalInit) return
+    if (window.__oneSignalInit) return
     window.__oneSignalInit = true
 
-    OneSignal.init({
-      appId: APP_ID,
-      serviceWorkerPath: '/sw.js',
-      promptOptions: {
-        slidedown: {
-          prompts: [{
-            type: 'push',
-            autoPrompt: false, // We'll trigger manually
-            text: {
-              actionMessage: '¿Quieres que Ronda te recuerde tus hábitos y rutinas?',
-              acceptButton: 'Sí, recuérdame',
-              cancelButton: 'Ahora no',
+    try {
+      window.OneSignalDeferred = window.OneSignalDeferred || []
+      window.OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: APP_ID,
+          serviceWorkerPath: '/sw.js',
+          promptOptions: {
+            slidedown: {
+              prompts: [{
+                type: 'push',
+                autoPrompt: false,
+                text: {
+                  actionMessage: 'Recibe recordatorios de Ronda',
+                  acceptButton: 'Permitir',
+                  cancelButton: 'Ahora no',
+                }
+              }]
             }
-          }]
-        }
-      },
-      notificationClickHandlerMatch: 'origin',
-      autoResubscribe: true,
-    }).then(() => {
-      setIsReady(true)
-      OneSignal.Notifications.isPushSupported() &&
-        OneSignal.Notifications.permission && setIsSubscribed(true)
-    })
+          },
+          notificationClickHandlerMatch: 'origin',
+        })
+        setIsReady(true)
+        if (OneSignal.Notifications?.permission) setIsSubscribed(true)
+      })
+
+      // Load the SDK script if not already loaded
+      if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+        const s = document.createElement('script')
+        s.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
+        s.defer = true
+        document.head.appendChild(s)
+      }
+    } catch (e) {
+      console.warn('OneSignal init failed:', e)
+    }
   }, [])
 
   const requestPermission = async () => {
-    if (!isReady) return false
     try {
+      const OneSignal = window.OneSignal
+      if (!OneSignal) return false
       await OneSignal.Slidedown.promptPush()
-      const perm = OneSignal.Notifications.permission
-      setIsSubscribed(perm)
-      return perm
+      setIsSubscribed(true)
+      return true
     } catch {
       return false
     }
