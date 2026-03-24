@@ -2816,7 +2816,7 @@ function App() {
 
   /* ── Panic Modal — Full Crisis Support ── */
   const GROUND_STEPS = [
-    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#7BA56E' },
+    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#2A9D8F' },
     { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#C9A96E' },
     { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#C4908A' },
     { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#1B8A7A' },
@@ -2883,7 +2883,7 @@ function App() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
             {[
-              { id: 'breathe', icon: '🌬️', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#7BA56E' },
+              { id: 'breathe', icon: '🌬️', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#2A9D8F' },
               { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#C9A96E' },
               { id: 'dbt', icon: '🧠', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#C4908A' },
               { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#1B8A7A' },
