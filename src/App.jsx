@@ -1424,7 +1424,7 @@ function App() {
               background: toolFilter === cat.id ? cat.color : C.card, color: toolFilter === cat.id ? 'white' : C.muted,
               fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>
-              {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : cat.emoji} {cat.label} ({toolkitCounts[cat.id]})
+              {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />} {cat.label} ({toolkitCounts[cat.id]})
             </button>
           )
         ))}
@@ -1456,7 +1456,7 @@ function App() {
                 color: newToolCat === cat.id ? 'white' : cat.color,
                 fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : cat.emoji} {cat.label}
+                {ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />} {cat.label}
               </button>
             ))}
           </div>
@@ -1489,7 +1489,7 @@ function App() {
                 background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 borderLeft: `3px solid ${cat.color}`, display: 'flex', alignItems: 'flex-start', gap: 12,
               }}>
-                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : cat.emoji}</span>
+                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</div>
                   {item.note && <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.note}</div>}
@@ -1544,14 +1544,14 @@ function App() {
 
   /* ── Board categories ── */
   const BOARD_CATS = [
-    { id: 'todas', label: 'Todas', icon: '🌿' },
-    { id: 'ansiedad', label: 'Ansiedad', icon: '🌊' },
-    { id: 'relaciones', label: 'Relaciones', icon: '💔' },
-    { id: 'autoestima', label: 'Autoestima', icon: '🪞' },
-    { id: 'maternidad', label: 'Maternidad', icon: '🤱' },
-    { id: 'duelo', label: 'Duelo', icon: '🕊️' },
-    { id: 'emprendimiento', label: 'Emprender', icon: '🚀' },
-    { id: 'general', label: 'General', icon: '💬' },
+    { id: 'todas', label: 'Todas', color: '#1B8A7A' },
+    { id: 'ansiedad', label: 'Ansiedad', color: '#C9A96E' },
+    { id: 'relaciones', label: 'Relaciones', color: '#E8736D' },
+    { id: 'autoestima', label: 'Autoestima', color: '#C4908A' },
+    { id: 'maternidad', label: 'Maternidad', color: '#E4A5A0' },
+    { id: 'duelo', label: 'Duelo', color: '#B8A9C9' },
+    { id: 'emprendimiento', label: 'Emprender', color: '#7ED4BC' },
+    { id: 'general', label: 'General', color: '#A6716B' },
   ]
 
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
@@ -1618,13 +1618,15 @@ function App() {
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
         {BOARD_CATS.map(cat => (
           <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
-            padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
-            background: boardFilter === cat.id ? C.rose : C.card,
-            color: boardFilter === cat.id ? 'white' : C.muted,
+            padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+            background: boardFilter === cat.id ? C.teal : C.card,
+            color: boardFilter === cat.id ? 'white' : C.text,
             fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            boxShadow: boardFilter === cat.id ? '0 2px 8px rgba(196,144,138,0.3)' : 'none',
+            boxShadow: boardFilter === cat.id ? '0 2px 8px rgba(27,138,122,0.25)' : 'none',
+            display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            {cat.icon} {cat.label}
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: boardFilter === cat.id ? 'white' : cat.color, flexShrink: 0 }} />
+            {cat.label}
           </button>
         ))}
       </div>
@@ -1647,12 +1649,14 @@ function App() {
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
             {BOARD_CATS.filter(c => c.id !== 'todas').map(cat => (
               <button key={cat.id} onClick={() => setBoardNewCat(cat.id)} style={{
-                padding: '4px 10px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                background: boardNewCat === cat.id ? C.rose : C.cream,
+                padding: '4px 10px', borderRadius: 12, border: boardNewCat === cat.id ? 'none' : `1px solid ${C.border}`, cursor: 'pointer',
+                background: boardNewCat === cat.id ? cat.color : C.card,
                 color: boardNewCat === cat.id ? 'white' : C.muted,
                 fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: 4,
               }}>
-                {cat.icon} {cat.label}
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: boardNewCat === cat.id ? 'white' : cat.color }} />
+                {cat.label}
               </button>
             ))}
           </div>
@@ -1703,7 +1707,8 @@ function App() {
               padding: '3px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600,
               background: `${C.rose}15`, color: C.roseDark,
             }}>
-              {(BOARD_CATS.find(c => c.id === post.cat) || {}).icon} {(BOARD_CATS.find(c => c.id === post.cat) || {}).label}
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: (BOARD_CATS.find(c => c.id === post.cat) || {}).color, display: 'inline-block', marginRight: 4 }} />
+              {(BOARD_CATS.find(c => c.id === post.cat) || {}).label}
             </span>
           </div>
 
@@ -1798,15 +1803,15 @@ function App() {
 
   /* ── Directorio / Marketplace ── */
   const DIRECTORIO_CATS = [
-    { id: 'todas', label: 'Todas', icon: '🌿' },
-    { id: 'salud_mental', label: 'Salud Mental', icon: '🧠' },
-    { id: 'coaching', label: 'Coaching', icon: '🎯' },
-    { id: 'yoga', label: 'Yoga & Movimiento', icon: '🧘‍♀️' },
-    { id: 'nutricion', label: 'Nutrición', icon: '🥗' },
-    { id: 'legal', label: 'Legal & Finanzas', icon: '⚖️' },
-    { id: 'belleza', label: 'Belleza & Bienestar', icon: '💆‍♀️' },
-    { id: 'negocios', label: 'Negocios', icon: '💼' },
-    { id: 'educacion', label: 'Educación', icon: '📚' },
+    { id: 'todas', label: 'Todas', color: '#1B8A7A' },
+    { id: 'salud_mental', label: 'Salud Mental', color: '#C4908A' },
+    { id: 'coaching', label: 'Coaching', color: '#E8736D' },
+    { id: 'yoga', label: 'Yoga', color: '#B8A9C9' },
+    { id: 'nutricion', label: 'Nutrición', color: '#7ED4BC' },
+    { id: 'legal', label: 'Legal', color: '#C9A96E' },
+    { id: 'belleza', label: 'Belleza', color: '#E4A5A0' },
+    { id: 'negocios', label: 'Negocios', color: '#14695E' },
+    { id: 'educacion', label: 'Educación', color: '#A6716B' },
   ]
 
 
@@ -1844,13 +1849,15 @@ function App() {
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
         {DIRECTORIO_CATS.map(cat => (
           <button key={cat.id} onClick={() => setDirFilter(cat.id)} style={{
-            padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
-            background: dirFilter === cat.id ? C.rose : C.card,
-            color: dirFilter === cat.id ? 'white' : C.muted,
+            padding: '6px 14px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+            background: dirFilter === cat.id ? C.teal : C.card,
+            color: dirFilter === cat.id ? 'white' : C.text,
             fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            boxShadow: dirFilter === cat.id ? '0 2px 8px rgba(196,144,138,0.3)' : 'none',
+            boxShadow: dirFilter === cat.id ? '0 2px 8px rgba(27,138,122,0.25)' : 'none',
+            display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            {cat.icon} {cat.label}
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: dirFilter === cat.id ? 'white' : cat.color, flexShrink: 0 }} />
+            {cat.label}
           </button>
         ))}
       </div>
