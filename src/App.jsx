@@ -1171,9 +1171,7 @@ function App() {
               background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
               borderLeft: `4px solid ${prog.color}`,
             }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
-                <div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} />
-              </div>
+              <div style={{ marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 36) : <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} /></div>}</div>
               <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
               <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
@@ -1203,9 +1201,7 @@ function App() {
               background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
               borderLeft: `4px solid ${prog.color}`,
             }}>
-              <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
-                <div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} />
-              </div>
+              <div style={{ marginBottom: 6 }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 36) : <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${prog.color}20`, border: `2px solid ${prog.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 14, height: 14, borderRadius: '50%', background: prog.color }} /></div>}</div>
               <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{prog.title}</div>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
               <div style={{ fontSize: 12, color: C.subtle, marginTop: 6 }}>{prog.days.length} días · 1 minuto al día</div>
