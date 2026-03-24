@@ -205,6 +205,72 @@ export const PROGRAMAS = [
       { day: 7, title: 'Carta de tu yo futura', task: 'Tu yo del futuro te escribe: "Gracias por no rendirte. Mírate ahora."', emoji: '💌' },
     ],
   },
+  /* ── Programas positivos / aspiracionales ── */
+  {
+    id: 'ejercicio', title: 'Volver a moverme', emoji: '🏃‍♀️→💪',
+    desc: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo', color: '#7BA56E',
+    days: [
+      { day: 1, title: 'Estira 2 minutos', task: 'Cuello, hombros, espalda. No necesitas más. Solo empezar.', emoji: '🙆‍♀️' },
+      { day: 2, title: 'Camina 10 minutos', task: 'Afuera, con música que te guste. Caminar es el mejor antidepresivo natural.', emoji: '🚶‍♀️' },
+      { day: 3, title: 'Baila una canción', task: 'Pon tu canción favorita y muévete. No importa cómo. Tu cuerpo sabe.', emoji: '💃' },
+      { day: 4, title: 'Respira y mueve', task: '5 respiraciones profundas + 5 sentadillas. Conecta la respiración con el movimiento.', emoji: '🫁' },
+      { day: 5, title: 'Yoga de 10 minutos', task: 'Busca "yoga suave 10 minutos" en YouTube. Déjate guiar. Fluye.', emoji: '🧘‍♀️' },
+      { day: 6, title: 'Sube la intensidad', task: '15 minutos de lo que quieras: caminar rápido, bici, bailar, nadar. Tú eliges.', emoji: '🔥' },
+      { day: 7, title: 'Tu ritual de movimiento', task: 'Escribe cuándo y cómo vas a moverte esta semana. Ya no es un plan — es tu ritual.', emoji: '📝' },
+    ],
+  },
+  {
+    id: 'dios', title: 'Reconectar con Dios', emoji: '🙏→✨',
+    desc: '7 días para cultivar tu espiritualidad y encontrar paz interior', color: '#C9A96E',
+    days: [
+      { day: 1, title: 'Silencio de 5 minutos', task: 'Sin celular, sin música. Solo tú y el silencio. Escucha qué te dice.', emoji: '🤫' },
+      { day: 2, title: 'Gratitud a Dios', task: 'Escribe 3 cosas por las que le das gracias hoy. Las más simples son las más poderosas.', emoji: '🙏' },
+      { day: 3, title: 'Lee algo que te nutra', task: 'Un salmo, una oración, un texto espiritual. Lo que conecte con tu fe. 5 minutos.', emoji: '📖' },
+      { day: 4, title: 'Suelta el control', task: 'Escribe: "Hoy entrego lo que no puedo controlar." Respira y suelta.', emoji: '🕊️' },
+      { day: 5, title: 'Perdona a alguien', task: 'No por ellos — por ti. Escribe su nombre y di: "Te libero y me libero."', emoji: '💛' },
+      { day: 6, title: 'Acto de servicio', task: 'Haz algo bueno por alguien sin esperar nada. Dar es la forma más pura de orar.', emoji: '🤝' },
+      { day: 7, title: 'Tu oración personal', task: 'Escribe tu propia oración. No tiene que ser perfecta. Solo tiene que ser tuya.', emoji: '✨' },
+    ],
+  },
+  {
+    id: 'mama', title: 'Volver a mí (para mamás)', emoji: '👩‍👧→👑',
+    desc: 'Ser mamá no es perderte. 7 días para reconectarte contigo sin culpa.', color: '#E8C4C0',
+    days: [
+      { day: 1, title: 'Tu nombre primero', task: 'Hoy no eres "la mamá de...". Escribe: "Mi nombre es ___ y hoy me elijo."', emoji: '💛' },
+      { day: 2, title: '15 minutos solo para ti', task: 'Léete algo, toma un café en silencio, respira. 15 minutos que son tuyos.', emoji: '☕' },
+      { day: 3, title: 'Pide ayuda', task: 'Delega UNA cosa hoy. Pedir ayuda no es debilidad — es inteligencia.', emoji: '🤝' },
+      { day: 4, title: 'Mueve tu cuerpo', task: '10 minutos. Camina, estira, baila con tus hijos. Tu cuerpo te extraña.', emoji: '💃' },
+      { day: 5, title: 'Suelta la culpa', task: 'Escribe: "Soy buena mamá aunque no sea perfecta. Mi amor basta."', emoji: '🕊️' },
+      { day: 6, title: 'Reconéctate con tu sueño', task: '¿Qué querías ser antes de ser mamá? Escríbelo. Ese sueño sigue vivo.', emoji: '⭐' },
+      { day: 7, title: 'Carta a tu hija/hijo', task: '"Quiero que me veas feliz, no sacrificada. Por eso hoy me elijo." Escríbela.', emoji: '💌' },
+    ],
+  },
+  {
+    id: 'disciplina', title: '7 días de disciplina', emoji: '🎯→🔥',
+    desc: 'No es motivación, es decisión. 7 días para entrenar tu mente como un músculo.', color: '#4A3035',
+    days: [
+      { day: 1, title: 'Levántate 30 min antes', task: 'Pon la alarma 30 minutos antes. Ese tiempo es tuyo. No negociable.', emoji: '⏰' },
+      { day: 2, title: 'Haz tu cama', task: 'Primer acto del día: orden. Una cama tendida es tu primera victoria.', emoji: '🛏️' },
+      { day: 3, title: 'Cero excusas hoy', task: 'Hoy haces TODO lo que dijiste que ibas a hacer. Sin "mañana lo hago."', emoji: '💪' },
+      { day: 4, title: 'Agua antes de café', task: 'Tu primer trago del día: agua. Tu cuerpo lleva 8 horas sin hidratarse.', emoji: '💧' },
+      { day: 5, title: '1 hora sin celular', task: 'La primera hora del día sin redes. Lee, planifica, respira. Tu mente te lo agradece.', emoji: '📵' },
+      { day: 6, title: 'Planifica mañana HOY', task: 'Antes de dormir, escribe 3 prioridades de mañana. Despierta con dirección.', emoji: '📋' },
+      { day: 7, title: 'Tu ritual no negociable', task: 'Escribe tu rutina mañanera ideal. 30 minutos que cambian tu día. Empieza mañana.', emoji: '🔥' },
+    ],
+  },
+  {
+    id: 'amor_propio', title: 'Enamórate de ti', emoji: '🌹→💕',
+    desc: '7 días para tratarte como tratarías a tu mejor amiga', color: '#C4908A',
+    days: [
+      { day: 1, title: 'Háblate bonito', task: 'Hoy cada vez que te critiques, para y di: "¿Le diría esto a mi mejor amiga?"', emoji: '💬' },
+      { day: 2, title: 'Date un regalo', task: 'Algo pequeño: flores, un café especial, un baño largo. Consiéntete sin razón.', emoji: '🎁' },
+      { day: 3, title: 'Escribe lo que admiras de ti', task: '5 cualidades tuyas. No físicas — de tu esencia. Lo que te hace única.', emoji: '✨' },
+      { day: 4, title: 'Pon un límite', task: 'Di "no" a algo que no quieres. Cada límite es un acto de amor propio.', emoji: '🚫' },
+      { day: 5, title: 'Descanso sin culpa', task: 'Descansa hoy sin sentir que deberías estar produciendo. Descansar es productivo.', emoji: '😴' },
+      { day: 6, title: 'Cita contigo misma', task: 'Sal sola. Al cine, a comer, a caminar. Disfruta tu propia compañía.', emoji: '🌸' },
+      { day: 7, title: 'Promesa a ti misma', task: 'Escribe: "Me prometo tratarme con el mismo amor que le doy a los demás."', emoji: '💕' },
+    ],
+  },
 ]
 
 /* ── Programas Premium (21 días) ── */
