@@ -1881,21 +1881,24 @@ function App() {
         }}>
           <div style={{ display: 'flex', gap: 14 }}>
             {/* Avatar */}
-            <div style={{
+            {(() => {
+              const catColor = (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal
+              return <div style={{
               width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-              background: `${C.lavanda}`,
+              background: catColor,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontSize: 20, fontWeight: 700,
             }}>{item.name.charAt(0)}</div>
+            })()}
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</span>
                 {item.verified && <span style={{
-                  fontSize: 9, background: C.lavanda, color: 'white', padding: '2px 6px',
+                  fontSize: 9, background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white', padding: '2px 6px',
                   borderRadius: 8, fontWeight: 700,
                 }}>✓ VERIFICADA</span>}
               </div>
-              <div style={{ fontSize: 12, color: C.lavanda, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
+              <div style={{ fontSize: 12, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{item.city}</div>
             </div>
           </div>
@@ -1906,7 +1909,7 @@ function App() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.lavanda }}>{item.rating}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal }}>{item.rating}</span>
               <span style={{ fontSize: 11, color: C.subtle }}>({item.reviews} reseñas)</span>
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: C.roseDark }}>{item.price}</span>
@@ -1914,7 +1917,7 @@ function App() {
 
           <button style={{
             marginTop: 12, width: '100%', padding: '10px 16px', borderRadius: 12, border: 'none',
-            background: `linear-gradient(135deg, ${C.lavanda}, #9B8FC0)`, color: 'white',
+            background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white',
             fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}>
             Contactar →
