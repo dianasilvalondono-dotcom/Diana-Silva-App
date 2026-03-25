@@ -1,139 +1,145 @@
-# RONDA — Proyecto y Reglas
+# RONDA — Project Instructions
 
-## 1. Quien soy
-Diana Silva, fundadora de Ronda. Abogada con maestria, experta en Compliance, profesora de yoga certificada, instructora DBT. Diagnosticada con TLP a los 16 anos. Basada en Cartagena, Colombia.
+## 1. Quién soy
+Diana Silva, Fundadora y CEO de Ronda. Abogada con maestría, experta en Compliance, instructora certificada de DBT (Terapia Dialéctica Conductual) y Yoga. Vivo con TLP desde los 16 años. 16 años integrando DBT, neurociencia, yoga, espiritualidad y comunidad como sistema de vida. Directora de Asuntos Corporativos en proyecto de infraestructura energética de $200M+.
 
-## 2. El proyecto
-Ronda es una plataforma de bienestar, comunidad y servicios para mujeres latinas. No es una app mas — es infraestructura de salud mental para LATAM.
+## 2. Qué es Ronda
+Ronda es una plataforma de bienestar, comunidad y servicios para mujeres. No es una wellness app — es un refugio digital donde las mujeres pueden crecer, sanar y volar, sin hacerlo solas.
 
-Stack: React/Vite en Vercel + Supabase backend
-Dominio: rondahub.com / rondahub.lat
-Auth: email/password via Supabase
-Preferencia: rewrites completos de archivos, no parches incrementales
-IMPORTANTE: los archivos nunca deben pasar por TextEdit o Word (problemas de UTF-8)
+**Tagline:** Tu refugio para crecer, sanar y volar — en ronda, nunca sola.
+**Filosofía:** Creces tú, crecemos todas.
+**Website:** rondahub.com
 
-## 3. Equipo
-- Diana Silva: Founder & CEO
-- Nicoya Mayorka (The Brandt): Advisor / Investor contact — reunion marzo 2026
+### Tres pilares
+- **Bienestar 4D:** Hábitos, rutinas, diario, toolkit, programas con neurociencia (7, 21, 60 días)
+- **Comunidad 24/7:** Board con profesionales verificadas, botón SOS, AI agent, anonimato para usuarias
+- **Marketplace:** Directorio de profesionales y negocios de mujeres verificadas (9 categorías)
 
-## 4. Brand Book
-- Paleta principal: Rosa Viejo #C4908A (60%), Crema #FBF6F3 (25%), Dorado #C9A96E (15%)
-- Paleta secundaria: Rosa Claro #E8C4C0, Rosa Palido #F5E1DE, Dorado Claro #E8D5A8
-- Texto/Dark: Charcoal #4A3035
-- Tipografia display: Georgia
-- Tipografia body: Calibri
-- PENDIENTE: Nicoya dijo que el diseno necesita mas vida, mas energia, mas moderno. Mantener rosa pero hacerlo mas vibrante.
+### Origen
+- 5 de abril de 2023: primera nota en el celular
+- 16 años de aprendizaje personal: DBT, yoga, neurociencia, espiritualidad, comunidad
+- Cada programa, herramienta y palabra en Ronda viene de experiencia vivida — no de un textbook
+- Ronda no se construyó rápido — se gestó en 16 años
 
-## 5. Filtro Nicoya — APLICA A TODO
+### Visión
+Ronda es para TODAS las mujeres. Empezamos con latinas porque Diana es latina y conoce el mercado, pero la visión es global. NUNCA limitar el mensaje a "solo para latinas."
 
-Cada decision, feature, documento y diseno debe pasar por estas 5 preguntas:
-
-1. Es sostenible? — Funciona en 3 anos o solo hoy?
-2. Es escalable? — Funciona con 100 mujeres Y con 100,000?
-3. Genera valor profundo? — Transforma de verdad o solo se ve bonito?
-4. Es un refugio? — La mujer quiere VOLVER o lo usa una vez y lo olvida?
-5. Construye confianza? — Esto hace que la usuaria confie mas en Ronda?
-
-### Aplicado por area:
-
-- APP: Cada feature es un building block de salud mental a largo plazo, no una feature bonita
-- PROGRAMAS: Acompanamiento continuo (7 > 21 > 60 dias), no one-shot
-- DISENO: Rosa + energia + vida — moderno, no vintage
-- COMUNIDAD: Relaciones reales, profesionales verificadas, safe space
-- PITCH: "Infraestructura de salud mental para LATAM", no "mira lo que hacemos"
-- MODELO: Funnel claro: curiosa > gratis > activa > premium > comunidad
-- BENCHMARK: Por que NADIE esta construyendo lo que Ronda construye
-- ONE-PAGER: Por que esto es una inversion, no un gasto
-
-## 6. Principios de producto (feedback Nicoya)
-
-- Building block: la app es la base de algo a mediano y largo plazo
-- Cambios sostenibles y escalables: no soluciones temporales
-- Valor PROFUNDO: no showy, sino real y transformador
-- Refugio / safe place: la mujer tiene que querer VOLVER
-- Salud mental es el core: la terapia es de largo plazo, no corto plazo
-- Relacion de confianza: que la usuaria confie en Ronda como confia en su terapeuta
-- Track record: demostrar lo que ya logramos
-- Partners: buscar aliados que nos protejan
-- Explotar diferenciales: lo que nadie mas tiene
-- Funnel: de curiosa a premium, medible y claro
-
-## 7. Monetizacion
-
-Modelo de 4 pilares:
-1. Freemium > Premium ($9.99 - $29.99/mes): programas de 21/60 dias, AI agent, analytics
-2. Marketplace comision (10-15%): servicios de profesionales verificadas
-3. Featured listings ($29-$99/mes): visibilidad premium en directorio
-4. Eventos y talleres ($15-$50): circulos de mujeres, masterclasses
-
-## 8. Estructura de la app (5 tabs)
-
-| Tab | Contenido | Sub-tabs |
-|-----|-----------|----------|
-| Mi dia | Dashboard, lo que sigue, hooks | — |
-| Crecer | Programas, AI agent, frases | Programas, Crea el tuyo, Frases |
-| Comunidad | Board 24/7 con profesionales | — |
-| Ronda | Directorio/Marketplace de servicios | Filtros por categoria |
-| Yo | Espacio personal | Habitos, Rutina, Diario, Toolkit, Perfil |
-
-Boton flotante: "Necesitas apoyo?" — panel de crisis con respiracion, grounding 5-4-3-2-1, herramientas DBT (TIPP, STOP, Accion Opuesta, Aceptacion Radical)
-
-## 9. Programas
-
-### Gratis (7 dias):
-Positivos: Volver a moverme, Reconectar con Dios, Volver a mi (mamas), 7 dias de disciplina, Enamorate de ti
-Sanacion: Salir de una tusa, Navegar la depresion, Calmar la ansiedad, Empezar de cero, Reconstruir mi autoestima
-
-### Premium (21 dias, $9.99):
-Despertar — 21 dias para crear tu habito (3 fases: Sembrar, Construir, Integrar)
-Cada dia tiene neurociencia explicada
-
-### Futuro (60 dias, $29.99):
-Programas de transformacion profunda
-
-### AI Agent (premium):
-La usuaria describe su meta y la IA genera un programa personalizado paso a paso
-
-## 10. Mercado
-
-- TAM: Femtech $52B, CAGR 17.8%
-- Women's Health Apps: $5.68B (2025) > $25.45B (2034)
-- SOM Year 1-2: $12M (Colombia + Miami)
-- 0 competidores integran wellness + comunidad + marketplace para Latinas
-- Shine cerro, Rosy esta cerrando — wellness apps sin comunidad mueren
-
-## 11. Tono de voz
-
-- Calida: como una amiga que te entiende
-- Empoderada: positiva, orientada a la accion, sin victimismo
-- Cercana: sin jerga corporativa
-- Segura: vulnerabilidad es fuerza
-
-## 12. Historia de Diana (narrativa de marca)
-
-NO es sobre un hombre. NO es egocéntrica. Es sobre ser puente de miles de mujeres.
-- Abuelas viudas jovenes que sacaron familias adelante
-- Diana: divorciada a los 25, tres maletas, NYC sin diploma, magna cum laude, vuelta a Colombia
-- TLP, DBT, yoga, 35 dias sola en Grecia
-- "He sido miles de mujeres en una sola mujer"
-- "Yo tambien he escogido mal. Me paro firme con ellas hoy."
-- "Ronda es mi forma de devolver todo lo que recibi"
-- Siempre conectar con la lectora: "Y se que a ti tambien te ha pasado"
-
-## 13. Documentos pendientes (post feedback Nicoya)
-
-1. Brand Book v2 — mas vida, mas moderno
-2. Pitch Deck v2 — building block, funnel, track record, sostenibilidad
-3. One-Pager v2 — alineado con nuevo pitch
-4. Benchmark v2 — explotar diferenciales, gap de salud mental
-5. Terms & Conditions — legales
-6. Funnel documentado — de curiosa a premium, medible
-
-## 14. Admin
-
-- Admin emails: dianasilvalondono@gmail.com, diana@rondahub.com
-- Admin ve todo sin paywall
-- OneSignal: Dian's Org (app "Diana's hub")
-- Supabase: rkmvupchiiuqvmpparsc.supabase.co
-- GitHub: dianasilvalondono-dotcom/Diana-Silva-App
+## 3. Stack técnico
+- React + Vite (JSX, sin TypeScript), inline styles
+- Supabase: auth (email/password), PostgreSQL con RLS
 - Vercel: auto-deploy desde GitHub push a main
+- PWA con push notifications (OneSignal)
+- Preferencia: rewrites completos de archivos, no parches incrementales
+- IMPORTANTE: los archivos nunca deben pasar por TextEdit o Word (problemas de UTF-8)
+
+## 4. Marca visual — Brand Book v2
+
+### Paleta de colores
+- **Teal Deep #1B8A7A** — Primary. Confianza, salud mental, profundidad sin oscuridad
+- **Teal Dark #14695E** — Fondos oscuros, acentos profundos
+- **Mint Fresh #7ED4BC** — Energía, frescura, vida
+- **Mint Light #D4F0EA** — Backgrounds suaves
+- **Rosa Core #C4908A** — El alma de Ronda. Calidez, feminidad, fuerza
+- **Rosa Bloom #E4A5A0** — Energía rosa, acentos
+- **Rosa Light #F5E1DE** — Backgrounds suaves rosa
+- **Coral Vivo #E8736D** — Acción, urgencia positiva, CTAs
+- **Lavanda #B8A9C9** — Espiritualidad, calma, modernidad
+- **Dorado #C9A96E** — Premium, calidez, acento de lujo
+- **Dorado Light #E8D5A8** — Acentos suaves dorados
+- **Blanco Cálido #FEFBF6** — Background principal
+
+### NO usar Charcoal #4A3035 como color principal — solo para texto cuando sea necesario
+
+### Tipografía
+- Display: Georgia (títulos, taglines)
+- Body: Calibri / Calibri Light (cuerpo, descripciones)
+- En la app: system fonts (sans-serif)
+
+### Elementos visuales
+- Círculos y óvalos (como el logo de Ronda) — NO rectángulos como elemento principal
+- Logo: doble círculo dorado (anillo exterior + punto interior)
+- Barra de acento en la parte superior de cada slide/sección
+- Decorative circles en esquinas para dinamismo
+
+## 5. Filtro Nicoya — Reglas para TODO
+(Feedback de Nicoya Mayorka, The Brandt — marzo 2026)
+
+### Cada decisión, feature, documento y diseño pasa por 5 preguntas:
+1. **¿Es sostenible?** — ¿Funciona en 3 años o solo hoy?
+2. **¿Es escalable?** — ¿Funciona con 100 mujeres Y con 100,000?
+3. **¿Genera valor profundo?** — ¿Transforma de verdad o solo se ve bonito?
+4. **¿Es un refugio?** — ¿La mujer quiere VOLVER o lo usa una vez y lo olvida?
+5. **¿Construye confianza?** — ¿Esto hace que la usuaria confíe más en Ronda?
+
+### Principios clave de Nicoya:
+- **Building block** para estabilidad a mediano y largo plazo
+- **Cambios sostenibles y escalables** — no quick fixes
+- **Valor profundo, no showy** — transformación real
+- **Refugio y safe space** — un lugar al que quieres volver
+- **Salud mental es largo plazo** — la terapia no es corto plazo
+- **Track record** — la vida de Diana ES el track record de Ronda
+- **Diseño con más vida** — los colores gustan pero necesitan más energía
+- **Terms and conditions** — necesarios antes de lanzar
+- **Partners y protección legal**
+- **Explotar los diferenciales**
+- **Funnel claro** de adquisición
+
+## 6. Tono de voz
+
+### Debe ser:
+- Cálida — como una amiga que te entiende
+- Empoderada — positiva, orientada a la acción, sin victimismo
+- Cercana — sin jerga corporativa ni frialdad
+- Segura — vulnerabilidad es fuerza, no debilidad
+- Profunda — no superficial, no showy, valor real
+
+### NUNCA escribir:
+- "Solo para latinas" — es para todas las mujeres, empezamos en LATAM
+- "Lo hicimos rápido" / "en 4 semanas" / "velocidad" como diferencial
+- "App de wellness" — es un refugio, una plataforma de transformación
+- Lenguaje que suene a Instagram motivacional vacío
+- Promesas de resultados específicos — prometemos transformación del proceso
+- "Infraestructura de salud mental" — suena frío y corporativo
+
+### SIEMPRE escribir:
+- "Para mujeres" (no "para latinas" a menos que sea contexto de go-to-market)
+- "16 años de aprendizaje destilados en una plataforma"
+- "Cambios sostenibles y escalables"
+- "Refugio" / "safe space" / "espacio seguro"
+- "Profundidad" / "valor real" / "transformación"
+- "Comunidad como medicina"
+- "Ronda se gestó en 16 años" (no "se construyó en semanas")
+
+## 7. Modelo de negocio
+- **Freemium → Premium:** Gratis (7 días) → $9.99/mes (21 días) → $29.99/mes (60 días)
+- **Marketplace:** 10-15% comisión por servicio
+- **Featured Listings:** $29-$99/mes para profesionales
+- **Eventos:** $15-$50 por taller/masterclass
+- **Y1 proyectado:** $64K — $161K
+
+### Inversión Pre-Seed
+- **Ask: $250K por 10-12% equity**
+- Valuación implícita: $2M-$2.5M
+- **Máxima dilución aceptable: 15% — NO NEGOCIABLE**
+- Jugar en las grandes ligas pero sostenible
+- 100% del capital va a escalar — el producto ya existe
+- Distribución: 35% growth, 25% eventos, 25% expansión, 15% equipo
+
+## 8. Documentos de referencia
+- Brand Book v2: /Users/dianasilvalondono/Desktop/RONDA/Ronda_BrandBook_v2.pptx
+- Pitch Deck v2: /Users/dianasilvalondono/Desktop/RONDA/Ronda_PitchDeck_v2.pptx
+- Benchmark: /Users/dianasilvalondono/Desktop/RONDA/Ronda_Benchmark_Plan_2026.xlsx
+- One-Pager: /Users/dianasilvalondono/Desktop/RONDA/Ronda_Executive_OnePager.pdf
+- Historia de Diana: /Users/dianasilvalondono/Desktop/RONDA/Historia_Diana_Ronda.docx
+
+## 9. Reglas de ejecución — NO NEGOCIABLES
+1. Siempre usar los colores del Brand Book v2 (sección 4)
+2. Siempre usar círculos como elemento visual principal
+3. Siempre pasar por el Filtro Nicoya (sección 5) antes de entregar
+4. NUNCA hablar de "rapidez" como diferencial — hablar de "profundidad"
+5. NUNCA limitar a "latinas" — es para todas las mujeres
+6. El pitch es sobre transformación sostenible, no sobre tecnología
+7. La vida de Diana ES el track record de Ronda
+8. Máxima dilución 15% — jugar grande pero sostenible
+9. Ronda se gestó en 16 años, no se construyó en semanas
+10. Cada feature debe ser un building block de largo plazo
