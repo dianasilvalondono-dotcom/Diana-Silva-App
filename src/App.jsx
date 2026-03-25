@@ -128,7 +128,11 @@ function App() {
   const [editingProfile, setEditingProfile] = useState(false)
 
   // Onboarding
-  const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
+  const [onboarded, setOnboarded] = useState(() => {
+    // Admin always sees onboarding (for demos/investors)
+    if (user && ADMIN_EMAILS.includes(user.email?.toLowerCase())) return false
+    return load('ronda-onboarded', false)
+  })
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
