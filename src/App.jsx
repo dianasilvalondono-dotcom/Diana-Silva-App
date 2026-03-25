@@ -128,11 +128,12 @@ function App() {
   const [editingProfile, setEditingProfile] = useState(false)
 
   // Onboarding
-  const [onboarded, setOnboarded] = useState(() => {
-    // Admin always sees onboarding (for demos/investors)
-    if (user && ADMIN_EMAILS.includes(user.email?.toLowerCase())) return false
-    return load('ronda-onboarded', false)
-  })
+  const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
+
+  // Admin always sees onboarding (for demos/investors)
+  useEffect(() => {
+    if (isAdmin) setOnboarded(false)
+  }, [isAdmin])
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
@@ -1329,15 +1330,28 @@ function App() {
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>${prog.price} USD</div>
               <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Pago único · Acceso para siempre</div>
-              <button style={{
-                width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
-                background: `linear-gradient(135deg, ${C.gold}, #D4B87A)`,
-                color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 4px 16px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
-              }}>
-                Próximamente
-              </button>
-              <div style={{ fontSize: 19, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
+              {isPremium ? (
+                <button onClick={() => startProgram(prog.id)} style={{
+                  width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
+                  background: C.teal, color: 'white', fontSize: 17, fontWeight: 800,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
+                }}>
+                  Empezar programa (Admin)
+                </button>
+              ) : (
+                <>
+                  <button style={{
+                    width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
+                    background: C.gold, color: 'white', fontSize: 17, fontWeight: 800,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                    boxShadow: '0 4px 16px rgba(201,169,110,0.35)',
+                  }}>
+                    Próximamente
+                  </button>
+                  <div style={{ fontSize: 14, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
+                </>
+              )}
             </div>
           </div>
         ))}
