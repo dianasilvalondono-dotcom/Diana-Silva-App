@@ -32,11 +32,11 @@ function DimCard({ dim, done, total, onClick }) {
       transition: 'transform 0.15s', ':hover': { transform: 'translateY(-2px)' },
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''} {d.label}</span>
-        <span style={{ fontSize: 18, fontWeight: 900, color: d.color }}>{pct}%</span>
+        <span style={{ fontSize: 19, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''} {d.label}</span>
+        <span style={{ fontSize: 20, fontWeight: 900, color: d.color }}>{pct}%</span>
       </div>
       <Bar value={pct} color={d.color} />
-      <div style={{ fontSize: 12, color: C.subtle, marginTop: 4 }}>{done}/{total} completados</div>
+      <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{done}/{total} completados</div>
     </div>
   )
 }
@@ -51,7 +51,7 @@ function NavItem({ icon, label, active, onClick }) {
       transition: 'color 0.15s',
     }}>
       <span style={{ fontSize: 26, lineHeight: 1 }}>{icon}</span>
-      <span style={{ fontSize: 12, fontWeight: active ? 800 : 600, letterSpacing: '0.02em' }}>{label}</span>
+      <span style={{ fontSize: 20, fontWeight: active ? 800 : 600, letterSpacing: '0.02em' }}>{label}</span>
       {active && <div style={{ width: 5, height: 5, borderRadius: 3, background: C.rose, marginTop: 2 }} />}
     </button>
   )
@@ -455,10 +455,10 @@ function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {logo}
             <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 16, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
+            <span style={{ fontSize: 20, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
             {isAdmin && <span style={{ fontSize: 8, background: '#C9A96E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
           </div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
+          <div style={{ fontSize: 19, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
         <button onClick={() => { setView('yo'); setSubTab('perfil') }} style={{
           width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
@@ -492,7 +492,7 @@ function App() {
           }}>
             {NAV_ICONS[n.id](isActive)}
             <span style={{
-              fontSize: 11, fontWeight: isActive ? 800 : 600,
+              fontSize: 19, fontWeight: isActive ? 800 : 600,
               color: isActive ? C.teal : C.subtle,
               fontFamily: 'inherit', letterSpacing: '0.01em',
             }}>{n.label}</span>
@@ -511,12 +511,12 @@ function App() {
         <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: C.mint, opacity: 0.15 }} />
         <div style={{ position: 'absolute', bottom: -15, right: 30, width: 50, height: 50, borderRadius: '50%', background: C.coral, opacity: 0.1 }} />
         <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif', color: C.text }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
-        <div style={{ fontSize: 14, marginTop: 6, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', color: C.rose }}>La mujer que quieres ser, empieza hoy</div>
+        <div style={{ fontSize: 20, marginTop: 6, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', color: C.rose }}>La mujer que quieres ser, empieza hoy</div>
         {totalHabits > 0 && (
           <div style={{ marginTop: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{totalDone} de {totalHabits} hábitos</span>
-              <span style={{ fontSize: 18, fontWeight: 900, color: C.teal }}>{Math.round((totalDone / totalHabits) * 100)}%</span>
+              <span style={{ fontSize: 19, fontWeight: 700, color: C.muted }}>{totalDone} de {totalHabits} hábitos</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: C.teal }}>{Math.round((totalDone / totalHabits) * 100)}%</span>
             </div>
             <div style={{ background: C.mintLight, borderRadius: 6, height: 6, overflow: 'hidden' }}>
               <div style={{ width: `${(totalDone / totalHabits) * 100}%`, height: '100%', background: C.teal, borderRadius: 6, transition: 'width 0.3s' }} />
@@ -546,14 +546,14 @@ function App() {
               width: 44, height: 44, borderRadius: '50%', background: `${C.teal}15`,
               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: C.teal }}>{next.time}</div>
+              <div style={{ fontSize: 19, fontWeight: 800, color: C.teal }}>{next.time}</div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{next.task}</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>Lo que sigue</div>
+              <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{next.task}</div>
+              <div style={{ fontSize: 20, color: C.muted, marginTop: 2 }}>Lo que sigue</div>
             </div>
             <div style={{ width: 28, height: 28, borderRadius: '50%', background: `${C.coral}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 14, color: C.coral }}>→</span>
+              <span style={{ fontSize: 20, color: C.coral }}>→</span>
             </div>
           </div>
         )
@@ -565,8 +565,8 @@ function App() {
           <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.gold }} />
         </div>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
-          <div style={{ fontSize: 13, marginTop: 6, color: C.rose, fontWeight: 600 }}>— {quote.author}</div>
+          <div style={{ fontSize: 19, fontWeight: 600, lineHeight: 1.6, fontStyle: 'italic', color: C.text }}>"{quote.text}"</div>
+          <div style={{ fontSize: 19, marginTop: 6, color: C.rose, fontWeight: 600 }}>— {quote.author}</div>
         </div>
       </div>
 
@@ -574,14 +574,14 @@ function App() {
       {Object.keys(activePrograms).length > 0 && (
         <div style={{ background: C.card, borderRadius: 16, padding: 16, cursor: 'pointer' }}
           onClick={() => { setView('crecer'); setSubTab('programas') }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: C.text, marginBottom: 10 }}>Mis programas</div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: C.text, marginBottom: 10 }}>Mis programas</div>
           {Object.entries(activePrograms).map(([progId, progress]) => {
             const prog = PROGRAMAS.find(p => p.id === progId)
             if (!prog) return null
             const pct = Math.round((progress.completedDays.length / prog.days.length) * 100)
             return (
               <div key={progId} style={{ marginBottom: 6 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, color: prog.color, marginBottom: 4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 19, fontWeight: 700, color: prog.color, marginBottom: 4 }}>
                   <span>{prog.title}</span>
                   <span>{pct}%</span>
                 </div>
@@ -611,13 +611,13 @@ function App() {
             borderRadius: 18, padding: 20, cursor: 'pointer',
             border: `1px solid ${hook.color}30`,
           }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: C.text, lineHeight: 1.4, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: C.text, lineHeight: 1.4, fontFamily: 'Georgia, "Times New Roman", serif' }}>
               {hook.q}
             </div>
-            <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
               {hook.sub}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: hook.color, marginTop: 10 }}>
+            <div style={{ fontSize: 19, fontWeight: 700, color: hook.color, marginTop: 10 }}>
               Ver programa →
             </div>
           </div>
@@ -632,8 +632,8 @@ function App() {
       {/* Progress */}
       <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 16, fontWeight: 800, color: C.text }}>Hoy</span>
-          <span style={{ fontSize: 16, fontWeight: 800, color: C.rose }}>{totalDone}/{totalHabits}</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: C.text }}>Hoy</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: C.rose }}>{totalDone}/{totalHabits}</span>
         </div>
         <Bar value={totalHabits > 0 ? (totalDone / totalHabits) * 100 : 0} />
       </div>
@@ -642,10 +642,10 @@ function App() {
       {habits.length === 0 && (
         <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: 28, marginBottom: 8, color: C.gold, opacity: 0.5 }}>●</div>
-          <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: 'Georgia, "Times New Roman", serif' }}>
             Escoge tus hábitos
           </div>
-          <div style={{ fontSize: 14, color: C.muted, marginBottom: 14 }}>
+          <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>
             Agrega hábitos de la lista de sugeridos o crea los tuyos propios
           </div>
         </div>
@@ -657,7 +657,7 @@ function App() {
         if (dimHabits.length === 0) return null
         return (
           <div key={dim}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: cfg.color, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: 19, fontWeight: 800, color: cfg.color, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {ICONS[cfg.icon] ? ICONS[cfg.icon](cfg.color, 16) : ''} {cfg.label}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -671,21 +671,21 @@ function App() {
                   <div style={{
                     width: 24, height: 24, borderRadius: 7, border: `2px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
                     background: checked[h.id] ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                    color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
                   }}>
                     {checked[h.id] && '✓'}
                   </div>
-                  <span style={{ fontSize: 15, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
+                  <span style={{ fontSize: 19, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
                     {h.name}
                   </span>
                   {streaks[h.id] > 0 && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.coral, background: `${C.coral}12`, padding: '3px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ fontSize: 20, fontWeight: 700, color: C.coral, background: `${C.coral}12`, padding: '3px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 C12 2 8 7 8 12 C8 16 10 18 12 20 C14 18 16 16 16 12 C16 7 12 2 12 2Z" fill={C.coral} opacity="0.8" /><path d="M12 8 C12 8 10 11 10 13 C10 15 11 16 12 17 C13 16 14 15 14 13 C14 11 12 8 12 8Z" fill="white" opacity="0.5" /></svg>
                       {streaks[h.id]}
                     </span>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); removeHabit(h.id) }} style={{
-                    background: 'none', border: 'none', fontSize: 14, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1,
+                    background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1,
                   }}>✕</button>
                 </div>
               ))}
@@ -697,9 +697,9 @@ function App() {
       {/* Add habit */}
       {showAddHabit ? (
         <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 10, color: C.text }}>Nuevo hábito</div>
+          <div style={{ fontSize: 19, fontWeight: 700, marginBottom: 10, color: C.text }}>Nuevo hábito</div>
           <input value={newHabitName} onChange={e => setNewHabitName(e.target.value)} placeholder="Nombre del hábito..."
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
             onKeyDown={e => e.key === 'Enter' && addHabit()}
           />
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
@@ -708,17 +708,17 @@ function App() {
                 padding: '5px 12px', borderRadius: 20, border: `2px solid ${d.color}`,
                 background: newHabitDim === key ? d.color : 'transparent',
                 color: newHabitDim === key ? 'white' : d.color,
-                fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''} {d.label}
               </button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={addHabit} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={addHabit} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               Agregar
             </button>
-            <button onClick={() => setShowAddHabit(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+            <button onClick={() => setShowAddHabit(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
               Cancelar
             </button>
           </div>
@@ -726,7 +726,7 @@ function App() {
       ) : (
         <button onClick={() => setShowAddHabit(true)} style={{
           padding: 12, borderRadius: 12, border: `2px dashed ${C.roseLight}`, background: 'transparent',
-          color: C.rose, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          color: C.rose, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
           + Agregar hábito
         </button>
@@ -735,7 +735,7 @@ function App() {
       {/* Suggested habits */}
       {SUGGESTED_HABITS.filter(sh => !habits.some(h => h.name === sh.name)).length > 0 && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.teal, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 8 }}>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.teal, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 8 }}>
             Sugeridos para ti
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -748,12 +748,12 @@ function App() {
                   {ICONS[DIMS[sh.dim].icon](DIMS[sh.dim].color, 18)}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{sh.name}</div>
-                  <div style={{ fontSize: 11, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{sh.name}</div>
+                  <div style={{ fontSize: 19, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].label}</div>
                 </div>
                 <button onClick={() => addSuggestedHabit(sh)} style={{
                   padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${DIMS[sh.dim].color}`,
-                  background: 'transparent', color: DIMS[sh.dim].color, fontSize: 12, fontWeight: 700,
+                  background: 'transparent', color: DIMS[sh.dim].color, fontSize: 20, fontWeight: 700,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}>
                   + Agregar
@@ -769,7 +769,7 @@ function App() {
   /* ── RUTINA ── */
   const renderRoutineSection = (title, emoji, items, color, sectionKey) => (
     <div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: color, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ fontSize: 20, fontWeight: 800, color: color, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
         {emoji} {title}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -782,25 +782,25 @@ function App() {
             }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <input value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
-                  style={{ width: 70, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', fontWeight: 700, color: C.gold }} />
+                  style={{ width: 70, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', fontWeight: 700, color: C.gold }} />
                 <input value={editingRoutineItem.task} onChange={e => setEditingRoutineItem(prev => ({...prev, task: e.target.value}))}
-                  style={{ flex: 1, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
                   onKeyDown={e => e.key === 'Enter' && saveRoutineItemEdit()} />
               </div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
                 {ROUTINE_EMOJIS.map(e => (
                   <button key={e} onClick={() => setEditingRoutineItem(prev => ({...prev, emoji: e}))} style={{
-                    fontSize: 18, padding: 3, background: editingRoutineItem.emoji === e ? C.beige : 'transparent',
+                    fontSize: 20, padding: 3, background: editingRoutineItem.emoji === e ? C.beige : 'transparent',
                     border: editingRoutineItem.emoji === e ? `2px solid ${C.rose}` : '2px solid transparent',
                     borderRadius: 6, cursor: 'pointer',
                   }}>{e}</button>
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveRoutineItemEdit} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: C.rose, color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={saveRoutineItemEdit} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                   ✓ Guardar
                 </button>
-                <button onClick={() => setEditingRoutineItem(null)} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+                <button onClick={() => setEditingRoutineItem(null)} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
                   Cancelar
                 </button>
               </div>
@@ -815,22 +815,22 @@ function App() {
               <div onClick={() => toggleRoutine(item.id)} style={{
                 width: 22, height: 22, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.greenDone : C.roseLight}`,
                 background: routineChecked[item.id] ? C.greenDone : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 11, flexShrink: 0, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 19, flexShrink: 0, cursor: 'pointer',
               }}>
                 {routineChecked[item.id] && '✓'}
               </div>
               <div onClick={() => toggleRoutine(item.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: color }}>{item.time}</span>
+                <span style={{ fontSize: 20, fontWeight: 700, color: color }}>{item.time}</span>
               </div>
-              <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 15, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
+              <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 19, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
                 {item.task}
               </span>
               {editingRoutine && <>
                 <button onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: item.time, task: item.task, emoji: item.emoji })} style={{
-                  background: 'none', border: 'none', color: C.gold, fontSize: 16, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
+                  background: 'none', border: 'none', color: C.gold, fontSize: 20, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
                 }}>✎</button>
                 <button onClick={() => removeRoutineItem(sectionKey, item.id)} style={{
-                  background: 'none', border: 'none', color: '#e57373', fontSize: 18, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
+                  background: 'none', border: 'none', color: '#e57373', fontSize: 20, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
                 }}>×</button>
               </>}
             </div>
@@ -849,7 +849,7 @@ function App() {
         <button onClick={() => setEditingRoutine(!editingRoutine)} style={{
           background: editingRoutine ? C.rose : 'transparent', color: editingRoutine ? 'white' : C.rose,
           border: `1.5px solid ${C.rose}`, borderRadius: 20, padding: '6px 16px',
-          fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
           {editingRoutine ? '✓ Listo' : '✎ Editar mi rutina'}
         </button>
@@ -864,11 +864,11 @@ function App() {
       {/* Add new routine item */}
       {editingRoutine && (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 12 }}>+ Agregar a mi rutina</div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: C.text, marginBottom: 12 }}>+ Agregar a mi rutina</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
             {[{k:'morning',l:'Mañana'},{k:'midday',l:'Día'},{k:'night',l:'Noche'}].map(s => (
               <button key={s.k} onClick={() => setNewRoutineSection(s.k)} style={{
-                padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                padding: '6px 14px', borderRadius: 20, fontSize: 19, fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'inherit', border: `1.5px solid ${C.rose}`,
                 background: newRoutineSection === s.k ? C.rose : 'transparent',
                 color: newRoutineSection === s.k ? 'white' : C.rose,
@@ -877,9 +877,9 @@ function App() {
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
             <input value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)} placeholder="Hora (ej: 7:30)"
-              style={{ width: 80, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }} />
+              style={{ width: 80, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }} />
             <input value={newRoutineTask} onChange={e => setNewRoutineTask(e.target.value)} placeholder="¿Qué quieres hacer?"
-              style={{ flex: 1, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }}
+              style={{ flex: 1, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
               onKeyDown={e => e.key === 'Enter' && addRoutineItem()} />
           </div>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -892,7 +892,7 @@ function App() {
             ))}
           </div>
           <button onClick={addRoutineItem} disabled={!newRoutineTask.trim() || !newRoutineTime.trim()} style={{
-            width: '100%', padding: 10, borderRadius: 12, border: 'none', fontSize: 14, fontWeight: 700,
+            width: '100%', padding: 10, borderRadius: 12, border: 'none', fontSize: 20, fontWeight: 700,
             fontFamily: 'inherit', cursor: newRoutineTask.trim() && newRoutineTime.trim() ? 'pointer' : 'default',
             background: newRoutineTask.trim() && newRoutineTime.trim() ? C.rose : C.border,
             color: newRoutineTask.trim() && newRoutineTime.trim() ? 'white' : C.subtle,
@@ -904,8 +904,8 @@ function App() {
 
       {/* Night ritual: Plan tomorrow */}
       <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.gold}30` }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: C.gold, marginBottom: 4 }}>Ritual de noche</div>
-        <div style={{ fontSize: 13, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 4 }}>Ritual de noche</div>
+        <div style={{ fontSize: 19, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
           Planifica tu mañana para soltar la ansiedad de hoy. Escribir lo que viene te ayuda a descansar.
         </div>
 
@@ -915,16 +915,16 @@ function App() {
           const todayTotal = morning.length + midday.length + night.length
           return todayDone > 0 && (
             <div style={{ background: `${C.greenDone}15`, borderRadius: 12, padding: 12, marginBottom: 14 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.greenDone }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.greenDone }}>
                 ✓ Hoy completaste {todayDone} de {todayTotal} cosas de tu rutina
               </div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Ya puedes soltar el día. Lo hiciste bien. </div>
+              <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Ya puedes soltar el día. Lo hiciste bien. </div>
             </div>
           )
         })()}
 
         {/* Tomorrow tasks */}
-        <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
           {tomorrowTasks.map(t => (
             <div key={t.id} onClick={() => toggleTomorrowTask(t.id)} style={{
@@ -934,19 +934,19 @@ function App() {
               <div style={{
                 width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.roseLight}`,
                 background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontSize: 10, flexShrink: 0,
+                color: 'white', fontSize: 20, flexShrink: 0,
               }}>{t.done && '✓'}</div>
-              <span style={{ fontSize: 14, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
+              <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
             </div>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
-            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit' }}
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
             onKeyDown={e => e.key === 'Enter' && addTomorrowTask()} />
           <button onClick={addTomorrowTask} disabled={!newTomorrowTask.trim()} style={{
             padding: '8px 16px', borderRadius: 10, border: 'none', background: newTomorrowTask.trim() ? C.gold : C.border,
-            color: newTomorrowTask.trim() ? 'white' : C.subtle, fontSize: 14, fontWeight: 700, cursor: newTomorrowTask.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
+            color: newTomorrowTask.trim() ? 'white' : C.subtle, fontSize: 20, fontWeight: 700, cursor: newTomorrowTask.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
           }}>+</button>
         </div>
       </div>
@@ -958,7 +958,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* New entry */}
       <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10, color: C.text }}>¿Cómo te sientes hoy?</div>
+        <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10, color: C.text }}>¿Cómo te sientes hoy?</div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 14, justifyContent: 'center' }}>
           {MOOD_ICONS.map((icon, i) => (
             <button key={i} onClick={() => setJournalMood(i)} style={{
@@ -966,7 +966,7 @@ function App() {
               transition: 'all 0.15s', transform: journalMood === i ? 'scale(1.2)' : 'scale(1)', padding: 4,
             }}>
               {icon(36, journalMood === i)}
-              <div style={{ fontSize: 9, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
+              <div style={{ fontSize: 19, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
             </button>
           ))}
         </div>
@@ -974,7 +974,7 @@ function App() {
           placeholder="Escribe tu reflexión del día..."
           style={{
             width: '100%', minHeight: 100, padding: 14, borderRadius: 12, border: `1px solid ${C.border}`,
-            fontSize: 15, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6,
+            fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6,
             boxSizing: 'border-box', background: C.cream,
           }}
         />
@@ -982,7 +982,7 @@ function App() {
           marginTop: 10, width: '100%', padding: 12, borderRadius: 12, border: 'none',
           background: journalText.trim() ? C.teal : C.border,
           color: journalText.trim() ? 'white' : C.subtle,
-          fontSize: 15, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
+          fontSize: 19, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
         }}>
           Guardar reflexión
         </button>
@@ -994,10 +994,10 @@ function App() {
         if (!rec) return null
         return (
           <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', border: `2px solid ${rec.color}20` }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: rec.color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: rec.color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
               {MOOD_LABELS[journalMood]} — {rec.label}
             </div>
-            <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>Basado en cómo te sientes, te recomendamos:</div>
+            <div style={{ fontSize: 19, color: C.muted, marginBottom: 14 }}>Basado en cómo te sientes, te recomendamos:</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {rec.items.map((item, i) => (
                 <div key={i} style={{
@@ -1006,12 +1006,12 @@ function App() {
                 }}>
                   {ICONS[item.type] ? ICONS[item.type](rec.color, 22) : <span style={{ fontSize: 22, flexShrink: 0 }}>{item.emoji}</span>}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{item.title}</div>
-                    <div style={{ fontSize: 11, color: C.subtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{item.type}</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{item.title}</div>
+                    <div style={{ fontSize: 19, color: C.subtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{item.type}</div>
                   </div>
                   {item.url && (
                     <a href={item.url} target="_blank" rel="noopener noreferrer" style={{
-                      fontSize: 12, color: rec.color, fontWeight: 700, textDecoration: 'none',
+                      fontSize: 20, color: rec.color, fontWeight: 700, textDecoration: 'none',
                       padding: '4px 10px', borderRadius: 20, border: `1px solid ${rec.color}40`,
                       flexShrink: 0,
                     }}>Abrir</a>
@@ -1022,7 +1022,7 @@ function App() {
             {rec.programa && (
               <button onClick={() => { startProgram(rec.programa); setView('crecer'); setSubTab('programas') }} style={{
                 marginTop: 12, width: '100%', padding: 12, borderRadius: 12, border: `2px solid ${rec.color}`,
-                background: 'transparent', color: rec.color, fontSize: 14, fontWeight: 700,
+                background: 'transparent', color: rec.color, fontSize: 20, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 Ver programa paso a paso →
@@ -1041,21 +1041,21 @@ function App() {
         })
         return (
           <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: C.muted, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Tu histórico ({entries.length} {entries.length === 1 ? 'entrada' : 'entradas'})
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {Object.entries(grouped).map(([date, dayEntries]) => (
                 <div key={date}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, marginBottom: 6 }}>{date === todayKey() ? 'Hoy' : date}</div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, marginBottom: 6 }}>{date === todayKey() ? 'Hoy' : date}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {dayEntries.map(e => (
                       <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: C.muted }}>{e.time}</span>
-                          {MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](22, true) : <span style={{ fontSize: 12, fontWeight: 700, color: MOOD_COLORS[e.mood] }}>{MOOD_LABELS[e.mood]}</span>}
+                          <span style={{ fontSize: 19, fontWeight: 700, color: C.muted }}>{e.time}</span>
+                          {MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](22, true) : <span style={{ fontSize: 20, fontWeight: 700, color: MOOD_COLORS[e.mood] }}>{MOOD_LABELS[e.mood]}</span>}
                         </div>
-                        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
+                        <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
                       </div>
                     ))}
                   </div>
@@ -1069,8 +1069,8 @@ function App() {
       {entries.length === 0 && (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
           <div style={{ fontSize: 36, marginBottom: 10, color: C.lavanda, opacity: 0.4 }}>●</div>
-          <div style={{ fontSize: 15, fontWeight: 600 }}>Tu diario está vacío</div>
-          <div style={{ fontSize: 14, marginTop: 4 }}>Escribe tu primera reflexión arriba</div>
+          <div style={{ fontSize: 19, fontWeight: 600 }}>Tu diario está vacío</div>
+          <div style={{ fontSize: 20, marginTop: 4 }}>Escribe tu primera reflexión arriba</div>
         </div>
       )}
     </div>
@@ -1084,31 +1084,31 @@ function App() {
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 16 }}>
           "Soy el puente de miles de mujeres"
         </div>
-        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+        <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
           Ronda nació de las mujeres que me formaron. Mis dos abuelas quedaron viudas muy jóvenes y sacaron adelante familias enteras con las manos y con el alma. Crecí rodeada de mujeres poderosas — tías, primas, amigas — que se reinventaban una y otra vez sin pedir permiso.
         </div>
-        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+        <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
           Yo también he tenido muchas vidas. Me divorcié a los 25 con tres maletas y a echar pa'lante. Me fui pa' Nueva York sin diploma, me gradué magna cum laude, me devolví pa' Colombia. Y cada vez que me caí, me levanté — pero nunca sola. Siempre hubo una mujer del otro lado tendiéndome la mano.
         </div>
-        <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
+        <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
           Cada mujer que Dios me ha puesto en el camino me ha enseñado algo. Y sé que a ti también te ha pasado: alguien te sostuvo cuando no podías más.
         </div>
         {showFullStory && <>
-          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+          <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
             Vivo con TLP desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días a Grecia con 20 mujeres. En ese camino vi el potencial: mujeres creciendo juntas. Eso tenía que ser una plataforma.
           </div>
-          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+          <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
             Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy. He sido personajes de mujeres de las que no me he sentido orgullosa. Pero las lecciones que me dejaron esas mujeres que me rodean — mis abuelas, mis maestras, mis amigas — esas me han sostenido.
           </div>
-          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
+          <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
             En los momentos de crisis buscaba apoyo y la psicóloga tenía citas — no estaba disponible. Pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado. No importa de dónde, pero que esté ahí.
           </div>
-          <div style={{ fontSize: 15, color: C.rose, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
+          <div style={{ fontSize: 19, color: C.rose, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
             Ronda es mi forma de devolver todo lo que recibí. No es mi historia — es la historia de todas las mujeres que me construyeron. Y yo solo quiero ser puente para que tú también tengas esa red, esas herramientas, esa ronda de mujeres que te acompaña.
           </div>
         </>}
         <button onClick={() => setShowFullStory(!showFullStory)} style={{
-          background: 'none', border: 'none', color: C.rose, fontSize: 15, fontWeight: 700,
+          background: 'none', border: 'none', color: C.rose, fontSize: 19, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit', padding: 0,
         }}>
           {showFullStory ? 'Leer menos ↑' : 'Leer la historia completa →'}
@@ -1116,11 +1116,11 @@ function App() {
         <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 48, height: 48, borderRadius: '50%', background: `${C.teal}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 18, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20, fontWeight: 700,
           }}>D</div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>Diana Silva</div>
-            <div style={{ fontSize: 13, color: C.muted }}>Fundadora de Ronda · Puente de miles de mujeres</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>Diana Silva</div>
+            <div style={{ fontSize: 19, color: C.muted }}>Fundadora de Ronda · Puente de miles de mujeres</div>
           </div>
         </div>
       </div>
@@ -1132,14 +1132,14 @@ function App() {
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #1B8A7A, #2A9D8F, #7ED4BC)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
-        <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
-        <div style={{ fontSize: 13, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
+        <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
+        <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
       </div>
 
       {/* Active programs */}
       {Object.keys(activePrograms).length > 0 && (
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
             Mis programas activos
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1152,11 +1152,11 @@ function App() {
                 <div key={progId} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id} {prog.title}</div>
-                      <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
+                      <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id} {prog.title}</div>
+                      <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
                     </div>
                     <button onClick={() => quitProgram(progId)} style={{
-                      background: 'none', border: 'none', fontSize: 12, color: C.subtle, cursor: 'pointer', padding: 4,
+                      background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4,
                     }}>✕</button>
                   </div>
                   <Bar value={pct} color={prog.color} height={6} />
@@ -1173,19 +1173,19 @@ function App() {
                           <div style={{
                             width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
                             background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0, marginTop: 2,
+                            color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
                           }}>
                             {isDone && '✓'}
                           </div>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                            <div style={{ fontSize: 20, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                               Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
                             </div>
-                            <div style={{ fontSize: 15, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
+                            <div style={{ fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
                               textDecoration: isDone ? 'line-through' : 'none' }}>
                               {d.title}
                             </div>
-                            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
+                            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
                               {d.task}
                             </div>
                           </div>
@@ -1196,8 +1196,8 @@ function App() {
                   {pct === 100 && (
                     <div style={{ textAlign: 'center', marginTop: 14, padding: 16, background: `${prog.color}10`, borderRadius: 14 }}>
                       <div style={{ fontSize: 28, marginBottom: 6, color: C.teal }}>●</div>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: prog.color }}>¡Completaste el programa!</div>
-                      <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Eres increíble. Cada paso cuenta.</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: prog.color }}>¡Completaste el programa!</div>
+                      <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Eres increíble. Cada paso cuenta.</div>
                     </div>
                   )}
                 </div>
@@ -1209,10 +1209,10 @@ function App() {
 
       {/* Available programs — positivos primero */}
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+        <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
           Crece a tu ritmo
         </div>
-        <div style={{ fontSize: 14, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           No tienes que estar pasando por algo difícil para empezar. Estos programas son para ti, ahora.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1228,12 +1228,12 @@ function App() {
                 {ICONS[prog.id] ? ICONS[prog.id](prog.color, 28) : <div style={{ width: 20, height: 20, borderRadius: '50%', background: prog.color }} />}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{prog.title}</div>
-                <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-                <div style={{ fontSize: 12, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
+                <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
+                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
                 <button onClick={() => startProgram(prog.id)} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
-                  background: prog.color, color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
                   Empezar →
                 </button>
@@ -1245,10 +1245,10 @@ function App() {
 
       {/* Programas de sanación */}
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+        <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
           Cuando necesites apoyo
         </div>
-        <div style={{ fontSize: 14, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           Si estás pasando por algo difícil, estos programas te acompañan paso a paso.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1264,12 +1264,12 @@ function App() {
                 {ICONS[prog.id] ? ICONS[prog.id](prog.color, 28) : <div style={{ width: 20, height: 20, borderRadius: '50%', background: prog.color }} />}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{prog.title}</div>
-                <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-                <div style={{ fontSize: 12, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
+                <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
+                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
                 <button onClick={() => startProgram(prog.id)} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
-                  background: prog.color, color: 'white', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
                   Empezar →
                 </button>
@@ -1281,7 +1281,7 @@ function App() {
 
       {/* Programa Premium 21 días */}
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+        <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
           Programas de transformación
         </div>
         {PROGRAMAS_PREMIUM.map(prog => (
@@ -1290,11 +1290,11 @@ function App() {
             border: `2px solid ${C.gold}40`, boxShadow: '0 4px 16px rgba(201,169,110,0.15)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ background: C.gold, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.05em' }}>PREMIUM</div>
-              <div style={{ fontSize: 12, color: C.gold, fontWeight: 700 }}>{prog.duration}</div>
+              <div style={{ background: C.gold, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: 19, fontWeight: 800, letterSpacing: '0.05em' }}>PREMIUM</div>
+              <div style={{ fontSize: 20, color: C.gold, fontWeight: 700 }}>{prog.duration}</div>
             </div>
             <div style={{ fontSize: 19, fontWeight: 800, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 6 }}>{prog.title}</div>
-            <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6, marginBottom: 16 }}>{prog.desc}</div>
+            <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 16 }}>{prog.desc}</div>
 
             {/* 3 fases */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -1303,9 +1303,9 @@ function App() {
                   flex: 1, background: C.card, borderRadius: 12, padding: '10px 8px', textAlign: 'center',
                   border: `1px solid ${C.border}`,
                 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: C.gold, marginBottom: 2 }}>Días {phase.days}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{phase.name}</div>
-                  <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{phase.desc}</div>
+                  <div style={{ fontSize: 19, fontWeight: 800, color: C.gold, marginBottom: 2 }}>Días {phase.days}</div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{phase.name}</div>
+                  <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{phase.desc}</div>
                 </div>
               ))}
             </div>
@@ -1316,7 +1316,7 @@ function App() {
               background: '#F5F0E8', borderRadius: 12, marginBottom: 16,
             }}>
               {ICONS.mental('#1B8A7A', 22)}
-              <div style={{ fontSize: 12, color: '#6B5A4E', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 20, color: '#6B5A4E', lineHeight: 1.5 }}>
                 <span style={{ fontWeight: 800 }}>Basado en neurociencia:</span> cada día incluye el porqué científico detrás de tu micro-acción.
               </div>
             </div>
@@ -1324,16 +1324,16 @@ function App() {
             {/* Price + CTA */}
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>${prog.price} USD</div>
-              <div style={{ fontSize: 12, color: C.muted, marginBottom: 14 }}>Pago único · Acceso para siempre</div>
+              <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Pago único · Acceso para siempre</div>
               <button style={{
                 width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
                 background: `linear-gradient(135deg, ${C.gold}, #D4B87A)`,
-                color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
               }}>
                 Próximamente
               </button>
-              <div style={{ fontSize: 11, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
+              <div style={{ fontSize: 19, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
             </div>
           </div>
         ))}
@@ -1350,9 +1350,9 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Quote of the day */}
       <div style={{ background: 'linear-gradient(135deg, #C9A96E, #E8D5A8)', borderRadius: 18, padding: 22, color: 'white' }}>
-        <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>Frase del día</div>
-        <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
-        <div style={{ fontSize: 14, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
+        <div style={{ fontSize: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>Frase del día</div>
+        <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
+        <div style={{ fontSize: 20, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
       </div>
 
       {/* Filter chips */}
@@ -1361,7 +1361,7 @@ function App() {
           <button key={cat} onClick={() => setQuoteFilter(cat)} style={{
             padding: '6px 14px', borderRadius: 20, border: `2px solid ${quoteFilter === cat ? C.rose : C.border}`,
             background: quoteFilter === cat ? C.rose : C.card, color: quoteFilter === cat ? 'white' : C.muted,
-            fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}>
             {catLabels[cat]}
           </button>
@@ -1379,16 +1379,16 @@ function App() {
               background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
               borderLeft: isDiana ? `3px solid ${C.rose}` : `3px solid ${C.border}`,
             }}>
-              <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>"{q.text}"</div>
+              <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>"{q.text}"</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, color: isDiana ? C.rose : C.muted, fontWeight: 600 }}>— {q.author}</span>
-                  <span style={{ fontSize: 12, background: C.beige, padding: '2px 8px', borderRadius: 20, color: C.muted, fontWeight: 600 }}>
+                  <span style={{ fontSize: 19, color: isDiana ? C.rose : C.muted, fontWeight: 600 }}>— {q.author}</span>
+                  <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: C.muted, fontWeight: 600 }}>
                     {catLabels[q.cat] || q.cat}
                   </span>
                 </div>
                 <button onClick={() => toggleFavQuote(globalIdx)} style={{
-                  background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', padding: 4,
+                  background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', padding: 4,
                 }}>
                   {isFav ? '❤️' : '🤍'}
                 </button>
@@ -1412,8 +1412,8 @@ function App() {
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #B8A9C9, #D4C4E0)', borderRadius: 18, padding: 20, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Mi Toolkit</div>
-        <div style={{ fontSize: 15, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
-        <div style={{ fontSize: 13, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
+        <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
+        <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
       </div>
 
       {/* Category chips with counts */}
@@ -1421,7 +1421,7 @@ function App() {
         <button onClick={() => setToolFilter('todas')} style={{
           padding: '6px 14px', borderRadius: 20, border: `2px solid ${toolFilter === 'todas' ? C.rose : C.border}`,
           background: toolFilter === 'todas' ? C.rose : C.card, color: toolFilter === 'todas' ? 'white' : C.muted,
-          fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+          fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
         }}>
           Todas ({toolkitItems.length})
         </button>
@@ -1430,7 +1430,7 @@ function App() {
             <button key={cat.id} onClick={() => setToolFilter(cat.id)} style={{
               padding: '6px 14px', borderRadius: 20, border: `2px solid ${toolFilter === cat.id ? cat.color : C.border}`,
               background: toolFilter === cat.id ? cat.color : C.card, color: toolFilter === cat.id ? 'white' : C.muted,
-              fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+              fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>
               {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label} ({toolkitCounts[cat.id]})
             </button>
@@ -1441,18 +1441,18 @@ function App() {
       {/* Add new resource */}
       {showAddTool ? (
         <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: C.text }}>Agregar recurso</div>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: C.text }}>Agregar recurso</div>
 
           <input value={newToolName} onChange={e => setNewToolName(e.target.value)} placeholder="Nombre (ej: Podcast de Jay Shetty)"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
           />
 
           <input value={newToolUrl} onChange={e => setNewToolUrl(e.target.value)} placeholder="Link (ej: https://spotify.com/...)"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
           />
 
           <input value={newToolNote} onChange={e => setNewToolNote(e.target.value)} placeholder="Nota (opcional)"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
           />
 
           {/* Category selector */}
@@ -1462,7 +1462,7 @@ function App() {
                 padding: '5px 10px', borderRadius: 20, border: `2px solid ${cat.color}`,
                 background: newToolCat === cat.id ? cat.color : 'transparent',
                 color: newToolCat === cat.id ? 'white' : cat.color,
-                fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label}
               </button>
@@ -1470,10 +1470,10 @@ function App() {
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={addToolkitItem} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={addToolkitItem} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               Guardar
             </button>
-            <button onClick={() => setShowAddTool(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+            <button onClick={() => setShowAddTool(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
               Cancelar
             </button>
           </div>
@@ -1481,7 +1481,7 @@ function App() {
       ) : (
         <button onClick={() => setShowAddTool(true)} style={{
           padding: 14, borderRadius: 12, border: `2px dashed ${C.roseLight}`, background: 'transparent',
-          color: C.rose, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          color: C.rose, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
           + Agregar recurso
         </button>
@@ -1499,15 +1499,15 @@ function App() {
               }}>
                 <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</div>
-                  {item.note && <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.note}</div>}
+                  <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{item.name}</div>
+                  {item.note && <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{item.note}</div>}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                    <span style={{ fontSize: 12, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.color, fontWeight: 700 }}>
+                    <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.color, fontWeight: 700 }}>
                       {cat.label}
                     </span>
                     {item.url && (
                       <a href={item.url.startsWith('http') ? item.url : `https://${item.url}`} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: 13, color: C.rose, fontWeight: 700, textDecoration: 'none' }}
+                        style={{ fontSize: 19, color: C.rose, fontWeight: 700, textDecoration: 'none' }}
                         onClick={e => e.stopPropagation()}>
                         Abrir →
                       </a>
@@ -1515,7 +1515,7 @@ function App() {
                   </div>
                 </div>
                 <button onClick={() => removeToolkitItem(item.id)} style={{
-                  background: 'none', border: 'none', fontSize: 14, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0,
+                  background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0,
                 }}>✕</button>
               </div>
             )
@@ -1524,10 +1524,10 @@ function App() {
       ) : (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
           <div style={{ fontSize: 36, marginBottom: 10, color: C.mint, opacity: 0.4 }}>●</div>
-          <div style={{ fontSize: 15, fontWeight: 600 }}>
+          <div style={{ fontSize: 19, fontWeight: 600 }}>
             {toolFilter === 'todas' ? 'Tu toolkit está vacío' : 'No hay recursos en esta categoría'}
           </div>
-          <div style={{ fontSize: 14, marginTop: 4 }}>Agrega tus podcasts, libros, cursos y más</div>
+          <div style={{ fontSize: 20, marginTop: 4 }}>Agrega tus podcasts, libros, cursos y más</div>
         </div>
       )}
     </div>
@@ -1611,13 +1611,13 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+        <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
           Comunidad Ronda
         </div>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
           No estás sola. Pregunta lo que necesites.
         </div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
           Tú eres anónima. Nuestras profesionales están verificadas ✓
         </div>
       </div>
@@ -1629,7 +1629,7 @@ function App() {
             padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: boardFilter === cat.id ? cat.color : C.card,
             color: boardFilter === cat.id ? 'white' : C.text,
-            fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 20, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
             boxShadow: boardFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
@@ -1645,12 +1645,12 @@ function App() {
           padding: '14px 18px', borderRadius: 16, border: `2px dashed ${C.roseLight}`,
           background: C.card, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
         }}>
-          <div style={{ fontSize: 14, color: C.muted }}>¿Qué necesitas hoy? Escribe aquí...</div>
-          <div style={{ fontSize: 11, color: C.subtle, marginTop: 4 }}>Tu publicación es anónima. Solo profesionales verificadas responden.</div>
+          <div style={{ fontSize: 20, color: C.muted }}>¿Qué necesitas hoy? Escribe aquí...</div>
+          <div style={{ fontSize: 19, color: C.subtle, marginTop: 4 }}>Tu publicación es anónima. Solo profesionales verificadas responden.</div>
         </button>
       ) : (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
             🔒 Publicación anónima
           </div>
           {/* Category selector */}
@@ -1660,7 +1660,7 @@ function App() {
                 padding: '4px 10px', borderRadius: 12, border: boardNewCat === cat.id ? 'none' : `1px solid ${C.border}`, cursor: 'pointer',
                 background: boardNewCat === cat.id ? cat.color : C.card,
                 color: boardNewCat === cat.id ? 'white' : C.muted,
-                fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                fontSize: 19, fontWeight: 600, fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', gap: 4,
               }}>
                 <span style={{ flexShrink: 0, display: 'flex' }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](boardNewCat === cat.id ? 'white' : cat.color, 14) : <span style={{ width: 6, height: 6, borderRadius: '50%', background: boardNewCat === cat.id ? 'white' : cat.color }} />}</span>
@@ -1675,19 +1675,19 @@ function App() {
             rows={4}
             style={{
               width: '100%', border: `1px solid ${C.border}`, borderRadius: 12, padding: 14,
-              fontSize: 14, fontFamily: 'inherit', resize: 'vertical', outline: 'none',
+              fontSize: 20, fontFamily: 'inherit', resize: 'vertical', outline: 'none',
               lineHeight: 1.6, background: C.cream, color: C.text, boxSizing: 'border-box',
             }}
           />
           <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
             <button onClick={() => setBoardShowForm(false)} style={{
               flex: 1, padding: '10px 16px', borderRadius: 12, border: `1px solid ${C.border}`,
-              background: 'none', color: C.muted, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              background: 'none', color: C.muted, fontSize: 20, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
             }}>Cancelar</button>
             <button onClick={addBoardPost} style={{
               flex: 1, padding: '10px 16px', borderRadius: 12, border: 'none',
               background: boardNewText.trim() ? C.rose : C.border, color: 'white',
-              fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             }}>Publicar </button>
           </div>
         </div>
@@ -1704,15 +1704,15 @@ function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
                 width: 32, height: 32, borderRadius: '50%', background: C.cream,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
               }}>🔒</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Anónima</div>
-                <div style={{ fontSize: 11, color: C.subtle }}>{post.time}</div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>Anónima</div>
+                <div style={{ fontSize: 19, color: C.subtle }}>{post.time}</div>
               </div>
             </div>
             <span style={{
-              padding: '3px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600,
+              padding: '3px 10px', borderRadius: 10, fontSize: 19, fontWeight: 600,
               background: `${C.rose}15`, color: C.roseDark,
             }}>
               {ICONS['cat_'+post.cat] ? ICONS['cat_'+post.cat]((BOARD_CATS.find(c => c.id === post.cat) || {}).color, 14) : null}
@@ -1721,7 +1721,7 @@ function App() {
           </div>
 
           {/* Post content */}
-          <div style={{ fontSize: 14, color: C.text, lineHeight: 1.7, marginBottom: 12 }}>
+          <div style={{ fontSize: 20, color: C.text, lineHeight: 1.7, marginBottom: 12 }}>
             {post.content}
           </div>
 
@@ -1733,7 +1733,7 @@ function App() {
             cursor: 'pointer', fontFamily: 'inherit',
           }}>
             <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '' : '🤍'}</span>
-            <span style={{ fontSize: 12, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
+            <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
               {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
             </span>
           </button>
@@ -1751,21 +1751,21 @@ function App() {
                   width: 36, height: 36, borderRadius: '50%',
                   background: `${C.teal}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: 14, fontWeight: 700,
+                  color: 'white', fontSize: 20, fontWeight: 700,
                 }}>{reply.pro.name.charAt(0)}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{reply.pro.name}</span>
+                    <span style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{reply.pro.name}</span>
                     {reply.pro.verified && <span style={{
-                      fontSize: 10, background: C.gold, color: 'white', padding: '1px 6px',
+                      fontSize: 20, background: C.gold, color: 'white', padding: '1px 6px',
                       borderRadius: 8, fontWeight: 700,
                     }}>✓ Verificada</span>}
                   </div>
-                  <div style={{ fontSize: 11, color: C.muted }}>{reply.pro.title}</div>
+                  <div style={{ fontSize: 19, color: C.muted }}>{reply.pro.title}</div>
                 </div>
               </div>
               {/* Reply content */}
-              <div style={{ fontSize: 13, color: C.text, lineHeight: 1.7 }}>
+              <div style={{ fontSize: 19, color: C.text, lineHeight: 1.7 }}>
                 {reply.text}
               </div>
             </div>
@@ -1778,13 +1778,13 @@ function App() {
         textAlign: 'center', padding: 24, background: C.card, borderRadius: 16,
         border: `1px solid ${C.roseLight}`,
       }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 6 }}>
           ¿Eres profesional de la salud mental?
         </div>
-        <div style={{ fontSize: 12, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           Únete como profesional verificada y ayuda a miles de mujeres que necesitan apoyo.
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose }}>
+        <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
           Escríbenos → hola@rondahub.com
         </div>
       </div>
@@ -1802,7 +1802,7 @@ function App() {
           padding: '8px 18px', borderRadius: 20, border: active === t.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
           background: active === t.id ? color : C.card,
           color: active === t.id ? 'white' : C.text,
-          fontSize: 13, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+          fontSize: 19, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
           boxShadow: active === t.id ? `0 2px 10px ${color}40` : 'none',
           transition: 'all 0.15s',
         }}>
@@ -1845,13 +1845,13 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+        <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
           Directorio Ronda
         </div>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
           Mujeres que te acompañan en el camino
         </div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
           Profesionales y negocios verificados por la comunidad ✓
         </div>
       </div>
@@ -1863,7 +1863,7 @@ function App() {
             padding: '6px 14px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: dirFilter === cat.id ? cat.color : C.card,
             color: dirFilter === cat.id ? 'white' : C.text,
-            fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 20, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
             boxShadow: dirFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
@@ -1892,33 +1892,33 @@ function App() {
             })()}
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{item.name}</span>
+                <span style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{item.name}</span>
                 {item.verified && <span style={{
-                  fontSize: 9, background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white', padding: '2px 6px',
+                  fontSize: 19, background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white', padding: '2px 6px',
                   borderRadius: 8, fontWeight: 700,
                 }}>✓ VERIFICADA</span>}
               </div>
-              <div style={{ fontSize: 12, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{item.city}</div>
+              <div style={{ fontSize: 20, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
+              <div style={{ fontSize: 20, color: C.muted, marginTop: 2 }}>{item.city}</div>
             </div>
           </div>
 
-          <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, marginTop: 12 }}>
+          <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.6, marginTop: 12 }}>
             {item.desc}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal }}>{item.rating}</span>
-              <span style={{ fontSize: 11, color: C.subtle }}>({item.reviews} reseñas)</span>
+              <span style={{ fontSize: 19, fontWeight: 700, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal }}>{item.rating}</span>
+              <span style={{ fontSize: 19, color: C.subtle }}>({item.reviews} reseñas)</span>
             </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: C.roseDark }}>{item.price}</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: C.roseDark }}>{item.price}</span>
           </div>
 
           <button style={{
             marginTop: 12, width: '100%', padding: '10px 16px', borderRadius: 12, border: 'none',
             background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white',
-            fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+            fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}>
             Contactar →
           </button>
@@ -1930,13 +1930,13 @@ function App() {
         textAlign: 'center', padding: 24, background: C.card, borderRadius: 16,
         border: `1px solid ${C.roseLight}`,
       }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 6 }}>
           ¿Tienes un negocio o eres profesional?
         </div>
-        <div style={{ fontSize: 12, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           Registra tu negocio en el Directorio Ronda y conecta con miles de mujeres.
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.rose }}>
+        <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
           Regístrate → hola@rondahub.com
         </div>
       </div>
@@ -1953,20 +1953,20 @@ function App() {
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         {feature}
       </div>
-      <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
+      <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
         {desc}
       </div>
       <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{price}</div>
-      <div style={{ fontSize: 12, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
+      <div style={{ fontSize: 20, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
       <button style={{
         padding: '14px 32px', borderRadius: 14, border: 'none',
         background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
-        fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         boxShadow: '0 4px 16px rgba(201,169,110,0.3)',
       }}>
         Desbloquear Ronda Premium ✨
       </button>
-      <div style={{ fontSize: 11, color: C.subtle, marginTop: 12 }}>
+      <div style={{ fontSize: 19, color: C.subtle, marginTop: 12 }}>
         Próximamente · Te avisamos cuando esté disponible
       </div>
     </div>
@@ -2019,7 +2019,7 @@ function App() {
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
           Crea tu programa personalizado
         </div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
           Dime qué quieres lograr y te armo un programa paso a paso, a tu ritmo.
         </div>
       </div>
@@ -2027,7 +2027,7 @@ function App() {
       {/* Step 0: Intro / Examples */}
       {aiStep === 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             ¿Qué quieres lograr? Por ejemplo:
           </div>
           {[
@@ -2047,10 +2047,10 @@ function App() {
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${[C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i]}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <div style={{ width: 12, height: 12, borderRadius: '50%', background: [C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i] }} />
               </div>
-              <span style={{ fontSize: 14, color: C.text, fontWeight: 600, fontFamily: 'inherit' }}>{ex.goal}</span>
+              <span style={{ fontSize: 20, color: C.text, fontWeight: 600, fontFamily: 'inherit' }}>{ex.goal}</span>
             </button>
           ))}
-          <div style={{ textAlign: 'center', fontSize: 12, color: C.subtle, marginTop: 4 }}>
+          <div style={{ textAlign: 'center', fontSize: 20, color: C.subtle, marginTop: 4 }}>
             O escribe el tuyo propio ↓
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -2060,13 +2060,13 @@ function App() {
               placeholder="Escribe tu meta aquí..."
               style={{
                 flex: 1, padding: '14px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`,
-                fontSize: 14, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none',
+                fontSize: 20, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none',
               }}
             />
             <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} style={{
               padding: '14px 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
               background: aiGoal.trim() ? C.rose : C.border, color: 'white',
-              fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+              fontSize: 20, fontWeight: 700, fontFamily: 'inherit',
             }}>→</button>
           </div>
         </div>
@@ -2079,14 +2079,14 @@ function App() {
             background: `linear-gradient(135deg, ${C.rose}15, ${C.gold}10)`,
             borderRadius: 16, padding: 20, border: `1px solid ${C.roseLight}`,
           }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
               Tu meta
             </div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.text, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, lineHeight: 1.4 }}>
               "{aiGoal}"
             </div>
           </div>
-          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6 }}>
             ¿Quieres contarme algo más? Por ejemplo: hace cuánto lo intentas, qué te ha costado, tu situación actual. Entre más me cuentes, mejor tu programa.
           </div>
           <textarea
@@ -2096,21 +2096,21 @@ function App() {
             rows={3}
             style={{
               padding: '14px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`,
-              fontSize: 14, fontFamily: 'inherit', background: C.cream, color: C.text,
+              fontSize: 20, fontFamily: 'inherit', background: C.cream, color: C.text,
               outline: 'none', resize: 'none', lineHeight: 1.6,
             }}
           />
-          {aiError && <div style={{ fontSize: 13, color: '#D32F2F', fontWeight: 600 }}>{aiError}</div>}
+          {aiError && <div style={{ fontSize: 19, color: '#D32F2F', fontWeight: 600 }}>{aiError}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{
               flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
-              background: C.card, color: C.muted, fontSize: 14, fontWeight: 700,
+              background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
               cursor: 'pointer', fontFamily: 'inherit',
             }}>← Atrás</button>
             <button onClick={generateAiProgram} style={{
               flex: 2, padding: '14px', borderRadius: 14, border: 'none',
               background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white',
-              fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             }}>Crear mi programa ✨</button>
           </div>
         </div>
@@ -2120,10 +2120,10 @@ function App() {
       {aiStep === 3 && (
         <div style={{ textAlign: 'center', padding: 40 }}>
           <div style={{ fontSize: 44, marginBottom: 16, color: C.teal, animation: 'pulse 1.5s ease-in-out infinite' }}>●</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 8 }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>
             Creando tu programa...
           </div>
-          <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.6 }}>
             Estoy analizando tu meta y armando cada paso para que sea alcanzable, suave y progresivo. Dame un momento.
           </div>
           <style>{`@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }`}</style>
@@ -2142,8 +2142,8 @@ function App() {
             <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>
               {aiProgram.title}
             </div>
-            <div style={{ fontSize: 13, color: C.muted, marginTop: 6 }}>{aiProgram.desc}</div>
-            <div style={{ fontSize: 11, color: C.rose, fontWeight: 700, marginTop: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 6 }}>{aiProgram.desc}</div>
+            <div style={{ fontSize: 19, color: C.rose, fontWeight: 700, marginTop: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               {aiProgram.days?.length || 7} días · Creado por IA para ti
             </div>
           </div>
@@ -2157,12 +2157,12 @@ function App() {
               <div style={{
                 width: 32, height: 32, borderRadius: 10, background: `${C.rose}15`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                fontSize: 16,
+                fontSize: 20,
               }}>{d.emoji}</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: C.rose, textTransform: 'uppercase' }}>Día {d.day}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginTop: 2 }}>{d.title}</div>
-                <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{d.task}</div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, textTransform: 'uppercase' }}>Día {d.day}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 2 }}>{d.title}</div>
+                <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{d.task}</div>
               </div>
             </div>
           ))}
@@ -2172,23 +2172,23 @@ function App() {
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={resetAiAgent} style={{
                 flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
-                background: C.card, color: C.muted, fontSize: 14, fontWeight: 700,
+                background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>Empezar de nuevo</button>
               <button onClick={saveAiProgram} style={{
                 flex: 2, padding: '14px', borderRadius: 14, border: 'none',
                 background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
-                fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>Guardar y empezar 🚀</button>
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: 20, background: `${C.green}10`, borderRadius: 16, border: `1px solid ${C.green}30` }}>
               <div style={{ fontSize: 24, marginBottom: 8, color: C.teal }}>●</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.green }}>¡Programa guardado!</div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.green }}>¡Programa guardado!</div>
+              <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
               <button onClick={resetAiAgent} style={{
                 marginTop: 12, padding: '10px 24px', borderRadius: 12, border: 'none',
-                background: C.rose, color: 'white', fontSize: 13, fontWeight: 700,
+                background: C.rose, color: 'white', fontSize: 19, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>Crear otro programa</button>
             </div>
@@ -2206,11 +2206,11 @@ function App() {
           {(profile.name || 'R').charAt(0).toUpperCase()}
         </div>
         <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{profile.name || 'Tu nombre'}</div>
-        {profile.city && <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
-        {profile.bio && <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
+        {profile.city && <div style={{ fontSize: 20, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
+        {profile.bio && <div style={{ fontSize: 20, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
         <button onClick={() => setEditingProfile(!editingProfile)} style={{
           marginTop: 14, padding: '8px 20px', borderRadius: 20, border: '2px solid rgba(255,255,255,0.5)',
-          background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 13, fontWeight: 700,
+          background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 19, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit',
         }}>
           {editingProfile ? 'Cerrar edición' : 'Editar perfil'}
@@ -2220,10 +2220,10 @@ function App() {
       {/* Edit form */}
       {editingProfile && (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 14 }}>Editar perfil</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 14 }}>Editar perfil</div>
 
           {/* Avatar picker */}
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Tu avatar</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Tu avatar</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             {AVATARS.map(a => (
               <button key={a} onClick={() => updateProfile('emoji', a)} style={{
@@ -2236,30 +2236,30 @@ function App() {
             ))}
           </div>
 
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</div>
           <input value={profile.name} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
           />
 
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Ciudad</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Ciudad</div>
           <input value={profile.city} onChange={e => updateProfile('city', e.target.value)} placeholder="¿De dónde eres?"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
           />
 
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Bio</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Bio</div>
           <textarea value={profile.bio} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..."
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Mi intención</div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Mi intención</div>
           <textarea value={profile.intention} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 15, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
           <button onClick={() => setEditingProfile(false)} style={{
             width: '100%', padding: 12, borderRadius: 12, border: 'none',
             background: C.teal, color: 'white',
-            fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
+            fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
           }}>
             Guardar ✨
           </button>
@@ -2269,14 +2269,14 @@ function App() {
       {/* Intention card */}
       {profile.intention && !editingProfile && (
         <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.gold}` }}>
-          <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.gold, marginBottom: 6 }}>Mi intención</div>
-          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.6 }}>{profile.intention}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.gold, marginBottom: 6 }}>Mi intención</div>
+          <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6 }}>{profile.intention}</div>
         </div>
       )}
 
       {/* Stats */}
       <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mis estadísticas</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.muted, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mis estadísticas</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {[
             { label: 'Días activa', value: profileStats.daysActive, color: C.teal },
@@ -2291,7 +2291,7 @@ function App() {
                 <div style={{ width: 14, height: 14, borderRadius: '50%', background: stat.color }} />
               </div>
               <div style={{ fontSize: 22, fontWeight: 900, color: stat.color }}>{stat.value}</div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: C.muted, marginTop: 4 }}>{stat.label}</div>
+              <div style={{ fontSize: 19, fontWeight: 600, color: C.muted, marginTop: 4 }}>{stat.label}</div>
             </div>
           ))}
         </div>
@@ -2299,7 +2299,7 @@ function App() {
 
       {/* Dimensions breakdown */}
       <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: C.muted, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mis dimensiones hoy</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.muted, marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mis dimensiones hoy</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {Object.entries(DIMS).map(([dim, cfg]) => {
             const s = dimStats[dim]
@@ -2307,8 +2307,8 @@ function App() {
             return (
               <div key={dim}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: cfg.color }}>{ICONS[cfg.icon] ? ICONS[cfg.icon](cfg.color, 16) : ''} {cfg.label}</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: cfg.color }}>{pct}%</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: cfg.color }}>{ICONS[cfg.icon] ? ICONS[cfg.icon](cfg.color, 16) : ''} {cfg.label}</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: cfg.color }}>{pct}%</span>
                 </div>
                 <Bar value={pct} color={cfg.color} />
               </div>
@@ -2320,10 +2320,10 @@ function App() {
       {/* Sign out */}
       {isConfigured && user && (
         <div style={{ textAlign: 'center', marginTop: 8 }}>
-          <div style={{ fontSize: 12, color: C.subtle, marginBottom: 8 }}>{user.email}</div>
+          <div style={{ fontSize: 20, color: C.subtle, marginBottom: 8 }}>{user.email}</div>
           <button onClick={signOut} style={{
             padding: '10px 28px', borderRadius: 12, border: `1.5px solid ${C.border}`,
-            background: C.card, color: C.muted, fontSize: 14, fontWeight: 700,
+            background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'inherit',
           }}>
             Cerrar sesión
@@ -2359,11 +2359,11 @@ function App() {
       <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
         Tu espacio de crecimiento
       </div>
-      <div style={{ fontSize: 18, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 40 }}>
+      <div style={{ fontSize: 20, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 40 }}>
         Creces tú, crecemos todas
       </div>
       <div style={{ width: 60, height: 1, background: C.roseLight, marginBottom: 40 }} />
-      <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
+      <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
         Un lugar para cultivar tus hábitos, conectar con tu intención y crecer en cada dimensión de tu vida.
       </div>
     </div>,
@@ -2373,7 +2373,7 @@ function App() {
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         4 dimensiones, 1 tú
       </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 32, maxWidth: 280 }}>
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 32, maxWidth: 280 }}>
         En Ronda trabajamos tu crecimiento desde cuatro pilares fundamentales
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, width: '100%', maxWidth: 320 }}>
@@ -2384,7 +2384,7 @@ function App() {
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
           }}>
             {ICONS[cfg.icon](cfg.color, 40)}
-            <div style={{ fontSize: 15, fontWeight: 800, color: cfg.color }}>{cfg.label}</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: cfg.color }}>{cfg.label}</div>
           </div>
         ))}
       </div>
@@ -2395,29 +2395,29 @@ function App() {
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         Tu día con Ronda
       </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
         Ronda te acompaña mañana y noche
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           {ICONS.sol(C.gold, 32)}
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.gold }}>En la mañana</div>
-            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Qué quieres lograr hoy?" y activas tus hábitos</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.gold }}>En la mañana</div>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Qué quieres lograr hoy?" y activas tus hábitos</div>
           </div>
         </div>
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           {ICONS.habito(C.green, 32)}
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.green }}>Durante el día</div>
-            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Trackea tus hábitos, sigue tu rutina y escucha recomendaciones según tu mood</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.green }}>Durante el día</div>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Trackea tus hábitos, sigue tu rutina y escucha recomendaciones según tu mood</div>
           </div>
         </div>
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
           {ICONS.luna(C.roseDark, 32)}
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.roseDark }}>En la noche</div>
-            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Cómo te fue?" — revisa tu resumen y reflexiona</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.roseDark }}>En la noche</div>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Cómo te fue?" — revisa tu resumen y reflexiona</div>
           </div>
         </div>
       </div>
@@ -2428,7 +2428,7 @@ function App() {
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         Programas paso a paso
       </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
         Caminos de 7 días para sanar, crecer y brillar. 1 minuto al día.
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
@@ -2440,13 +2440,13 @@ function App() {
           }}>
             {ICONS[prog.id](prog.color, 28)}
             <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{prog.title}</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{prog.days.length} días · 1 min/día</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
+              <div style={{ fontSize: 20, color: C.muted, marginTop: 2 }}>{prog.days.length} días · 1 min/día</div>
             </div>
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 13, color: C.muted, marginTop: 20, maxWidth: 280, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 19, color: C.muted, marginTop: 20, maxWidth: 280, lineHeight: 1.5 }}>
         Además, te recomendamos podcasts, música y hábitos según cómo te sientes cada día.
       </div>
     </div>,
@@ -2456,7 +2456,7 @@ function App() {
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         Todo lo que necesitas
       </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 28 }}>
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28 }}>
         Herramientas diseñadas para tu crecimiento
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
@@ -2472,8 +2472,8 @@ function App() {
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '10px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left' }}>
             <div style={{ flexShrink: 0 }}>{item.icon}</div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: C.text }}>{item.title}</div>
-              <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{item.desc}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{item.title}</div>
+              <div style={{ fontSize: 20, color: C.muted, marginTop: 1 }}>{item.desc}</div>
             </div>
           </div>
         ))}
@@ -2485,10 +2485,10 @@ function App() {
       <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 6 }}>
         Escoge tus hábitos
       </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
         Toca los que quieras practicar. Siempre puedes cambiarlos después.
       </div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, marginBottom: 8 }}>
+      <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, marginBottom: 8 }}>
         {onboardHabits.length} seleccionados
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 340, marginBottom: 24 }}>
@@ -2507,13 +2507,13 @@ function App() {
               <div style={{
                 width: 22, height: 22, borderRadius: 6, border: `2px solid ${selected ? dim.color : C.border}`,
                 background: selected ? dim.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                color: 'white', fontSize: 20, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
               }}>
                 {selected && '✓'}
               </div>
               <div style={{ flex: 1, textAlign: 'left' }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{sh.name}</div>
-                <div style={{ fontSize: 11, color: dim.color, fontWeight: 700 }}>{dim.label}</div>
+                <div style={{ fontSize: 20, fontWeight: 600, color: C.text }}>{sh.name}</div>
+                <div style={{ fontSize: 19, color: dim.color, fontWeight: 700 }}>{dim.label}</div>
               </div>
             </div>
           )
@@ -2522,13 +2522,13 @@ function App() {
       <button onClick={finishOnboarding} style={{
         padding: '14px 40px', borderRadius: 30,
         background: `${C.teal}`,
-        color: 'white', fontSize: 17, fontWeight: 800, border: 'none',
+        color: 'white', fontSize: 19, fontWeight: 800, border: 'none',
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
         boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
       }}>
         Comenzar mi Ronda
       </button>
-      <div style={{ fontSize: 12, color: C.muted, marginTop: 12 }}>
+      <div style={{ fontSize: 20, color: C.muted, marginTop: 12 }}>
         También puedes crear hábitos propios después
       </div>
     </div>,
@@ -2548,7 +2548,7 @@ function App() {
         }}>
           <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
         </div>
-        <div style={{ fontSize: 16, color: C.muted, fontWeight: 600 }}>Cargando...</div>
+        <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>Cargando...</div>
       </div>
     )
   }
@@ -2589,7 +2589,7 @@ function App() {
               {onboardStep > 0 && (
                 <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
                   padding: '12px 28px', borderRadius: 25, border: `2px solid ${C.roseLight}`,
-                  background: 'transparent', color: C.muted, fontSize: 15, fontWeight: 700,
+                  background: 'transparent', color: C.muted, fontSize: 19, fontWeight: 700,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}>
                   Atrás
@@ -2598,7 +2598,7 @@ function App() {
               <button onClick={() => setOnboardStep(onboardStep + 1)} style={{
                 padding: '12px 32px', borderRadius: 25, border: 'none',
                 background: `${C.teal}`,
-                color: 'white', fontSize: 15, fontWeight: 800,
+                color: 'white', fontSize: 19, fontWeight: 800,
                 cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 12px rgba(27,138,122,0.3)',
               }}>
@@ -2633,19 +2633,19 @@ function App() {
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿qué quieres lograr hoy?` : '¿Qué quieres lograr hoy?'}
           </div>
-          <div style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>Activa tus hábitos del día y define tu intención</div>
+          <div style={{ fontSize: 20, color: C.muted, marginTop: 6 }}>Activa tus hábitos del día y define tu intención</div>
         </div>
 
         {/* Habit toggles */}
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
           Mis hábitos de hoy
         </div>
         {habits.length === 0 ? (
           <div style={{ padding: '16px 14px', background: C.cream, borderRadius: 12, border: `1px dashed ${C.roseLight}`, marginBottom: 18, textAlign: 'center' }}>
-            <div style={{ fontSize: 14, color: C.muted, marginBottom: 8 }}>Aún no tienes hábitos</div>
+            <div style={{ fontSize: 20, color: C.muted, marginBottom: 8 }}>Aún no tienes hábitos</div>
             <button onClick={() => { setShowMorningCheckin(false); setView('yo'); setSubTab('habitos') }} style={{
               padding: '8px 18px', borderRadius: 20, border: 'none',
-              background: C.rose, color: 'white', fontSize: 13, fontWeight: 700,
+              background: C.rose, color: 'white', fontSize: 19, fontWeight: 700,
               cursor: 'pointer', fontFamily: 'inherit',
             }}>
               Escoger mis hábitos
@@ -2665,11 +2665,11 @@ function App() {
                   <div style={{
                     width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked[h.id] ? C.green : dim.color}`,
                     background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontSize: 12, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                    color: 'white', fontSize: 20, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
                   }}>
                     {checked[h.id] && '✓'}
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
+                  <span style={{ fontSize: 20, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
                     textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
                     {ICONS[dim.icon] ? ICONS[dim.icon](dim.color, 16) : ''} {h.name}
                   </span>
@@ -2680,7 +2680,7 @@ function App() {
         )}
 
         {/* Intention */}
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
           Mi intención del día
         </div>
         <textarea
@@ -2689,7 +2689,7 @@ function App() {
           placeholder="Hoy quiero..."
           style={{
             width: '100%', minHeight: 70, padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
-            fontSize: 15, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
+            fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
             boxSizing: 'border-box', background: C.cream,
           }}
         />
@@ -2697,7 +2697,7 @@ function App() {
         <button onClick={completeMorningCheckin} style={{
           marginTop: 16, width: '100%', padding: 16, borderRadius: 16, border: 'none',
           background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
-          color: 'white', fontSize: 17, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+          color: 'white', fontSize: 19, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
           boxShadow: '0 6px 20px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
         }}>
           Comenzar mi día
@@ -2715,32 +2715,32 @@ function App() {
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
           </div>
-          <div style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>Revisa tu día y cierra con una reflexión</div>
+          <div style={{ fontSize: 20, color: C.muted, marginTop: 6 }}>Revisa tu día y cierra con una reflexión</div>
         </div>
 
         {/* Summary */}
         <div style={{ background: C.cream, borderRadius: 16, padding: 18, marginBottom: 18 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
             Resumen del día
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: 14 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 30, fontWeight: 900, color: C.rose }}>{totalDone}</div>
-              <div style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>completados</div>
+              <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>completados</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 30, fontWeight: 900, color: C.subtle }}>{totalHabits - totalDone}</div>
-              <div style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>pendientes</div>
+              <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>pendientes</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 30, fontWeight: 900, color: C.gold }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</div>
-              <div style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>progreso</div>
+              <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>progreso</div>
             </div>
           </div>
           {/* Uncompleted habits */}
           {habits.filter(h => !checked[h.id]).length > 0 && (
             <div>
-              <div style={{ fontSize: 12, color: C.muted, fontWeight: 600, marginBottom: 6 }}>Puedes completar aún:</div>
+              <div style={{ fontSize: 20, color: C.muted, fontWeight: 600, marginBottom: 6 }}>Puedes completar aún:</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {habits.filter(h => !checked[h.id]).map(h => (
                   <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
@@ -2751,7 +2751,7 @@ function App() {
                       width: 18, height: 18, borderRadius: 5, border: `2px solid ${DIMS[h.dim].color}`,
                       background: 'transparent', flexShrink: 0,
                     }} />
-                    <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)} {h.name}</span>
+                    <span style={{ fontSize: 19, color: C.text, fontWeight: 600 }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)} {h.name}</span>
                   </div>
                 ))}
               </div>
@@ -2760,7 +2760,7 @@ function App() {
         </div>
 
         {/* Mood */}
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>
           ¿Cómo te sientes?
         </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center' }}>
@@ -2770,7 +2770,7 @@ function App() {
               transition: 'all 0.15s', transform: nightMood === i ? 'scale(1.2)' : 'scale(1)', padding: 4,
             }}>
               {icon(36, nightMood === i)}
-              <div style={{ fontSize: 9, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
+              <div style={{ fontSize: 19, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
             </button>
           ))}
         </div>
@@ -2782,7 +2782,7 @@ function App() {
           placeholder="¿Qué aprendiste hoy? ¿Qué agradeces?"
           style={{
             width: '100%', minHeight: 80, padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
-            fontSize: 15, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
+            fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
             boxSizing: 'border-box', background: C.cream,
           }}
         />
@@ -2790,7 +2790,7 @@ function App() {
         <button onClick={completeNightCheckin} style={{
           marginTop: 16, width: '100%', padding: 16, borderRadius: 16, border: 'none',
           background: `linear-gradient(135deg, ${C.roseDark}, ${C.rose})`,
-          color: 'white', fontSize: 17, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+          color: 'white', fontSize: 19, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
           boxShadow: '0 6px 20px rgba(166,113,107,0.35)', letterSpacing: '0.02em',
         }}>
           Cerrar mi día
@@ -2823,7 +2823,7 @@ function App() {
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/>
         </svg>
       </div>
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>¿Necesitas apoyo?</span>
+      <span style={{ fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>¿Necesitas apoyo?</span>
     </button>
   )
 
@@ -2875,7 +2875,7 @@ function App() {
           border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
         }}>
-          <span style={{ color: 'white', fontSize: 18, lineHeight: 1 }}>←</span>
+          <span style={{ color: 'white', fontSize: 20, lineHeight: 1 }}>←</span>
         </button>
       )}
 
@@ -2887,10 +2887,10 @@ function App() {
           <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 8 }}>
             Estás a salvo.
           </div>
-          <div style={{ fontSize: 16, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 20, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
             Respira. Este momento va a pasar.
           </div>
-          <div style={{ fontSize: 13, color: '#C4908A', textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ fontSize: 19, color: '#C4908A', textAlign: 'center', marginBottom: 32 }}>
             Escoge lo que necesitas ahora mismo:
           </div>
 
@@ -2912,8 +2912,8 @@ function App() {
               }}>
                 <div style={{ fontSize: 28, minWidth: 40, textAlign: 'center' }}>{opt.icon}</div>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{opt.title}</div>
-                  <div style={{ fontSize: 12, color: '#D4F0EA', marginTop: 2 }}>{opt.sub}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{opt.title}</div>
+                  <div style={{ fontSize: 20, color: '#D4F0EA', marginTop: 2 }}>{opt.sub}</div>
                 </div>
               </button>
             ))}
@@ -2925,15 +2925,15 @@ function App() {
             background: 'rgba(201,169,110,0.2)', borderRadius: 16,
             border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',
           }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#C9A96E' }}>💬 Ir a la Comunidad</div>
-            <div style={{ fontSize: 12, color: '#D4F0EA', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: '#C9A96E' }}>💬 Ir a la Comunidad</div>
+            <div style={{ fontSize: 20, color: '#D4F0EA', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
           </button>
 
           <div style={{ marginTop: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: 12, color: '#C4908A', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
+            <div style={{ fontSize: 20, color: '#C4908A', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
             <a href="tel:106" style={{
               display: 'inline-block', padding: '10px 24px', borderRadius: 20,
-              background: '#1B8A7A', color: 'white', fontWeight: 700, fontSize: 14,
+              background: '#1B8A7A', color: 'white', fontWeight: 700, fontSize: 20,
               textDecoration: 'none',
             }}>
               📞 Línea 106 — Atención en crisis
@@ -2961,23 +2961,23 @@ function App() {
             </div>
           </div>
 
-          <div style={{ fontSize: 14, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 20, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
             {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
              breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
              '8 segundos — suelta todo, deja ir'}
           </div>
-          <div style={{ fontSize: 13, color: '#C4908A', marginBottom: 24 }}>
+          <div style={{ fontSize: 19, color: '#C4908A', marginBottom: 24 }}>
             Ciclo {Math.min(breatheCount + 1, 5)} de 5
           </div>
 
           {!breatheActive && breatheCount > 0 && (
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
-              <div style={{ fontSize: 14, color: '#D4F0EA', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
+              <div style={{ fontSize: 20, color: '#D4F0EA', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
               <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
                 padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 14,
+                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
                 fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>Repetir</button>
             </div>
@@ -2988,19 +2988,19 @@ function App() {
         {panicScreen === 'ground' && <>
           {groundStep < 5 ? (<>
             <div style={{ fontSize: 64, marginBottom: 16 }}>{GROUND_STEPS[groundStep].sense.split(' ')[0]}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>
+            <div style={{ fontSize: 19, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>
               {GROUND_STEPS[groundStep].sense}
             </div>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.4, marginBottom: 24 }}>
               {GROUND_STEPS[groundStep].prompt}
             </div>
-            <div style={{ fontSize: 14, color: '#D4F0EA', marginBottom: 32, textAlign: 'center' }}>
+            <div style={{ fontSize: 20, color: '#D4F0EA', marginBottom: 32, textAlign: 'center' }}>
               Tómate tu tiempo. No hay prisa.
             </div>
             <button onClick={() => setGroundStep(groundStep + 1)} style={{
               padding: '14px 36px', borderRadius: 20,
               background: GROUND_STEPS[groundStep].color, color: 'white',
-              fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 20, fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
             }}>
               Listo → {groundStep < 4 ? 'Siguiente sentido' : 'Terminar'}
             </button>
@@ -3009,17 +3009,17 @@ function App() {
             <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 12 }}>
               Estás aquí. Estás presente.
             </div>
-            <div style={{ fontSize: 15, color: '#D4F0EA', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 19, color: '#D4F0EA', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.
             </div>
             <button onClick={() => setGroundStep(0)} style={{
               padding: '12px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
-              border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 14,
+              border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
               fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginRight: 10,
             }}>Repetir</button>
             <button onClick={() => setPanicScreen('home')} style={{
               padding: '12px 28px', borderRadius: 20, background: C.rose,
-              border: 'none', color: 'white', fontSize: 14,
+              border: 'none', color: 'white', fontSize: 20,
               fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             }}>Volver</button>
           </>)}
@@ -3030,7 +3030,7 @@ function App() {
           <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 6 }}>
             Skills DBT
           </div>
-          <div style={{ fontSize: 13, color: '#D4F0EA', textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ fontSize: 19, color: '#D4F0EA', textAlign: 'center', marginBottom: 24 }}>
             Herramientas de regulación emocional. Escoge la que necesitas.
           </div>
 
@@ -3045,8 +3045,8 @@ function App() {
                 }}>
                   <div style={{ fontSize: 26 }}>{skill.icon}</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: 'white' }}>{skill.name}</div>
-                    <div style={{ fontSize: 11, color: '#D4F0EA', marginTop: 2 }}>{skill.desc}</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{skill.name}</div>
+                    <div style={{ fontSize: 19, color: '#D4F0EA', marginTop: 2 }}>{skill.desc}</div>
                   </div>
                   <span style={{ color: '#C4908A', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
                 </button>
@@ -3062,10 +3062,10 @@ function App() {
                       }}>
                         <div style={{
                           minWidth: 24, height: 24, borderRadius: '50%', background: C.rose,
-                          color: 'white', fontSize: 12, fontWeight: 800,
+                          color: 'white', fontSize: 20, fontWeight: 800,
                           display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
                         }}>{si + 1}</div>
-                        <div style={{ fontSize: 14, color: '#D4F0EA', lineHeight: 1.5 }}>{step}</div>
+                        <div style={{ fontSize: 20, color: '#D4F0EA', lineHeight: 1.5 }}>{step}</div>
                       </div>
                     ))}
                   </div>
@@ -3081,7 +3081,7 @@ function App() {
           <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 12 }}>
             Aceptación Radical
           </div>
-          <div style={{ fontSize: 14, color: '#D4F0EA', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 20, color: '#D4F0EA', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
             No significa que apruebas lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
           </div>
 
@@ -3099,10 +3099,10 @@ function App() {
               <div style={{
                 minWidth: 28, height: 28, borderRadius: '50%',
                 background: 'linear-gradient(135deg, #C4908A, #C9A96E)',
-                color: 'white', fontSize: 13, fontWeight: 800,
+                color: 'white', fontSize: 19, fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{step.num}</div>
-              <div style={{ fontSize: 14, color: '#D4F0EA', lineHeight: 1.6 }}>{step.text}</div>
+              <div style={{ fontSize: 20, color: '#D4F0EA', lineHeight: 1.6 }}>{step.text}</div>
             </div>
           ))}
 
@@ -3111,7 +3111,7 @@ function App() {
             background: 'rgba(201,169,110,0.15)', border: '1px solid rgba(201,169,110,0.3)',
             textAlign: 'center', width: '100%',
           }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#C9A96E', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#C9A96E', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.5 }}>
               "No puedo controlar lo que pasa.<br/>Pero puedo elegir cómo respondo.<br/>Y hoy elijo la paz."
             </div>
           </div>
