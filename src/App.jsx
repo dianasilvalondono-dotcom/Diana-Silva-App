@@ -2141,7 +2141,6 @@ function App() {
             background: `linear-gradient(135deg, ${C.rose}15, ${C.gold}10)`,
             borderRadius: 16, padding: 20, border: `1px solid ${C.roseLight}`, textAlign: 'center',
           }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>{aiProgram.emoji}</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>
               {aiProgram.title}
             </div>
@@ -2158,10 +2157,11 @@ function App() {
               border: `1px solid ${C.border}`, display: 'flex', alignItems: 'flex-start', gap: 12,
             }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 10, background: `${C.rose}15`,
+                width: 36, height: 36, borderRadius: '50%', background: `${C.teal}12`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                fontSize: 20,
-              }}>{d.emoji}</div>
+              }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: C.teal }}>{d.day}</span>
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, textTransform: 'uppercase' }}>Día {d.day}</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 2 }}>{d.title}</div>
@@ -2170,32 +2170,71 @@ function App() {
             </div>
           ))}
 
-          {/* Actions */}
+          {/* Free 7-day save */}
           {!aiSaved ? (
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <button onClick={saveAiProgram} style={{
+                width: '100%', padding: '14px', borderRadius: 14, border: 'none',
+                background: C.teal, color: 'white',
+                fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Guardar programa de 7 días (gratis)</button>
               <button onClick={resetAiAgent} style={{
-                flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
-                background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
+                width: '100%', padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`,
+                background: C.card, color: C.muted, fontSize: 15, fontWeight: 600,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>Empezar de nuevo</button>
-              <button onClick={saveAiProgram} style={{
-                flex: 2, padding: '14px', borderRadius: 14, border: 'none',
-                background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
-                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Guardar y empezar 🚀</button>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: 20, background: `${C.green}10`, borderRadius: 16, border: `1px solid ${C.green}30` }}>
-              <div style={{ fontSize: 24, marginBottom: 8, color: C.teal }}>●</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: C.green }}>¡Programa guardado!</div>
-              <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
+            <div style={{ textAlign: 'center', padding: 20, background: `${C.teal}08`, borderRadius: 16, border: `1px solid ${C.teal}20` }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: C.teal }}>Programa de 7 días guardado</div>
+              <div style={{ fontSize: 15, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
               <button onClick={resetAiAgent} style={{
-                marginTop: 12, padding: '10px 24px', borderRadius: 12, border: 'none',
-                background: C.rose, color: 'white', fontSize: 19, fontWeight: 700,
+                marginTop: 12, padding: '10px 24px', borderRadius: 14, border: 'none',
+                background: C.teal, color: 'white', fontSize: 15, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>Crear otro programa</button>
             </div>
           )}
+
+          {/* Upgrade options — longer programs */}
+          <div style={{ background: C.card, borderRadius: 16, padding: 20, border: `1px solid ${C.border}` }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 4 }}>
+              ¿Quieres ir más profundo?
+            </div>
+            <div style={{ fontSize: 14, color: C.muted, marginBottom: 14 }}>
+              Los programas más largos generan cambios sostenibles y duraderos.
+            </div>
+            {[
+              { days: 21, price: '$9.99', desc: 'Construye un hábito real', color: C.coral },
+              { days: 30, price: '$14.99', desc: 'Un mes de transformación', color: C.lavanda },
+              { days: 60, price: '$29.99', desc: 'Cambio profundo y sostenible', color: C.teal },
+            ].map(opt => (
+              <div key={opt.days} style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px',
+                background: C.cream, borderRadius: 12, marginBottom: 8, border: `1px solid ${C.border}`,
+              }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: '50%', background: `${opt.color}15`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: opt.color }}>{opt.days}d</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>Programa de {opt.days} días</div>
+                  <div style={{ fontSize: 13, color: C.muted }}>{opt.desc}</div>
+                </div>
+                <div style={{
+                  padding: '6px 14px', borderRadius: 20, background: opt.color, color: 'white',
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                }}>
+                  {opt.price}
+                </div>
+              </div>
+            ))}
+            <div style={{ fontSize: 12, color: C.subtle, marginTop: 8, textAlign: 'center' }}>
+              El pago se habilitará pronto
+            </div>
+          </div>
         </div>
       )}
     </div>
