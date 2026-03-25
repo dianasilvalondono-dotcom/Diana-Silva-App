@@ -198,6 +198,42 @@ function App() {
   useEffect(() => { save('diana-night', night) }, [night])
   useEffect(() => { save(`ronda-tomorrow-${todayKey()}`, tomorrowTasks) }, [tomorrowTasks])
 
+  // Day change detection — reset checks if app stays open overnight
+  useEffect(() => {
+    const checkDay = setInterval(() => {
+      const now = todayKey()
+      const stored = localStorage.getItem('ronda-current-day')
+      if (stored && stored !== now) {
+        // Day changed! Reset daily state
+        setChecked(load(`diana-checked-${now}`, {}))
+        setRoutineChecked(load(`diana-routine-${now}`, {}))
+        setMorningDone(false)
+        setNightDone(false)
+        localStorage.setItem('ronda-current-day', now)
+        window.location.reload() // Clean reload for new day
+      } else if (!stored) {
+        localStorage.setItem('ronda-current-day', now)
+      }
+    }, 60000) // Check every minute
+    localStorage.setItem('ronda-current-day', todayKey())
+    return () => clearInterval(checkDay)
+  }, [])
+
+  // Monthly habit history — build from localStorage keys
+  const monthlyHistory = useMemo(() => {
+    const history = {}
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
+    keys.forEach(key => {
+      const date = key.replace('diana-checked-', '')
+      try {
+        const data = JSON.parse(localStorage.getItem(key))
+        const doneCount = Object.values(data).filter(Boolean).length
+        if (doneCount > 0) history[date] = doneCount
+      } catch (e) {}
+    })
+    return history
+  }, [checked]) // recalc when today's checks change
+
   // Breathing timer for panic button
   useEffect(() => {
     if (!breatheActive) return
@@ -641,6 +677,57 @@ function App() {
           <span style={{ fontSize: 20, fontWeight: 800, color: C.rose }}>{totalDone}/{totalHabits}</span>
         </div>
         <Bar value={totalHabits > 0 ? (totalDone / totalHabits) * 100 : 0} />
+      </div>
+
+      {/* Monthly streak calendar */}
+      <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 10 }}>
+          Tu racha este mes
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, textAlign: 'center' }}>
+          {['L','M','X','J','V','S','D'].map(d => (
+            <div key={d} style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 2 }}>{d}</div>
+          ))}
+          {(() => {
+            const now = new Date()
+            const year = now.getFullYear(), month = now.getMonth()
+            const firstDay = new Date(year, month, 1).getDay()
+            const daysInMonth = new Date(year, month + 1, 0).getDate()
+            const offset = firstDay === 0 ? 6 : firstDay - 1 // Monday start
+            const cells = []
+            for (let i = 0; i < offset; i++) cells.push(<div key={`e${i}`} />)
+            for (let d = 1; d <= daysInMonth; d++) {
+              const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+              const isToday = dateStr === todayKey()
+              const count = monthlyHistory[dateStr] || 0
+              const bg = count > 0 ? (count >= totalHabits && totalHabits > 0 ? C.teal : `${C.teal}40`) : (isToday ? `${C.gold}20` : 'transparent')
+              cells.push(
+                <div key={d} style={{
+                  width: 28, height: 28, borderRadius: '50%', margin: '0 auto',
+                  background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: isToday ? 800 : 500,
+                  color: count >= totalHabits && totalHabits > 0 ? 'white' : (count > 0 ? C.teal : (isToday ? C.gold : C.subtle)),
+                  border: isToday ? `2px solid ${C.gold}` : 'none',
+                }}>{d}</div>
+              )
+            }
+            return cells
+          })()}
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 10, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: C.teal }} />
+            <span style={{ fontSize: 11, color: C.muted }}>Todos</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: `${C.teal}40` }} />
+            <span style={{ fontSize: 11, color: C.muted }}>Algunos</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', border: `2px solid ${C.gold}` }} />
+            <span style={{ fontSize: 11, color: C.muted }}>Hoy</span>
+          </div>
+        </div>
       </div>
 
       {/* Empty state — invite to pick habits */}
