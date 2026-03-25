@@ -111,10 +111,10 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
 
           <button type="submit" disabled={loading} style={{
             width: '100%', padding: 14, borderRadius: 12, border: 'none',
-            background: loading ? C.border : C.teal,
+            background: loading ? C.border : `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
             color: 'white', fontSize: 16, fontWeight: 800, cursor: loading ? 'default' : 'pointer',
             fontFamily: 'inherit', marginBottom: 16,
-            boxShadow: loading ? 'none' : '0 4px 12px rgba(27,138,122,0.3)',
+            boxShadow: loading ? 'none' : '0 4px 12px rgba(201,169,110,0.3)',
           }}>
             {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
           </button>

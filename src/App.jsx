@@ -1644,10 +1644,10 @@ function App() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {BOARD_CATS.map(cat => (
           <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
-            padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+            padding: '5px 12px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: boardFilter === cat.id ? cat.color : C.card,
             color: boardFilter === cat.id ? 'white' : C.text,
-            fontSize: 20, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 14, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
             boxShadow: boardFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
@@ -1878,10 +1878,10 @@ function App() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {DIRECTORIO_CATS.map(cat => (
           <button key={cat.id} onClick={() => setDirFilter(cat.id)} style={{
-            padding: '6px 14px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+            padding: '5px 12px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: dirFilter === cat.id ? cat.color : C.card,
             color: dirFilter === cat.id ? 'white' : C.text,
-            fontSize: 20, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 14, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
             boxShadow: dirFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
