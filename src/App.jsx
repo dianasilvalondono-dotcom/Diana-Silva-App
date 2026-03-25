@@ -1324,8 +1324,8 @@ function App() {
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
                 <button onClick={() => startProgram(prog.id)} style={{
-                  marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
-                  background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  marginTop: 12, padding: '10px 24px', borderRadius: 24, border: 'none',
+                  background: prog.color, color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 4px 12px ${prog.color}50`, letterSpacing: '0.03em',
                 }}>
                   Empezar →
                 </button>
@@ -1360,8 +1360,8 @@ function App() {
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
                 <button onClick={() => startProgram(prog.id)} style={{
-                  marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
-                  background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  marginTop: 12, padding: '10px 24px', borderRadius: 24, border: 'none',
+                  background: prog.color, color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 4px 12px ${prog.color}50`, letterSpacing: '0.03em',
                 }}>
                   Empezar →
                 </button>
@@ -1999,7 +1999,7 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{item.name}</span>
                 {item.verified && <span style={{
-                  fontSize: 19, background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white', padding: '2px 6px',
+                  fontSize: 19, background: catColor || C.teal, color: 'white', padding: '2px 6px',
                   borderRadius: 8, fontWeight: 700,
                 }}>✓ VERIFICADA</span>}
               </div>
@@ -2022,7 +2022,7 @@ function App() {
 
           <button style={{
             marginTop: 12, width: '100%', padding: '10px 16px', borderRadius: 12, border: 'none',
-            background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white',
+            background: catColor || C.teal, color: 'white',
             fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}>
             Contactar →
@@ -2594,7 +2594,7 @@ function App() {
         ].map((p, i) => (
           <div key={i} style={{ background: C.card, borderRadius: 12, padding: '10px 12px', textAlign: 'center', borderTop: `3px solid ${p.color}`, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.title}</div>
-            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>7 días gratis</div>
+            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>7 días · Freemium</div>
           </div>
         ))}
       </div>

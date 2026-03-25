@@ -110,29 +110,69 @@ Ronda es para TODAS las mujeres. Empezamos con latinas porque Diana es latina y 
 - "Comunidad como medicina"
 - "Ronda se gestó en 16 años" (no "se construyó en semanas")
 
-## 7. Modelo de negocio
-- **Freemium → Premium:** Gratis (7 días) → $9.99/mes (21 días) → $29.99/mes (60 días)
-- **Marketplace:** 10-15% comisión por servicio
-- **Featured Listings:** $29-$99/mes para profesionales
-- **Eventos:** $15-$50 por taller/masterclass
-- **Y1 proyectado:** $64K — $161K
+## 7. Talent Pot — El diferenciador de Ronda
+(Concepto nombrado por Imaginamos, marzo 2026)
+
+El **Talent Pot** es el pool de profesionales verificadas que son el corazón de Ronda. No es un directorio — es un ecosistema curado de mujeres profesionales que:
+- Responden en el Board 24/7
+- Dan sesiones 1:1 con video dentro de Ronda
+- Se certifican como Guías Ronda
+- Son las primeras en ser onboardeadas (10 Founding Professionals)
+- Crean contenido y lideran Círculos Privados
+
+**Nadie más tiene esto.** Las wellness apps tienen contenido. Las redes tienen comunidad. Ronda tiene el Talent Pot: profesionales reales, verificadas, integradas en todo el ecosistema.
+
+## 8. Tech Partnership — Imaginamos
+(Reunión 25 de marzo de 2026)
+
+- **Partner:** Imaginamos (creadores de Rappi)
+- **Modelo:** Híbrido (fee reducido + equity por milestones)
+- **Foco:** Comunidad primero, tech segundo
+- **Blindaje:** Proteger propiedad intelectual
+- **Riesgo identificado:** Retención del modelo freemium
+- **Next steps:** Imaginamos manda opciones (marzo 26)
+- **Contacto:** Tina (Imaginamos)
+
+## 9. Modelo de negocio v2
+
+### Freemium (siempre incluido en Freemium)
+- Botón SOS + DBT de emergencia
+- Programas de 7 días
+- Board: publicar + leer respuestas de comunidad
+- Hábitos 4D + rutina + diario básico
+
+### Membresías Premium
+| Tier | Precio | Incluye |
+|------|--------|---------|
+| **Ronda Plus** | $9.99/mes | AI Agent, programas 21 días, 5 respuestas profesionales/mes |
+| **Ronda Pro** | $29.99/mes | Todo Plus + programas 60 días, respuestas ilimitadas, video calls grupales, Círculos Privados |
+
+### Revenue adicional
+- **Respuesta Express:** $4.99/respuesta profesional en <2 horas
+- **Sesiones 1:1 + Video:** 15% comisión por sesión dentro de Ronda
+- **Featured Listings:** $29-$99/mes para profesionales en el directorio
+- **Certificación Ronda:** $299-$499 para certificarse como Guía Ronda
+- **Eventos/Talleres:** $15-$50 por masterclass
+- **Ronda Corporate:** $5-$15/empleada/mes (empresas como beneficio)
+
+### Total Y1 proyectado: $68K — $146K
+(Basado en supuestos de industria. Pre-seed — sin revenue validado.)
 
 ### Inversión Pre-Seed
 - **Ask: $250K por 10-12% equity**
 - Valuación implícita: $2M-$2.5M
 - **Máxima dilución aceptable: 15% — NO NEGOCIABLE**
-- Jugar en las grandes ligas pero sostenible
 - 100% del capital va a escalar — el producto ya existe
 - Distribución: 35% growth, 25% eventos, 25% expansión, 15% equipo
 
-## 8. Documentos de referencia
+## 10. Documentos de referencia
 - Brand Book v2: /Users/dianasilvalondono/Desktop/RONDA/Ronda_BrandBook_v2.pptx
 - Pitch Deck v2: /Users/dianasilvalondono/Desktop/RONDA/Ronda_PitchDeck_v2.pptx
 - Benchmark: /Users/dianasilvalondono/Desktop/RONDA/Ronda_Benchmark_Plan_2026.xlsx
 - One-Pager: /Users/dianasilvalondono/Desktop/RONDA/Ronda_Executive_OnePager.pdf
 - Historia de Diana: /Users/dianasilvalondono/Desktop/RONDA/Historia_Diana_Ronda.docx
 
-## 9. Reglas de ejecución — NO NEGOCIABLES
+## 11. Reglas de ejecución — NO NEGOCIABLES
 1. Siempre usar los colores del Brand Book v2 (sección 4)
 2. Siempre usar círculos como elemento visual principal
 3. Siempre pasar por el Filtro Nicoya (sección 5) antes de entregar
