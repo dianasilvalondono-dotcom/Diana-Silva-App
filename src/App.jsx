@@ -2019,11 +2019,10 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <div style={{ fontSize: 36, marginBottom: 8, color: C.teal, opacity: 0.4 }}>●</div>
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
           Crea tu programa personalizado
         </div>
-        <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 17, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
           Dime qué quieres lograr y te armo un programa paso a paso, a tu ritmo.
         </div>
       </div>
@@ -2115,7 +2114,7 @@ function App() {
               flex: 2, padding: '14px', borderRadius: 14, border: 'none',
               background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white',
               fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}>Crear mi programa ✨</button>
+            }}>Crear mi programa</button>
           </div>
         </div>
       )}
