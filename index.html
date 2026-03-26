@@ -3,30 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#1B8A7A" />
-    <meta name="description" content="Ronda — Tu refugio para crecer, sanar y volar." />
+    <meta name="theme-color" content="#4A3035" />
+    <meta name="description" content="Ronda — Creces tú, crecemos todas. Wellness, hábitos, comunidad." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Ronda" />
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <title>Ronda</title>
-    <script>
-      // FIRST THING: Nuke all service workers and caches
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-          regs.forEach(function(r) { r.unregister() })
-        })
-      }
-      if ('caches' in window) {
-        caches.keys().then(function(keys) {
-          keys.forEach(function(k) { caches.delete(k) })
-        })
-      }
-    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Unregister old SW to clear cache issues
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(r => r.unregister())
+        })
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)))
+      }
+    </script>
   </body>
 </html>
