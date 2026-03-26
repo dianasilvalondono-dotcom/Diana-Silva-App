@@ -97,7 +97,7 @@ function App() {
   const [editingRoutineItem, setEditingRoutineItem] = useState(null) // { sectionKey, id, time, task, emoji }
   const [newRoutineTask, setNewRoutineTask] = useState('')
   const [newRoutineTime, setNewRoutineTime] = useState('')
-  const [newRoutineEmoji, setNewRoutineEmoji] = useState('✨')
+  const [newRoutineEmoji, setNewRoutineEmoji] = useState('')
   const [newRoutineSection, setNewRoutineSection] = useState('morning')
   // Tomorrow planning (night ritual)
   const [tomorrowTasks, setTomorrowTasks] = useState(() => load(`ronda-tomorrow-${todayKey()}`, []))
@@ -302,7 +302,7 @@ function App() {
     if (newRoutineSection === 'morning') setMorning(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
     else if (newRoutineSection === 'midday') setMidday(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
     else setNight(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
-    setNewRoutineTask(''); setNewRoutineTime(''); setNewRoutineEmoji('✨')
+    setNewRoutineTask(''); setNewRoutineTime(''); setNewRoutineEmoji('')
   }
 
   const removeRoutineItem = (section, id) => {
@@ -1495,7 +1495,7 @@ function App() {
                 <button onClick={() => toggleFavQuote(globalIdx)} style={{
                   background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', padding: 4,
                 }}>
-                  {isFav ? '❤️' : '🤍'}
+                  {isFav ? <svg width='16' height='16' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill={C.coral}/></svg> : <svg width='16' height='16' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill='none' stroke={C.rose} strokeWidth='1.5'/></svg>}
                 </button>
               </div>
             </div>
@@ -1674,7 +1674,7 @@ function App() {
         text: 'Lo que describes suena a ansiedad anticipatoria — tu mente está tratando de "resolver" el futuro desde la cama. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." El cerebro necesita sentir que no va a olvidar para poder soltar. Si esto persiste más de 2 semanas, busca ayuda profesional. Estoy aquí. ' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
       replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
-        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
+        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti.' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
       replies: [{ pro: { name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal · Maternidad consciente', verified: true },
         text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Se llama "pérdida de identidad materna" y afecta al 70% de las mamás. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. ' }] },
@@ -1686,7 +1686,7 @@ function App() {
         text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte.' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
       replies: [{ pro: { name: 'Laura Martínez', title: 'Coach ejecutiva · Emprendimiento femenino', verified: true },
-        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar. 🚀' }] },
+        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar.' }] },
   ]
 
   const allBoardPosts = [...SEED_POSTS, ...boardPosts]
@@ -1837,7 +1837,7 @@ function App() {
             background: boardHearts[post.id] ? `${C.rose}12` : 'none',
             cursor: 'pointer', fontFamily: 'inherit',
           }}>
-            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '' : '🤍'}</span>
+            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? <svg width='14' height='14' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill={C.coral}/></svg> : <svg width='14' height='14' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill='none' stroke={C.rose} strokeWidth='1.5'/></svg>}</span>
             <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
               {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
             </span>
