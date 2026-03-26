@@ -1534,7 +1534,7 @@ function App() {
                 <button onClick={() => toggleFavQuote(globalIdx)} style={{
                   background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', padding: 4,
                 }}>
-                  {isFav ? <svg width='16' height='16' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill={C.coral}/></svg> : <svg width='16' height='16' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill='none' stroke={C.rose} strokeWidth='1.5'/></svg>}
+                  {isFav ? '♥' : '♡'}
                 </button>
               </div>
             </div>
@@ -1876,7 +1876,7 @@ function App() {
             background: boardHearts[post.id] ? `${C.rose}12` : 'none',
             cursor: 'pointer', fontFamily: 'inherit',
           }}>
-            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? <svg width='14' height='14' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill={C.coral}/></svg> : <svg width='14' height='14' viewBox='0 0 24 24'><path d='M12 21C12 21 4 13.5 4 8.5C4 5.5 6.5 3 9.5 3C11 3 12 4 12 4C12 4 13 3 14.5 3C17.5 3 20 5.5 20 8.5C20 13.5 12 21 12 21Z' fill='none' stroke={C.rose} strokeWidth='1.5'/></svg>}</span>
+            <span style={{ fontSize: 14, color: boardHearts[post.id] ? C.coral : C.muted }}>{boardHearts[post.id] ? '♥' : '♡'}</span>
             <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
               {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
             </span>
