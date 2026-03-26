@@ -2,7 +2,7 @@
 export const DIMS = {
   espiritual: { icon: 'espiritual', color: '#B8A9C9', label: 'Espiritual' },
   emocional:  { icon: 'emocional',  color: '#E8736D', label: 'Emocional' },
-  fisico:     { icon: 'fisico',     color: '#7ED4BC', label: 'Físico' },
+  fisico:     { icon: 'fisico',     color: '#2A9D8F', label: 'Físico' },
   mental:     { icon: 'mental',     color: '#1B8A7A', label: 'Mental' },
 }
 
@@ -74,11 +74,11 @@ export const TOOLKIT_CATS = [
   { id: 'podcast',    emoji: '', label: 'Podcasts',      color: '#E8736D' },
   { id: 'libro',      emoji: '', label: 'Libros',        color: '#C9A96E' },
   { id: 'curso',      emoji: '', label: 'Cursos',        color: '#1B8A7A' },
-  { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#1B8A7A' },
+  { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#14695E' },
   { id: 'musica',     emoji: '', label: 'Música',        color: '#B8A9C9' },
   { id: 'masterclass',emoji: '', label: 'Masterclasses', color: '#E4A5A0' },
-  { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#7ED4BC' },
-  { id: 'otro',       emoji: '', label: 'Otros',         color: '#C4908A' },
+  { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#2A9D8F' },
+  { id: 'otro',       emoji: '', label: 'Otros',         color: '#B5A099' },
 ]
 
 /* ── Mood-based recommendations ── */
@@ -117,7 +117,7 @@ export const MOOD_RECS = {
     ],
   },
   3: {
-    label: 'Aprovecha tu buena vibra', color: '#7ED4BC',
+    label: 'Aprovecha tu buena vibra', color: '#2A9D8F',
     items: [
       { type: 'podcast', title: 'Lewis Howes — "The School of Greatness"', url: 'https://open.spotify.com/show/07GQhOZboEZOE1ysnFLipT' },
       { type: 'libro', title: '📚 "Atomic Habits" — James Clear', url: 'https://www.amazon.com/Atomic-Habits-James-Clear/dp/0735211299' },
@@ -181,7 +181,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'empezar', title: 'Empezar de cero',
-    desc: '7 días para reinventarte y construir la vida que quieres', color: '#1B8A7A',
+    desc: '7 días para reinventarte y construir la vida que quieres', color: '#2A9D8F',
     days: [
       { day: 1, title: 'Define tu "por qué"', task: '¿Por qué quieres cambiar? Escríbelo en 1 frase. Eso es tu motor.' },
       { day: 2, title: 'Limpia un espacio', task: 'Tu escritorio, tu mesa, un cajón. Espacio limpio = mente clara.' },
@@ -208,7 +208,7 @@ export const PROGRAMAS = [
   /* ── Programas positivos / aspiracionales ── */
   {
     id: 'ejercicio', title: 'Volver a moverme',
-    desc: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo', color: '#7ED4BC',
+    desc: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo', color: '#2A9D8F',
     days: [
       { day: 1, title: 'Estira 2 minutos', task: 'Cuello, hombros, espalda. No necesitas más. Solo empezar.' },
       { day: 2, title: 'Camina 10 minutos', task: 'Afuera, con música que te guste. Caminar es el mejor antidepresivo natural.' },
@@ -234,7 +234,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'mama', title: 'Volver a mí (para mamás)',
-    desc: 'Ser mamá no es perderte. 7 días para reconectarte contigo sin culpa.', color: '#B8A9C9',
+    desc: 'Ser mamá no es perderte. 7 días para reconectarte contigo sin culpa.', color: '#D4F0EA',
     days: [
       { day: 1, title: 'Tu nombre primero', task: 'Hoy no eres "la mamá de...". Escribe: "Mi nombre es ___ y hoy me elijo."' },
       { day: 2, title: '15 minutos solo para ti', task: 'Léete algo, toma un café en silencio, respira. 15 minutos que son tuyos.' },
@@ -247,7 +247,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'disciplina', title: '7 días de disciplina',
-    desc: 'No es motivación, es decisión. 7 días para entrenar tu mente como un músculo.', color: '#E8736D',
+    desc: 'No es motivación, es decisión. 7 días para entrenar tu mente como un músculo.', color: '#4A3035',
     days: [
       { day: 1, title: 'Levántate 30 min antes', task: 'Pon la alarma 30 minutos antes. Ese tiempo es tuyo. No negociable.' },
       { day: 2, title: 'Haz tu cama', task: 'Primer acto del día: orden. Una cama tendida es tu primera victoria.' },
