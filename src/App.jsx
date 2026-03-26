@@ -139,6 +139,43 @@ function App() {
   const [onboardHabits, setOnboardHabits] = useState([])
   const [showFullStory, setShowFullStory] = useState(false)
 
+  // AI Agent chat
+  const [showAgent, setShowAgent] = useState(false)
+  const [agentMessages, setAgentMessages] = useState([
+    { role: 'agent', text: '¡Hola! Soy Tu Ronda — estoy aquí para acompañarte. ¿Cómo te sientes hoy?' }
+  ])
+  const [agentInput, setAgentInput] = useState('')
+  const [agentLoading, setAgentLoading] = useState(false)
+
+  const sendAgentMessage = async () => {
+    if (!agentInput.trim() || agentLoading) return
+    const msg = agentInput.trim()
+    setAgentMessages(prev => [...prev, { role: 'user', text: msg }])
+    setAgentInput('')
+    setAgentLoading(true)
+    try {
+      const context = `Hábitos hoy: ${totalDone}/${totalHabits} completados. ` +
+        `Racha: ${Object.keys(monthlyHistory).length} días este mes. ` +
+        (Object.keys(activePrograms).length > 0 ? `Programas activos: ${Object.keys(activePrograms).join(', ')}. ` : '') +
+        `Nombre: ${user?.user_metadata?.name || 'Usuaria'}.`
+      const resp = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, context }),
+      })
+      const data = await resp.json()
+      if (data.reply) {
+        setAgentMessages(prev => [...prev, { role: 'agent', text: data.reply }])
+      }
+      if (data.program) {
+        setAgentMessages(prev => [...prev, { role: 'agent', text: `Te armé un programa: "${data.program.title}". ¿Lo quieres activar?`, program: data.program }])
+      }
+    } catch (err) {
+      setAgentMessages(prev => [...prev, { role: 'agent', text: 'Tuve un problema conectándome. ¿Intentamos de nuevo?' }])
+    }
+    setAgentLoading(false)
+  }
+
   // Panic button / Crisis mode
   const [showPanic, setShowPanic] = useState(false)
   const [panicScreen, setPanicScreen] = useState('home') // home, breathe, ground, dbt, accept
@@ -2954,6 +2991,126 @@ function App() {
     </div>
   )
 
+  /* ── AI Agent Chat (floating left) ── */
+  const agentFab = !showAgent && !showPanic && (
+    <button onClick={() => setShowAgent(true)} style={{
+      position: 'fixed', bottom: 90, left: 20, zIndex: 90,
+      display: 'flex', alignItems: 'center', gap: 8,
+      background: C.teal, color: 'white', border: 'none',
+      borderRadius: 28, padding: '10px 18px', cursor: 'pointer',
+      boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
+      fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
+    }}>
+      <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="12" stroke="white" strokeWidth="2" fill="none"/>
+        <circle cx="16" cy="16" r="4" fill="white"/>
+        <path d="M16 4V8M16 24V28M4 16H8M24 16H28" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+      Tu Ronda
+    </button>
+  )
+
+  const agentChat = showAgent && (
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0, top: 0, zIndex: 200,
+      background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }} onClick={(e) => { if (e.target === e.currentTarget) setShowAgent(false) }}>
+      <div style={{
+        width: '100%', maxWidth: 600, maxHeight: '75vh',
+        background: C.cream, borderRadius: '20px 20px 0 0',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        boxShadow: '0 -8px 30px rgba(0,0,0,0.15)',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          borderBottom: `1px solid ${C.border}`, background: C.teal,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'white' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: 'white' }}>Tu Ronda</div>
+              <div style={{ fontSize: 12, color: C.mint }}>Tu guía de bienestar</div>
+            </div>
+          </div>
+          <button onClick={() => setShowAgent(false)} style={{
+            background: 'none', border: 'none', color: 'white', fontSize: 24, cursor: 'pointer', padding: 4,
+          }}>×</button>
+        </div>
+
+        {/* Messages */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {agentMessages.map((msg, i) => (
+            <div key={i} style={{
+              display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+            }}>
+              <div style={{
+                maxWidth: '80%', padding: '10px 14px', borderRadius: 16,
+                background: msg.role === 'user' ? C.teal : C.card,
+                color: msg.role === 'user' ? 'white' : C.text,
+                fontSize: 14, lineHeight: 1.5,
+                borderBottomRightRadius: msg.role === 'user' ? 4 : 16,
+                borderBottomLeftRadius: msg.role === 'user' ? 16 : 4,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              }}>
+                {msg.text}
+                {msg.program && (
+                  <button onClick={() => {
+                    setActivePrograms(prev => ({ ...prev, [msg.program.title]: { startDate: todayKey(), completedDays: [] } }))
+                    setAgentMessages(prev => [...prev, { role: 'agent', text: `¡Activado! Tu programa "${msg.program.title}" empieza hoy. Encuéntralo en la tab Crecer.` }])
+                  }} style={{
+                    marginTop: 8, padding: '8px 16px', borderRadius: 12, border: 'none',
+                    background: C.gold, color: 'white', fontSize: 13, fontWeight: 700,
+                    cursor: 'pointer', fontFamily: 'inherit', width: '100%',
+                  }}>
+                    Activar programa
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          {agentLoading && (
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={{ padding: '10px 14px', borderRadius: 16, background: C.card, color: C.muted, fontSize: 14 }}>
+                Pensando...
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input */}
+        <div style={{
+          padding: '12px 16px', borderTop: `1px solid ${C.border}`, background: 'white',
+          display: 'flex', gap: 10, alignItems: 'center',
+        }}>
+          <input
+            value={agentInput}
+            onChange={e => setAgentInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && sendAgentMessage()}
+            placeholder="Escríbele a Tu Ronda..."
+            style={{
+              flex: 1, padding: '10px 14px', borderRadius: 20,
+              border: `1.5px solid ${C.border}`, fontSize: 14,
+              fontFamily: 'inherit', outline: 'none',
+            }}
+          />
+          <button onClick={sendAgentMessage} disabled={agentLoading || !agentInput.trim()} style={{
+            width: 40, height: 40, borderRadius: '50%', border: 'none',
+            background: agentInput.trim() ? C.teal : C.border,
+            color: 'white', fontSize: 18, cursor: agentInput.trim() ? 'pointer' : 'default',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
   /* ── Panic Button (floating) ── */
   const panicFab = !showPanic && (
     <button
@@ -3323,6 +3480,8 @@ function App() {
           {subTab === 'perfil' && perfilView}
         </>}
       </div>
+      {agentFab}
+      {agentChat}
       {panicFab}
       {panicModal}
       {bottomNav}
