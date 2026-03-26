@@ -2438,112 +2438,128 @@ function App() {
       </div>
     </div>,
 
-    /* Slide 1 — Las 4 dimensiones */
+    /* Slide 1 — Los 5 espacios */
     <div key={1} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        4 dimensiones, 1 tú
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        5 espacios, 1 refugio
       </div>
-      <div style={{ fontSize: 20, color: C.muted, marginBottom: 32, maxWidth: 280 }}>
-        En Ronda trabajamos tu crecimiento desde cuatro pilares fundamentales
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300 }}>
+        Todo lo que necesitas para crecer, en un solo lugar
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, width: '100%', maxWidth: 320 }}>
-        {Object.entries(DIMS).map(([dim, cfg]) => (
-          <div key={dim} style={{
-            background: C.card, borderRadius: 16, padding: 20, textAlign: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${cfg.color}20`,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-          }}>
-            {ICONS[cfg.icon](cfg.color, 40)}
-            <div style={{ fontSize: 19, fontWeight: 800, color: cfg.color }}>{cfg.label}</div>
-          </div>
-        ))}
-      </div>
-    </div>,
-
-    /* Slide 2 — Cómo funciona tu día */
-    <div key={2} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Tu día con Ronda
-      </div>
-      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
-        Ronda te acompaña mañana y noche
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          {ICONS.sol(C.gold, 32)}
-          <div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.gold }}>En la mañana</div>
-            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Qué quieres lograr hoy?" y activas tus hábitos</div>
-          </div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          {ICONS.habito(C.green, 32)}
-          <div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.green }}>Durante el día</div>
-            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Trackea tus hábitos, sigue tu rutina y escucha recomendaciones según tu mood</div>
-          </div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          {ICONS.luna(C.roseDark, 32)}
-          <div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.roseDark }}>En la noche</div>
-            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Cómo te fue?" — revisa tu resumen y reflexiona</div>
-          </div>
-        </div>
-      </div>
-    </div>,
-
-    /* Slide 3 — Programas y recomendaciones */
-    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Programas paso a paso
-      </div>
-      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
-        Caminos de 7 días para sanar, crecer y brillar. 1 minuto al día.
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
-        {PROGRAMAS.slice(0, 4).map(prog => (
-          <div key={prog.id} style={{
-            background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-            textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12,
-            borderLeft: `3px solid ${prog.color}`,
-          }}>
-            {ICONS[prog.id](prog.color, 28)}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 340 }}>
+        {[
+          { title: 'Mi día', desc: 'Tu dashboard: progreso, rutina y lo que sigue', color: C.gold },
+          { title: 'Crecer', desc: 'Programas de 7, 21 y 60 días + AI que crea el tuyo', color: C.teal },
+          { title: 'Comunidad', desc: 'Pregunta lo que necesites. Profesionales 24/7', color: C.coral },
+          { title: 'Ronda', desc: 'Marketplace de profesionales y negocios de mujeres', color: C.rose },
+          { title: 'Yo', desc: 'Hábitos, rutina, diario, toolkit y perfil', color: C.lavanda },
+        ].map((tab, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '12px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left', borderLeft: '3px solid '+tab.color }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: tab.color+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', background: tab.color }} />
+            </div>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
-              <div style={{ fontSize: 20, color: C.muted, marginTop: 2 }}>{prog.days.length} días · 1 min/día</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{tab.title}</div>
+              <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>{tab.desc}</div>
             </div>
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 19, color: C.muted, marginTop: 20, maxWidth: 280, lineHeight: 1.5 }}>
-        Además, te recomendamos podcasts, música y hábitos según cómo te sientes cada día.
+    </div>,
+
+    /* Slide 2 — Comunidad + SOS */
+    <div key={2} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        No estás sola. Nunca.
+      </div>
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+        Ronda tiene una comunidad real detrás
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+C.coral }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: C.coral+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.coral }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: C.coral }}>Botón SOS</div>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Respiración guiada, grounding y herramientas DBT al instante.</div>
+          </div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+C.teal }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: C.teal+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.teal }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: C.teal }}>Comunidad 24/7</div>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Publica anónima. Solo profesionales verificadas responden.</div>
+          </div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+C.gold }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: C.gold+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.gold }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: C.gold }}>Directorio Ronda</div>
+            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Profesionales y negocios de mujeres verificadas cerca de ti.</div>
+          </div>
+        </div>
       </div>
     </div>,
 
-    /* Slide 4 — Herramientas */
-    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Todo lo que necesitas
+    /* Slide 3 — Programas + AI */
+    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Programas con neurociencia
       </div>
-      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28 }}>
-        Herramientas diseñadas para tu crecimiento
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
+        Paso a paso, a tu ritmo. Desde sanar hasta crear disciplina.
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%', maxWidth: 340, marginBottom: 16 }}>
         {[
-          { icon: NAV_ICONS.inicio(false), title: 'Mi día', desc: 'Tu dashboard y progreso diario' },
-          { icon: NAV_ICONS.programas(false), title: 'Programas', desc: 'Caminos paso a paso para sanar y crecer' },
-          { icon: NAV_ICONS.habitos(false), title: 'Hábitos', desc: 'Crea y trackea tus hábitos por dimensión' },
-          { icon: NAV_ICONS.rutina(false), title: 'Mi rutina', desc: 'Tu rutina de mañana, tarde y noche' },
-          { icon: NAV_ICONS.diario(false), title: 'Diario', desc: 'Reflexiona y recibe recomendaciones' },
-          { icon: NAV_ICONS.toolkit(false), title: 'Toolkit', desc: 'Guarda tus podcasts, libros y recursos' },
-          { icon: NAV_ICONS.frases(false), title: 'Frases', desc: 'Inspiración diaria para tu camino' },
+          { title: 'Navegar la depresión', color: C.teal },
+          { title: 'Calmar la ansiedad', color: C.gold },
+          { title: 'Volver a moverme', color: C.mint },
+          { title: 'Reconectar con Dios', color: C.lavanda },
+          { title: '7 días de disciplina', color: C.coral },
+          { title: 'Enamórate de ti', color: C.rose },
+        ].map((p, i) => (
+          <div key={i} style={{ background: C.card, borderRadius: 12, padding: '10px 12px', textAlign: 'center', borderTop: '3px solid '+p.color, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.title}</div>
+            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>7 días Freemium</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background: C.teal+'10', borderRadius: 16, padding: 18, width: '100%', maxWidth: 340, border: '2px solid '+C.teal+'30' }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: C.teal, marginBottom: 6 }}>AI crea tu programa</div>
+        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5 }}>
+          Dile qué quieres lograr y te arma un programa personalizado paso a paso.
+        </div>
+        <div style={{ fontSize: 12, color: C.coral, fontWeight: 700, marginTop: 8 }}>Premium · Ronda Plus $9.99 · Ronda Pro $29.99</div>
+      </div>
+    </div>,
+
+    /* Slide 4 — Tu día con Ronda */
+    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Tu día con Ronda
+      </div>
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+        Te acompañamos de la mañana a la noche
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
+        {[
+          { time: '7:00 AM', title: 'Intención del día', desc: 'Activa tus hábitos.', color: C.gold },
+          { time: 'Durante el día', title: 'Tu rutina + hábitos', desc: 'Sigue tu rutina. A tu ritmo.', color: C.teal },
+          { time: 'Cuando lo necesites', title: 'Comunidad + SOS', desc: 'Pregunta o toca SOS.', color: C.coral },
+          { time: '9:00 PM', title: 'Reflexión de noche', desc: 'Escribe. Planifica. Suelta.', color: C.lavanda },
         ].map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '10px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left' }}>
-            <div style={{ flexShrink: 0 }}>{item.icon}</div>
+          <div key={i} style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+item.color }}>
+            <div style={{ width: 50, height: 50, borderRadius: '50%', background: item.color+'15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: item.color, textAlign: 'center', lineHeight: 1.2 }}>{item.time}</div>
+            </div>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{item.title}</div>
-              <div style={{ fontSize: 20, color: C.muted, marginTop: 1 }}>{item.desc}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{item.title}</div>
+              <div style={{ fontSize: 14, color: C.muted, marginTop: 3 }}>{item.desc}</div>
             </div>
           </div>
         ))}
