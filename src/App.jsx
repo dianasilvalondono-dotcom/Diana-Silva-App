@@ -129,11 +129,6 @@ function App() {
 
   // Onboarding
   const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
-
-  // Admin always sees onboarding (for demos/investors)
-  useEffect(() => {
-    if (isAdmin) setOnboarded(false)
-  }, [isAdmin])
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
@@ -197,42 +192,6 @@ function App() {
   useEffect(() => { save('diana-midday', midday) }, [midday])
   useEffect(() => { save('diana-night', night) }, [night])
   useEffect(() => { save(`ronda-tomorrow-${todayKey()}`, tomorrowTasks) }, [tomorrowTasks])
-
-  // Day change detection — reset checks if app stays open overnight
-  useEffect(() => {
-    const checkDay = setInterval(() => {
-      const now = todayKey()
-      const stored = localStorage.getItem('ronda-current-day')
-      if (stored && stored !== now) {
-        // Day changed! Reset daily state
-        setChecked(load(`diana-checked-${now}`, {}))
-        setRoutineChecked(load(`diana-routine-${now}`, {}))
-        setMorningDone(false)
-        setNightDone(false)
-        localStorage.setItem('ronda-current-day', now)
-        window.location.reload() // Clean reload for new day
-      } else if (!stored) {
-        localStorage.setItem('ronda-current-day', now)
-      }
-    }, 60000) // Check every minute
-    localStorage.setItem('ronda-current-day', todayKey())
-    return () => clearInterval(checkDay)
-  }, [])
-
-  // Monthly habit history — build from localStorage keys
-  const monthlyHistory = useMemo(() => {
-    const history = {}
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
-    keys.forEach(key => {
-      const date = key.replace('diana-checked-', '')
-      try {
-        const data = JSON.parse(localStorage.getItem(key))
-        const doneCount = Object.values(data).filter(Boolean).length
-        if (doneCount > 0) history[date] = doneCount
-      } catch (e) {}
-    })
-    return history
-  }, [checked]) // recalc when today's checks change
 
   // Breathing timer for panic button
   useEffect(() => {
@@ -677,57 +636,6 @@ function App() {
           <span style={{ fontSize: 20, fontWeight: 800, color: C.rose }}>{totalDone}/{totalHabits}</span>
         </div>
         <Bar value={totalHabits > 0 ? (totalDone / totalHabits) * 100 : 0} />
-      </div>
-
-      {/* Monthly streak calendar */}
-      <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: C.text, marginBottom: 10 }}>
-          Tu racha este mes
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, textAlign: 'center' }}>
-          {['L','M','X','J','V','S','D'].map(d => (
-            <div key={d} style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 2 }}>{d}</div>
-          ))}
-          {(() => {
-            const now = new Date()
-            const year = now.getFullYear(), month = now.getMonth()
-            const firstDay = new Date(year, month, 1).getDay()
-            const daysInMonth = new Date(year, month + 1, 0).getDate()
-            const offset = firstDay === 0 ? 6 : firstDay - 1 // Monday start
-            const cells = []
-            for (let i = 0; i < offset; i++) cells.push(<div key={`e${i}`} />)
-            for (let d = 1; d <= daysInMonth; d++) {
-              const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-              const isToday = dateStr === todayKey()
-              const count = monthlyHistory[dateStr] || 0
-              const bg = count > 0 ? (count >= totalHabits && totalHabits > 0 ? C.teal : `${C.teal}40`) : (isToday ? `${C.gold}20` : 'transparent')
-              cells.push(
-                <div key={d} style={{
-                  width: 28, height: 28, borderRadius: '50%', margin: '0 auto',
-                  background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: isToday ? 800 : 500,
-                  color: count >= totalHabits && totalHabits > 0 ? 'white' : (count > 0 ? C.teal : (isToday ? C.gold : C.subtle)),
-                  border: isToday ? `2px solid ${C.gold}` : 'none',
-                }}>{d}</div>
-              )
-            }
-            return cells
-          })()}
-        </div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 10, justifyContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: C.teal }} />
-            <span style={{ fontSize: 11, color: C.muted }}>Todos</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: `${C.teal}40` }} />
-            <span style={{ fontSize: 11, color: C.muted }}>Algunos</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', border: `2px solid ${C.gold}` }} />
-            <span style={{ fontSize: 11, color: C.muted }}>Hoy</span>
-          </div>
-        </div>
       </div>
 
       {/* Empty state — invite to pick habits */}
@@ -1324,8 +1232,8 @@ function App() {
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
                 <button onClick={() => startProgram(prog.id)} style={{
-                  marginTop: 12, padding: '10px 24px', borderRadius: 24, border: 'none',
-                  background: prog.color, color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 4px 12px ${prog.color}50`, letterSpacing: '0.03em',
+                  marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
+                  background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
                   Empezar →
                 </button>
@@ -1360,8 +1268,8 @@ function App() {
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
                 <button onClick={() => startProgram(prog.id)} style={{
-                  marginTop: 12, padding: '10px 24px', borderRadius: 24, border: 'none',
-                  background: prog.color, color: 'white', fontSize: 16, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: `0 4px 12px ${prog.color}50`, letterSpacing: '0.03em',
+                  marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
+                  background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
                   Empezar →
                 </button>
@@ -1417,28 +1325,15 @@ function App() {
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>${prog.price} USD</div>
               <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Pago único · Acceso para siempre</div>
-              {isPremium ? (
-                <button onClick={() => startProgram(prog.id)} style={{
-                  width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
-                  background: C.teal, color: 'white', fontSize: 17, fontWeight: 800,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                  boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
-                }}>
-                  Empezar programa (Admin)
-                </button>
-              ) : (
-                <>
-                  <button style={{
-                    width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
-                    background: C.gold, color: 'white', fontSize: 17, fontWeight: 800,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                    boxShadow: '0 4px 16px rgba(201,169,110,0.35)',
-                  }}>
-                    Próximamente
-                  </button>
-                  <div style={{ fontSize: 14, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
-                </>
-              )}
+              <button style={{
+                width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
+                background: `linear-gradient(135deg, ${C.gold}, #D4B87A)`,
+                color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 4px 16px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
+              }}>
+                Próximamente
+              </button>
+              <div style={{ fontSize: 19, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
             </div>
           </div>
         ))}
@@ -1731,10 +1626,10 @@ function App() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {BOARD_CATS.map(cat => (
           <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
-            padding: '5px 12px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+            padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: boardFilter === cat.id ? cat.color : C.card,
             color: boardFilter === cat.id ? 'white' : C.text,
-            fontSize: 14, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 20, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
             boxShadow: boardFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
@@ -1965,10 +1860,10 @@ function App() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {DIRECTORIO_CATS.map(cat => (
           <button key={cat.id} onClick={() => setDirFilter(cat.id)} style={{
-            padding: '5px 12px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+            padding: '6px 14px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: dirFilter === cat.id ? cat.color : C.card,
             color: dirFilter === cat.id ? 'white' : C.text,
-            fontSize: 14, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            fontSize: 20, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
             boxShadow: dirFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
@@ -1999,7 +1894,7 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{item.name}</span>
                 {item.verified && <span style={{
-                  fontSize: 19, background: catColor || C.teal, color: 'white', padding: '2px 6px',
+                  fontSize: 19, background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white', padding: '2px 6px',
                   borderRadius: 8, fontWeight: 700,
                 }}>✓ VERIFICADA</span>}
               </div>
@@ -2022,7 +1917,7 @@ function App() {
 
           <button style={{
             marginTop: 12, width: '100%', padding: '10px 16px', borderRadius: 12, border: 'none',
-            background: catColor || C.teal, color: 'white',
+            background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white',
             fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}>
             Contactar →
@@ -2120,10 +2015,11 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <div style={{ fontSize: 36, marginBottom: 8, color: C.teal, opacity: 0.4 }}>●</div>
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
           Crea tu programa personalizado
         </div>
-        <div style={{ fontSize: 17, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
           Dime qué quieres lograr y te armo un programa paso a paso, a tu ritmo.
         </div>
       </div>
@@ -2215,7 +2111,7 @@ function App() {
               flex: 2, padding: '14px', borderRadius: 14, border: 'none',
               background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white',
               fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}>Crear mi programa</button>
+            }}>Crear mi programa ✨</button>
           </div>
         </div>
       )}
@@ -2242,6 +2138,7 @@ function App() {
             background: `linear-gradient(135deg, ${C.rose}15, ${C.gold}10)`,
             borderRadius: 16, padding: 20, border: `1px solid ${C.roseLight}`, textAlign: 'center',
           }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>{aiProgram.emoji}</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>
               {aiProgram.title}
             </div>
@@ -2258,11 +2155,10 @@ function App() {
               border: `1px solid ${C.border}`, display: 'flex', alignItems: 'flex-start', gap: 12,
             }}>
               <div style={{
-                width: 36, height: 36, borderRadius: '50%', background: `${C.teal}12`,
+                width: 32, height: 32, borderRadius: 10, background: `${C.rose}15`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
-                <span style={{ fontSize: 13, fontWeight: 800, color: C.teal }}>{d.day}</span>
-              </div>
+                fontSize: 20,
+              }}>{d.emoji}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, textTransform: 'uppercase' }}>Día {d.day}</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 2 }}>{d.title}</div>
@@ -2271,71 +2167,32 @@ function App() {
             </div>
           ))}
 
-          {/* Free 7-day save */}
+          {/* Actions */}
           {!aiSaved ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <button onClick={saveAiProgram} style={{
-                width: '100%', padding: '14px', borderRadius: 14, border: 'none',
-                background: C.teal, color: 'white',
-                fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Guardar programa de 7 días (gratis)</button>
+            <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={resetAiAgent} style={{
-                width: '100%', padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`,
-                background: C.card, color: C.muted, fontSize: 15, fontWeight: 600,
+                flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
+                background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>Empezar de nuevo</button>
+              <button onClick={saveAiProgram} style={{
+                flex: 2, padding: '14px', borderRadius: 14, border: 'none',
+                background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
+                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Guardar y empezar 🚀</button>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: 20, background: `${C.teal}08`, borderRadius: 16, border: `1px solid ${C.teal}20` }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: C.teal }}>Programa de 7 días guardado</div>
-              <div style={{ fontSize: 15, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
+            <div style={{ textAlign: 'center', padding: 20, background: `${C.green}10`, borderRadius: 16, border: `1px solid ${C.green}30` }}>
+              <div style={{ fontSize: 24, marginBottom: 8, color: C.teal }}>●</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.green }}>¡Programa guardado!</div>
+              <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
               <button onClick={resetAiAgent} style={{
-                marginTop: 12, padding: '10px 24px', borderRadius: 14, border: 'none',
-                background: C.teal, color: 'white', fontSize: 15, fontWeight: 700,
+                marginTop: 12, padding: '10px 24px', borderRadius: 12, border: 'none',
+                background: C.rose, color: 'white', fontSize: 19, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>Crear otro programa</button>
             </div>
           )}
-
-          {/* Upgrade options — longer programs */}
-          <div style={{ background: C.card, borderRadius: 16, padding: 20, border: `1px solid ${C.border}` }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 4 }}>
-              ¿Quieres ir más profundo?
-            </div>
-            <div style={{ fontSize: 14, color: C.muted, marginBottom: 14 }}>
-              Los programas más largos generan cambios sostenibles y duraderos.
-            </div>
-            {[
-              { days: 21, price: '$9.99', desc: 'Construye un hábito real', color: C.coral },
-              { days: 30, price: '$14.99', desc: 'Un mes de transformación', color: C.lavanda },
-              { days: 60, price: '$29.99', desc: 'Cambio profundo y sostenible', color: C.teal },
-            ].map(opt => (
-              <div key={opt.days} style={{
-                display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px',
-                background: C.cream, borderRadius: 12, marginBottom: 8, border: `1px solid ${C.border}`,
-              }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: '50%', background: `${opt.color}15`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: opt.color }}>{opt.days}d</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>Programa de {opt.days} días</div>
-                  <div style={{ fontSize: 13, color: C.muted }}>{opt.desc}</div>
-                </div>
-                <div style={{
-                  padding: '6px 14px', borderRadius: 20, background: opt.color, color: 'white',
-                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                }}>
-                  {opt.price}
-                </div>
-              </div>
-            ))}
-            <div style={{ fontSize: 12, color: C.subtle, marginTop: 8, textAlign: 'center' }}>
-              El pago se habilitará pronto
-            </div>
-          </div>
         </div>
       )}
     </div>
@@ -2493,142 +2350,130 @@ function App() {
   const onboardSlides = [
     /* Slide 0 — Bienvenida */
     <div key={0} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ width: 70, height: 70, borderRadius: '50%', border: `3px solid ${C.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-        <div style={{ width: 22, height: 22, borderRadius: '50%', background: C.gold }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <div style={{ width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
+        </div>
+        <span style={{ fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif' }}>Ronda</span>
       </div>
-      <div style={{ fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>Ronda</div>
-      <div style={{ fontSize: 20, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 32 }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
+        Tu espacio de crecimiento
+      </div>
+      <div style={{ fontSize: 20, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 40 }}>
         Creces tú, crecemos todas
       </div>
-      <div style={{ width: 60, height: 2, background: C.gold, marginBottom: 32, borderRadius: 2 }} />
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
-        Tu refugio para crecer, sanar y volar
-      </div>
-      <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
-        Bienestar personal, comunidad de mujeres y acceso a profesionales verificadas — todo en un solo lugar.
+      <div style={{ width: 60, height: 1, background: C.roseLight, marginBottom: 40 }} />
+      <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
+        Un lugar para cultivar tus hábitos, conectar con tu intención y crecer en cada dimensión de tu vida.
       </div>
     </div>,
 
-    /* Slide 1 — Los 5 espacios */
+    /* Slide 1 — Las 4 dimensiones */
     <div key={1} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        5 espacios, 1 refugio
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        4 dimensiones, 1 tú
       </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300 }}>
-        Todo lo que necesitas para crecer, en un solo lugar
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 32, maxWidth: 280 }}>
+        En Ronda trabajamos tu crecimiento desde cuatro pilares fundamentales
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 340 }}>
-        {[
-          { icon: NAV_ICONS.inicio, title: 'Mi día', desc: 'Tu dashboard: progreso, rutina y lo que sigue', color: C.gold },
-          { icon: NAV_ICONS.crecer, title: 'Crecer', desc: 'Programas de 7, 21 y 60 días + AI que crea el tuyo', color: C.teal },
-          { icon: NAV_ICONS.board, title: 'Comunidad', desc: 'Pregunta lo que necesites. Profesionales 24/7', color: C.coral },
-          { icon: NAV_ICONS.directorio, title: 'Ronda', desc: 'Marketplace de profesionales y negocios de mujeres', color: C.rose },
-          { icon: NAV_ICONS.yo, title: 'Yo', desc: 'Hábitos, rutina, diario, toolkit y perfil', color: C.lavanda },
-        ].map((tab, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '12px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left', borderLeft: `3px solid ${tab.color}` }}>
-            <div style={{ flexShrink: 0 }}>{tab.icon(true)}</div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{tab.title}</div>
-              <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>{tab.desc}</div>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, width: '100%', maxWidth: 320 }}>
+        {Object.entries(DIMS).map(([dim, cfg]) => (
+          <div key={dim} style={{
+            background: C.card, borderRadius: 16, padding: 20, textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${cfg.color}20`,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+          }}>
+            {ICONS[cfg.icon](cfg.color, 40)}
+            <div style={{ fontSize: 19, fontWeight: 800, color: cfg.color }}>{cfg.label}</div>
           </div>
         ))}
       </div>
     </div>,
 
-    /* Slide 2 — Comunidad + SOS */
+    /* Slide 2 — Cómo funciona tu día */
     <div key={2} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        No estás sola. Nunca.
-      </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
-        Ronda tiene una comunidad real detrás, no bots ni algoritmos
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start', borderLeft: `3px solid ${C.coral}` }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${C.coral}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 32 32"><path d="M16 6C12 6 9 10 9 14C9 20 16 26 16 26C16 26 23 20 23 14C23 10 20 6 16 6Z" fill={C.coral}/></svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: C.coral }}>Botón SOS</div>
-            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>¿Crisis de ansiedad? Toca el corazón y accede a respiración guiada, grounding y herramientas DBT al instante.</div>
-          </div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start', borderLeft: `3px solid ${C.teal}` }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${C.teal}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 32 32"><circle cx="16" cy="10" r="3" fill={C.teal}/><circle cx="9" cy="20" r="2.5" fill={C.teal} opacity="0.7"/><circle cx="23" cy="20" r="2.5" fill={C.teal} opacity="0.7"/></svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: C.teal }}>Comunidad 24/7</div>
-            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Publica de forma anónima. Solo profesionales verificadas responden. Psicólogas, coaches, nutricionistas.</div>
-          </div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start', borderLeft: `3px solid ${C.gold}` }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${C.gold}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 32 32"><path d="M6 13L6 24L26 24L26 13" stroke={C.gold} strokeWidth="2" fill="none"/><path d="M4 13L16 6L28 13" stroke={C.gold} strokeWidth="2" fill="none"/></svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: C.gold }}>Directorio Ronda</div>
-            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Encuentra profesionales y negocios de mujeres verificadas cerca de ti. 9 categorías.</div>
-          </div>
-        </div>
-      </div>
-    </div>,
-
-    /* Slide 3 — Programas + AI */
-    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Programas con neurociencia
-      </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
-        Paso a paso, a tu ritmo. Desde sanar hasta crear disciplina.
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%', maxWidth: 340, marginBottom: 16 }}>
-        {[
-          { title: 'Navegar la depresión', color: C.teal },
-          { title: 'Calmar la ansiedad', color: C.gold },
-          { title: 'Volver a moverme', color: C.mint },
-          { title: 'Reconectar con Dios', color: C.lavanda },
-          { title: '7 días de disciplina', color: C.coral },
-          { title: 'Enamórate de ti', color: C.rose },
-        ].map((p, i) => (
-          <div key={i} style={{ background: C.card, borderRadius: 12, padding: '10px 12px', textAlign: 'center', borderTop: `3px solid ${p.color}`, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.title}</div>
-            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>7 días · Freemium</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ background: `${C.teal}10`, borderRadius: 16, padding: 18, width: '100%', maxWidth: 340, border: `2px solid ${C.teal}30` }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: C.teal, marginBottom: 6 }}>AI crea tu programa</div>
-        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5 }}>
-          Dile qué quieres lograr y la IA te arma un programa personalizado paso a paso. "Quiero dejar el azúcar" → 21 días con neurociencia.
-        </div>
-        <div style={{ fontSize: 12, color: C.coral, fontWeight: 700, marginTop: 8 }}>Premium · 21 días $9.99 · 60 días $29.99</div>
-      </div>
-    </div>,
-
-    /* Slide 4 — Tu día con Ronda */
-    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         Tu día con Ronda
       </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
-        Te acompañamos de la mañana a la noche
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+        Ronda te acompaña mañana y noche
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
-        {[
-          { time: '7:00 AM', title: 'Intención del día', desc: '¿Qué quieres lograr hoy? Activa tus hábitos.', color: C.gold },
-          { time: 'Durante el día', title: 'Tu rutina + hábitos', desc: 'Sigue tu rutina personalizada. Marca tus hábitos. A tu ritmo.', color: C.teal },
-          { time: 'Cuando lo necesites', title: 'Comunidad + SOS', desc: 'Pregunta en el board o toca el botón SOS si necesitas apoyo ahora.', color: C.coral },
-          { time: '9:00 PM', title: 'Reflexión de noche', desc: '¿Cómo te fue? Escribe en tu diario. Planifica mañana. Suelta.', color: C.lavanda },
-        ].map((item, i) => (
-          <div key={i} style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: `3px solid ${item.color}` }}>
-            <div style={{ width: 50, height: 50, borderRadius: '50%', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: item.color, textAlign: 'center', lineHeight: 1.2 }}>{item.time}</div>
-            </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {ICONS.sol(C.gold, 32)}
+          <div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.gold }}>En la mañana</div>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Qué quieres lograr hoy?" y activas tus hábitos</div>
+          </div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {ICONS.habito(C.green, 32)}
+          <div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.green }}>Durante el día</div>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Trackea tus hábitos, sigue tu rutina y escucha recomendaciones según tu mood</div>
+          </div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+          {ICONS.luna(C.roseDark, 32)}
+          <div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.roseDark }}>En la noche</div>
+            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Te preguntamos: "¿Cómo te fue?" — revisa tu resumen y reflexiona</div>
+          </div>
+        </div>
+      </div>
+    </div>,
+
+    /* Slide 3 — Programas y recomendaciones */
+    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Programas paso a paso
+      </div>
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+        Caminos de 7 días para sanar, crecer y brillar. 1 minuto al día.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
+        {PROGRAMAS.slice(0, 4).map(prog => (
+          <div key={prog.id} style={{
+            background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12,
+            borderLeft: `3px solid ${prog.color}`,
+          }}>
+            {ICONS[prog.id](prog.color, 28)}
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{item.title}</div>
-              <div style={{ fontSize: 14, color: C.muted, marginTop: 3, lineHeight: 1.4 }}>{item.desc}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
+              <div style={{ fontSize: 20, color: C.muted, marginTop: 2 }}>{prog.days.length} días · 1 min/día</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 19, color: C.muted, marginTop: 20, maxWidth: 280, lineHeight: 1.5 }}>
+        Además, te recomendamos podcasts, música y hábitos según cómo te sientes cada día.
+      </div>
+    </div>,
+
+    /* Slide 4 — Herramientas */
+    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Todo lo que necesitas
+      </div>
+      <div style={{ fontSize: 20, color: C.muted, marginBottom: 28 }}>
+        Herramientas diseñadas para tu crecimiento
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
+        {[
+          { icon: NAV_ICONS.inicio(false), title: 'Mi día', desc: 'Tu dashboard y progreso diario' },
+          { icon: NAV_ICONS.programas(false), title: 'Programas', desc: 'Caminos paso a paso para sanar y crecer' },
+          { icon: NAV_ICONS.habitos(false), title: 'Hábitos', desc: 'Crea y trackea tus hábitos por dimensión' },
+          { icon: NAV_ICONS.rutina(false), title: 'Mi rutina', desc: 'Tu rutina de mañana, tarde y noche' },
+          { icon: NAV_ICONS.diario(false), title: 'Diario', desc: 'Reflexiona y recibe recomendaciones' },
+          { icon: NAV_ICONS.toolkit(false), title: 'Toolkit', desc: 'Guarda tus podcasts, libros y recursos' },
+          { icon: NAV_ICONS.frases(false), title: 'Frases', desc: 'Inspiración diaria para tu camino' },
+        ].map((item, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '10px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left' }}>
+            <div style={{ flexShrink: 0 }}>{item.icon}</div>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{item.title}</div>
+              <div style={{ fontSize: 20, color: C.muted, marginTop: 1 }}>{item.desc}</div>
             </div>
           </div>
         ))}
