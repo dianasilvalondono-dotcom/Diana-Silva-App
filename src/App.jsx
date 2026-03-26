@@ -97,7 +97,7 @@ function App() {
   const [editingRoutineItem, setEditingRoutineItem] = useState(null) // { sectionKey, id, time, task, emoji }
   const [newRoutineTask, setNewRoutineTask] = useState('')
   const [newRoutineTime, setNewRoutineTime] = useState('')
-  const [newRoutineEmoji, setNewRoutineEmoji] = useState('')
+  const [newRoutineEmoji, setNewRoutineEmoji] = useState('✨')
   const [newRoutineSection, setNewRoutineSection] = useState('morning')
   // Tomorrow planning (night ritual)
   const [tomorrowTasks, setTomorrowTasks] = useState(() => load(`ronda-tomorrow-${todayKey()}`, []))
@@ -138,45 +138,6 @@ function App() {
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
   const [showFullStory, setShowFullStory] = useState(false)
-
-  // AI Agent chat
-  const [showAgent, setShowAgent] = useState(false)
-  const [agentMessages, setAgentMessages] = useState([
-    { role: 'agent', text: '¡Hola! Soy Tu Ronda — estoy aquí para acompañarte. ¿Cómo te sientes hoy?' }
-  ])
-  const [agentInput, setAgentInput] = useState('')
-  const [agentLoading, setAgentLoading] = useState(false)
-
-  const sendAgentMessage = async () => {
-    if (!agentInput.trim() || agentLoading) return
-    const msg = agentInput.trim()
-    setAgentMessages(prev => [...prev, { role: 'user', text: msg }])
-    setAgentInput('')
-    setAgentLoading(true)
-    try {
-      const histKeys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
-      const activeDays = histKeys.filter(k => { try { return Object.values(JSON.parse(localStorage.getItem(k))).some(Boolean) } catch(e) { return false } }).length
-      const context = `Hábitos hoy: ${totalDone}/${totalHabits} completados. ` +
-        `Racha: ${activeDays} días este mes. ` +
-        (Object.keys(activePrograms).length > 0 ? `Programas activos: ${Object.keys(activePrograms).join(', ')}. ` : '') +
-        `Nombre: ${user?.user_metadata?.name || 'Usuaria'}.`
-      const resp = await fetch('/api/agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, context }),
-      })
-      const data = await resp.json()
-      if (data.reply) {
-        setAgentMessages(prev => [...prev, { role: 'agent', text: data.reply }])
-      }
-      if (data.program) {
-        setAgentMessages(prev => [...prev, { role: 'agent', text: `Te armé un programa: "${data.program.title}". ¿Lo quieres activar?`, program: data.program }])
-      }
-    } catch (err) {
-      setAgentMessages(prev => [...prev, { role: 'agent', text: 'Tuve un problema conectándome. ¿Intentamos de nuevo?' }])
-    }
-    setAgentLoading(false)
-  }
 
   // Panic button / Crisis mode
   const [showPanic, setShowPanic] = useState(false)
@@ -341,7 +302,7 @@ function App() {
     if (newRoutineSection === 'morning') setMorning(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
     else if (newRoutineSection === 'midday') setMidday(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
     else setNight(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
-    setNewRoutineTask(''); setNewRoutineTime(''); setNewRoutineEmoji('')
+    setNewRoutineTask(''); setNewRoutineTime(''); setNewRoutineEmoji('✨')
   }
 
   const removeRoutineItem = (section, id) => {
@@ -1534,7 +1495,7 @@ function App() {
                 <button onClick={() => toggleFavQuote(globalIdx)} style={{
                   background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', padding: 4,
                 }}>
-                  {isFav ? '♥' : '♡'}
+                  {isFav ? '❤️' : '🤍'}
                 </button>
               </div>
             </div>
@@ -1713,7 +1674,7 @@ function App() {
         text: 'Lo que describes suena a ansiedad anticipatoria — tu mente está tratando de "resolver" el futuro desde la cama. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." El cerebro necesita sentir que no va a olvidar para poder soltar. Si esto persiste más de 2 semanas, busca ayuda profesional. Estoy aquí. ' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
       replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
-        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti.' }] },
+        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
       replies: [{ pro: { name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal · Maternidad consciente', verified: true },
         text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Se llama "pérdida de identidad materna" y afecta al 70% de las mamás. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. ' }] },
@@ -1725,7 +1686,7 @@ function App() {
         text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte.' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
       replies: [{ pro: { name: 'Laura Martínez', title: 'Coach ejecutiva · Emprendimiento femenino', verified: true },
-        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar.' }] },
+        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar. 🚀' }] },
   ]
 
   const allBoardPosts = [...SEED_POSTS, ...boardPosts]
@@ -1876,7 +1837,7 @@ function App() {
             background: boardHearts[post.id] ? `${C.rose}12` : 'none',
             cursor: 'pointer', fontFamily: 'inherit',
           }}>
-            <span style={{ fontSize: 14, color: boardHearts[post.id] ? C.coral : C.muted }}>{boardHearts[post.id] ? '♥' : '♡'}</span>
+            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '' : '🤍'}</span>
             <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
               {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
             </span>
@@ -2993,126 +2954,6 @@ function App() {
     </div>
   )
 
-  /* ── AI Agent Chat (floating left) ── */
-  const agentFab = !showAgent && !showPanic && (
-    <button onClick={() => setShowAgent(true)} style={{
-      position: 'fixed', bottom: 90, left: 20, zIndex: 90,
-      display: 'flex', alignItems: 'center', gap: 8,
-      background: C.teal, color: 'white', border: 'none',
-      borderRadius: 28, padding: '10px 18px', cursor: 'pointer',
-      boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
-      fontFamily: 'inherit', fontSize: 14, fontWeight: 700,
-    }}>
-      <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="16" r="12" stroke="white" strokeWidth="2" fill="none"/>
-        <circle cx="16" cy="16" r="4" fill="white"/>
-        <path d="M16 4V8M16 24V28M4 16H8M24 16H28" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-      Tu Ronda
-    </button>
-  )
-
-  const agentChat = showAgent && (
-    <div style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0, top: 0, zIndex: 200,
-      background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }} onClick={(e) => { if (e.target === e.currentTarget) setShowAgent(false) }}>
-      <div style={{
-        width: '100%', maxWidth: 600, maxHeight: '75vh',
-        background: C.cream, borderRadius: '20px 20px 0 0',
-        display: 'flex', flexDirection: 'column', overflow: 'hidden',
-        boxShadow: '0 -8px 30px rgba(0,0,0,0.15)',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderBottom: `1px solid ${C.border}`, background: C.teal,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'white' }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: 'white' }}>Tu Ronda</div>
-              <div style={{ fontSize: 12, color: C.mint }}>Tu guía de bienestar</div>
-            </div>
-          </div>
-          <button onClick={() => setShowAgent(false)} style={{
-            background: 'none', border: 'none', color: 'white', fontSize: 24, cursor: 'pointer', padding: 4,
-          }}>×</button>
-        </div>
-
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {agentMessages.map((msg, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-            }}>
-              <div style={{
-                maxWidth: '80%', padding: '10px 14px', borderRadius: 16,
-                background: msg.role === 'user' ? C.teal : C.card,
-                color: msg.role === 'user' ? 'white' : C.text,
-                fontSize: 14, lineHeight: 1.5,
-                borderBottomRightRadius: msg.role === 'user' ? 4 : 16,
-                borderBottomLeftRadius: msg.role === 'user' ? 16 : 4,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-              }}>
-                {msg.text}
-                {msg.program && (
-                  <button onClick={() => {
-                    setActivePrograms(prev => ({ ...prev, [msg.program.title]: { startDate: todayKey(), completedDays: [] } }))
-                    setAgentMessages(prev => [...prev, { role: 'agent', text: `¡Activado! Tu programa "${msg.program.title}" empieza hoy. Encuéntralo en la tab Crecer.` }])
-                  }} style={{
-                    marginTop: 8, padding: '8px 16px', borderRadius: 12, border: 'none',
-                    background: C.gold, color: 'white', fontSize: 13, fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'inherit', width: '100%',
-                  }}>
-                    Activar programa
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-          {agentLoading && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={{ padding: '10px 14px', borderRadius: 16, background: C.card, color: C.muted, fontSize: 14 }}>
-                Pensando...
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input */}
-        <div style={{
-          padding: '12px 16px', borderTop: `1px solid ${C.border}`, background: 'white',
-          display: 'flex', gap: 10, alignItems: 'center',
-        }}>
-          <input
-            value={agentInput}
-            onChange={e => setAgentInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && sendAgentMessage()}
-            placeholder="Escríbele a Tu Ronda..."
-            style={{
-              flex: 1, padding: '10px 14px', borderRadius: 20,
-              border: `1.5px solid ${C.border}`, fontSize: 14,
-              fontFamily: 'inherit', outline: 'none',
-            }}
-          />
-          <button onClick={sendAgentMessage} disabled={agentLoading || !agentInput.trim()} style={{
-            width: 40, height: 40, borderRadius: '50%', border: 'none',
-            background: agentInput.trim() ? C.teal : C.border,
-            color: 'white', fontSize: 18, cursor: agentInput.trim() ? 'pointer' : 'default',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-
   /* ── Panic Button (floating) ── */
   const panicFab = !showPanic && (
     <button
@@ -3482,8 +3323,6 @@ function App() {
           {subTab === 'perfil' && perfilView}
         </>}
       </div>
-      {agentFab}
-      {agentChat}
       {panicFab}
       {panicModal}
       {bottomNav}
