@@ -69,7 +69,7 @@ function App() {
   const [view, setView] = useState('inicio')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
   // Admin check — Diana sees everything, others see paywall
-  const ADMIN_EMAILS = ['dianasilva.londono@gmail.com', 'dianasilvalondono@gmail.com', 'diana@rondahub.com']
+  const ADMIN_EMAILS = ['dianasilva.londono@gmail.com']
   const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase())
   const isPremium = isAdmin // Later: check Stripe subscription
 
@@ -129,6 +129,12 @@ function App() {
 
   // Onboarding
   const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
+
+  // Admin always sees onboarding (for demos/investors)
+  useEffect(() => {
+    if (isAdmin) setOnboarded(false)
+  }, [isAdmin])
+
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
