@@ -154,8 +154,10 @@ function App() {
     setAgentInput('')
     setAgentLoading(true)
     try {
+      const histKeys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
+      const activeDays = histKeys.filter(k => { try { return Object.values(JSON.parse(localStorage.getItem(k))).some(Boolean) } catch(e) { return false } }).length
       const context = `Hábitos hoy: ${totalDone}/${totalHabits} completados. ` +
-        `Racha: ${Object.keys(monthlyHistory).length} días este mes. ` +
+        `Racha: ${activeDays} días este mes. ` +
         (Object.keys(activePrograms).length > 0 ? `Programas activos: ${Object.keys(activePrograms).join(', ')}. ` : '') +
         `Nombre: ${user?.user_metadata?.name || 'Usuaria'}.`
       const resp = await fetch('/api/agent', {
