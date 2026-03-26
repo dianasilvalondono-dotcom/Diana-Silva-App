@@ -2416,21 +2416,19 @@ function App() {
   const onboardSlides = [
     /* Slide 0 — Bienvenida */
     <div key={0} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <div style={{ width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
-        </div>
-        <span style={{ fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif' }}>Ronda</span>
+      <div style={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid '+C.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+        <div style={{ width: 22, height: 22, borderRadius: '50%', background: C.gold }} />
       </div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
-        Tu espacio de crecimiento
-      </div>
-      <div style={{ fontSize: 20, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 40 }}>
+      <div style={{ fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>Ronda</div>
+      <div style={{ fontSize: 20, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 32 }}>
         Creces tú, crecemos todas
       </div>
-      <div style={{ width: 60, height: 1, background: C.roseLight, marginBottom: 40 }} />
-      <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
-        Un lugar para cultivar tus hábitos, conectar con tu intención y crecer en cada dimensión de tu vida.
+      <div style={{ width: 60, height: 2, background: C.gold, marginBottom: 32, borderRadius: 2 }} />
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
+        Tu refugio para crecer, sanar y volar
+      </div>
+      <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
+        Bienestar personal, comunidad de mujeres y acceso a profesionales verificadas — todo en un solo lugar.
       </div>
     </div>,
 
