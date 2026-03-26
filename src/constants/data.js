@@ -74,11 +74,11 @@ export const TOOLKIT_CATS = [
   { id: 'podcast',    emoji: '', label: 'Podcasts',      color: '#E8736D' },
   { id: 'libro',      emoji: '', label: 'Libros',        color: '#C9A96E' },
   { id: 'curso',      emoji: '', label: 'Cursos',        color: '#1B8A7A' },
-  { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#14695E' },
+  { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#1B8A7A' },
   { id: 'musica',     emoji: '', label: 'Música',        color: '#B8A9C9' },
   { id: 'masterclass',emoji: '', label: 'Masterclasses', color: '#E4A5A0' },
   { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#7ED4BC' },
-  { id: 'otro',       emoji: '', label: 'Otros',         color: '#B5A099' },
+  { id: 'otro',       emoji: '', label: 'Otros',         color: '#C4908A' },
 ]
 
 /* ── Mood-based recommendations ── */
