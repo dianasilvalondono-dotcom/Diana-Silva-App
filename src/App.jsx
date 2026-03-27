@@ -80,6 +80,13 @@ function App() {
   const [aiProgram, setAiProgram] = useState(null)
   const [aiError, setAiError] = useState('')
   const [aiSaved, setAiSaved] = useState(false)
+  // Chat state (Tu Ronda)
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'assistant', text: '¡Hola! Soy Tu Ronda — estoy aquí para acompañarte. ¿Cómo te sientes hoy? Puedo ayudarte con tus hábitos, sugerirte un programa, o simplemente escucharte.' }
+  ])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const [chatMode, setChatMode] = useState('chat') // 'chat' or 'create'
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [dirFilter, setDirFilter] = useState('todas')
 
@@ -2083,186 +2090,255 @@ function App() {
     setAiGoal(''); setAiContext(''); setAiStep(0); setAiProgram(null); setAiError(''); setAiSaved(false)
   }
 
+  const sendChatMessage = async () => {
+    const msg = chatInput.trim()
+    if (!msg || chatLoading) return
+    const userMsg = { role: 'user', text: msg }
+    setChatMessages(prev => [...prev, userMsg])
+    setChatInput('')
+    setChatLoading(true)
+
+    // Build context from user habits and mood
+    const todayChecked = Object.values(checked).filter(Boolean).length
+    const totalHabits = habits.length
+    const ctx = `Hábitos hoy: ${todayChecked}/${totalHabits} completados. Nombre: ${profile.name || 'Usuaria'}.`
+
+    // Send history for multi-turn conversation
+    const recentHistory = chatMessages.slice(-8).map(m => ({ role: m.role, text: m.text }))
+
+    try {
+      const resp = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, context: ctx, history: recentHistory }),
+      })
+      const data = await resp.json()
+      if (data.error) throw new Error(data.error)
+
+      const assistantMsg = { role: 'assistant', text: data.reply, connect: data.connect || null, sos: data.sos || false }
+      setChatMessages(prev => [...prev, assistantMsg])
+
+      // If AI returned a program, save it for the create flow
+      if (data.program) {
+        setAiProgram(data.program)
+        setChatMessages(prev => [...prev, { role: 'assistant', text: '¡Te armé un programa! Cambia a "Crea tu programa" arriba para verlo y guardarlo.', isProgram: true }])
+      }
+    } catch (err) {
+      setChatMessages(prev => [...prev, { role: 'assistant', text: 'Estoy teniendo problemas para conectarme. Pero puedo decirte: lo que sientes es válido, y estoy aquí contigo. Respira profundo.' }])
+    }
+    setChatLoading(false)
+  }
+
+  const chatRef = { current: null }
+
   const aiAgentView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <div style={{ fontSize: 36, marginBottom: 8, color: C.teal, opacity: 0.4 }}>●</div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
-          Crea tu programa personalizado
-        </div>
-        <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
-          Dime qué quieres lograr y te armo un programa paso a paso, a tu ritmo.
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 240px)', maxHeight: 600 }}>
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
+        {[{ id: 'chat', label: 'Habla conmigo' }, { id: 'create', label: 'Crea tu programa' }].map(m => (
+          <button key={m.id} onClick={() => setChatMode(m.id)} style={{
+            flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: chatMode === m.id ? C.teal : 'transparent',
+            color: chatMode === m.id ? 'white' : C.muted,
+            fontSize: 18, fontWeight: 700, fontFamily: 'inherit', transition: 'all 0.2s',
+          }}>{m.label}</button>
+        ))}
       </div>
 
-      {/* Step 0: Intro / Examples */}
-      {aiStep === 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            ¿Qué quieres lograr? Por ejemplo:
-          </div>
-          {[
-            { goal: 'Quiero dejar de comer azúcar', icon: '' },
-            { goal: 'Quiero empezar a meditar', icon: '' },
-            { goal: 'Quiero dormir mejor', icon: '' },
-            { goal: 'Quiero dejar de procrastinar', icon: '' },
-            { goal: 'Quiero fortalecer mi relación de pareja', icon: '' },
-            { goal: 'Quiero aprender a decir que no', icon: '' },
-          ].map((ex, i) => (
-            <button key={i} onClick={() => { setAiGoal(ex.goal); setAiStep(1) }} style={{
-              padding: '14px 18px', borderRadius: 14, border: `1px solid ${C.border}`,
-              background: C.card, cursor: 'pointer', textAlign: 'left',
-              display: 'flex', alignItems: 'center', gap: 12,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-            }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${[C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i]}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: [C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i] }} />
-              </div>
-              <span style={{ fontSize: 20, color: C.text, fontWeight: 600, fontFamily: 'inherit' }}>{ex.goal}</span>
-            </button>
-          ))}
-          <div style={{ textAlign: 'center', fontSize: 20, color: C.subtle, marginTop: 4 }}>
-            O escribe el tuyo propio ↓
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              value={aiGoal}
-              onChange={e => setAiGoal(e.target.value)}
-              placeholder="Escribe tu meta aquí..."
-              style={{
-                flex: 1, padding: '14px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`,
-                fontSize: 20, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none',
-              }}
-            />
-            <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} style={{
-              padding: '14px 20px', borderRadius: 14, border: 'none', cursor: 'pointer',
-              background: aiGoal.trim() ? C.rose : C.border, color: 'white',
-              fontSize: 20, fontWeight: 700, fontFamily: 'inherit',
-            }}>→</button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 1: Confirm goal */}
-      {aiStep === 1 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{
-            background: `linear-gradient(135deg, ${C.rose}15, ${C.gold}10)`,
-            borderRadius: 16, padding: 20, border: `1px solid ${C.roseLight}`,
-          }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: C.rose, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-              Tu meta
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, lineHeight: 1.4 }}>
-              "{aiGoal}"
-            </div>
-          </div>
-          <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6 }}>
-            ¿Quieres contarme algo más? Por ejemplo: hace cuánto lo intentas, qué te ha costado, tu situación actual. Entre más me cuentes, mejor tu programa.
-          </div>
-          <textarea
-            value={aiContext}
-            onChange={e => setAiContext(e.target.value)}
-            placeholder="Opcional: cuéntame un poco más... (ej: llevo 2 años intentando, me cuesta más en las noches...)"
-            rows={3}
-            style={{
-              padding: '14px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`,
-              fontSize: 20, fontFamily: 'inherit', background: C.cream, color: C.text,
-              outline: 'none', resize: 'none', lineHeight: 1.6,
-            }}
-          />
-          {aiError && <div style={{ fontSize: 19, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{
-              flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
-              background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}>← Atrás</button>
-            <button onClick={generateAiProgram} style={{
-              flex: 2, padding: '14px', borderRadius: 14, border: 'none',
-              background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white',
-              fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}>Crear mi programa ✨</button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: Generating (loading) */}
-      {aiStep === 3 && (
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <div style={{ fontSize: 44, marginBottom: 16, color: C.teal, animation: 'pulse 1.5s ease-in-out infinite' }}>●</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>
-            Creando tu programa...
-          </div>
-          <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.6 }}>
-            Estoy analizando tu meta y armando cada paso para que sea alcanzable, suave y progresivo. Dame un momento.
-          </div>
-          <style>{`@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }`}</style>
-        </div>
-      )}
-
-      {/* Step 4: Result */}
-      {aiStep === 4 && aiProgram && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Program header */}
-          <div style={{
-            background: `linear-gradient(135deg, ${C.rose}15, ${C.gold}10)`,
-            borderRadius: 16, padding: 20, border: `1px solid ${C.roseLight}`, textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>{aiProgram.emoji}</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>
-              {aiProgram.title}
-            </div>
-            <div style={{ fontSize: 19, color: C.muted, marginTop: 6 }}>{aiProgram.desc}</div>
-            <div style={{ fontSize: 19, color: C.rose, fontWeight: 700, marginTop: 8, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              {aiProgram.days?.length || 7} días · Creado por IA para ti
-            </div>
-          </div>
-
-          {/* Days */}
-          {aiProgram.days?.map(d => (
-            <div key={d.day} style={{
-              padding: '14px 16px', background: C.card, borderRadius: 14,
-              border: `1px solid ${C.border}`, display: 'flex', alignItems: 'flex-start', gap: 12,
+      {/* ── CHAT MODE ── */}
+      {chatMode === 'chat' && <>
+        {/* Messages */}
+        <div ref={el => { chatRef.current = el; if (el) el.scrollTop = el.scrollHeight }}
+          style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
+          {chatMessages.map((msg, i) => (
+            <div key={i} style={{
+              display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
             }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 10, background: `${C.rose}15`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                fontSize: 20,
-              }}>{d.emoji}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, textTransform: 'uppercase' }}>Día {d.day}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginTop: 2 }}>{d.title}</div>
-                <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{d.task}</div>
+                maxWidth: '82%', padding: '12px 16px', borderRadius: 18,
+                background: msg.role === 'user' ? C.teal : C.card,
+                color: msg.role === 'user' ? 'white' : C.text,
+                fontSize: 19, lineHeight: 1.6, fontFamily: 'inherit',
+                borderBottomRightRadius: msg.role === 'user' ? 4 : 18,
+                borderBottomLeftRadius: msg.role === 'user' ? 18 : 4,
+                boxShadow: msg.role === 'user' ? 'none' : '0 1px 4px rgba(0,0,0,0.06)',
+                border: msg.role === 'user' ? 'none' : `1px solid ${C.border}`,
+              }}>
+                {msg.role === 'assistant' && (
+                  <div style={{ fontSize: 17, fontWeight: 700, color: C.rose, marginBottom: 4 }}>Tu Ronda</div>
+                )}
+                {msg.text}
+                {/* Action buttons: Connect with professional / SOS */}
+                {msg.connect && (
+                  <button onClick={() => { setView('directorio'); setDirFilter(msg.connect) }} style={{
+                    marginTop: 10, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
+                    background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`, color: 'white',
+                    fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />
+                    </div>
+                    Conectar con profesional
+                  </button>
+                )}
+                {msg.sos && (
+                  <button onClick={() => { setShowPanic(true); setPanicScreen('home') }} style={{
+                    marginTop: 8, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
+                    background: C.lavanda, color: 'white',
+                    fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
+                  }}>Activar herramientas SOS</button>
+                )}
               </div>
             </div>
           ))}
-
-          {/* Actions */}
-          {!aiSaved ? (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={resetAiAgent} style={{
-                flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
-                background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}>Empezar de nuevo</button>
-              <button onClick={saveAiProgram} style={{
-                flex: 2, padding: '14px', borderRadius: 14, border: 'none',
-                background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
-                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Guardar y empezar 🚀</button>
+          {chatLoading && (
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={{
+                padding: '12px 20px', borderRadius: 18, borderBottomLeftRadius: 4,
+                background: C.card, border: `1px solid ${C.border}`,
+              }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  {[0, 1, 2].map(d => (
+                    <div key={d} style={{
+                      width: 8, height: 8, borderRadius: '50%', background: C.rose,
+                      animation: `chatDot 1.2s ease-in-out ${d * 0.2}s infinite`,
+                    }} />
+                  ))}
+                </div>
+              </div>
             </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: 20, background: `${C.green}10`, borderRadius: 16, border: `1px solid ${C.green}30` }}>
-              <div style={{ fontSize: 24, marginBottom: 8, color: C.teal }}>●</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: C.green }}>¡Programa guardado!</div>
-              <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Ve a Crecer → Programas para empezarlo.</div>
-              <button onClick={resetAiAgent} style={{
-                marginTop: 12, padding: '10px 24px', borderRadius: 12, border: 'none',
-                background: C.rose, color: 'white', fontSize: 19, fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}>Crear otro programa</button>
+          )}
+        </div>
+
+        {/* Quick actions */}
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, paddingTop: 4 }}>
+          {['¿Cómo empiezo?', 'Necesito ayuda', 'Quiero un programa'].map((q, i) => (
+            <button key={i} onClick={() => { setChatInput(q); }} style={{
+              padding: '6px 14px', borderRadius: 20, border: `1px solid ${C.roseLight}`,
+              background: C.card, color: C.rose, fontSize: 17, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', flexShrink: 0,
+            }}>{q}</button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+          <input
+            value={chatInput}
+            onChange={e => setChatInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage() } }}
+            placeholder="Escríbeme..."
+            style={{
+              flex: 1, padding: '14px 16px', borderRadius: 24, border: `1.5px solid ${C.roseLight}`,
+              fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text,
+              outline: 'none',
+            }}
+          />
+          <button onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} style={{
+            width: 48, height: 48, borderRadius: '50%', border: 'none', cursor: 'pointer',
+            background: chatInput.trim() ? `linear-gradient(135deg, ${C.teal}, ${C.tealDark})` : C.border,
+            color: 'white', fontSize: 22, fontWeight: 700, fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>↑</button>
+        </div>
+        <style>{`@keyframes chatDot { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }`}</style>
+      </>}
+
+      {/* ── CREATE PROGRAM MODE ── */}
+      {chatMode === 'create' && (
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Step 0: Intro / Examples */}
+          {aiStep === 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                ¿Qué quieres lograr?
+              </div>
+              {[
+                'Quiero dejar de comer azúcar', 'Quiero empezar a meditar',
+                'Quiero dormir mejor', 'Quiero dejar de procrastinar',
+                'Quiero fortalecer mi relación de pareja', 'Quiero aprender a decir que no',
+              ].map((goal, i) => (
+                <button key={i} onClick={() => { setAiGoal(goal); setAiStep(1) }} style={{
+                  padding: '12px 16px', borderRadius: 14, border: `1px solid ${C.border}`,
+                  background: C.card, cursor: 'pointer', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: `${[C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i]}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: [C.teal, C.coral, C.lavanda, C.mint, C.rose, C.gold][i] }} />
+                  </div>
+                  <span style={{ fontSize: 19, color: C.text, fontWeight: 600 }}>{goal}</span>
+                </button>
+              ))}
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..."
+                  style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`, fontSize: 19, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none' }} />
+                <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} style={{
+                  padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                  background: aiGoal.trim() ? C.rose : C.border, color: 'white', fontSize: 19, fontWeight: 700,
+                }}>→</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Context */}
+          {aiStep === 1 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ background: `${C.rose}10`, borderRadius: 14, padding: 16, border: `1px solid ${C.roseLight}` }}>
+                <div style={{ fontSize: 17, fontWeight: 700, color: C.rose, textTransform: 'uppercase', marginBottom: 4 }}>Tu meta</div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>"{aiGoal}"</div>
+              </div>
+              <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.6 }}>¿Quieres contarme algo más? Entre más me cuentes, mejor tu programa.</div>
+              <textarea value={aiContext} onChange={e => setAiContext(e.target.value)}
+                placeholder="Opcional: cuéntame un poco más..." rows={3}
+                style={{ padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`, fontSize: 19, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none', resize: 'none', lineHeight: 1.6 }} />
+              {aiError && <div style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>← Atrás</button>
+                <button onClick={generateAiProgram} style={{ flex: 2, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Crear mi programa</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Loading */}
+          {aiStep === 3 && (
+            <div style={{ textAlign: 'center', padding: 40 }}>
+              <div style={{ fontSize: 44, marginBottom: 16, color: C.teal, animation: 'pulse 1.5s ease-in-out infinite' }}>●</div>
+              <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 8 }}>Creando tu programa...</div>
+              <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.6 }}>Analizando tu meta y armando cada paso. Dame un momento.</div>
+              <style>{`@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }`}</style>
+            </div>
+          )}
+
+          {/* Step 4: Result */}
+          {aiStep === 4 && aiProgram && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ background: `${C.rose}10`, borderRadius: 16, padding: 18, border: `1px solid ${C.roseLight}`, textAlign: 'center' }}>
+                <div style={{ fontSize: 19, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>{aiProgram.title}</div>
+                <div style={{ fontSize: 18, color: C.muted, marginTop: 4 }}>{aiProgram.desc}</div>
+                <div style={{ fontSize: 17, color: C.rose, fontWeight: 700, marginTop: 6, textTransform: 'uppercase' }}>{aiProgram.days?.length || 7} días · Creado para ti</div>
+              </div>
+              {aiProgram.days?.map(d => (
+                <div key={d.day} style={{ padding: '12px 14px', background: C.card, borderRadius: 14, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: `${C.rose}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 17, fontWeight: 700, color: C.rose }}>{d.day}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{d.title}</div>
+                    <div style={{ fontSize: 18, color: C.muted, marginTop: 2, lineHeight: 1.5 }}>{d.task}</div>
+                  </div>
+                </div>
+              ))}
+              {!aiSaved ? (
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={resetAiAgent} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Otro</button>
+                  <button onClick={saveAiProgram} style={{ flex: 2, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${C.gold}, ${C.tealDark})`, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Guardar y empezar</button>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: 16, background: `${C.teal}10`, borderRadius: 14 }}>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: C.teal }}>¡Programa guardado!</div>
+                  <div style={{ fontSize: 18, color: C.muted, marginTop: 4 }}>Ve a Programas para empezarlo.</div>
+                  <button onClick={resetAiAgent} style={{ marginTop: 10, padding: '8px 20px', borderRadius: 12, border: 'none', background: C.rose, color: 'white', fontSize: 18, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Crear otro</button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2345,6 +2421,45 @@ function App() {
           <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6 }}>{profile.intention}</div>
         </div>
       )}
+
+      {/* Membership — Yo soy Ronda */}
+      <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', border: `1px solid ${C.goldLight}` }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Yo soy Ronda</div>
+        <div style={{ fontSize: 18, color: C.muted, marginBottom: 14 }}>
+          {isPremium ? 'Tienes acceso completo a Ronda' : 'Plan actual: Freemium'}
+        </div>
+
+        {!isPremium && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[
+              { name: 'Ronda Plus', price: '$9.99/mes', features: 'Tu Ronda (IA), programas 21 días, 5 respuestas profesionales/mes', color: C.teal },
+              { name: 'Ronda Pro', price: '$29.99/mes', features: 'Todo Plus + programas 60 días, respuestas ilimitadas, video calls, Círculos Privados', color: C.gold },
+            ].map((plan, i) => (
+              <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 14, border: `2px solid ${plan.color}30` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: plan.color }}>{plan.name}</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>{plan.price}</div>
+                </div>
+                <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.5, marginBottom: 10 }}>{plan.features}</div>
+                <button onClick={() => alert(`Próximamente: pago para ${plan.name}. Te avisaremos cuando esté listo.`)} style={{
+                  width: '100%', padding: '10px', borderRadius: 12, border: 'none',
+                  background: plan.color, color: 'white', fontSize: 17, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  Elegir {plan.name}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {isPremium && (
+          <div style={{ background: `${C.teal}10`, borderRadius: 12, padding: 14, border: `1px solid ${C.teal}30`, textAlign: 'center' }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.teal }}>Acceso completo activo</div>
+            <div style={{ fontSize: 16, color: C.muted, marginTop: 4 }}>Tu Ronda, programas premium, Talent Pot y más.</div>
+          </div>
+        )}
+      </div>
 
       {/* Stats */}
       <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
@@ -2506,8 +2621,35 @@ function App() {
       </div>
     </div>,
 
-    /* Slide 3 — Programas + AI */
+    /* Slide 3 — Tu Ronda + Talent Pot */
     <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+      <div style={{ width: 56, height: 56, borderRadius: '50%', border: `3px solid ${C.teal}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+        <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.teal }} />
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        Tu Ronda — tu guía personal
+      </div>
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300, lineHeight: 1.6 }}>
+        Una IA que te escucha, te orienta y te conecta con profesionales reales cuando lo necesitas
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 320 }}>
+        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', borderLeft: '3px solid '+C.teal }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.teal }}>Chat con Tu Ronda</div>
+          <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Escríbele como a una amiga. Te escucha, te valida y te guía.</div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', borderLeft: '3px solid '+C.gold }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.gold }}>Talent Pot</div>
+          <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Profesionales verificadas: psicólogas, coaches, nutricionistas y más. La IA te conecta con la indicada.</div>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', borderLeft: '3px solid '+C.rose }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.rose }}>Programas con IA</div>
+          <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Dile qué quieres lograr y te crea un programa personalizado paso a paso.</div>
+        </div>
+      </div>
+    </div>,
+
+    /* Slide 4 — Programas */
+    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
       <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         Programas con neurociencia
       </div>
@@ -2529,55 +2671,59 @@ function App() {
           </div>
         ))}
       </div>
-      <div style={{ background: C.teal+'10', borderRadius: 16, padding: 18, width: '100%', maxWidth: 340, border: '2px solid '+C.teal+'30' }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: C.teal, marginBottom: 6 }}>AI crea tu programa</div>
-        <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5 }}>
-          Dile qué quieres lograr y te arma un programa personalizado paso a paso.
-        </div>
-        <div style={{ fontSize: 12, color: C.coral, fontWeight: 700, marginTop: 8 }}>Premium · Ronda Plus $9.99 · Ronda Pro $29.99</div>
-      </div>
+      <div style={{ fontSize: 12, color: C.coral, fontWeight: 700, marginTop: 4 }}>Premium · Ronda Plus $9.99/mes · Ronda Pro $29.99/mes</div>
     </div>,
 
-    /* Slide 4 — Tu día con Ronda */
-    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+    /* Slide 5 — Tu día con Ronda */
+    <div key={5} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
       <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
         Tu día con Ronda
       </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300 }}>
         Te acompañamos de la mañana a la noche
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 320 }}>
         {[
-          { time: '7:00 AM', title: 'Intención del día', desc: 'Activa tus hábitos.', color: C.gold },
-          { time: 'Durante el día', title: 'Tu rutina + hábitos', desc: 'Sigue tu rutina. A tu ritmo.', color: C.teal },
-          { time: 'Cuando lo necesites', title: 'Comunidad + SOS', desc: 'Pregunta o toca SOS.', color: C.coral },
-          { time: '9:00 PM', title: 'Reflexión de noche', desc: 'Escribe. Planifica. Suelta.', color: C.lavanda },
+          { time: '7 AM', title: 'Intención del día', desc: 'Define tu meta y activa hábitos.', color: C.gold },
+          { time: 'Tu día', title: 'Rutina + hábitos + Tu Ronda', desc: 'Sigue tu rutina. Habla con la IA.', color: C.teal },
+          { time: 'SOS', title: 'Comunidad + profesionales', desc: 'Pregunta, toca SOS, o conecta con el Talent Pot.', color: C.coral },
+          { time: '9 PM', title: 'Reflexión de noche', desc: 'Escribe, planifica, suelta.', color: C.lavanda },
         ].map((item, i) => (
-          <div key={i} style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+item.color }}>
-            <div style={{ width: 50, height: 50, borderRadius: '50%', background: item.color+'15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: item.color, textAlign: 'center', lineHeight: 1.2 }}>{item.time}</div>
+          <div key={i} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'center', borderLeft: '3px solid '+item.color }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: item.color+'15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: item.color, textAlign: 'center' }}>{item.time}</div>
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{item.title}</div>
-              <div style={{ fontSize: 14, color: C.muted, marginTop: 3 }}>{item.desc}</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>{item.title}</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.desc}</div>
             </div>
           </div>
         ))}
       </div>
     </div>,
 
-    /* Slide 5 — Escoge tus hábitos */
-    <div key={5} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', textAlign: 'center', padding: '32px 24px' }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 6 }}>
+    /* Slide 6 — Escoge tus hábitos */
+    <div key={6} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', textAlign: 'center', padding: '24px 20px' }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 4 }}>
         Escoge tus hábitos
       </div>
-      <div style={{ fontSize: 20, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
-        Toca los que quieras practicar. Siempre puedes cambiarlos después.
+      <div style={{ fontSize: 15, color: C.muted, marginBottom: 12, maxWidth: 300 }}>
+        Toca los que quieras. Siempre puedes cambiarlos.
       </div>
-      <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, marginBottom: 8 }}>
-        {onboardHabits.length} seleccionados
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 340, marginBottom: 24 }}>
+
+      {/* CTA FIRST — visible immediately */}
+      <button onClick={finishOnboarding} style={{
+        padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 340, marginBottom: 16,
+        background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
+        color: 'white', fontSize: 18, fontWeight: 800, border: 'none',
+        cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
+        boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
+      }}>
+        Comenzar mi Ronda{onboardHabits.length > 0 ? ` (${onboardHabits.length})` : ''}
+      </button>
+
+      {/* Habits below — scrollable */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', maxWidth: 340, overflowY: 'auto', flex: 1 }}>
         {SUGGESTED_HABITS.map((sh, i) => {
           const selected = onboardHabits.some(h => h.name === sh.name)
           const dim = DIMS[sh.dim]
@@ -2585,37 +2731,28 @@ function App() {
             <div key={i} onClick={() => {
               setOnboardHabits(prev => selected ? prev.filter(h => h.name !== sh.name) : [...prev, sh])
             }} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px',
-              background: selected ? `${dim.color}15` : C.card, borderRadius: 12,
+              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+              background: selected ? `${dim.color}15` : C.card, borderRadius: 10,
               border: selected ? `2px solid ${dim.color}` : `1px solid ${C.border}`,
               cursor: 'pointer', transition: 'all 0.15s',
             }}>
               <div style={{
-                width: 22, height: 22, borderRadius: 6, border: `2px solid ${selected ? dim.color : C.border}`,
+                width: 20, height: 20, borderRadius: 5, border: `2px solid ${selected ? dim.color : C.border}`,
                 background: selected ? dim.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontSize: 20, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                color: 'white', fontSize: 16, fontWeight: 700, flexShrink: 0,
               }}>
                 {selected && '✓'}
               </div>
               <div style={{ flex: 1, textAlign: 'left' }}>
-                <div style={{ fontSize: 20, fontWeight: 600, color: C.text }}>{sh.name}</div>
-                <div style={{ fontSize: 19, color: dim.color, fontWeight: 700 }}>{dim.label}</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: C.text }}>{sh.name}</div>
+                <div style={{ fontSize: 14, color: dim.color, fontWeight: 600 }}>{dim.label}</div>
               </div>
             </div>
           )
         })}
       </div>
-      <button onClick={finishOnboarding} style={{
-        padding: '14px 40px', borderRadius: 30,
-        background: `${C.teal}`,
-        color: 'white', fontSize: 19, fontWeight: 800, border: 'none',
-        cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
-        boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
-      }}>
-        Comenzar mi Ronda
-      </button>
-      <div style={{ fontSize: 20, color: C.muted, marginTop: 12 }}>
-        También puedes crear hábitos propios después
+      <div style={{ fontSize: 14, color: C.muted, marginTop: 8 }}>
+        Puedes crear hábitos propios después
       </div>
     </div>,
   ]
@@ -2713,81 +2850,83 @@ function App() {
   /* ── Morning Modal ── */
   const morningModal = showMorningCheckin && (
     <div style={modalOverlay}>
-      <div style={modalCard}>
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 36, marginBottom: 10, color: '#C9A96E' }}>●</div>
+      <div style={{ ...modalCard, maxHeight: '85vh', overflowY: 'auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <div style={{ fontSize: 32, marginBottom: 8, color: C.gold }}>●</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
-            {profile.name ? `${profile.name}, ¿qué quieres lograr hoy?` : '¿Qué quieres lograr hoy?'}
+            {profile.name ? `${profile.name}, buenos días` : 'Buenos días'}
           </div>
-          <div style={{ fontSize: 20, color: C.muted, marginTop: 6 }}>Activa tus hábitos del día y define tu intención</div>
+          <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Define tu intención y activa tus hábitos</div>
         </div>
 
-        {/* Habit toggles */}
-        <div style={{ fontSize: 20, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-          Mis hábitos de hoy
-        </div>
-        {habits.length === 0 ? (
-          <div style={{ padding: '16px 14px', background: C.cream, borderRadius: 12, border: `1px dashed ${C.roseLight}`, marginBottom: 18, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, color: C.muted, marginBottom: 8 }}>Aún no tienes hábitos</div>
-            <button onClick={() => { setShowMorningCheckin(false); setView('yo'); setSubTab('habitos') }} style={{
-              padding: '8px 18px', borderRadius: 20, border: 'none',
-              background: C.rose, color: 'white', fontSize: 19, fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}>
-              Escoger mis hábitos
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
-            {habits.map(h => {
-              const dim = DIMS[h.dim]
-              return (
-                <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-                  background: checked[h.id] ? `${C.green}12` : C.cream, borderRadius: 12,
-                  cursor: 'pointer', transition: 'all 0.15s',
-                  border: checked[h.id] ? `1px solid ${C.green}40` : `1px solid ${C.border}`,
-                }}>
-                  <div style={{
-                    width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked[h.id] ? C.green : dim.color}`,
-                    background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontSize: 20, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
-                  }}>
-                    {checked[h.id] && '✓'}
-                  </div>
-                  <span style={{ fontSize: 20, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
-                    textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
-                    {ICONS[dim.icon] ? ICONS[dim.icon](dim.color, 16) : ''} {h.name}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Intention */}
-        <div style={{ fontSize: 20, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
-          Mi intención del día
-        </div>
+        {/* Intention FIRST — compact */}
         <textarea
           value={morningIntention}
           onChange={e => setMorningIntention(e.target.value)}
           placeholder="Hoy quiero..."
+          rows={2}
           style={{
-            width: '100%', minHeight: 70, padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
-            fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
-            boxSizing: 'border-box', background: C.cream,
+            width: '100%', padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
+            fontSize: 19, fontFamily: 'inherit', resize: 'none', outline: 'none', lineHeight: 1.5,
+            boxSizing: 'border-box', background: C.cream, marginBottom: 12,
           }}
         />
 
+        {/* CTA — Comenzar mi día — VISIBLE RIGHT AWAY */}
         <button onClick={completeMorningCheckin} style={{
-          marginTop: 16, width: '100%', padding: 16, borderRadius: 16, border: 'none',
+          width: '100%', padding: 16, borderRadius: 16, border: 'none',
           background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
           color: 'white', fontSize: 19, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
-          boxShadow: '0 6px 20px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
+          boxShadow: '0 6px 20px rgba(201,169,110,0.35)', letterSpacing: '0.02em', marginBottom: 16,
         }}>
-          Comenzar mi día
+          Comenzar mi Ronda
         </button>
+
+        {/* Habits — below CTA, scrollable */}
+        <div style={{ fontSize: 18, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          Mis hábitos de hoy
+        </div>
+        {habits.length === 0 ? (
+          <button onClick={() => { completeMorningCheckin(); setView('yo'); setSubTab('habitos') }} style={{
+            width: '100%', padding: '14px', borderRadius: 14, border: `1.5px dashed ${C.roseLight}`,
+            background: C.cream, color: C.rose, fontSize: 18, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center',
+          }}>
+            + Escoger mis hábitos
+          </button>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {habits.slice(0, 6).map(h => {
+              const dim = DIMS[h.dim]
+              return (
+                <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
+                  background: checked[h.id] ? `${C.green}12` : C.cream, borderRadius: 10,
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  border: checked[h.id] ? `1px solid ${C.green}40` : `1px solid ${C.border}`,
+                }}>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 5, border: `2px solid ${checked[h.id] ? C.green : dim.color}`,
+                    background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'white', fontSize: 18, fontWeight: 700, flexShrink: 0,
+                  }}>
+                    {checked[h.id] && '✓'}
+                  </div>
+                  <span style={{ fontSize: 18, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
+                    textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
+                    {h.name}
+                  </span>
+                </div>
+              )
+            })}
+            {habits.length > 6 && (
+              <div style={{ fontSize: 17, color: C.teal, fontWeight: 600, textAlign: 'center', padding: 4, cursor: 'pointer' }}
+                onClick={() => { completeMorningCheckin(); setView('yo'); setSubTab('habitos') }}>
+                Ver todos mis hábitos ({habits.length}) →
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -2883,6 +3022,30 @@ function App() {
         </button>
       </div>
     </div>
+  )
+
+  /* ── Tu Ronda FAB (floating) ── */
+  const rondaFab = !(view === 'crecer' && subTab === 'ai') && !showPanic && (
+    <button
+      onClick={() => { setView('crecer'); setSubTab('ai'); setChatMode('chat') }}
+      style={{
+        position: 'fixed', bottom: 90, left: 16, zIndex: 200,
+        display: 'flex', alignItems: 'center', gap: 8,
+        background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
+        border: 'none', cursor: 'pointer', padding: '10px 16px 10px 12px',
+        borderRadius: 28, boxShadow: '0 4px 20px rgba(27,138,122,0.4)',
+      }}
+      aria-label="Habla con Tu Ronda — tu guía de bienestar"
+    >
+      <div style={{
+        width: 32, height: 32, borderRadius: '50%',
+        border: '2px solid rgba(255,255,255,0.5)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'white' }} />
+      </div>
+      <span style={{ fontSize: 19, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>Tu Ronda</span>
+    </button>
   )
 
   /* ── Panic Button (floating) ── */
@@ -3254,6 +3417,7 @@ function App() {
           {subTab === 'perfil' && perfilView}
         </>}
       </div>
+      {rondaFab}
       {panicFab}
       {panicModal}
       {bottomNav}
