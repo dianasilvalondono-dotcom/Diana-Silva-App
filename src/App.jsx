@@ -902,7 +902,7 @@ function App() {
                   background: 'none', border: 'none', color: C.gold, fontSize: 20, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
                 }}>✎</button>
                 <button onClick={() => removeRoutineItem(sectionKey, item.id)} style={{
-                  background: 'none', border: 'none', color: '#e57373', fontSize: 20, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
+                  background: 'none', border: 'none', color: C.coral, fontSize: 20, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
                 }}>×</button>
               </>}
             </div>
@@ -1385,10 +1385,10 @@ function App() {
             {/* Neuro badge */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-              background: '#F5F0E8', borderRadius: 12, marginBottom: 16,
+              background: C.goldLight, borderRadius: 12, marginBottom: 16,
             }}>
               {ICONS.mental('#1B8A7A', 22)}
-              <div style={{ fontSize: 20, color: '#6B5A4E', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.5 }}>
                 <span style={{ fontWeight: 800 }}>Basado en neurociencia:</span> cada día incluye el porqué científico detrás de tu micro-acción.
               </div>
             </div>
@@ -1905,7 +1905,7 @@ function App() {
     { id: 'd4', name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal', cat: 'salud_mental', city: 'Medellín', desc: 'Maternidad consciente, depresión postparto, crianza respetuosa. Sesiones presenciales y virtuales.', price: 'Desde $130.000/sesión', verified: true, rating: 4.9, reviews: 61 },
     { id: 'd5', name: 'Laura Martínez Coaching', title: 'Coach ejecutiva', cat: 'coaching', city: 'Bogotá', desc: 'Emprendimiento femenino, liderazgo y marca personal. Programas grupales e individuales para mujeres que quieren crecer.', price: 'Desde $180.000/sesión', verified: true, rating: 4.7, reviews: 28 },
     { id: 'd6', name: 'Nutrición Vital', title: 'Nutricionista clínica', cat: 'nutricion', city: 'Cartagena', desc: 'Alimentación consciente, planes personalizados, relación sana con la comida. Sin dietas restrictivas — bienestar real.', price: 'Desde $100.000/consulta', verified: true, rating: 4.8, reviews: 53 },
-    { id: 'd7', name: 'Abogadas con Alma', title: 'Derecho de familia', cat: 'legal', city: 'Cartagena', desc: 'Divorcios, custodia, violencia intrafamiliar. Equipo de abogadas que entiende lo que estás pasando. Consulta inicial gratis.', price: 'Consulta inicial gratis', verified: true, rating: 4.9, reviews: 37 },
+    { id: 'd7', name: 'Abogadas con Alma', title: 'Derecho de familia', cat: 'legal', city: 'Cartagena', desc: 'Divorcios, custodia, violencia intrafamiliar. Equipo de abogadas que entiende lo que estás pasando. Consulta inicial sin costo.', price: 'Consulta inicial Freemium', verified: true, rating: 4.9, reviews: 37 },
     { id: 'd8', name: 'Manos de Luna', title: 'Spa & Bienestar', cat: 'belleza', city: 'Cartagena', desc: 'Masajes terapéuticos, aromaterapia, reflexología. Un espacio creado por mujeres para reconectar con tu cuerpo.', price: 'Desde $80.000/sesión', verified: true, rating: 4.9, reviews: 72 },
     { id: 'd9', name: 'Cuentas Claras', title: 'Contabilidad para emprendedoras', cat: 'negocios', city: 'Virtual', desc: 'Facturación, impuestos, registro de empresa. Te ayudamos a formalizar tu negocio sin enredos. Precios especiales para emprendedoras.', price: 'Desde $200.000/mes', verified: true, rating: 4.6, reviews: 19 },
     { id: 'd10', name: 'Escuela Renacer', title: 'Talleres de empoderamiento', cat: 'educacion', city: 'Virtual', desc: 'Talleres de autoestima, finanzas personales, comunicación asertiva y liderazgo femenino. Grupos de máximo 15 mujeres.', price: 'Desde $50.000/taller', verified: true, rating: 4.8, reviews: 44 },
@@ -2172,7 +2172,7 @@ function App() {
               outline: 'none', resize: 'none', lineHeight: 1.6,
             }}
           />
-          {aiError && <div style={{ fontSize: 19, color: '#D32F2F', fontWeight: 600 }}>{aiError}</div>}
+          {aiError && <div style={{ fontSize: 19, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{
               flex: 1, padding: '14px', borderRadius: 14, border: `1.5px solid ${C.border}`,
