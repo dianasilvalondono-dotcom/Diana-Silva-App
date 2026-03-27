@@ -102,7 +102,7 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
 
           {error && (
             <div style={{
-              fontSize: 14, color: '#D32F2F', background: '#FFEBEE', padding: '10px 14px',
+              fontSize: 14, color: C.coral, background: C.roseLight, padding: '10px 14px',
               borderRadius: 10, marginBottom: 12, fontWeight: 600,
             }}>
               {error}
