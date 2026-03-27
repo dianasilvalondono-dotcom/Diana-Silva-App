@@ -2807,7 +2807,7 @@ function App() {
           </div>
 
           {/* Buttons */}
-          {onboardStep < 5 && (
+          {onboardStep < onboardSlides.length - 1 && (
             <div style={{ display: 'flex', gap: 16 }}>
               {onboardStep > 0 && (
                 <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
