@@ -1,9 +1,9 @@
 /* ── Dimension config ── */
 export const DIMS = {
-  espiritual: { icon: 'espiritual', color: '#B8A9C9', label: 'Espiritual' },
-  emocional:  { icon: 'emocional',  color: '#E8736D', label: 'Emocional' },
-  fisico:     { icon: 'fisico',     color: '#7ED4BC', label: 'Físico' },
-  mental:     { icon: 'mental',     color: '#1B8A7A', label: 'Mental' },
+  espiritual: { icon: 'espiritual', color: '#C4B5FD', label: 'Espiritual' },
+  emocional:  { icon: 'emocional',  color: '#E8B4B8', label: 'Emocional' },
+  fisico:     { icon: 'fisico',     color: '#A7F3D0', label: 'Físico' },
+  mental:     { icon: 'mental',     color: '#0D9488', label: 'Mental' },
 }
 
 /* ── Default habits ── */
@@ -71,20 +71,20 @@ export function getDayQuote() {
 
 /* ── Toolkit categories ── */
 export const TOOLKIT_CATS = [
-  { id: 'podcast',    emoji: '', label: 'Podcasts',      color: '#E8736D' },
-  { id: 'libro',      emoji: '', label: 'Libros',        color: '#C9A96E' },
-  { id: 'curso',      emoji: '', label: 'Cursos',        color: '#1B8A7A' },
-  { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#1B8A7A' },
-  { id: 'musica',     emoji: '', label: 'Música',        color: '#B8A9C9' },
-  { id: 'masterclass',emoji: '', label: 'Masterclasses', color: '#E4A5A0' },
-  { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#7ED4BC' },
-  { id: 'otro',       emoji: '', label: 'Otros',         color: '#C4908A' },
+  { id: 'podcast',    emoji: '', label: 'Podcasts',      color: '#F4845F' },
+  { id: 'libro',      emoji: '', label: 'Libros',        color: '#C6A94E' },
+  { id: 'curso',      emoji: '', label: 'Cursos',        color: '#0D9488' },
+  { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#0D9488' },
+  { id: 'musica',     emoji: '', label: 'Música',        color: '#C4B5FD' },
+  { id: 'masterclass',emoji: '', label: 'Masterclasses', color: '#E8B4B8' },
+  { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#A7F3D0' },
+  { id: 'otro',       emoji: '', label: 'Otros',         color: '#E8B4B8' },
 ]
 
 /* ── Mood-based recommendations ── */
 export const MOOD_RECS = {
   0: {
-    label: 'Te abrazo desde aquí', color: '#C4908A',
+    label: 'Te abrazo desde aquí', color: '#E8B4B8',
     items: [
       { type: 'podcast', title: 'Mel Robbins — "How to Stop Feeling So Overwhelmed"', url: 'https://open.spotify.com/show/5bGsRbA3MXzP8FpbEuFJRa' },
       { type: 'podcast', title: 'Jay Shetty — "How to Heal a Broken Heart"', url: 'https://open.spotify.com/show/5EqqB52m2bsr4k1Ii7sStc' },
@@ -97,7 +97,7 @@ export const MOOD_RECS = {
     programa: 'tusa',
   },
   1: {
-    label: 'Un empujoncito de energía', color: '#C9A96E',
+    label: 'Un empujoncito de energía', color: '#C6A94E',
     items: [
       { type: 'podcast', title: 'Mel Robbins — "The 5 Second Rule"', url: 'https://open.spotify.com/show/5bGsRbA3MXzP8FpbEuFJRa' },
       { type: 'podcast', title: 'Brené Brown — "Unlocking Us"', url: 'https://open.spotify.com/show/4P86ZzHf7EOlRG7do9jkXm' },
@@ -107,7 +107,7 @@ export const MOOD_RECS = {
     ],
   },
   2: {
-    label: 'Mantén esa energía', color: '#1B8A7A',
+    label: 'Mantén esa energía', color: '#0D9488',
     items: [
       { type: 'podcast', title: 'Jay Shetty — "On Purpose: Finding Your Passion"', url: 'https://open.spotify.com/show/5EqqB52m2bsr4k1Ii7sStc' },
       { type: 'podcast', title: 'TED Talks Daily — "The Power of Vulnerability"', url: 'https://open.spotify.com/show/1VXcH8QHkjRcTCEd88U3ti' },
@@ -117,7 +117,7 @@ export const MOOD_RECS = {
     ],
   },
   3: {
-    label: 'Aprovecha tu buena vibra', color: '#7ED4BC',
+    label: 'Aprovecha tu buena vibra', color: '#A7F3D0',
     items: [
       { type: 'podcast', title: 'Lewis Howes — "The School of Greatness"', url: 'https://open.spotify.com/show/07GQhOZboEZOE1ysnFLipT' },
       { type: 'libro', title: '📚 "Atomic Habits" — James Clear', url: 'https://www.amazon.com/Atomic-Habits-James-Clear/dp/0735211299' },
@@ -127,7 +127,7 @@ export const MOOD_RECS = {
     ],
   },
   4: {
-    label: '¡Estás brillando!', color: '#C9A96E',
+    label: '¡Estás brillando!', color: '#C6A94E',
     items: [
       { type: 'podcast', title: 'Tony Robbins — "Unleash the Power Within"', url: 'https://open.spotify.com/show/6fZXOzfGDmPzIEMl8qzmmq' },
       { type: 'tedtalk', title: '🎤 "Your Body Language Shapes Who You Are" — Amy Cuddy', url: 'https://www.ted.com/talks/amy_cuddy_your_body_language_may_shape_who_you_are' },
@@ -142,7 +142,7 @@ export const MOOD_RECS = {
 export const PROGRAMAS = [
   {
     id: 'tusa', title: 'Salir de una tusa',
-    desc: 'Un camino de 7 días para sanar tu corazón, un minuto a la vez', color: '#C4908A',
+    desc: 'Un camino de 7 días para sanar tu corazón, un minuto a la vez', color: '#E8B4B8',
     days: [
       { day: 1, title: 'Acepta lo que sientes', task: 'Escribe lo que sientes sin filtro. Solo 1 minuto. No lo juzgues.' },
       { day: 2, title: 'Llora si necesitas', task: 'Pon una canción que te haga sentir y déjate llorar. El llanto sana.' },
@@ -155,7 +155,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'depresion', title: 'Navegar la depresión',
-    desc: 'La vida es como olas del mar. 7 días para aprender a surfearlas, no a hundirte en ellas.', color: '#1B8A7A',
+    desc: 'La vida es como olas del mar. 7 días para aprender a surfearlas, paso a paso.', color: '#0D9488',
     days: [
       { day: 1, title: 'Levántate y abre una ventana', task: '1 minuto de luz solar. La luz activa tu serotonina.' },
       { day: 2, title: 'Ducha de agua fría (30 seg)', task: 'Solo 30 segundos al final de tu ducha. Activa tu sistema nervioso.' },
@@ -168,7 +168,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'ansiedad', title: 'Calmar la ansiedad',
-    desc: '7 días para recuperar la calma, paso a paso', color: '#C9A96E',
+    desc: '7 días para recuperar la calma, paso a paso', color: '#C6A94E',
     days: [
       { day: 1, title: 'Respiración 4-7-8', task: 'Inhala 4s, sostén 7s, exhala 8s. Repite 3 veces. Tu sistema nervioso se calma.' },
       { day: 2, title: 'Grounding: 5-4-3-2-1', task: '5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.' },
@@ -181,7 +181,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'empezar', title: 'Empezar de cero',
-    desc: '7 días para reinventarte y construir la vida que quieres', color: '#7ED4BC',
+    desc: '7 días para reinventarte y construir la vida que quieres', color: '#A7F3D0',
     days: [
       { day: 1, title: 'Define tu "por qué"', task: '¿Por qué quieres cambiar? Escríbelo en 1 frase. Eso es tu motor.' },
       { day: 2, title: 'Limpia un espacio', task: 'Tu escritorio, tu mesa, un cajón. Espacio limpio = mente clara.' },
@@ -194,7 +194,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'autoestima', title: 'Reconstruir mi autoestima',
-    desc: '7 días para recordar quién eres y cuánto vales', color: '#C4908A',
+    desc: '7 días para recordar quién eres y cuánto vales', color: '#E8B4B8',
     days: [
       { day: 1, title: 'Mírate al espejo', task: 'Mírate 1 minuto y dite: "Te veo, te quiero, estoy contigo."' },
       { day: 2, title: '5 logros de tu vida', task: 'Escribe 5 cosas que has logrado. Grandes o pequeñas. Son tuyas.' },
@@ -208,7 +208,7 @@ export const PROGRAMAS = [
   /* ── Programas positivos / aspiracionales ── */
   {
     id: 'ejercicio', title: 'Volver a moverme',
-    desc: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo', color: '#7ED4BC',
+    desc: '7 días para reconectar con tu cuerpo, a tu ritmo, paso a paso', color: '#A7F3D0',
     days: [
       { day: 1, title: 'Estira 2 minutos', task: 'Cuello, hombros, espalda. No necesitas más. Solo empezar.' },
       { day: 2, title: 'Camina 10 minutos', task: 'Afuera, con música que te guste. Caminar es el mejor antidepresivo natural.' },
@@ -221,7 +221,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'dios', title: 'Reconectar con Dios',
-    desc: '7 días para cultivar tu espiritualidad y encontrar paz interior', color: '#C9A96E',
+    desc: '7 días para cultivar tu espiritualidad y encontrar paz interior', color: '#C6A94E',
     days: [
       { day: 1, title: 'Silencio de 5 minutos', task: 'Sin celular, sin música. Solo tú y el silencio. Escucha qué te dice.' },
       { day: 2, title: 'Gratitud a Dios', task: 'Escribe 3 cosas por las que le das gracias hoy. Las más simples son las más poderosas.' },
@@ -234,7 +234,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'mama', title: 'Volver a mí (para mamás)',
-    desc: 'Ser mamá no es perderte. 7 días para reconectarte contigo sin culpa.', color: '#B8A9C9',
+    desc: 'Ser mamá es tu superpoder. 7 días para reconectarte contigo.', color: '#C4B5FD',
     days: [
       { day: 1, title: 'Tu nombre primero', task: 'Hoy no eres "la mamá de...". Escribe: "Mi nombre es ___ y hoy me elijo."' },
       { day: 2, title: '15 minutos solo para ti', task: 'Léete algo, toma un café en silencio, respira. 15 minutos que son tuyos.' },
@@ -247,7 +247,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'disciplina', title: '7 días de disciplina',
-    desc: 'No es motivación, es decisión. 7 días para entrenar tu mente como un músculo.', color: '#E8736D',
+    desc: 'Es decisión, es poder. 7 días para entrenar tu mente como un músculo.', color: '#F4845F',
     days: [
       { day: 1, title: 'Levántate 30 min antes', task: 'Pon la alarma 30 minutos antes. Ese tiempo es tuyo. No negociable.' },
       { day: 2, title: 'Haz tu cama', task: 'Primer acto del día: orden. Una cama tendida es tu primera victoria.' },
@@ -260,7 +260,7 @@ export const PROGRAMAS = [
   },
   {
     id: 'amor_propio', title: 'Enamórate de ti',
-    desc: '7 días para tratarte como tratarías a tu mejor amiga', color: '#C4908A',
+    desc: '7 días para tratarte como tratarías a tu mejor amiga', color: '#E8B4B8',
     days: [
       { day: 1, title: 'Háblate bonito', task: 'Hoy cada vez que te critiques, para y di: "¿Le diría esto a mi mejor amiga?"' },
       { day: 2, title: 'Date un regalo', task: 'Algo pequeño: flores, un café especial, un baño largo. Consiéntete sin razón.' },
@@ -278,7 +278,7 @@ export const PROGRAMAS_PREMIUM = [
   {
     id: 'despertar21', title: 'Despertar — 21 días para crear tu hábito',
     desc: '3 semanas para sembrar, construir e integrar el hábito que va a cambiar tu vida. 1-2 minutos al día.',
-    color: '#C9A96E', price: 9.99, duration: '21 días',
+    color: '#C6A94E', price: 9.99, duration: '21 días',
     phases: [
       { name: 'Sembrar', days: '1-7', desc: 'Conocerte y despertar' },
       { name: 'Construir', days: '8-14', desc: 'Fortalecer tu hábito' },
