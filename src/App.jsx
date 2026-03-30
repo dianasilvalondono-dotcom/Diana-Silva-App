@@ -2535,29 +2535,27 @@ function App() {
       </div>
     </div>,
 
-    /* Slide 1 — Los 5 espacios */
+    /* Slide 1 — Las 3 experiencias */
     <div key={1} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
       <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        5 espacios, 1 refugio
+        3 experiencias, 1 refugio
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300 }}>
-        Todo lo que necesitas para crecer, en un solo lugar
+        Herramientas que funcionan, programas con estructura, comunidad que sostiene
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 340 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 340 }}>
         {[
-          { title: 'Mi día', desc: 'Tu dashboard: progreso, rutina y lo que sigue', color: C.gold },
-          { title: 'Crecer', desc: 'Programas de 7, 21 y 60 días + AI que crea el tuyo', color: C.teal },
-          { title: 'Comunidad', desc: 'Pregunta lo que necesites. Profesionales 24/7', color: C.coral },
-          { title: 'Ronda', desc: 'Marketplace de profesionales y negocios de mujeres', color: C.rose },
-          { title: 'Yo', desc: 'Hábitos, rutina, diario, toolkit y perfil', color: C.lavanda },
+          { title: 'Ahora', desc: 'Tu día, tus hábitos, tu rutina, diario y toolkit. Lo que necesitas hoy.', color: C.gold },
+          { title: 'Crecer', desc: 'Programas de 7 y 21 días con neurociencia + IA que crea el tuyo.', color: C.teal },
+          { title: 'Juntas', desc: 'Comunidad anónima 24/7 + profesionales verificadas del Talent Pot.', color: C.coral },
         ].map((tab, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '12px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left', borderLeft: '3px solid '+tab.color }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: tab.color+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ width: 14, height: 14, borderRadius: '50%', background: tab.color }} />
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left', borderLeft: '3px solid '+tab.color }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: tab.color+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 16, height: 16, borderRadius: '50%', background: tab.color }} />
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{tab.title}</div>
-              <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>{tab.desc}</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{tab.title}</div>
+              <div style={{ fontSize: 14, color: C.muted, marginTop: 3, lineHeight: 1.5 }}>{tab.desc}</div>
             </div>
           </div>
         ))}
@@ -2653,7 +2651,7 @@ function App() {
           </div>
         ))}
       </div>
-      <div style={{ fontSize: 12, color: C.coral, fontWeight: 700, marginTop: 4 }}>Premium · Ronda Plus $9.99/mes · Ronda Pro $29.99/mes</div>
+      <div style={{ fontSize: 12, color: C.coral, fontWeight: 700, marginTop: 4 }}>Ronda+ $9.99/mes · Programas de 21 días, IA y más</div>
     </div>,
 
     /* Slide 5 — Tu día con Ronda */
