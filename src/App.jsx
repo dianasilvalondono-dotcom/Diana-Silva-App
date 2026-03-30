@@ -2680,60 +2680,15 @@ function App() {
           </div>
         ))}
       </div>
-    </div>,
-
-    /* Slide 6 — Escoge tus hábitos */
-    <div key={6} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', textAlign: 'center', padding: '24px 20px' }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 4 }}>
-        Escoge tus hábitos
-      </div>
-      <div style={{ fontSize: 15, color: C.muted, marginBottom: 12, maxWidth: 300 }}>
-        Toca los que quieras. Siempre puedes cambiarlos.
-      </div>
-
-      {/* CTA FIRST — visible immediately */}
       <button onClick={finishOnboarding} style={{
-        padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 340, marginBottom: 16,
+        padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 340, marginTop: 24,
         background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
         color: 'white', fontSize: 18, fontWeight: 800, border: 'none',
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
         boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
       }}>
-        Comenzar mi Ronda{onboardHabits.length > 0 ? ` (${onboardHabits.length})` : ''}
+        Comenzar mi Ronda
       </button>
-
-      {/* Habits below — scrollable */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', maxWidth: 340, overflowY: 'auto', flex: 1 }}>
-        {SUGGESTED_HABITS.map((sh, i) => {
-          const selected = onboardHabits.some(h => h.name === sh.name)
-          const dim = DIMS[sh.dim]
-          return (
-            <div key={i} onClick={() => {
-              setOnboardHabits(prev => selected ? prev.filter(h => h.name !== sh.name) : [...prev, sh])
-            }} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-              background: selected ? `${dim.color}15` : C.card, borderRadius: 10,
-              border: selected ? `2px solid ${dim.color}` : `1px solid ${C.border}`,
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}>
-              <div style={{
-                width: 20, height: 20, borderRadius: 5, border: `2px solid ${selected ? dim.color : C.border}`,
-                background: selected ? dim.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontSize: 16, fontWeight: 700, flexShrink: 0,
-              }}>
-                {selected && '✓'}
-              </div>
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                <div style={{ fontSize: 17, fontWeight: 600, color: C.text }}>{sh.name}</div>
-                <div style={{ fontSize: 14, color: dim.color, fontWeight: 600 }}>{dim.label}</div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <div style={{ fontSize: 14, color: C.muted, marginTop: 8 }}>
-        Puedes crear hábitos propios después
-      </div>
     </div>,
   ]
 
