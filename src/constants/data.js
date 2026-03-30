@@ -42,18 +42,7 @@ export const DEFAULT_NIGHT = [
 
 /* ── Quotes collection ── */
 export const QUOTES = [
-  { text: 'Libero todo el dolor de mi pasado y doy la bienvenida a la salud, la alegría, el amor y el éxito que me corresponden.', author: 'Diana', cat: 'sanacion' },
-  { text: 'Respira y Pausa Activa — No tengo que decidir nada ahora. Estoy a salvo.', author: 'Diana', cat: 'serenidad' },
-  { text: 'El control fue mi intento de no perder; Soltar y rendirme a Dios es mi forma de no PERDERME A MI.', author: 'Diana', cat: 'espiritual' },
-  { text: 'Hoy hice lo mejor que pude con las herramientas que tengo. Me perdono y descanso en Dios.', author: 'Diana', cat: 'sanacion' },
-  { text: 'Diana, take nothing personally today. Time is ticking. You only have today. Momento Mori.', author: 'Diana', cat: 'motivacional' },
   { text: 'Dios concédeme serenidad para aceptar todo aquello que no puedo cambiar, valor para cambiar lo que soy capaz de cambiar y sabiduría para entender la diferencia.', author: 'Oración de Serenidad', cat: 'espiritual' },
-  { text: 'Respira Profundo Diana — No tengo que decidir nada ahora. Estoy a salvo.', author: 'Diana', cat: 'serenidad' },
-  { text: 'Dios mi vida se volvió inmanejable y no tengo poder sobre mi, ni sobre otros. Tú eres el poder y la sanidad.', author: 'Diana', cat: 'espiritual' },
-  { text: 'You can be kind and lovely and still tell people to fuck off.', author: 'Diana', cat: 'motivacional' },
-  { text: 'Diana, te perdono por haberte dado el valor en la elección de otros. Te perdono por haber confundido poder con amor y atención con seguridad. Hoy te elijo yo.', author: 'Diana', cat: 'sanacion' },
-  { text: 'Everybody is going through something. Be kind.', author: 'Diana', cat: 'sabiduria' },
-  { text: 'God, I give to You all that I am and all that I will be for Your healing and direction.', author: 'Diana', cat: 'espiritual' },
   { text: 'Quiero a quien me quiera y dejo ir lo que tiene que irse.', author: 'Marta Botero', cat: 'serenidad' },
   { text: 'La paz viene de adentro. No la busques afuera.', author: 'Buda', cat: 'sabiduria' },
   { text: 'Cada mañana nacemos de nuevo. Lo que hacemos hoy es lo que más importa.', author: 'Buda', cat: 'espiritual' },
@@ -62,6 +51,12 @@ export const QUOTES = [
   { text: 'La oración no cambia a Dios, pero cambia a quien ora.', author: 'Søren Kierkegaard', cat: 'espiritual' },
   { text: 'El agua no lucha. Fluye. Y al fluir, es poderosa.', author: 'Lao Tzu', cat: 'sabiduria' },
   { text: 'Eres más fuerte de lo que crees y más valiente de lo que imaginas.', author: 'A.A. Milne', cat: 'motivacional' },
+  { text: 'Tu cuerpo escucha todo lo que tu mente dice.', author: 'Naomi Judd', cat: 'sanacion' },
+  { text: 'No eres lo que te pasó. Eres lo que decides ser.', author: 'Carl Jung', cat: 'motivacional' },
+  { text: 'La vulnerabilidad es nuestra medida más precisa de coraje.', author: 'Brené Brown', cat: 'sabiduria' },
+  { text: 'Donde hay una mujer, hay magia.', author: 'Ntozake Shange', cat: 'motivacional' },
+  { text: 'La sanación toma tiempo, y pedir ayuda es un paso valiente.', author: 'Mariska Hargitay', cat: 'sanacion' },
+  { text: 'Inhala el futuro, exhala el pasado.', author: 'Anónimo', cat: 'serenidad' },
 ]
 
 export function getDayQuote() {

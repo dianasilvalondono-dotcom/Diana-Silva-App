@@ -66,7 +66,7 @@ function App() {
   const { user, loading: authLoading, isConfigured, signInWithGoogle, signInWithEmail, signUp, signOut } = useAuth()
   const { isSubscribed, isReady: notifReady, requestPermission } = useNotifications()
 
-  const [view, setView] = useState('inicio')
+  const [view, setView] = useState('ahora')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
   // Admin check — Diana sees everything, others see paywall
   const ADMIN_EMAILS = ['dianasilva.londono@gmail.com']
@@ -439,36 +439,18 @@ function App() {
     </svg>
   )
   const NAV_ICONS = {
-    /* Mi día — sol con rayos */
-    inicio: (a) => <BrandIcon active={a}><circle cx="16" cy="16" r="4" fill={a ? C.teal : C.subtle} /><g stroke={a ? C.teal : C.subtle} strokeWidth="1.5" strokeLinecap="round">{[[16,5,16,8],[16,24,16,27],[5,16,8,16],[24,16,27,16],[8.5,8.5,10.6,10.6],[21.4,21.4,23.5,23.5],[8.5,23.5,10.6,21.4],[21.4,10.6,23.5,8.5]].map(([x1,y1,x2,y2],i)=><line key={i} x1={x1} y1={y1} x2={x2} y2={y2}/>)}</g></BrandIcon>,
-    /* Toolkit — estrella de 4 puntas */
-    toolkit: (a) => <BrandIcon active={a}><path d="M16 7 L18 13 L24 16 L18 19 L16 25 L14 19 L8 16 L14 13 Z" fill={a ? C.teal : C.subtle} opacity="0.85" /></BrandIcon>,
-    /* Mis hábitos — check/flama ascendente */
-    habitos: (a) => <BrandIcon active={a}><path d="M11 16.5 L14.5 20 L21 12" stroke={a ? C.teal : C.subtle} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /></BrandIcon>,
-    /* Mi rutina — infinito */
-    rutina: (a) => <BrandIcon active={a}><path d="M9 16 C9 12.5 12 12.5 14 14.5 L18 17.5 C20 19.5 23 19.5 23 16 C23 12.5 20 12.5 18 14.5 L14 17.5 C12 19.5 9 19.5 9 16 Z" stroke={a ? C.teal : C.subtle} strokeWidth="2.2" strokeLinecap="round" fill="none" /></BrandIcon>,
-    /* Diario — burbuja de pensamiento */
-    diario: (a) => <BrandIcon active={a}><path d="M8 15 Q8 9 16 9 Q24 9 24 15 Q24 21 16 21 L13 21 L10 24 L11 21 Q8 20.5 8 15 Z" fill={a ? C.teal : C.subtle} opacity="0.85" /><line x1="12" y1="13" x2="20" y2="13" stroke="white" strokeWidth="1.2" strokeLinecap="round" /><line x1="12" y1="16.5" x2="18" y2="16.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" /></BrandIcon>,
-    /* Frases — comillas */
-    frases: (a) => <BrandIcon active={a}><g fill={a ? C.teal : C.subtle} opacity="0.85"><circle cx="12" cy="14" r="3" /><path d="M12 17 Q9 17 10 21 L13 20 Q14 17 12 17Z" /><circle cx="21" cy="14" r="3" /><path d="M21 17 Q18 17 19 21 L22 20 Q23 17 21 17Z" /></g></BrandIcon>,
-    /* Programas — camino/steps */
-    programas: (a) => <BrandIcon active={a}><path d="M10 24 L10 20 L16 17 L16 13 L22 10 L22 7" stroke={a ? C.teal : C.subtle} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /><circle cx="10" cy="24" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.5" /><circle cx="16" cy="15" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><circle cx="22" cy="7" r="2.5" fill={a ? C.teal : C.subtle} /></BrandIcon>,
-    /* Board — manos unidas / círculo de apoyo */
-    board: (a) => <BrandIcon active={a}><circle cx="16" cy="10" r="3" fill={a ? C.teal : C.subtle} opacity="0.9" /><circle cx="9" cy="20" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><circle cx="23" cy="20" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><path d="M9 17 Q16 14 23 17" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 22.5 Q16 26 23 22.5" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
+    /* Ahora — sol con rayos (tu día) */
+    ahora: (a) => <BrandIcon active={a}><circle cx="16" cy="16" r="4" fill={a ? C.teal : C.subtle} /><g stroke={a ? C.teal : C.subtle} strokeWidth="1.5" strokeLinecap="round">{[[16,5,16,8],[16,24,16,27],[5,16,8,16],[24,16,27,16],[8.5,8.5,10.6,10.6],[21.4,21.4,23.5,23.5],[8.5,23.5,10.6,21.4],[21.4,10.6,23.5,8.5]].map(([x1,y1,x2,y2],i)=><line key={i} x1={x1} y1={y1} x2={x2} y2={y2}/>)}</g></BrandIcon>,
     /* Crecer — semilla/planta creciendo */
     crecer: (a) => <BrandIcon active={a}><path d="M16 24 L16 14" stroke={a ? C.teal : C.subtle} strokeWidth="2" strokeLinecap="round" /><path d="M16 14 Q12 10 16 6 Q20 10 16 14Z" fill={a ? C.teal : C.subtle} opacity="0.85" /><path d="M16 18 Q11 16 10 12" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M16 18 Q21 16 22 12" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
-    /* Directorio — tienda/storefront */
-    directorio: (a) => <BrandIcon active={a}><path d="M6 13 L6 24 L26 24 L26 13" stroke={a ? C.teal : C.subtle} strokeWidth="1.8" fill="none" strokeLinecap="round" /><path d="M4 13 L16 6 L28 13" stroke={a ? C.teal : C.subtle} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /><rect x="13" y="17" width="6" height="7" rx="1" fill={a ? C.teal : C.subtle} opacity="0.6" /><circle cx="10" cy="18" r="1.5" fill={a ? C.teal : C.subtle} opacity="0.5" /><circle cx="22" cy="18" r="1.5" fill={a ? C.teal : C.subtle} opacity="0.5" /></BrandIcon>,
-    /* Yo — persona/perfil */
-    yo: (a) => <BrandIcon active={a}><circle cx="16" cy="11" r="4" fill={a ? C.teal : C.subtle} opacity="0.85" /><path d="M8 24 Q8 18 16 18 Q24 18 24 24" fill={a ? C.teal : C.subtle} opacity="0.6" /></BrandIcon>,
+    /* Juntas — círculo de apoyo / manos unidas */
+    juntas: (a) => <BrandIcon active={a}><circle cx="16" cy="10" r="3" fill={a ? C.teal : C.subtle} opacity="0.9" /><circle cx="9" cy="20" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><circle cx="23" cy="20" r="2.5" fill={a ? C.teal : C.subtle} opacity="0.7" /><path d="M9 17 Q16 14 23 17" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 22.5 Q16 26 23 22.5" stroke={a ? C.teal : C.subtle} strokeWidth="1.5" fill="none" strokeLinecap="round" /></BrandIcon>,
   }
 
   const NAV = [
-    { id: 'inicio',     label: 'Mi día' },
-    { id: 'crecer',     label: 'Crecer' },
-    { id: 'board',      label: 'Comunidad' },
-    { id: 'directorio', label: 'Ronda' },
-    { id: 'yo',         label: 'Yo' },
+    { id: 'ahora',  label: 'Ahora' },
+    { id: 'crecer', label: 'Crecer' },
+    { id: 'juntas', label: 'Juntas' },
   ]
 
   /* ── Logo ── */
@@ -478,7 +460,7 @@ function App() {
     </div>
   )
   const logo = (
-    <button onClick={() => setView('inicio')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+    <button onClick={() => setView('ahora')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
       {logoIcon}
       <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif' }}>Ronda</span>
     </button>
@@ -504,7 +486,7 @@ function App() {
           </div>
           <div style={{ fontSize: 19, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
-        <button onClick={() => { setView('yo'); setSubTab('perfil') }} style={{
+        <button onClick={() => { setView('perfil'); setSubTab('') }} style={{
           width: 40, height: 40, borderRadius: '50%', border: '2px solid #C6A94E',
           background: 'rgba(201,169,110,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0, padding: 0,
@@ -581,7 +563,7 @@ function App() {
         })
         if (!next) return null
         return (
-          <div onClick={() => { setView('yo'); setSubTab('rutina') }} style={{
+          <div onClick={() => { setView('ahora'); setSubTab('rutina') }} style={{
             display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
             background: C.card, borderRadius: 16, cursor: 'pointer',
             border: `1px solid ${C.border}`,
@@ -2170,7 +2152,7 @@ function App() {
                 {msg.text}
                 {/* Action buttons: Connect with professional / SOS */}
                 {msg.connect && (
-                  <button onClick={() => { setView('directorio'); setDirFilter(msg.connect) }} style={{
+                  <button onClick={() => { setView('juntas'); setSubTab('directorio'); setDirFilter(msg.connect) }} style={{
                     marginTop: 10, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
                     background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`, color: 'white',
                     fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
@@ -2887,7 +2869,7 @@ function App() {
           Mis hábitos de hoy
         </div>
         {habits.length === 0 ? (
-          <button onClick={() => { completeMorningCheckin(); setView('yo'); setSubTab('habitos') }} style={{
+          <button onClick={() => { completeMorningCheckin(); setView('ahora'); setSubTab('habitos') }} style={{
             width: '100%', padding: '14px', borderRadius: 14, border: `1.5px dashed ${C.roseLight}`,
             background: C.cream, color: C.rose, fontSize: 18, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center',
@@ -2921,7 +2903,7 @@ function App() {
             })}
             {habits.length > 6 && (
               <div style={{ fontSize: 17, color: C.teal, fontWeight: 600, textAlign: 'center', padding: 4, cursor: 'pointer' }}
-                onClick={() => { completeMorningCheckin(); setView('yo'); setSubTab('habitos') }}>
+                onClick={() => { completeMorningCheckin(); setView('ahora'); setSubTab('habitos') }}>
                 Ver todos mis hábitos ({habits.length}) →
               </div>
             )}
@@ -3169,7 +3151,7 @@ function App() {
           </div>
 
           {/* Go to community */}
-          <button onClick={() => { setShowPanic(false); setView('board') }} style={{
+          <button onClick={() => { setShowPanic(false); setView('juntas') }} style={{
             marginTop: 24, width: '100%', padding: '14px 18px',
             background: 'rgba(201,169,110,0.2)', borderRadius: 16,
             border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',
@@ -3375,47 +3357,51 @@ function App() {
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       {header}
       <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 120 }}>
-        {view === 'inicio' && inicioView}
+        {view === 'ahora' && <>
+          {!subTab && inicioView}
+          <SubTabs
+            tabs={[
+              { id: 'habitos', label: 'Hábitos' },
+              { id: 'rutina', label: 'Rutina' },
+              { id: 'diario', label: 'Diario' },
+              { id: 'toolkit', label: 'Toolkit' },
+            ]}
+            active={subTab || ''}
+            onChange={(t) => setSubTab(subTab === t ? '' : t)}
+          />
+          {subTab === 'habitos' && habitosView}
+          {subTab === 'rutina' && rutinaView}
+          {subTab === 'diario' && diarioView}
+          {subTab === 'toolkit' && toolkitView}
+        </>}
 
         {view === 'crecer' && <>
           <SubTabs
             tabs={[
-              { id: 'programas', label: 'Programas', icon: '' },
-              { id: 'ai', label: 'Crea el tuyo', icon: '✨' },
-              { id: 'historia', label: 'Nuestra historia', icon: '🌿' },
-              { id: 'frases', label: 'Frases', icon: '💬' },
+              { id: 'programas', label: 'Programas' },
+              { id: 'ai', label: 'Tu Ronda IA' },
             ]}
             active={subTab || 'programas'}
             onChange={(t) => { setSubTab(t); if (t === 'ai') resetAiAgent() }}
           />
           {(subTab || 'programas') === 'programas' && programasView}
           {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Crea tu programa con IA" price="$9.99/mes" desc="Dile a nuestra IA qué quieres lograr y te arma un programa personalizado, paso a paso, a tu ritmo." />)}
-          {subTab === 'historia' && historiaView}
-          {subTab === 'frases' && frasesView}
         </>}
 
-        {view === 'board' && boardView}
-
-        {view === 'directorio' && directorioView}
-
-        {view === 'yo' && <>
+        {view === 'juntas' && <>
           <SubTabs
             tabs={[
-              { id: 'habitos', label: 'Hábitos', icon: '✅' },
-              { id: 'rutina', label: 'Rutina', icon: '∞' },
-              { id: 'diario', label: 'Diario', icon: '📝' },
-              { id: 'toolkit', label: 'Toolkit', icon: '⭐' },
-              { id: 'perfil', label: 'Perfil', icon: '👤' },
+              { id: 'board', label: 'Comunidad' },
+              { id: 'directorio', label: 'Talent Pot' },
             ]}
-            active={subTab || 'habitos'}
+            active={subTab || 'board'}
             onChange={setSubTab}
           />
-          {(subTab || 'habitos') === 'habitos' && habitosView}
-          {subTab === 'rutina' && rutinaView}
-          {subTab === 'diario' && diarioView}
-          {subTab === 'toolkit' && toolkitView}
-          {subTab === 'perfil' && perfilView}
+          {(subTab || 'board') === 'board' && boardView}
+          {subTab === 'directorio' && directorioView}
         </>}
+
+        {view === 'perfil' && perfilView}
       </div>
       {rondaFab}
       {panicFab}
