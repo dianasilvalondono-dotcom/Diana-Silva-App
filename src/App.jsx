@@ -473,8 +473,8 @@ function App() {
 
   /* ── Logo ── */
   const logoIcon = (
-    <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#C9A96E' }} />
+    <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid #C6A94E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#C6A94E' }} />
     </div>
   )
   const logo = (
@@ -487,7 +487,7 @@ function App() {
   /* ── Top Header ── */
   const header = (
     <div style={{
-      background: '#1B8A7A',
+      background: '#0D9488',
       padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100, overflow: 'hidden',
     }}>
       {/* Decorative Ronda circles */}
@@ -500,17 +500,17 @@ function App() {
             {logo}
             <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.3)' }} />
             <span style={{ fontSize: 20, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
-            {isAdmin && <span style={{ fontSize: 8, background: '#C9A96E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
+            {isAdmin && <span style={{ fontSize: 8, background: '#C6A94E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
           </div>
           <div style={{ fontSize: 19, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
         </div>
         <button onClick={() => { setView('yo'); setSubTab('perfil') }} style={{
-          width: 40, height: 40, borderRadius: '50%', border: '2px solid #C9A96E',
+          width: 40, height: 40, borderRadius: '50%', border: '2px solid #C6A94E',
           background: 'rgba(201,169,110,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0, padding: 0,
         }}>
-          <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #C9A96E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#C9A96E' }} />
+          <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #C6A94E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#C6A94E' }} />
           </div>
         </button>
       </div>
@@ -522,7 +522,7 @@ function App() {
     <div style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 600,
-      background: 'linear-gradient(180deg, #FEFBF6 0%, #F0FAF7 100%)',
+      background: 'linear-gradient(180deg, #FFF8F0 0%, #F0FAF7 100%)',
       borderTop: `1.5px solid ${C.mintLight}`,
       display: 'flex', padding: '8px 4px 20px', zIndex: 100,
       boxShadow: '0 -2px 12px rgba(27,138,122,0.08)',
@@ -640,7 +640,7 @@ function App() {
       {(() => {
         const hooks = [
           { q: '¿Quieres empezar a tratarte mejor?', sub: '7 días para enamorarte de ti. Porque tú mereces el mismo amor que le das a los demás.', prog: 'amor_propio', color: C.coral },
-          { q: '¿Quieres volver a moverte?', sub: '7 días para reconectar con tu cuerpo, sin presión, a tu ritmo.', prog: 'ejercicio', color: C.teal },
+          { q: '¿Quieres volver a moverte?', sub: '7 días para reconectar con tu cuerpo, a tu ritmo, paso a paso.', prog: 'ejercicio', color: C.teal },
           { q: '¿Quieres más disciplina en tu vida?', sub: 'No es motivación, es decisión. 7 días para entrenar tu mente.', prog: 'disciplina', color: C.tealDark },
           { q: '¿Quieres reconectar con tu espiritualidad?', sub: '7 días para cultivar paz interior y soltar el control.', prog: 'dios', color: C.gold },
           { q: '¿Quieres empezar de cero?', sub: 'Yo me reinventé muchas veces. 7 días para construir la vida que quieres.', prog: 'empezar', color: C.mint },
@@ -1209,7 +1209,7 @@ function App() {
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #1B8A7A, #2A9D8F, #7ED4BC)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0D9488, #14B5A3, #A7F3D0)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
         <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
@@ -1292,7 +1292,7 @@ function App() {
           Crece a tu ritmo
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
-          No tienes que estar pasando por algo difícil para empezar. Estos programas son para ti, ahora.
+          Estos programas son para ti, estés donde estés. Un paso a la vez.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {PROGRAMAS.filter(p => !activePrograms[p.id] && ['ejercicio','dios','mama','disciplina','amor_propio'].includes(p.id)).map(prog => (
@@ -1394,7 +1394,7 @@ function App() {
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
               background: C.goldLight, borderRadius: 12, marginBottom: 16,
             }}>
-              {ICONS.mental('#1B8A7A', 22)}
+              {ICONS.mental('#0D9488', 22)}
               <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.5 }}>
                 <span style={{ fontWeight: 800 }}>Basado en neurociencia:</span> cada día incluye el porqué científico detrás de tu micro-acción.
               </div>
@@ -1428,7 +1428,7 @@ function App() {
   const frasesView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Quote of the day */}
-      <div style={{ background: 'linear-gradient(135deg, #C9A96E, #E8D5A8)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #C6A94E, #E8D5A8)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>Frase del día</div>
         <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
         <div style={{ fontSize: 20, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
@@ -1489,7 +1489,7 @@ function App() {
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #B8A9C9, #D4C4E0)', borderRadius: 18, padding: 20, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #C4B5FD, #D4C4E0)', borderRadius: 18, padding: 20, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Mi Toolkit</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
         <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
@@ -1631,14 +1631,14 @@ function App() {
 
   /* ── Board categories ── */
   const BOARD_CATS = [
-    { id: 'todas', label: 'Todas', color: '#1B8A7A' },
-    { id: 'ansiedad', label: 'Ansiedad', color: '#C9A96E' },
-    { id: 'relaciones', label: 'Relaciones', color: '#E8736D' },
-    { id: 'autoestima', label: 'Autoestima', color: '#C4908A' },
-    { id: 'maternidad', label: 'Maternidad', color: '#E4A5A0' },
-    { id: 'duelo', label: 'Duelo', color: '#B8A9C9' },
-    { id: 'emprendimiento', label: 'Emprender', color: '#7ED4BC' },
-    { id: 'general', label: 'General', color: '#1B8A7A' },
+    { id: 'todas', label: 'Todas', color: '#0D9488' },
+    { id: 'ansiedad', label: 'Ansiedad', color: '#C6A94E' },
+    { id: 'relaciones', label: 'Relaciones', color: '#F4845F' },
+    { id: 'autoestima', label: 'Autoestima', color: '#E8B4B8' },
+    { id: 'maternidad', label: 'Maternidad', color: '#E8B4B8' },
+    { id: 'duelo', label: 'Duelo', color: '#C4B5FD' },
+    { id: 'emprendimiento', label: 'Emprender', color: '#A7F3D0' },
+    { id: 'general', label: 'General', color: '#0D9488' },
   ]
 
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
@@ -1893,15 +1893,15 @@ function App() {
 
   /* ── Directorio / Marketplace ── */
   const DIRECTORIO_CATS = [
-    { id: 'todas', label: 'Todas', color: '#1B8A7A' },
-    { id: 'salud_mental', label: 'Salud Mental', color: '#C4908A' },
-    { id: 'coaching', label: 'Coaching', color: '#E8736D' },
-    { id: 'yoga', label: 'Yoga', color: '#B8A9C9' },
-    { id: 'nutricion', label: 'Nutrición', color: '#7ED4BC' },
-    { id: 'legal', label: 'Legal', color: '#C9A96E' },
-    { id: 'belleza', label: 'Belleza', color: '#E4A5A0' },
-    { id: 'negocios', label: 'Negocios', color: '#14695E' },
-    { id: 'educacion', label: 'Educación', color: '#1B8A7A' },
+    { id: 'todas', label: 'Todas', color: '#0D9488' },
+    { id: 'salud_mental', label: 'Salud Mental', color: '#E8B4B8' },
+    { id: 'coaching', label: 'Coaching', color: '#F4845F' },
+    { id: 'yoga', label: 'Yoga', color: '#C4B5FD' },
+    { id: 'nutricion', label: 'Nutrición', color: '#A7F3D0' },
+    { id: 'legal', label: 'Legal', color: '#C6A94E' },
+    { id: 'belleza', label: 'Belleza', color: '#E8B4B8' },
+    { id: 'negocios', label: 'Negocios', color: '#0B7A71' },
+    { id: 'educacion', label: 'Educación', color: '#0D9488' },
   ]
 
 
@@ -2039,7 +2039,7 @@ function App() {
       <div style={{ fontSize: 20, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
       <button style={{
         padding: '14px 32px', borderRadius: 14, border: 'none',
-        background: `linear-gradient(135deg, ${C.gold}, #14695E)`, color: 'white',
+        background: `linear-gradient(135deg, ${C.gold}, #0B7A71)`, color: 'white',
         fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         boxShadow: '0 4px 16px rgba(201,169,110,0.3)',
       }}>
@@ -2074,7 +2074,7 @@ function App() {
   const saveAiProgram = () => {
     if (!aiProgram) return
     const id = 'custom_' + Date.now()
-    const prog = { ...aiProgram, id, color: '#C4908A', custom: true }
+    const prog = { ...aiProgram, id, color: '#E8B4B8', custom: true }
     const saved = JSON.parse(localStorage.getItem('diana-custom-programs') || '[]')
     saved.push(prog)
     localStorage.setItem('diana-custom-programs', JSON.stringify(saved))
@@ -2766,10 +2766,10 @@ function App() {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       }}>
         <div style={{
-          width: 50, height: 50, borderRadius: '50%', border: '3px solid #C9A96E',
+          width: 50, height: 50, borderRadius: '50%', border: '3px solid #C6A94E',
           display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
         }}>
-          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C9A96E' }} />
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C6A94E' }} />
         </div>
         <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>Cargando...</div>
       </div>
@@ -2936,7 +2936,7 @@ function App() {
     <div style={modalOverlay}>
       <div style={modalCard}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 36, marginBottom: 10, color: '#B8A9C9' }}>●</div>
+          <div style={{ fontSize: 36, marginBottom: 10, color: '#C4B5FD' }}>●</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
           </div>
@@ -3078,11 +3078,11 @@ function App() {
 
   /* ── Panic Modal — Full Crisis Support ── */
   const GROUND_STEPS = [
-    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#2A9D8F' },
-    { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#C9A96E' },
-    { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#C4908A' },
-    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#1B8A7A' },
-    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#1B8A7A' },
+    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#14B5A3' },
+    { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#C6A94E' },
+    { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#E8B4B8' },
+    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#0D9488' },
+    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#0D9488' },
   ]
 
   const DBT_SKILLS = [
@@ -3100,10 +3100,10 @@ function App() {
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: panicScreen === 'breathe'
-        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #14695E, #1B8A7A)'
-          : breathePhase === 'hold' ? 'linear-gradient(180deg, #1B8A7A, #14695E)'
+        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #0B7A71, #0D9488)'
+          : breathePhase === 'hold' ? 'linear-gradient(180deg, #0D9488, #0B7A71)'
           : 'linear-gradient(180deg, #1A202C, #2D3748)')
-        : 'linear-gradient(180deg, #14695E 0%, #0D4A42 100%)',
+        : 'linear-gradient(180deg, #0B7A71 0%, #0D4A42 100%)',
       zIndex: 1000, display: 'flex', flexDirection: 'column',
       animation: 'fadeIn 0.3s ease',
       overflowY: 'auto', WebkitOverflowScrolling: 'touch',
@@ -3136,19 +3136,19 @@ function App() {
           <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 8 }}>
             Estás a salvo.
           </div>
-          <div style={{ fontSize: 20, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 8 }}>
             Respira. Este momento va a pasar.
           </div>
-          <div style={{ fontSize: 19, color: '#C4908A', textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ fontSize: 19, color: '#E8B4B8', textAlign: 'center', marginBottom: 32 }}>
             Escoge lo que necesitas ahora mismo:
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
             {[
-              { id: 'breathe', icon: '', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#2A9D8F' },
-              { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#C9A96E' },
-              { id: 'dbt', icon: '', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#C4908A' },
-              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#1B8A7A' },
+              { id: 'breathe', icon: '', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#14B5A3' },
+              { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#C6A94E' },
+              { id: 'dbt', icon: '', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#E8B4B8' },
+              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#0D9488' },
             ].map(opt => (
               <button key={opt.id} onClick={() => {
                 setPanicScreen(opt.id)
@@ -3162,7 +3162,7 @@ function App() {
                 <div style={{ fontSize: 28, minWidth: 40, textAlign: 'center' }}>{opt.icon}</div>
                 <div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{opt.title}</div>
-                  <div style={{ fontSize: 20, color: '#D4F0EA', marginTop: 2 }}>{opt.sub}</div>
+                  <div style={{ fontSize: 20, color: '#E0FBF1', marginTop: 2 }}>{opt.sub}</div>
                 </div>
               </button>
             ))}
@@ -3174,15 +3174,15 @@ function App() {
             background: 'rgba(201,169,110,0.2)', borderRadius: 16,
             border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',
           }}>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#C9A96E' }}>💬 Ir a la Comunidad</div>
-            <div style={{ fontSize: 20, color: '#D4F0EA', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: '#C6A94E' }}>💬 Ir a la Comunidad</div>
+            <div style={{ fontSize: 20, color: '#E0FBF1', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
           </button>
 
           <div style={{ marginTop: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, color: '#C4908A', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
+            <div style={{ fontSize: 20, color: '#E8B4B8', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
             <a href="tel:106" style={{
               display: 'inline-block', padding: '10px 24px', borderRadius: 20,
-              background: '#1B8A7A', color: 'white', fontWeight: 700, fontSize: 20,
+              background: '#0D9488', color: 'white', fontWeight: 700, fontSize: 20,
               textDecoration: 'none',
             }}>
               📞 Línea 106 — Atención en crisis
@@ -3210,12 +3210,12 @@ function App() {
             </div>
           </div>
 
-          <div style={{ fontSize: 20, color: '#D4F0EA', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 8 }}>
             {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
              breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
              '8 segundos — suelta todo, deja ir'}
           </div>
-          <div style={{ fontSize: 19, color: '#C4908A', marginBottom: 24 }}>
+          <div style={{ fontSize: 19, color: '#E8B4B8', marginBottom: 24 }}>
             Ciclo {Math.min(breatheCount + 1, 5)} de 5
           </div>
 
@@ -3223,7 +3223,7 @@ function App() {
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
-              <div style={{ fontSize: 20, color: '#D4F0EA', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
+              <div style={{ fontSize: 20, color: '#E0FBF1', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
               <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
                 padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
                 border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
@@ -3243,7 +3243,7 @@ function App() {
             <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.4, marginBottom: 24 }}>
               {GROUND_STEPS[groundStep].prompt}
             </div>
-            <div style={{ fontSize: 20, color: '#D4F0EA', marginBottom: 32, textAlign: 'center' }}>
+            <div style={{ fontSize: 20, color: '#E0FBF1', marginBottom: 32, textAlign: 'center' }}>
               Tómate tu tiempo. No hay prisa.
             </div>
             <button onClick={() => setGroundStep(groundStep + 1)} style={{
@@ -3258,7 +3258,7 @@ function App() {
             <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 12 }}>
               Estás aquí. Estás presente.
             </div>
-            <div style={{ fontSize: 19, color: '#D4F0EA', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 19, color: '#E0FBF1', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.
             </div>
             <button onClick={() => setGroundStep(0)} style={{
@@ -3279,7 +3279,7 @@ function App() {
           <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 6 }}>
             Skills DBT
           </div>
-          <div style={{ fontSize: 19, color: '#D4F0EA', textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ fontSize: 19, color: '#E0FBF1', textAlign: 'center', marginBottom: 24 }}>
             Herramientas de regulación emocional. Escoge la que necesitas.
           </div>
 
@@ -3295,9 +3295,9 @@ function App() {
                   <div style={{ fontSize: 26 }}>{skill.icon}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{skill.name}</div>
-                    <div style={{ fontSize: 19, color: '#D4F0EA', marginTop: 2 }}>{skill.desc}</div>
+                    <div style={{ fontSize: 19, color: '#E0FBF1', marginTop: 2 }}>{skill.desc}</div>
                   </div>
-                  <span style={{ color: '#C4908A', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
+                  <span style={{ color: '#E8B4B8', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
                 </button>
                 {panicDbtExpanded === idx && (
                   <div style={{
@@ -3314,7 +3314,7 @@ function App() {
                           color: 'white', fontSize: 20, fontWeight: 800,
                           display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
                         }}>{si + 1}</div>
-                        <div style={{ fontSize: 20, color: '#D4F0EA', lineHeight: 1.5 }}>{step}</div>
+                        <div style={{ fontSize: 20, color: '#E0FBF1', lineHeight: 1.5 }}>{step}</div>
                       </div>
                     ))}
                   </div>
@@ -3330,7 +3330,7 @@ function App() {
           <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 12 }}>
             Aceptación Radical
           </div>
-          <div style={{ fontSize: 20, color: '#D4F0EA', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
             No significa que apruebas lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
           </div>
 
@@ -3347,11 +3347,11 @@ function App() {
             }}>
               <div style={{
                 minWidth: 28, height: 28, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #C4908A, #C9A96E)',
+                background: 'linear-gradient(135deg, #E8B4B8, #C6A94E)',
                 color: 'white', fontSize: 19, fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{step.num}</div>
-              <div style={{ fontSize: 20, color: '#D4F0EA', lineHeight: 1.6 }}>{step.text}</div>
+              <div style={{ fontSize: 20, color: '#E0FBF1', lineHeight: 1.6 }}>{step.text}</div>
             </div>
           ))}
 
@@ -3360,7 +3360,7 @@ function App() {
             background: 'rgba(201,169,110,0.15)', border: '1px solid rgba(201,169,110,0.3)',
             textAlign: 'center', width: '100%',
           }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#C9A96E', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#C6A94E', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.5 }}>
               "No puedo controlar lo que pasa.<br/>Pero puedo elegir cómo respondo.<br/>Y hoy elijo la paz."
             </div>
           </div>
@@ -3389,7 +3389,7 @@ function App() {
             onChange={(t) => { setSubTab(t); if (t === 'ai') resetAiAgent() }}
           />
           {(subTab || 'programas') === 'programas' && programasView}
-          {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Crea tu programa con IA" price="$9.99/mes" desc="Dile a nuestra IA qué quieres lograr y te arma un programa personalizado, paso a paso, a tu ritmo. Sin presión." />)}
+          {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Crea tu programa con IA" price="$9.99/mes" desc="Dile a nuestra IA qué quieres lograr y te arma un programa personalizado, paso a paso, a tu ritmo." />)}
           {subTab === 'historia' && historiaView}
           {subTab === 'frases' && frasesView}
         </>}
