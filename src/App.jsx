@@ -114,6 +114,8 @@ function App() {
   const [entries, setEntries] = useState(() => load('diana-journal', []))
   const [journalText, setJournalText] = useState('')
   const [journalMood, setJournalMood] = useState(2)
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = { current: null }
 
   // Quotes
   const [favQuotes, setFavQuotes] = useState(() => load('diana-fav-quotes', []))
@@ -340,6 +342,45 @@ function App() {
     setEntries([entry, ...entries])
     setJournalText('')
     setJournalMood(2)
+    setIsListening(false)
+  }
+
+  // Voice journaling — Web Speech API
+  const toggleVoiceInput = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) { alert('Tu navegador no soporta voz. Usa Chrome o Safari.'); return }
+
+    if (isListening) {
+      if (recognitionRef.current) recognitionRef.current.stop()
+      setIsListening(false)
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'es-CO'
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognitionRef.current = recognition
+
+    let finalTranscript = journalText
+
+    recognition.onresult = (event) => {
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += (finalTranscript ? ' ' : '') + event.results[i][0].transcript
+        } else {
+          interim += event.results[i][0].transcript
+        }
+      }
+      setJournalText(finalTranscript + (interim ? ' ' + interim : ''))
+    }
+
+    recognition.onerror = () => { setIsListening(false) }
+    recognition.onend = () => { setIsListening(false) }
+
+    recognition.start()
+    setIsListening(true)
   }
 
   const addHabit = () => {
@@ -1031,22 +1072,42 @@ function App() {
             </button>
           ))}
         </div>
-        <textarea value={journalText} onChange={e => setJournalText(e.target.value)}
-          placeholder="Escribe tu reflexión del día..."
-          style={{
-            width: '100%', minHeight: 100, padding: 14, borderRadius: 12, border: `1px solid ${C.border}`,
-            fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6,
-            boxSizing: 'border-box', background: C.cream,
-          }}
-        />
-        <button onClick={addJournalEntry} disabled={!journalText.trim()} style={{
-          marginTop: 10, width: '100%', padding: 12, borderRadius: 12, border: 'none',
-          background: journalText.trim() ? C.teal : C.border,
-          color: journalText.trim() ? 'white' : C.subtle,
-          fontSize: 19, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
-        }}>
-          Guardar reflexión
-        </button>
+        <div style={{ position: 'relative' }}>
+          <textarea value={journalText} onChange={e => setJournalText(e.target.value)}
+            placeholder={isListening ? '🎙️ Escuchando... habla y tu voz se convierte en texto' : 'Escribe o habla tu reflexión del día...'}
+            style={{
+              width: '100%', minHeight: 100, padding: '14px 50px 14px 14px', borderRadius: 12,
+              border: `1px solid ${isListening ? C.coral : C.border}`,
+              fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6,
+              boxSizing: 'border-box', background: isListening ? '#FFF5F3' : C.cream,
+              transition: 'border-color 0.2s, background 0.2s',
+            }}
+          />
+          <button onClick={toggleVoiceInput} style={{
+            position: 'absolute', top: 10, right: 10, width: 36, height: 36, borderRadius: '50%',
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: isListening ? C.coral : C.mintLight,
+            transition: 'all 0.2s',
+            animation: isListening ? 'pulse 1.5s infinite' : 'none',
+          }}>
+            <span style={{ fontSize: 18 }}>{isListening ? '⏹️' : '🎙️'}</span>
+          </button>
+        </div>
+        {isListening && (
+          <div style={{ fontSize: 13, color: C.coral, fontWeight: 600, marginTop: 4, textAlign: 'center' }}>
+            🔴 Grabando voz... toca ⏹️ para parar
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <button onClick={addJournalEntry} disabled={!journalText.trim()} style={{
+            flex: 1, padding: 12, borderRadius: 12, border: 'none',
+            background: journalText.trim() ? C.teal : C.border,
+            color: journalText.trim() ? 'white' : C.subtle,
+            fontSize: 19, fontWeight: 700, cursor: journalText.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
+          }}>
+            Guardar reflexión
+          </button>
+        </div>
       </div>
 
       {/* ── Mood Recommendations ── */}
@@ -1626,17 +1687,17 @@ function App() {
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
-      replies: [{ pro: { name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica · Especialista en ansiedad', verified: true },
-        text: 'Lo que describes suena a ansiedad anticipatoria — tu mente está tratando de "resolver" el futuro desde la cama. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." El cerebro necesita sentir que no va a olvidar para poder soltar. Si esto persiste más de 2 semanas, busca ayuda profesional. Estoy aquí. ' }] },
+      replies: [{ pro: { name: 'Camila Restrepo', title: 'Guía Ronda · Coach de bienestar', verified: true },
+        text: 'Muchas lo hemos sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estamos. 💛' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
       replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
         text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
-      replies: [{ pro: { name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal · Maternidad consciente', verified: true },
-        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Se llama "pérdida de identidad materna" y afecta al 70% de las mamás. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. ' }] },
+      replies: [{ pro: { name: 'Ana Lucía Gómez', title: 'Guía Ronda · Coach de maternidad', verified: true },
+        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
-      replies: [{ pro: { name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica · Especialista en ansiedad', verified: true },
-        text: 'Los patrones de relación se forman en la infancia — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro confunde la ansiedad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es trabajar tu estilo de apego. DBT y terapia de esquemas pueden ayudarte a reprogramar lo que tu cerebro busca en una pareja. No estás "rota" — estás programada, y eso se puede cambiar.' }] },
+      replies: [{ pro: { name: 'Camila Restrepo', title: 'Guía Ronda · Coach de bienestar', verified: true },
+        text: 'Los patrones de relación se forman temprano — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar. 💪' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
       replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
         text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte.' }] },
@@ -1676,10 +1737,13 @@ function App() {
           Comunidad Ronda
         </div>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
-          No estás sola. Pregunta lo que necesites.
+          Pregunta, crece, avanza.
         </div>
         <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
-          Tú eres anónima. Nuestras profesionales están verificadas ✓
+          Tú eres anónima. Nuestras Guías Ronda están verificadas ✓
+        </div>
+        <div style={{ fontSize: 12, color: C.subtle, marginTop: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
+          Contenido educativo de bienestar. No reemplaza atención profesional en salud mental.
         </div>
       </div>
 
@@ -3110,7 +3174,8 @@ function App() {
             border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',
           }}>
             <div style={{ fontSize: 19, fontWeight: 700, color: '#C6A94E' }}>💬 Ir a la Comunidad</div>
-            <div style={{ fontSize: 20, color: '#E0FBF1', marginTop: 4 }}>Pregunta lo que necesites. Profesionales verificadas responden 24/7.</div>
+            <div style={{ fontSize: 20, color: '#E0FBF1', marginTop: 4 }}>Pregunta lo que necesites. Guías Ronda verificadas te acompañan.</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. No reemplaza atención en crisis.</div>
           </button>
 
           <div style={{ marginTop: 20, textAlign: 'center' }}>
@@ -3355,6 +3420,12 @@ function App() {
         </>}
 
         {view === 'perfil' && perfilView}
+      </div>
+      {/* Global disclaimer */}
+      <div style={{ padding: '8px 16px 80px', textAlign: 'center' }}>
+        <div style={{ fontSize: 11, color: C.subtle, lineHeight: 1.4, fontStyle: 'italic' }}>
+          Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional. Si estás en crisis, llama a la Línea 106.
+        </div>
       </div>
       {rondaFab}
       {panicFab}

@@ -37,10 +37,13 @@ Programas con estructura. No contenido suelto.
 - **AI Agent**: la usuaria escribe su meta → el agente genera un programa personalizado de 21 días con la misma estructura (concepto + práctica + reflexión). Usa el endpoint api/agent.js con Claude.
 
 ### 3. JUNTAS
-Comunidad. Anónima para las usuarias, verificada para las profesionales.
+Comunidad. Anónima para las usuarias, verificada para las guías.
 
-- **Board 24/7**: la usuaria publica su pregunta de forma anónima. Solo profesionales verificadas responden.
+- **Board 24/7**: la usuaria publica su pregunta de forma anónima. Solo Guías Ronda verificadas responden.
+- Guías Ronda = coaches de bienestar certificadas (NO psicólogas — evita regulación Ley 1090).
+- Tono: validan, normalizan, educan. Nunca diagnostican ni usan lenguaje clínico.
 - Categorías: ansiedad, relaciones, maternidad, autoestima, duelo, emprendimiento.
+- **Disclaimer visible**: "Contenido educativo. No reemplaza atención profesional en salud mental."
 
 ---
 
@@ -53,10 +56,11 @@ Comunidad. Anónima para las usuarias, verificada para las profesionales.
 - Hábitos 4D + rutina + diario básico
 
 **Ronda+ ($9.99/mes)**:
-- AI Agent personalizado
+- AI Agent personalizado (Tu Ronda)
 - Programas de 21 días
-- 5 respuestas de profesionales verificadas al mes
+- 5 respuestas de Guías Ronda verificadas al mes
 - Analytics de progreso
+- Diario de voz (voice journaling)
 
 **Regla**: el SOS y los programas de 7 días NUNCA se ponen detrás de un paywall.
 
@@ -112,6 +116,31 @@ Si cualquier respuesta es NO → no se construye.
 - En contenido de crisis (SOS): frases cortas, presente, directivas. "Inhala. Sostén. Exhala."
 - Los CTAs son invitaciones, no órdenes
 - Nunca "gratis". Siempre "freemium"
+- **Tono Honestly**: Valida → Normaliza → Ofrece herramienta. NUNCA diagnostica.
+- NUNCA usar lenguaje clínico: no "ansiedad anticipatoria", no "depresión", no "trastorno"
+- En su lugar: "lo que sientes lo viven muchas", "hay herramientas que ayudan", "reconocerlo es poder"
+
+---
+
+## Marco Regulatorio
+
+Ronda opera como **plataforma de bienestar y contenido educativo**, NO como servicio de salud mental.
+
+**Guías Ronda** = coaches de bienestar certificadas. NO psicólogas en ejercicio.
+- No están reguladas por Ley 1090 de 2006 (Colombia) que aplica a psicólogos.
+- No diagnostican, no tratan, no prescriben.
+- Validan, normalizan, educan, orientan.
+
+**Disclaimers obligatorios** (presentes en la app):
+- Board: "Contenido educativo. No reemplaza atención profesional en salud mental."
+- SOS: "Contenido educativo. No reemplaza atención en crisis."
+- Footer global: "Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional."
+- Si es grave → Línea 106 (Colombia).
+
+**Referencia legal**:
+- Ley 1090 de 2006: regula psicología. Coaches no aplican.
+- Ley 1616 de 2013: salud mental. Ronda es educación, no prestación.
+- Resolución 2654/3100 de 2019: telesalud. Ronda no presta telesalud.
 
 ---
 
