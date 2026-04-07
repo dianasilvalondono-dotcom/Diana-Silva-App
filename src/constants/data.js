@@ -137,7 +137,7 @@ export const MOOD_RECS = {
 export const PROGRAMAS = [
   {
     id: 'tusa', title: 'Salir de una tusa',
-    desc: 'Un camino de 7 días para sanar tu corazón, un minuto a la vez', color: '#E8B4B8',
+    desc: 'Un camino de 7 días para soltar y avanzar, un minuto a la vez', color: '#E8B4B8',
     days: [
       { day: 1, title: 'Acepta lo que sientes', task: 'Escribe lo que sientes sin filtro. Solo 1 minuto. No lo juzgues.' },
       { day: 2, title: 'Llora si necesitas', task: 'Pon una canción que te haga sentir y déjate llorar. El llanto sana.' },
@@ -149,8 +149,8 @@ export const PROGRAMAS = [
     ],
   },
   {
-    id: 'depresion', title: 'Navegar la depresión',
-    desc: 'La vida es como olas del mar. 7 días para aprender a surfearlas, paso a paso.', color: '#0D9488',
+    id: 'depresion', title: 'Recuperar mi energía',
+    desc: '7 días para volver a sentirte tú, paso a paso.', color: '#0D9488',
     days: [
       { day: 1, title: 'Levántate y abre una ventana', task: '1 minuto de luz solar. La luz activa tu serotonina.' },
       { day: 2, title: 'Ducha de agua fría (30 seg)', task: 'Solo 30 segundos al final de tu ducha. Activa tu sistema nervioso.' },
@@ -162,8 +162,8 @@ export const PROGRAMAS = [
     ],
   },
   {
-    id: 'ansiedad', title: 'Calmar la ansiedad',
-    desc: '7 días para recuperar la calma, paso a paso', color: '#C6A94E',
+    id: 'ansiedad', title: 'Encontrar mi calma',
+    desc: '7 días para recuperar tu centro, paso a paso', color: '#C6A94E',
     days: [
       { day: 1, title: 'Respiración 4-7-8', task: 'Inhala 4s, sostén 7s, exhala 8s. Repite 3 veces. Tu sistema nervioso se calma.' },
       { day: 2, title: 'Grounding: 5-4-3-2-1', task: '5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.' },

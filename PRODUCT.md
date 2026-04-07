@@ -106,7 +106,8 @@ Si cualquier respuesta es NO → no se construye.
 
 - Siempre "tú", nunca "usted"
 - Español colombiano, cálido, directo
-- El malestar no es el enemigo: "Tu ansiedad es tu amígdala haciendo su trabajo"
+- Tono aspiracional: Ronda es compañera, no terapeuta. "Tu compañera en cada etapa"
+- Posicionar desde la fuerza, no la vulnerabilidad: la usuaria es la ganadora
 - Cada práctica explica el POR QUÉ funciona (neurociencia en lenguaje humano)
 - En contenido de crisis (SOS): frases cortas, presente, directivas. "Inhala. Sostén. Exhala."
 - Los CTAs son invitaciones, no órdenes
@@ -125,4 +126,4 @@ Ronda es la única que integra herramientas clínicas reales + programas con pro
 
 ---
 
-*Tu refugio para crecer, sanar y volar — en ronda, nunca sola.*
+*Tu compañera en cada etapa — creces tú, crecemos todas.*

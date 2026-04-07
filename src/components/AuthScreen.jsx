@@ -81,7 +81,7 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
           {mode === 'login' ? 'Bienvenida de vuelta' : 'Únete a Ronda'}
         </div>
         <div style={{ fontSize: 14, color: C.muted, textAlign: 'center', marginBottom: 24 }}>
-          {mode === 'login' ? 'Tu refugio para crecer, sanar y volar' : 'Crea tu cuenta y empieza tu camino'}
+          {mode === 'login' ? 'Tu compañera en cada etapa' : 'Crea tu cuenta y empieza tu camino'}
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -131,7 +131,7 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
       </div>
 
       <div style={{ fontSize: 13, color: C.subtle, marginTop: 32, textAlign: 'center', lineHeight: 1.5, position: 'relative' }}>
-        Tu refugio para crecer, sanar y volar — en ronda, nunca sola.
+        Tu compañera en cada etapa — en ronda, crecemos juntas.
       </div>
     </div>
   )

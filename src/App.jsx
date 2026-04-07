@@ -82,7 +82,7 @@ function App() {
   const [aiSaved, setAiSaved] = useState(false)
   // Chat state (Tu Ronda)
   const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', text: '¡Hola! Soy Tu Ronda — estoy aquí para acompañarte. ¿Cómo te sientes hoy? Puedo ayudarte con tus hábitos, sugerirte un programa, o simplemente escucharte.' }
+    { role: 'assistant', text: '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo ayudarte con tus hábitos, sugerirte un programa, o simplemente estar aquí contigo.' }
   ])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
@@ -626,7 +626,7 @@ function App() {
           { q: '¿Quieres más disciplina en tu vida?', sub: 'No es motivación, es decisión. 7 días para entrenar tu mente.', prog: 'disciplina', color: C.tealDark },
           { q: '¿Quieres reconectar con tu espiritualidad?', sub: '7 días para cultivar paz interior y soltar el control.', prog: 'dios', color: C.gold },
           { q: '¿Quieres empezar de cero?', sub: 'Yo me reinventé muchas veces. 7 días para construir la vida que quieres.', prog: 'empezar', color: C.mint },
-          { q: '¿Sientes que la ansiedad no te deja en paz?', sub: 'Respira. Hay un programa paso a paso para recuperar la calma.', prog: 'ansiedad', color: C.lavanda },
+          { q: '¿Quieres recuperar tu calma?', sub: 'Respira. Hay un programa paso a paso para encontrar tu centro.', prog: 'ansiedad', color: C.lavanda },
         ]
         const dayIdx = new Date().getDate() % hooks.length
         const hook = hooks[dayIdx]
@@ -1193,7 +1193,7 @@ function App() {
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #0D9488, #14B5A3, #A7F3D0)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
-        <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para sanar, crecer y brillar</div>
+        <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para crecer y brillar</div>
         <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
       </div>
 
@@ -2528,20 +2528,20 @@ function App() {
       </div>
       <div style={{ width: 60, height: 2, background: C.gold, marginBottom: 32, borderRadius: 2 }} />
       <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
-        Tu refugio para crecer, sanar y volar
+        Tu compañera en cada etapa
       </div>
       <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
-        Bienestar personal, comunidad de mujeres y acceso a profesionales verificadas — todo en un solo lugar.
+        Bienestar, comunidad y profesionales verificadas — contigo en cada momento.
       </div>
     </div>,
 
     /* Slide 1 — Las 3 experiencias */
     <div key={1} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
       <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        3 experiencias, 1 refugio
+        3 experiencias, 1 compañera
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300 }}>
-        Herramientas que funcionan, programas con estructura, comunidad que sostiene
+        Herramientas que funcionan, programas con estructura, comunidad que impulsa
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 340 }}>
         {[
@@ -2565,10 +2565,10 @@ function App() {
     /* Slide 2 — Comunidad + SOS */
     <div key={2} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
       <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        No estás sola. Nunca.
+        Siempre contigo.
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
-        Ronda tiene una comunidad real detrás
+        Una comunidad real que camina contigo
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+C.coral }}>
@@ -2634,12 +2634,12 @@ function App() {
         Programas con neurociencia
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
-        Paso a paso, a tu ritmo. Desde sanar hasta crear disciplina.
+        Paso a paso, a tu ritmo. Desde el primer paso hasta tu mejor versión.
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%', maxWidth: 340, marginBottom: 16 }}>
         {[
-          { title: 'Navegar la depresión', color: C.teal },
-          { title: 'Calmar la ansiedad', color: C.gold },
+          { title: 'Recuperar mi energía', color: C.teal },
+          { title: 'Encontrar mi calma', color: C.gold },
           { title: 'Volver a moverme', color: C.mint },
           { title: 'Reconectar con Dios', color: C.lavanda },
           { title: '7 días de disciplina', color: C.coral },
