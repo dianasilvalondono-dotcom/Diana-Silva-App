@@ -1,0 +1,39 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF8F0"/>
+      <stop offset="100%" style="stop-color:#E6F7F5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Top accent -->
+  <rect width="1200" height="6" fill="#0D9488"/>
+
+  <!-- Circle decoration -->
+  <circle cx="950" cy="315" r="180" fill="#0D9488" opacity="0.06"/>
+  <circle cx="1020" cy="250" r="100" fill="#C6A94E" opacity="0.08"/>
+
+  <!-- Logo circle -->
+  <circle cx="160" cy="280" r="50" fill="none" stroke="#0D9488" stroke-width="3"/>
+  <circle cx="160" cy="280" r="20" fill="#0D9488"/>
+
+  <!-- Brand name -->
+  <text x="240" y="295" font-family="Georgia, serif" font-size="52" fill="#2C2C2C" letter-spacing="8">R O N D A</text>
+
+  <!-- Tagline -->
+  <text x="160" y="370" font-family="Georgia, serif" font-size="28" fill="#0D9488" font-style="italic">Tu compañera en cada etapa</text>
+
+  <!-- Description -->
+  <text x="160" y="440" font-family="Arial, sans-serif" font-size="22" fill="#666666">Herramientas de bienestar · Programas · Comunidad con guías</text>
+
+  <!-- Features -->
+  <text x="160" y="510" font-family="Arial, sans-serif" font-size="18" fill="#999999">🧘 Hábitos 4D    📝 Diario de voz    💛 Guías verificadas    🤖 IA compañera</text>
+
+  <!-- Bottom bar -->
+  <rect y="590" width="1200" height="40" fill="#2C2C2C"/>
+  <text x="160" y="617" font-family="Arial, sans-serif" font-size="16" fill="#C6A94E" font-weight="bold">rondahub.com</text>
+  <text x="600" y="617" font-family="Georgia, serif" font-size="15" fill="#E8B4B8" font-style="italic" text-anchor="middle">Creces tú, crecemos todas.</text>
+</svg>
