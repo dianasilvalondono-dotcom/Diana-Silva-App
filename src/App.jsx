@@ -1687,22 +1687,22 @@ function App() {
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
-      replies: [{ pro: { name: 'Camila Restrepo', title: 'Guía Ronda · Coach de bienestar', verified: true },
+      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
         text: 'Muchas lo hemos sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estamos. 💛' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
-      replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
+      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
         text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
-      replies: [{ pro: { name: 'Ana Lucía Gómez', title: 'Guía Ronda · Coach de maternidad', verified: true },
+      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
         text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
-      replies: [{ pro: { name: 'Camila Restrepo', title: 'Guía Ronda · Coach de bienestar', verified: true },
+      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
         text: 'Los patrones de relación se forman temprano — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar. 💪' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
-      replies: [{ pro: { name: 'María José Herrera', title: 'Coach de bienestar · Certificada DBT', verified: true },
-        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte.' }] },
+      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
+        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
-      replies: [{ pro: { name: 'Laura Martínez', title: 'Coach ejecutiva · Emprendimiento femenino', verified: true },
+      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
         text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar. 🚀' }] },
   ]
 
@@ -1952,16 +1952,9 @@ function App() {
 
 
   const SEED_DIRECTORIO = [
-    { id: 'd1', name: 'Dra. Camila Restrepo', title: 'Psicóloga clínica', cat: 'salud_mental', city: 'Cartagena', desc: 'Especialista en ansiedad, depresión y TLP. 8 años de experiencia. Terapia DBT y cognitivo-conductual.', price: 'Desde $120.000/sesión', verified: true, rating: 4.9, reviews: 47 },
-    { id: 'd2', name: 'María José Herrera', title: 'Coach de bienestar certificada', cat: 'coaching', city: 'Bogotá', desc: 'Certificada en DBT y coaching ontológico. Te acompaño en transiciones de vida, separaciones y reinvención personal.', price: 'Desde $150.000/sesión', verified: true, rating: 4.8, reviews: 32 },
-    { id: 'd3', name: 'Studio Shakti Yoga', title: 'Yoga & Meditación', cat: 'yoga', city: 'Cartagena', desc: 'Clases de Vinyasa, Yin Yoga y meditación guiada. Grupos pequeños y clases privadas. Fundada por mujeres.', price: 'Desde $35.000/clase', verified: true, rating: 5.0, reviews: 89 },
-    { id: 'd4', name: 'Dra. Ana Lucía Gómez', title: 'Psicóloga perinatal', cat: 'salud_mental', city: 'Medellín', desc: 'Maternidad consciente, depresión postparto, crianza respetuosa. Sesiones presenciales y virtuales.', price: 'Desde $130.000/sesión', verified: true, rating: 4.9, reviews: 61 },
-    { id: 'd5', name: 'Laura Martínez Coaching', title: 'Coach ejecutiva', cat: 'coaching', city: 'Bogotá', desc: 'Emprendimiento femenino, liderazgo y marca personal. Programas grupales e individuales para mujeres que quieren crecer.', price: 'Desde $180.000/sesión', verified: true, rating: 4.7, reviews: 28 },
-    { id: 'd6', name: 'Nutrición Vital', title: 'Nutricionista clínica', cat: 'nutricion', city: 'Cartagena', desc: 'Alimentación consciente, planes personalizados, relación sana con la comida. Sin dietas restrictivas — bienestar real.', price: 'Desde $100.000/consulta', verified: true, rating: 4.8, reviews: 53 },
-    { id: 'd7', name: 'Abogadas con Alma', title: 'Derecho de familia', cat: 'legal', city: 'Cartagena', desc: 'Divorcios, custodia, violencia intrafamiliar. Equipo de abogadas que entiende lo que estás pasando. Consulta inicial sin costo.', price: 'Consulta inicial Freemium', verified: true, rating: 4.9, reviews: 37 },
-    { id: 'd8', name: 'Manos de Luna', title: 'Spa & Bienestar', cat: 'belleza', city: 'Cartagena', desc: 'Masajes terapéuticos, aromaterapia, reflexología. Un espacio creado por mujeres para reconectar con tu cuerpo.', price: 'Desde $80.000/sesión', verified: true, rating: 4.9, reviews: 72 },
-    { id: 'd9', name: 'Cuentas Claras', title: 'Contabilidad para emprendedoras', cat: 'negocios', city: 'Virtual', desc: 'Facturación, impuestos, registro de empresa. Te ayudamos a formalizar tu negocio sin enredos. Precios especiales para emprendedoras.', price: 'Desde $200.000/mes', verified: true, rating: 4.6, reviews: 19 },
-    { id: 'd10', name: 'Escuela Renacer', title: 'Talleres de empoderamiento', cat: 'educacion', city: 'Virtual', desc: 'Talleres de autoestima, finanzas personales, comunicación asertiva y liderazgo femenino. Grupos de máximo 15 mujeres.', price: 'Desde $50.000/taller', verified: true, rating: 4.8, reviews: 44 },
+    { id: 'd1', name: 'Diana Silva', title: 'Coach certificada DBT', cat: 'coaching', city: 'Cartagena', desc: 'Coach de bienestar certificada en DBT. Te acompaño en transiciones de vida, manejo emocional y reinvención personal.', price: 'Incluido en Ronda', verified: true, rating: 5.0, reviews: 24 },
+    { id: 'd2', name: 'Diana Silva', title: 'Instructora de Yoga', cat: 'yoga', city: 'Cartagena', desc: 'Instructora certificada de Yoga y Meditación. Clases enfocadas en regulación emocional, mindfulness y reconexión con el cuerpo.', price: 'Incluido en Ronda', verified: true, rating: 5.0, reviews: 31 },
+    { id: 'd3', name: 'Diana Silva', title: 'Instructora de Meditación', cat: 'yoga', city: 'Virtual', desc: 'Meditación guiada, breathwork y técnicas de regulación del sistema nervioso. Individual y en grupo.', price: 'Incluido en Ronda', verified: true, rating: 5.0, reviews: 28 },
   ]
 
   const filteredDir = dirFilter === 'todas' ? SEED_DIRECTORIO : SEED_DIRECTORIO.filter(d => d.cat === dirFilter)
