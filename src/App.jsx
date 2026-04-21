@@ -1687,22 +1687,22 @@ function App() {
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
-      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
+      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Coach certificada DBT', verified: true },
         text: 'Muchas lo hemos sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estamos. 💛' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
-      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
+      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Coach certificada DBT', verified: true },
         text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
-      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
+      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
         text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
-      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
+      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Coach certificada DBT', verified: true },
         text: 'Los patrones de relación se forman temprano — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar. 💪' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
-      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
+      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
         text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
-      replies: [{ pro: { name: 'Diana Silva', title: 'Guía Ronda · Coach certificada DBT', verified: true },
+      replies: [{ pro: { name: 'Camila S.', title: 'Guía Ronda · Coach de emprendimiento', verified: true },
         text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar. 🚀' }] },
   ]
 
@@ -1938,26 +1938,9 @@ function App() {
   )
 
   /* ── Directorio / Marketplace ── */
-  const DIRECTORIO_CATS = [
-    { id: 'todas', label: 'Todas', color: '#0D9488' },
-    { id: 'salud_mental', label: 'Salud Mental', color: '#E8B4B8' },
-    { id: 'coaching', label: 'Coaching', color: '#F4845F' },
-    { id: 'yoga', label: 'Yoga', color: '#C4B5FD' },
-    { id: 'nutricion', label: 'Nutrición', color: '#A7F3D0' },
-    { id: 'legal', label: 'Legal', color: '#C6A94E' },
-    { id: 'belleza', label: 'Belleza', color: '#E8B4B8' },
-    { id: 'negocios', label: 'Negocios', color: '#0B7A71' },
-    { id: 'educacion', label: 'Educación', color: '#0D9488' },
-  ]
-
-
-  const SEED_DIRECTORIO = [
-    { id: 'd1', name: 'Diana Silva', title: 'Coach certificada DBT', cat: 'coaching', city: 'Cartagena', desc: 'Coach de bienestar certificada en DBT. Te acompaño en transiciones de vida, manejo emocional y reinvención personal.', price: 'Incluido en Ronda', verified: true, rating: 5.0, reviews: 24 },
-    { id: 'd2', name: 'Diana Silva', title: 'Instructora de Yoga', cat: 'yoga', city: 'Cartagena', desc: 'Instructora certificada de Yoga y Meditación. Clases enfocadas en regulación emocional, mindfulness y reconexión con el cuerpo.', price: 'Incluido en Ronda', verified: true, rating: 5.0, reviews: 31 },
-    { id: 'd3', name: 'Diana Silva', title: 'Instructora de Meditación', cat: 'yoga', city: 'Virtual', desc: 'Meditación guiada, breathwork y técnicas de regulación del sistema nervioso. Individual y en grupo.', price: 'Incluido en Ronda', verified: true, rating: 5.0, reviews: 28 },
-  ]
-
-  const filteredDir = dirFilter === 'todas' ? SEED_DIRECTORIO : SEED_DIRECTORIO.filter(d => d.cat === dirFilter)
+  const DIRECTORIO_CATS = []
+  const SEED_DIRECTORIO = []
+  const filteredDir = []
 
   const directorioView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1974,88 +1957,36 @@ function App() {
         </div>
       </div>
 
-      {/* Category filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-        {DIRECTORIO_CATS.map(cat => (
-          <button key={cat.id} onClick={() => setDirFilter(cat.id)} style={{
-            padding: '6px 14px', borderRadius: 20, border: dirFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
-            background: dirFilter === cat.id ? cat.color : C.card,
-            color: dirFilter === cat.id ? 'white' : C.text,
-            fontSize: 20, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            boxShadow: dirFilter === cat.id ? `0 2px 8px ${cat.color}40` : 'none',
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <span style={{ flexShrink: 0, display: 'flex' }}>{ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](dirFilter === cat.id ? 'white' : cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: dirFilter === cat.id ? 'white' : cat.color }} />}</span>
-            {cat.label}
-          </button>
-        ))}
+      {/* Coming soon */}
+      <div style={{
+        textAlign: 'center', padding: 48, background: C.card, borderRadius: 20,
+        border: `1.5px dashed ${C.border}`,
+      }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+          Próximamente
+        </div>
+        <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
+          Estamos armando un directorio de coaches, instructoras y profesionales verificadas para ti.
+        </div>
+        <div style={{ fontSize: 15, color: C.teal, fontWeight: 600, marginTop: 16 }}>
+          Mientras tanto, pregunta lo que quieras en la Comunidad — nuestras Guías Ronda te responden.
+        </div>
       </div>
 
-      {/* Listings */}
-      {filteredDir.map(item => (
-        <div key={item.id} style={{
-          background: C.card, borderRadius: 16, padding: 18,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: `1px solid ${C.border}`,
-        }}>
-          <div style={{ display: 'flex', gap: 14 }}>
-            {/* Avatar */}
-            {(() => {
-              const catColor = (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal
-              return <div style={{
-              width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-              background: catColor,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontSize: 20, fontWeight: 700,
-            }}>{item.name.charAt(0)}</div>
-            })()}
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{item.name}</span>
-                {item.verified && <span style={{
-                  fontSize: 19, background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white', padding: '2px 6px',
-                  borderRadius: 8, fontWeight: 700,
-                }}>✓ VERIFICADA</span>}
-              </div>
-              <div style={{ fontSize: 20, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, fontWeight: 600, marginTop: 2 }}>{item.title}</div>
-              <div style={{ fontSize: 20, color: C.muted, marginTop: 2 }}>{item.city}</div>
-            </div>
-          </div>
-
-          <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.6, marginTop: 12 }}>
-            {item.desc}
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 19, fontWeight: 700, color: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal }}>{item.rating}</span>
-              <span style={{ fontSize: 19, color: C.subtle }}>({item.reviews} reseñas)</span>
-            </div>
-            <span style={{ fontSize: 20, fontWeight: 700, color: C.roseDark }}>{item.price}</span>
-          </div>
-
-          <button style={{
-            marginTop: 12, width: '100%', padding: '10px 16px', borderRadius: 12, border: 'none',
-            background: (DIRECTORIO_CATS.find(c => c.id === item.cat) || {}).color || C.teal, color: 'white',
-            fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-            Contactar →
-          </button>
-        </div>
-      ))}
-
-      {/* CTA to register business */}
+      {/* CTA to register as professional */}
       <div style={{
         textAlign: 'center', padding: 24, background: C.card, borderRadius: 16,
         border: `1px solid ${C.roseLight}`,
       }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 6 }}>
-          ¿Tienes un negocio o eres profesional?
+          ¿Eres coach, instructora o profesional?
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
-          Registra tu negocio en el Directorio Ronda y conecta con miles de mujeres.
+          Estamos buscando Guías Ronda verificadas. Escríbenos.
         </div>
         <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
-          Regístrate → hola@rondahub.com
+          hola@rondahub.com
         </div>
       </div>
     </div>
