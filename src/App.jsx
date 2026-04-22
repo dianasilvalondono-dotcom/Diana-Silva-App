@@ -3064,21 +3064,28 @@ function App() {
       onClick={() => { setView('crecer'); setSubTab('ai'); setChatMode('chat') }}
       style={{
         position: 'fixed', bottom: 90, left: 16, zIndex: 200,
-        display: 'flex', alignItems: 'center', gap: 8,
+        display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 8,
         background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
-        border: 'none', cursor: 'pointer', padding: '10px 16px 10px 12px',
-        borderRadius: 28, boxShadow: '0 4px 20px rgba(27,138,122,0.4)',
+        border: 'none', cursor: 'pointer',
+        padding: isMobile ? 12 : '10px 16px 10px 12px',
+        borderRadius: isMobile ? '50%' : 28,
+        width: isMobile ? 56 : 'auto',
+        height: isMobile ? 56 : 'auto',
+        justifyContent: 'center',
+        boxShadow: '0 4px 20px rgba(27,138,122,0.4)',
       }}
       aria-label="Habla con Tu Ronda — tu guía de bienestar"
     >
       <div style={{
-        width: 32, height: 32, borderRadius: '50%',
-        border: '2px solid rgba(255,255,255,0.5)',
+        width: isMobile ? 28 : 32, height: isMobile ? 28 : 32, borderRadius: '50%',
+        border: '2px solid rgba(255,255,255,0.7)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'white' }} />
+        <div style={{ width: isMobile ? 9 : 10, height: isMobile ? 9 : 10, borderRadius: '50%', background: 'white' }} />
       </div>
-      <span style={{ fontSize: 19, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>Tu Ronda</span>
+      {!isMobile && (
+        <span style={{ fontSize: 19, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>Tu Ronda</span>
+      )}
     </button>
   )
 
@@ -3088,25 +3095,32 @@ function App() {
       onClick={() => { setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0) }}
       style={{
         position: 'fixed', bottom: 90, right: 16, zIndex: 200,
-        display: 'flex', alignItems: 'center', gap: 10,
+        display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 10,
         background: C.lavanda,
-        border: 'none', cursor: 'pointer', padding: '10px 16px 10px 14px',
-        borderRadius: 28, boxShadow: '0 4px 20px rgba(184,169,201,0.5)',
+        border: 'none', cursor: 'pointer',
+        padding: isMobile ? 12 : '10px 16px 10px 14px',
+        borderRadius: isMobile ? '50%' : 28,
+        width: isMobile ? 56 : 'auto',
+        height: isMobile ? 56 : 'auto',
+        justifyContent: 'center',
+        boxShadow: '0 4px 20px rgba(184,169,201,0.5)',
         animation: 'pulse-gentle 3s ease-in-out infinite',
       }}
       aria-label="Botón de emergencia — Respiración, grounding y herramientas DBT"
     >
       <div style={{
-        width: 36, height: 36, borderRadius: '50%',
+        width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: '50%',
         background: 'rgba(255,255,255,0.25)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         border: '2px solid rgba(255,255,255,0.4)',
       }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <svg width={isMobile ? "18" : "16"} height={isMobile ? "18" : "16"} viewBox="0 0 24 24" fill="none">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="white"/>
         </svg>
       </div>
-      <span style={{ fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>¿Necesitas apoyo?</span>
+      {!isMobile && (
+        <span style={{ fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}>¿Necesitas apoyo?</span>
+      )}
     </button>
   )
 
