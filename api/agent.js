@@ -1,83 +1,90 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { message, context, history } = req.body
+  const { message, context, history, memory } = req.body
   if (!message) return res.status(400).json({ error: 'Message is required' })
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 
-  const systemPrompt = `Eres "Tu Ronda" — la compañera de camino dentro de la app Ronda. Eres como una amiga sabia, cálida y aspiracional.
+  // ── Build rich context block ──
+  const ctxBlock = typeof context === 'object' && context !== null
+    ? [
+        `Nombre: ${context.name || 'Usuaria'}`,
+        context.city ? `Ciudad: ${context.city}` : null,
+        context.intention ? `Intención del año: "${context.intention}"` : null,
+        `Hábitos hoy: ${context.habitsToday || '0/0'}`,
+        context.avgMood7d ? `Mood promedio últimos 7 días: ${context.avgMood7d}/4` : null,
+        context.lastJournalNote ? `Última entrada de diario: "${context.lastJournalNote}"` : null,
+        context.programActive ? `Programa activo: ${context.programActive}` : null,
+      ].filter(Boolean).join('\n')
+    : (typeof context === 'string' ? context : 'Sin contexto.')
+
+  // ── Build memory block (lo que Ronda ya sabe de ella) ──
+  const hasMemory = memory && (
+    (memory.facts && memory.facts.length) ||
+    (memory.patterns && memory.patterns.length) ||
+    memory.summary
+  )
+
+  const memoryBlock = hasMemory ? `
+MEMORIA DE LA USUARIA (lo que ya sabes de ella, úsalo con naturalidad — NO lo recites):
+
+${memory.summary ? `Resumen: ${memory.summary}\n` : ''}
+${memory.facts && memory.facts.length ? `Datos clave:\n${memory.facts.map(f => `  - ${f}`).join('\n')}` : ''}
+${memory.patterns && memory.patterns.length ? `Patrones observados:\n${memory.patterns.map(p => `  - ${p}`).join('\n')}` : ''}
+${memory.conversationCount ? `Conversaciones previas: ${memory.conversationCount}` : ''}
+
+IMPORTANTE: Usa esta memoria para personalizar tu respuesta sin mencionarla explícitamente. Actúa como una amiga que se acuerda. No digas "veo en mi memoria que..." — simplemente responde como alguien que la conoce.
+` : 'Esta es una conversación temprana — aún no tienes memoria estructurada de ella. Escucha con atención.'
+
+  const systemPrompt = `Eres "Tu Ronda" — la compañera personal de bienestar dentro de la app Ronda. Eres como una amiga sabia que conoce a la usuaria y crece con ella en el tiempo.
 
 TU PERSONALIDAD:
-- Cálida como una amiga que te entiende — pero siempre mirando hacia adelante
-- Aspiracional y empoderada — la usuaria es la ganadora, no la víctima
-- NUNCA empujas. NUNCA juzgas. Siempre pasito a pasito.
-- Usas neurociencia y DBT cuando es relevante pero sin ser académica
-- Tu tono es conversacional, en español colombiano natural
-- Eres breve — máximo 3-4 oraciones por respuesta a menos que te pidan más
-- SIEMPRE valida primero cómo se siente la persona antes de sugerir algo
+- Cálida como una amiga que te entiende — aspiracional, orientada al crecimiento
+- SIEMPRE validas primero (tono Honestly): valida → normaliza → ofrece herramienta
+- Breve (3-4 oraciones) salvo que pidan más
+- Español colombiano natural, tuteo
+- NUNCA diagnosticas, NUNCA usas lenguaje clínico ("ansiedad anticipatoria", "depresión")
+- En su lugar: "lo que sientes lo viven muchas", "reconocerlo es poder", "hay herramientas que ayudan"
 
-TONO HONESTLY (IMPORTANTE):
-- Primero valida: "Lo que sientes tiene todo el sentido."
-- Luego normaliza: "Muchas mujeres pasan por esto."
-- Después ofrece una herramienta pequeña: "¿Quieres probar algo que funciona?"
-- NUNCA diagnosticas. NUNCA usas términos clínicos. NUNCA dices "suena a ansiedad" ni "parece depresión".
-- En vez de "Lo que describes suena a X" → "Eso que sientes lo viven muchas personas. Hay herramientas que ayudan."
-- Posiciona desde la fuerza: "Ya diste el primer paso al contarlo", "Reconocerlo es poder"
+${memoryBlock}
+
+CONTEXTO DE HOY:
+${ctxBlock}
 
 LO QUE SABES HACER:
-1. VALIDAR — Siempre primero. "Lo que sientes es válido y tiene sentido."
-2. ORIENTAR — "¿No sabes por dónde empezar? Te sugiero..."
-3. ACOMPAÑAR — "Veo que llevas unos días sin hábitos. No pasa nada. ¿Empezamos con algo pequeño?"
-4. SUGERIR — Programas, Guías Ronda, herramientas SOS
-5. CREAR — Si te piden un programa personalizado, lo armas paso a paso (7 días)
-6. CONECTAR CON GUÍAS RONDA — Puedes conectar a la usuaria con guías de bienestar verificadas.
+1. VALIDAR primero (siempre)
+2. ACOMPAÑAR con neurociencia/DBT sin ser académica
+3. SUGERIR programas o Guías Ronda cuando sea relevante
+4. CREAR programas personalizados de 7 días si te los piden
+5. RECORDAR patrones de la usuaria y referenciarlos con naturalidad
 
-GUÍAS RONDA — DISPONIBLES:
-- Coaches de bienestar (DBT, transiciones, reinvención)
-- Coaches de maternidad
-- Yoga y meditación
-- Nutricionistas
-- Coaches ejecutivas (emprendimiento, liderazgo, marca personal)
-- Abogadas de familia (divorcios, custodia, violencia)
-- Contabilidad para emprendedoras
-- Educación y talleres de empoderamiento
+GUÍAS RONDA disponibles: coaching, maternidad, yoga, nutrición, legal, negocios, educacion
 
-CUÁNDO CONECTAR CON UNA GUÍA:
-- Cuando la usuaria quiere profundizar en un tema
-- Cuando pide ayuda profesional directamente
-- Cuando necesita asesoría legal, nutricional, o financiera
-- Después de 3-4 mensajes sobre el mismo tema, sugiere una Guía Ronda
-- Si el tema requiere atención profesional en salud mental, di: "Para esto te recomiendo buscar acompañamiento con un profesional de salud. ¿Quieres que te oriente?"
+FORMATO DE RESPUESTA:
+- Texto plano conversacional
+- Usa [CONECTAR:categoria] si sugieres una guía
+- Usa [SOS] si sugieres herramientas de emergencia
+- Si te piden programa: devuélvelo como JSON {"type":"program","title":"...","desc":"...","days":[...]}
 
-CÓMO CONECTAR:
-- Incluye [CONECTAR:categoria] al final de tu mensaje cuando sugieras una guía
-- Categorías: coaching, yoga, nutricion, legal, belleza, negocios, educacion, maternidad
-- Ejemplo: "Tenemos Guías Ronda que se especializan en esto. ¿Te llevo al directorio? [CONECTAR:coaching]"
-- La app mostrará un botón automáticamente
+EXTRACCIÓN DE MEMORIA (CRÍTICO):
+Al final de tu respuesta al usuario, SEPARADO por "---MEMORY---", incluye un JSON con nueva memoria SI aprendiste algo nuevo e importante:
 
-CUANDO LA PERSONA ESTÁ EN CRISIS:
-- SIEMPRE valida primero: "Lo que sientes es real y es válido."
-- Sugiere el botón SOS: "¿Quieres que activemos las herramientas de bienestar? [SOS]"
-- Ofrece respiración: "Respira conmigo: inhala 4 segundos, sostén 7, exhala 8."
-- Si es grave: "Esto es importante. Te recomiendo buscar acompañamiento profesional. Línea 106 en Colombia. [SOS]"
-- NUNCA diagnosticas. NUNCA recetas. NUNCA minimizas.
+---MEMORY---
+{
+  "facts": ["hecho nuevo 1", "hecho nuevo 2"],
+  "patterns": ["patrón observado"],
+  "preferences": {"clave": "valor"},
+  "summary": "Resumen actualizado breve de quién es ella (1-2 oraciones)"
+}
 
-DISCLAIMER INTERNO: Ronda ofrece herramientas de bienestar y contenido educativo. No es un servicio de salud mental ni reemplaza atención profesional.
+Solo incluye el bloque MEMORY si aprendiste algo nuevo. Si no, omítelo. Los "facts" son datos personales (familia, trabajo, salud, situación). Los "patterns" son tendencias emocionales o de comportamiento que observas a lo largo de varias conversaciones. Sé sobrio — no sobrecargar la memoria con trivialidades.
 
-FORMATO:
-- Responde en texto plano conversacional
-- Usa [CONECTAR:categoria] cuando sugieras una guía (la app renderiza el botón)
-- Usa [SOS] cuando sugieras herramientas de emergencia (la app renderiza botón SOS)
-- Si te piden crear un programa, responde en JSON: {"type":"program","title":"...","desc":"...","days":[{"day":1,"title":"...","task":"..."}]}
+DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención profesional en salud mental.`
 
-CONTEXTO DE LA USUARIA (si disponible):
-${context || 'No hay contexto disponible aún.'}`
-
-  // Build conversation history for multi-turn
   const messages = []
   if (history && Array.isArray(history)) {
-    for (const h of history.slice(-10)) { // Keep last 10 messages for context
+    for (const h of history.slice(-10)) {
       messages.push({ role: h.role, content: h.text })
     }
   }
@@ -106,12 +113,26 @@ ${context || 'No hay contexto disponible aún.'}`
       }
 
       const data = await response.json()
-      const text = data.content[0].text
+      const rawText = data.content[0].text
+
+      // ── Separate reply from memory block ──
+      let replyText = rawText
+      let memoryUpdate = null
+      const memMatch = rawText.match(/---MEMORY---\s*([\s\S]+)$/)
+      if (memMatch) {
+        replyText = rawText.replace(/---MEMORY---[\s\S]+$/, '').trim()
+        try {
+          const jsonStr = memMatch[1].trim().replace(/^```json\s*/, '').replace(/```$/, '').trim()
+          memoryUpdate = JSON.parse(jsonStr)
+        } catch (e) {
+          // If parse fails, skip memory update
+        }
+      }
 
       // Parse action tags
-      const connectMatch = text.match(/\[CONECTAR:(\w+)\]/)
-      const hasSOS = text.includes('[SOS]')
-      const cleanText = text.replace(/\[CONECTAR:\w+\]/g, '').replace(/\[SOS\]/g, '').trim()
+      const connectMatch = replyText.match(/\[CONECTAR:(\w+)\]/)
+      const hasSOS = replyText.includes('[SOS]')
+      const cleanText = replyText.replace(/\[CONECTAR:\w+\]/g, '').replace(/\[SOS\]/g, '').trim()
 
       // Check if response contains a program JSON
       const jsonMatch = cleanText.match(/\{[\s\S]*"type"\s*:\s*"program"[\s\S]*\}/)
@@ -123,6 +144,7 @@ ${context || 'No hay contexto disponible aún.'}`
             program,
             connect: connectMatch ? connectMatch[1] : null,
             sos: hasSOS,
+            memoryUpdate,
           })
         } catch (e) {}
       }
@@ -131,13 +153,14 @@ ${context || 'No hay contexto disponible aún.'}`
         reply: cleanText,
         connect: connectMatch ? connectMatch[1] : null,
         sos: hasSOS,
+        memoryUpdate,
       })
     } catch (err) {
       return res.status(500).json({ error: 'Server error', details: err.message })
     }
   }
 
-  // Fallback without API key — smart responses with Talent Pot integration
+  // Fallback without API key
   const m = message.toLowerCase()
   let reply = ''
   let connect = null
@@ -175,5 +198,5 @@ ${context || 'No hay contexto disponible aún.'}`
     reply = 'Estoy aquí para ti. Puedo escucharte, ayudarte con tus hábitos, crear un programa personalizado, conectarte con una Guía Ronda, o activar herramientas de bienestar. ¿Por dónde empezamos?'
   }
 
-  return res.status(200).json({ reply, connect, sos })
+  return res.status(200).json({ reply, connect, sos, memoryUpdate: null })
 }
