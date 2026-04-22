@@ -1,15 +1,16 @@
 {
-  "name": "Ronda — Creces tú, crecemos todas",
+  "name": "Ronda — Tu compañera en cada etapa",
   "short_name": "Ronda",
-  "description": "Wellness, comunidad y servicios para mujeres. Creces tú, crecemos todas.",
+  "description": "Herramientas de bienestar para mujeres. Hábitos, diario de voz, programas y comunidad con guías verificadas.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FBF6F3",
-  "theme_color": "#4A3035",
+  "background_color": "#FFF8F0",
+  "theme_color": "#0D9488",
   "orientation": "portrait",
   "icons": [
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
