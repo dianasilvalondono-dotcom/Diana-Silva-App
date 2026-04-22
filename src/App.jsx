@@ -136,6 +136,18 @@ function App() {
   }))
   const [editingProfile, setEditingProfile] = useState(false)
 
+  // ─── Memoria persistente de Tu Ronda (Fase 1 — Asistente Personal) ───
+  // Contiene lo que la agente ha aprendido sobre la usuaria a lo largo del tiempo
+  const [memory, setMemory] = useState(() => load('ronda-memory', {
+    facts: [],              // ["tiene 2 hijos", "trabaja en marketing", "le da ansiedad los domingos"]
+    patterns: [],           // ["mood bajo los lunes", "mejor dormida con meditación"]
+    preferences: {},        // { tono: "cálido", tuteo: true }
+    summary: '',            // Resumen narrativo actualizado
+    lastUpdated: null,
+    conversationCount: 0,
+  }))
+  useEffect(() => { save('ronda-memory', memory) }, [memory])
+
   // Onboarding
   const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
 
@@ -2068,10 +2080,26 @@ function App() {
     setChatInput('')
     setChatLoading(true)
 
-    // Build context from user habits and mood
+    // ── Build rich context from user state ──
     const todayChecked = Object.values(checked).filter(Boolean).length
     const totalHabits = habits.length
-    const ctx = `Hábitos hoy: ${todayChecked}/${totalHabits} completados. Nombre: ${profile.name || 'Usuaria'}.`
+
+    // Recent mood from last 7 journal entries
+    const recentEntries = entries.slice(0, 7)
+    const avgMood = recentEntries.length > 0
+      ? (recentEntries.reduce((s, e) => s + (e.mood || 2), 0) / recentEntries.length).toFixed(1)
+      : null
+    const lastJournalNote = recentEntries[0]?.text || null
+
+    const ctx = {
+      name: profile.name || 'Usuaria',
+      city: profile.city || null,
+      intention: profile.intention || null,
+      habitsToday: `${todayChecked}/${totalHabits}`,
+      avgMood7d: avgMood,                    // 0-4 promedio últimos 7 días
+      lastJournalNote: lastJournalNote ? lastJournalNote.slice(0, 200) : null,
+      programActive: aiProgram?.title || null,
+    }
 
     // Send history for multi-turn conversation
     const recentHistory = chatMessages.slice(-8).map(m => ({ role: m.role, text: m.text }))
@@ -2080,7 +2108,12 @@ function App() {
       const resp = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, context: ctx, history: recentHistory }),
+        body: JSON.stringify({
+          message: msg,
+          context: ctx,
+          history: recentHistory,
+          memory: memory,       // 🧠 Memoria persistente
+        }),
       })
       const data = await resp.json()
       if (data.error) throw new Error(data.error)
@@ -2092,6 +2125,21 @@ function App() {
       if (data.program) {
         setAiProgram(data.program)
         setChatMessages(prev => [...prev, { role: 'assistant', text: '¡Te armé un programa! Cambia a "Crea tu programa" arriba para verlo y guardarlo.', isProgram: true }])
+      }
+
+      // 🧠 Update memory if the agent extracted new facts
+      if (data.memoryUpdate) {
+        setMemory(prev => ({
+          ...prev,
+          facts: data.memoryUpdate.facts || prev.facts,
+          patterns: data.memoryUpdate.patterns || prev.patterns,
+          preferences: { ...prev.preferences, ...(data.memoryUpdate.preferences || {}) },
+          summary: data.memoryUpdate.summary || prev.summary,
+          lastUpdated: new Date().toISOString(),
+          conversationCount: (prev.conversationCount || 0) + 1,
+        }))
+      } else {
+        setMemory(prev => ({ ...prev, conversationCount: (prev.conversationCount || 0) + 1 }))
       }
     } catch (err) {
       setChatMessages(prev => [...prev, { role: 'assistant', text: 'Estoy teniendo problemas para conectarme. Pero puedo decirte: lo que sientes es válido, y estoy aquí contigo. Respira profundo.' }])
@@ -2473,6 +2521,69 @@ function App() {
           })}
         </div>
       </div>
+
+      {/* Lo que Ronda sabe de ti (memoria de Tu Ronda) */}
+      {(memory.facts?.length > 0 || memory.patterns?.length > 0 || memory.summary) && (
+        <div style={{ background: C.card, borderRadius: 18, padding: 22, border: `1px solid ${C.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+                Tu Ronda · Memoria
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, serif' }}>
+                Lo que sé de ti
+              </div>
+            </div>
+            <button onClick={() => {
+              if (confirm('¿Borrar lo que Ronda ha aprendido de ti? Esta acción no se puede deshacer.')) {
+                setMemory({ facts: [], patterns: [], preferences: {}, summary: '', lastUpdated: null, conversationCount: 0 })
+              }
+            }} style={{
+              padding: '6px 12px', borderRadius: 10, border: `1px solid ${C.border}`,
+              background: 'transparent', color: C.muted, fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              Borrar
+            </button>
+          </div>
+
+          {memory.summary && (
+            <div style={{ fontSize: 17, color: C.text, lineHeight: 1.6, marginBottom: 16, fontStyle: 'italic' }}>
+              "{memory.summary}"
+            </div>
+          )}
+
+          {memory.facts?.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.teal, marginBottom: 6 }}>Lo que me has contado</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {memory.facts.map((f, i) => (
+                  <div key={i} style={{ fontSize: 16, color: C.muted, paddingLeft: 12, borderLeft: `2px solid ${C.teal}` }}>
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {memory.patterns?.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.gold, marginBottom: 6 }}>Patrones que he notado</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {memory.patterns.map((p, i) => (
+                  <div key={i} style={{ fontSize: 16, color: C.muted, paddingLeft: 12, borderLeft: `2px solid ${C.gold}` }}>
+                    {p}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ fontSize: 13, color: C.subtle, marginTop: 12, fontStyle: 'italic' }}>
+            {memory.conversationCount > 0 ? `${memory.conversationCount} conversaciones hasta hoy` : ''}
+          </div>
+        </div>
+      )}
 
       {/* Sign out */}
       {isConfigured && user && (
