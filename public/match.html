@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Match Padel Club × Ronda — Propuesta de Alianza</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --match-blue: #1E4FA8;
+      --match-coral: #E8703A;
+      --ronda-teal: #0D9488;
+      --ronda-teal-light: #E6F7F5;
+      --ronda-gold: #C6A94E;
+      --ronda-gold-light: #F7EDD3;
+      --ronda-cream: #FFF8F0;
+      --ronda-rose: #E8B4B8;
+      --text: #3D3D3D;
+      --muted: #7A7A7A;
+      --line: #EDE7DC;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--ronda-cream);
+      color: var(--text);
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 0 32px; }
+
+    /* ─────────── HERO ─────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--ronda-cream) 0%, var(--ronda-teal-light) 100%);
+      padding: 80px 0 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: var(--ronda-teal);
+      opacity: 0.06;
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -50px; left: -50px;
+      width: 250px; height: 250px;
+      background: var(--match-coral);
+      opacity: 0.07;
+      border-radius: 50%;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--ronda-gold);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 64px;
+      line-height: 1.05;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 .ampersand {
+      color: var(--ronda-gold);
+      font-style: italic;
+      font-weight: 400;
+      margin: 0 8px;
+    }
+
+    .hero-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-style: italic;
+      color: var(--ronda-teal);
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+      padding-top: 24px;
+      border-top: 1px solid rgba(13, 148, 136, 0.15);
+    }
+
+    .meta-item { display: flex; flex-direction: column; }
+    .meta-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .meta-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ─────────── LOGOS ─────────── */
+    .logos-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      padding: 60px 0;
+      background: white;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .logo-match, .logo-ronda {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .logo-box {
+      width: 160px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 4px 24px rgba(13, 148, 136, 0.08);
+      overflow: hidden;
+    }
+    .logo-match .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 12px;
+    }
+    .logo-ronda .logo-box svg { width: 100px; height: 100px; }
+    .logo-label {
+      margin-top: 16px;
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--text);
+    }
+    .logo-x {
+      font-family: 'Playfair Display', serif;
+      font-size: 56px;
+      color: var(--ronda-gold);
+      font-style: italic;
+      line-height: 1;
+    }
+
+    /* placeholder si no está la foto */
+    .logo-match .logo-box .placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ronda-cream);
+      color: var(--muted);
+      font-size: 10px;
+      text-align: center;
+      padding: 12px;
+      letter-spacing: 1px;
+    }
+
+    /* ─────────── SECTIONS ─────────── */
+    section { padding: 80px 0; }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--ronda-gold);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 44px;
+      line-height: 1.15;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 32px;
+    }
+
+    .section-intro {
+      font-size: 19px;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    /* ─────────── IDEA (pull quote) ─────────── */
+    .idea {
+      background: var(--ronda-teal-light);
+      padding: 100px 0;
+      text-align: center;
+      position: relative;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .idea-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px;
+      line-height: 1.15;
+      font-style: italic;
+      font-weight: 400;
+      max-width: 800px;
+      margin: 0 auto 32px;
+      color: var(--text);
+    }
+    .idea-quote span { color: var(--ronda-teal); }
+    .idea-attribution {
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--ronda-gold);
+      font-weight: 700;
+    }
+
+    /* ─────────── EVENTO ─────────── */
+    .evento-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .evento-card {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+    }
+    .evento-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .flow-item {
+      display: flex;
+      gap: 20px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .flow-item:last-child { border-bottom: none; }
+    .flow-time {
+      font-weight: 700;
+      color: var(--match-blue);
+      min-width: 80px;
+      font-size: 14px;
+    }
+    .flow-text { font-size: 15px; color: var(--text); }
+
+    /* ─────────── WIN-WIN ─────────── */
+    .winwin { background: white; }
+    .winwin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 32px;
+    }
+    .win-card {
+      padding: 40px;
+      border-radius: 16px;
+      border: 2px solid;
+    }
+    .win-match {
+      border-color: var(--match-blue);
+      background: linear-gradient(135deg, rgba(30, 79, 168, 0.04) 0%, rgba(232, 112, 58, 0.04) 100%);
+    }
+    .win-ronda {
+      border-color: var(--ronda-teal);
+      background: linear-gradient(135deg, rgba(13, 148, 136, 0.04) 0%, rgba(198, 169, 78, 0.04) 100%);
+    }
+    .win-brand {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .win-match .win-brand { color: var(--match-blue); }
+    .win-ronda .win-brand { color: var(--ronda-teal); }
+    .win-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .win-card ul { list-style: none; }
+    .win-card li {
+      padding: 10px 0;
+      font-size: 15px;
+      color: var(--text);
+      padding-left: 24px;
+      position: relative;
+    }
+    .win-match li::before { content: '●'; color: var(--match-coral); position: absolute; left: 0; }
+    .win-ronda li::before { content: '●'; color: var(--ronda-gold); position: absolute; left: 0; }
+
+    /* ─────────── ENTREGABLES ─────────── */
+    .entregables { background: var(--ronda-cream); }
+    .merch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .merch-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(13, 148, 136, 0.06);
+      border: 1px solid var(--line);
+    }
+    .merch-visual {
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      position: relative;
+    }
+    .merch-visual.v1 { background: linear-gradient(135deg, #FFF8F0 0%, #F7EDD3 100%); }
+    .merch-visual.v2 { background: linear-gradient(135deg, var(--ronda-teal-light) 0%, #C7EDE7 100%); }
+    .merch-visual.v3 { background: linear-gradient(135deg, #FFF8F0 0%, #E6F7F5 100%); }
+    .merch-visual.v4 { background: linear-gradient(135deg, #F7F1E3 0%, #FFF8F0 100%); }
+    .merch-info { padding: 28px 32px 32px; }
+    .merch-tag {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ronda-gold);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .merch-info h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .merch-info p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .merch-budget {
+      display: inline-block;
+      padding: 6px 14px;
+      background: var(--ronda-cream);
+      border: 1px solid var(--ronda-gold);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .merch-featured {
+      grid-column: 1 / -1;
+      background: white;
+      border: 2px solid var(--ronda-gold);
+    }
+    .merch-featured .merch-visual { background: var(--ronda-gold-light); height: 280px; }
+    .merch-featured .merch-tag { color: var(--ronda-teal); }
+
+    /* Mock visuals */
+    .mock-journal {
+      width: 140px; height: 180px;
+      background: #F7F1E3;
+      border-radius: 4px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+    .mock-journal::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0;
+      width: 6px; height: 100%;
+      background: var(--ronda-teal);
+    }
+    .mock-journal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      text-align: center;
+      color: var(--text);
+      letter-spacing: 2px;
+      font-weight: 700;
+    }
+    .mock-journal-x { color: var(--ronda-gold); font-size: 16px; margin: 4px 0; }
+    .mock-journal-sub {
+      font-size: 8px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .mock-card {
+      width: 180px; height: 110px;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      padding: 16px;
+      position: relative;
+    }
+    .mock-card-brands {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9px;
+      letter-spacing: 1px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .mock-card-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      margin-top: 10px;
+      color: var(--text);
+    }
+    .mock-card-quote {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 9px;
+      color: var(--ronda-teal);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .mock-card-qr {
+      position: absolute;
+      bottom: 12px; right: 12px;
+      width: 32px; height: 32px;
+      background: var(--ronda-teal);
+      border-radius: 4px;
+    }
+
+    .mock-candle {
+      width: 90px; height: 130px;
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+    .mock-candle-label {
+      width: 70px;
+      padding: 8px 4px;
+      background: var(--ronda-cream);
+      border: 1px solid var(--ronda-gold);
+      text-align: center;
+      font-size: 6px;
+      letter-spacing: 1px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .mock-bracelet {
+      width: 140px;
+      height: 26px;
+      background: var(--ronda-teal);
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: 'Playfair Display', serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
+    }
+
+    .mock-muro {
+      width: 180px; height: 120px;
+      background: white;
+      border: 2px solid var(--ronda-teal);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    /* ─────────── QUÉ NECESITO DE TI ─────────── */
+    .ask {
+      background: linear-gradient(135deg, var(--ronda-cream) 0%, var(--ronda-gold-light) 100%);
+      border-top: 1px solid var(--line);
+    }
+    .ask-list { list-style: none; margin-top: 40px; }
+    .ask-item {
+      display: flex;
+      gap: 28px;
+      padding: 28px 0;
+      border-bottom: 1px solid rgba(198, 169, 78, 0.25);
+      align-items: flex-start;
+    }
+    .ask-item:last-child { border-bottom: none; }
+    .ask-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      color: var(--ronda-gold);
+      line-height: 1;
+      font-style: italic;
+      min-width: 60px;
+    }
+    .ask-content h5 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .ask-content p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ─────────── TIMELINE ─────────── */
+    .timeline { background: white; }
+    .timeline-items {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 40px;
+    }
+    .timeline-item {
+      padding: 28px 20px;
+      text-align: center;
+      background: var(--ronda-cream);
+      border-radius: 12px;
+      border-top: 3px solid var(--ronda-teal);
+    }
+    .timeline-day {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--ronda-teal);
+      margin-bottom: 8px;
+    }
+    .timeline-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ronda-gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .timeline-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ─────────── FOOTER ─────────── */
+    footer {
+      background: var(--ronda-teal-light);
+      padding: 60px 0 40px;
+      text-align: center;
+      border-top: 1px solid var(--line);
+    }
+    footer .logos-row {
+      background: transparent;
+      border: none;
+      padding: 0 0 32px;
+    }
+    footer .closing {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-style: italic;
+      color: var(--ronda-teal);
+      margin: 32px 0 16px;
+    }
+    footer .contact {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    footer .contact a { color: var(--ronda-teal); text-decoration: none; font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 42px; }
+      .section-title { font-size: 32px; }
+      .idea-quote { font-size: 34px; }
+      .evento-grid, .winwin-grid, .merch-grid { grid-template-columns: 1fr; }
+      .timeline-items { grid-template-columns: 1fr 1fr; }
+      .container { padding: 0 20px; }
+      .logos-row { gap: 24px; }
+      .logo-box { width: 120px; height: 120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- HERO                                      -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="container">
+      <div class="eyebrow">Propuesta de Alianza · Viernes 24 de Abril 2026</div>
+      <h1>Match Padel Club<span class="ampersand">×</span>Ronda</h1>
+      <p class="hero-subtitle">"Cuando termina el partido, empieza algo más."</p>
+      <div class="hero-meta">
+        <div class="meta-item">
+          <span class="meta-label">Evento</span>
+          <span class="meta-value">Yoga post-pádel + Lanzamiento</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Fecha</span>
+          <span class="meta-value">Viernes · 5:00 PM</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Audiencia</span>
+          <span class="meta-value">25 padeleras de Colombia</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Lugar</span>
+          <span class="meta-value">Match Padel Club Cartagena</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- LOGOS                                     -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="logos-row">
+    <div class="logo-match">
+      <div class="logo-box">
+        <svg viewBox="0 0 200 200" style="width: 100%; height: 100%;">
+          <!-- Figura abstracta de persona con brazos levantados -->
+          <g transform="translate(100, 75)">
+            <!-- Brazo izquierdo + pelotita -->
+            <path d="M -18,-5 Q -28,-22 -36,-30" stroke="#E8703A" stroke-width="7" fill="none" stroke-linecap="round"/>
+            <circle cx="-38" cy="-32" r="6" fill="#E8703A"/>
+            <!-- Brazo derecho + pelotita -->
+            <path d="M 18,-5 Q 28,-22 36,-30" stroke="#E8703A" stroke-width="7" fill="none" stroke-linecap="round"/>
+            <circle cx="38" cy="-32" r="6" fill="#E8703A"/>
+            <!-- Cabeza -->
+            <circle cx="0" cy="-8" r="7" fill="#E8703A"/>
+            <!-- Cuerpo curvo -->
+            <path d="M -10,0 Q -15,15 -12,35 L 0,30 L 12,35 Q 15,15 10,0 Z" fill="#E8703A"/>
+          </g>
+          <!-- Match. -->
+          <text x="100" y="140" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="28" fill="#2B5FBA" letter-spacing="-0.5">Match</text>
+          <!-- Punto grande coral -->
+          <circle cx="148" cy="138" r="6" fill="#E8703A"/>
+          <!-- CTG pequeño -->
+          <text x="148" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="8" fill="#2B5FBA">CTG</text>
+          <!-- PADEL CLUB -->
+          <text x="100" y="162" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="13" fill="#E8703A" letter-spacing="2" font-style="italic">PADEL CLUB</text>
+        </svg>
+      </div>
+      <div class="logo-label">Match Padel Club</div>
+    </div>
+    <div class="logo-x">×</div>
+    <div class="logo-ronda">
+      <div class="logo-box">
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="34" fill="none" stroke="#0D9488" stroke-width="3"/>
+          <circle cx="50" cy="50" r="14" fill="#0D9488"/>
+        </svg>
+      </div>
+      <div class="logo-label">Ronda</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- LA IDEA (QUOTE)                          -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="idea">
+    <div class="container">
+      <p class="idea-quote">
+        El pádel es intensidad.<br>
+        <span>Ronda es lo que viene después.</span>
+      </p>
+      <p class="idea-attribution">El concepto narrativo de la alianza</p>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- EL EVENTO                                 -->
+  <!-- ════════════════════════════════════════ -->
+  <section>
+    <div class="container">
+      <div class="section-label">El Evento</div>
+      <h2 class="section-title">Un partido. Una clase.<br>Un lanzamiento.</h2>
+      <p class="section-intro">
+        25 padeleras de todo el país se reúnen en Match Padel Club. Juegan pádel en la tarde. Al terminar — cuando el cuerpo pide regreso — cerramos con una clase de yoga restaurativo, meditación guiada y el lanzamiento oficial de Ronda.
+      </p>
+
+      <div class="evento-grid">
+        <div class="evento-card">
+          <h3>Flujo del día</h3>
+          <div class="flow-item">
+            <span class="flow-time">Día</span>
+            <span class="flow-text">Las padeleras juegan pádel (el evento principal)</span>
+          </div>
+          <div class="flow-item">
+            <span class="flow-time">5:00 PM</span>
+            <span class="flow-text">Terminan de jugar · reciben kit personalizado</span>
+          </div>
+          <div class="flow-item">
+            <span class="flow-time">5:15 PM</span>
+            <span class="flow-text">Ritual de llegada al mat · escanean QR de Ronda</span>
+          </div>
+          <div class="flow-item">
+            <span class="flow-time">5:20 PM</span>
+            <span class="flow-text">Clase de yoga restaurativo (Diana Silva)</span>
+          </div>
+          <div class="flow-item">
+            <span class="flow-time">5:55 PM</span>
+            <span class="flow-text">Meditación · primera grabación en Ronda (diario de voz)</span>
+          </div>
+          <div class="flow-item">
+            <span class="flow-time">6:05 PM</span>
+            <span class="flow-text">Foto grupal en muro fotografiable · networking con té</span>
+          </div>
+        </div>
+
+        <div class="evento-card">
+          <h3>Por qué funciona</h3>
+          <p style="color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 20px;">
+            Las padeleras llegan <strong style="color: var(--text);">sudadas, cansadas, en el cuerpo</strong> — después de competir. Ese momento de descompresión es el contexto ideal para introducir Ronda: herramientas de bienestar que no imponen, acompañan.
+          </p>
+          <p style="color: var(--muted); font-size: 15px; line-height: 1.7;">
+            La yoga post-pádel no es relleno: es el gancho narrativo que conecta a Match Padel Club (alto rendimiento, intensidad) con Ronda (recuperación, crecimiento, cuidado). Dos marcas. Un solo mensaje: <em style="color: var(--ronda-teal);">el partido termina, el cuidado no.</em>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- WIN-WIN                                   -->
+  <!-- ════════════════════════════════════════ -->
+  <section class="winwin">
+    <div class="container">
+      <div class="section-label">Por qué esta alianza</div>
+      <h2 class="section-title">Gana Match. Gana Ronda.<br>Ganan ellas.</h2>
+
+      <div class="winwin-grid">
+        <div class="win-card win-match">
+          <div class="win-brand">Para Match Padel Club</div>
+          <h4>Un evento que no han tenido</h4>
+          <ul>
+            <li>Posicionamiento wellness — más allá del pádel</li>
+            <li>Narrativa diferenciadora vs otros clubes</li>
+            <li>Contenido premium para redes (25 testimoniales + foto)</li>
+            <li>Fidelización con un público clave: mujeres padeleras nacionales</li>
+            <li>Credibilidad: alianza con app de bienestar con fundamento técnico</li>
+          </ul>
+        </div>
+
+        <div class="win-card win-ronda">
+          <div class="win-brand">Para Ronda</div>
+          <h4>25 primeras usuarias premium</h4>
+          <ul>
+            <li>Lanzamiento con audiencia curada (mujeres 28-45, perfil aspiracional)</li>
+            <li>Validación con persona target directa</li>
+            <li>Distribución orgánica nacional (vienen de todo Colombia)</li>
+            <li>Contenido real para redes (yoga, ritual, comunidad)</li>
+            <li>Primera alianza con club de alto perfil en Cartagena</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- ENTREGABLES / MERCH                       -->
+  <!-- ════════════════════════════════════════ -->
+  <section class="entregables">
+    <div class="container">
+      <div class="section-label">Entregables visuales</div>
+      <h2 class="section-title">Lo que verán, tocarán<br>y se llevarán.</h2>
+      <p class="section-intro">
+        Todos los elementos llevan el co-brand <strong>Match Padel Club × Ronda</strong>. Piezas pensadas para durar más allá del viernes — cada ítem es un touchpoint continuo con ambas marcas.
+      </p>
+
+      <div class="merch-grid">
+
+        <div class="merch-card merch-featured">
+          <div class="merch-visual">
+            <div class="mock-journal">
+              <div class="mock-journal-title">MATCH</div>
+              <div class="mock-journal-x">×</div>
+              <div class="mock-journal-title" style="color: var(--ronda-teal);">RONDA</div>
+              <div class="mock-journal-sub">MI RONDA DE 30 DÍAS</div>
+            </div>
+          </div>
+          <div class="merch-info" style="padding: 32px 40px;">
+            <div class="merch-tag">PIEZA PRINCIPAL · UNIDAD POR PADELERA</div>
+            <h4>Mini Journal — 30 días</h4>
+            <p>Libreta tapa dura, papel cream, foil dorado. 80 páginas pre-impresas con estructura "Mi ronda de hoy" (3 hábitos · intención · 3 gratitudes · reflexión). Las acompaña 30 días después del evento — extensión natural de la app.</p>
+            <span class="merch-budget">Estimado · $18.000–25.000 / unidad</span>
+          </div>
+        </div>
+
+        <div class="merch-card">
+          <div class="merch-visual v1">
+            <div class="mock-card">
+              <div class="mock-card-brands">MATCH × RONDA</div>
+              <div class="mock-card-name">Para [Nombre]</div>
+              <div class="mock-card-quote">"Cuando termina el partido,<br>empieza algo más."</div>
+              <div class="mock-card-qr"></div>
+            </div>
+          </div>
+          <div class="merch-info">
+            <div class="merch-tag">EL TOQUE HUMANO</div>
+            <h4>Tarjeta Personalizada con QR</h4>
+            <p>9×14 cm · papel cream 300gsm · nombre manuscrito al frente, frase al centro, QR de Ronda al reverso. Una por padelera. Es el ítem que más se fotografía.</p>
+            <span class="merch-budget">$3.500–5.000 / unidad</span>
+          </div>
+        </div>
+
+        <div class="merch-card">
+          <div class="merch-visual v2">
+            <div class="mock-bracelet">RESPIRA</div>
+          </div>
+          <div class="merch-info">
+            <div class="merch-tag">RITUAL FÍSICO</div>
+            <h4>Pulsera Bordada</h4>
+            <p>Tela tejida con frases alternadas ("Respira", "Ronda", "Creces tú"). Se la ponen después del partido, se queda con ellas. Recordatorio táctil diario.</p>
+            <span class="merch-budget">$5.000–8.000 / unidad</span>
+          </div>
+        </div>
+
+        <div class="merch-card">
+          <div class="merch-visual v3">
+            <div class="mock-muro">
+              <div style="font-size: 9px; letter-spacing: 3px; font-weight: 700; color: var(--text); margin-bottom: 4px;">MATCH PADEL CLUB</div>
+              <div style="font-size: 16px; color: var(--ronda-gold);">×</div>
+              <div style="font-size: 12px; letter-spacing: 4px; font-weight: 700; color: var(--ronda-teal); margin-bottom: 8px;">RONDA</div>
+              <div style="width: 50%; height: 1px; background: var(--ronda-gold); margin-bottom: 8px;"></div>
+              <div style="font-size: 8px; font-style: italic; color: var(--muted); line-height: 1.4;">"Cuando termina el partido, empieza algo más."</div>
+            </div>
+          </div>
+          <div class="merch-info">
+            <div class="merch-tag">EL MOMENTO INSTAGRAMEABLE</div>
+            <h4>Muro Fotografiable · 2×1.5m</h4>
+            <p>Backdrop impreso con el co-brand. Cada padelera se fotografía al lado — contenido orgánico para Stories e Instagram. Reutilizable para futuros eventos.</p>
+            <span class="merch-budget">$400.000–650.000 · única inversión</span>
+          </div>
+        </div>
+
+        <div class="merch-card">
+          <div class="merch-visual v4">
+            <div class="mock-candle">
+              <div class="mock-candle-label">
+                MATCH × RONDA<br>
+                <span style="font-size: 5px; font-weight: 400;">EUCALIPTO · MENTA</span>
+              </div>
+            </div>
+          </div>
+          <div class="merch-info">
+            <div class="merch-tag">OPCIONAL · UPGRADE PREMIUM</div>
+            <h4>Vela "Después del partido"</h4>
+            <p>100g · frasco reutilizable · aroma eucalipto + menta. Ritual: "enciéndela cuando llegues a casa esta noche". El frasco vacío queda en casa como touchpoint.</p>
+            <span class="merch-budget">$20.000–28.000 / unidad</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- TIMELINE                                  -->
+  <!-- ════════════════════════════════════════ -->
+  <section class="timeline">
+    <div class="container">
+      <div class="section-label">Timeline · 3 días de producción</div>
+      <h2 class="section-title">De aquí al viernes.</h2>
+
+      <div class="timeline-items">
+        <div class="timeline-item">
+          <div class="timeline-day">Mar</div>
+          <div class="timeline-label">Día 1 — Aprobación</div>
+          <div class="timeline-desc">Aprobar co-brand final. Enviar artes a imprenta. Confirmar fotógrafa y orden de té/bebidas.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-day">Mié</div>
+          <div class="timeline-label">Día 2 — Producción</div>
+          <div class="timeline-desc">Impresión tarjetas + journals. Producción muro fotografiable. Bordado pulseras.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-day">Jue</div>
+          <div class="timeline-label">Día 3 — Montaje</div>
+          <div class="timeline-desc">Recogida de piezas. Escritura manuscrita de tarjetas con nombres. Story de expectativa.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-day">Vie</div>
+          <div class="timeline-label">Día 4 — Evento</div>
+          <div class="timeline-desc">Montaje 4 PM. Evento 5–6:30 PM. Post en redes esa noche. Mensaje WhatsApp sábado.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- QUÉ NECESITO DE TI                        -->
+  <!-- ════════════════════════════════════════ -->
+  <section class="ask">
+    <div class="container">
+      <div class="section-label">Qué necesito de ti</div>
+      <h2 class="section-title">Como diseñadora de Match,<br>aquí es donde entras.</h2>
+
+      <ul class="ask-list">
+        <li class="ask-item">
+          <div class="ask-number">01</div>
+          <div class="ask-content">
+            <h5>Aprobar el uso del logo oficial de Match</h5>
+            <p>Necesito tu OK para usar el logo de Match Padel Club en los materiales co-branded del evento. Idealmente en vectorial (SVG o AI) para impresión limpia.</p>
+          </div>
+        </li>
+        <li class="ask-item">
+          <div class="ask-number">02</div>
+          <div class="ask-content">
+            <h5>Diseñar el lockup final Match × Ronda</h5>
+            <p>Tú eres la diseñadora — tu ojo manda. Necesito el lockup horizontal y vertical (para tarjeta, journal, muro y redes). Yo te paso el logo de Ronda en vectorial + brand book.</p>
+          </div>
+        </li>
+        <li class="ask-item">
+          <div class="ask-number">03</div>
+          <div class="ask-content">
+            <h5>Recomendar proveedores en Cartagena</h5>
+            <p>Para impresión de tarjetas, journal, muro fotografiable. Si Match ya tiene proveedores de confianza, mejor — nos ahorramos tiempo de prueba.</p>
+          </div>
+        </li>
+        <li class="ask-item">
+          <div class="ask-number">04</div>
+          <div class="ask-content">
+            <h5>Aprobar el hashtag oficial del evento</h5>
+            <p>Propuesta: <strong style="color: var(--ronda-teal);">#MatchxRonda</strong> — para que las padeleras etiqueten. Si tienes otra idea que calce mejor con la estrategia de redes de Match, abierta.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- FOOTER                                    -->
+  <!-- ════════════════════════════════════════ -->
+  <footer>
+    <div class="container">
+      <div class="logos-row">
+        <div class="logo-match">
+          <div class="logo-box">
+            <svg viewBox="0 0 200 200" style="width: 100%; height: 100%;">
+              <g transform="translate(100, 75)">
+                <path d="M -18,-5 Q -28,-22 -36,-30" stroke="#E8703A" stroke-width="7" fill="none" stroke-linecap="round"/>
+                <circle cx="-38" cy="-32" r="6" fill="#E8703A"/>
+                <path d="M 18,-5 Q 28,-22 36,-30" stroke="#E8703A" stroke-width="7" fill="none" stroke-linecap="round"/>
+                <circle cx="38" cy="-32" r="6" fill="#E8703A"/>
+                <circle cx="0" cy="-8" r="7" fill="#E8703A"/>
+                <path d="M -10,0 Q -15,15 -12,35 L 0,30 L 12,35 Q 15,15 10,0 Z" fill="#E8703A"/>
+              </g>
+              <text x="100" y="140" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="28" fill="#2B5FBA" letter-spacing="-0.5">Match</text>
+              <circle cx="148" cy="138" r="6" fill="#E8703A"/>
+              <text x="148" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="8" fill="#2B5FBA">CTG</text>
+              <text x="100" y="162" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="13" fill="#E8703A" letter-spacing="2" font-style="italic">PADEL CLUB</text>
+            </svg>
+          </div>
+        </div>
+        <div class="logo-x">×</div>
+        <div class="logo-ronda">
+          <div class="logo-box">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="34" fill="none" stroke="#0D9488" stroke-width="3"/>
+              <circle cx="50" cy="50" r="14" fill="#0D9488"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <p class="closing">"Cuando termina el partido, empieza algo más."</p>
+
+      <div class="contact">
+        Diana Silva Londoño · Founder, Ronda<br>
+        <a href="mailto:hola@rondahub.com">hola@rondahub.com</a> · <a href="https://rondahub.com">rondahub.com</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
