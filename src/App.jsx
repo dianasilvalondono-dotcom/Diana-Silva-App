@@ -90,6 +90,23 @@ function App() {
   }, [user])
 
   const isPremium = isAdmin || premiumStatus.is_premium
+  const isFoundingMember = premiumStatus.premium_source === 'founding_member'
+
+  // ─── Toast "feature premium gratis para founding member" — solo 1 vez por feature ───
+  const [foundingMsgShown, setFoundingMsgShown] = useState(() => load('ronda-founding-msg-shown', {}))
+  const [foundingToast, setFoundingToast] = useState(null) // { feature: 'Tu Ronda' }
+
+  const showFoundingPerk = (featureKey, featureName) => {
+    if (!isFoundingMember) return
+    if (foundingMsgShown[featureKey]) return
+    setFoundingToast({ feature: featureName, key: featureKey })
+    setTimeout(() => setFoundingToast(null), 8000)
+    setFoundingMsgShown(prev => {
+      const next = { ...prev, [featureKey]: true }
+      save('ronda-founding-msg-shown', next)
+      return next
+    })
+  }
 
   // AI Agent state
   const [aiGoal, setAiGoal] = useState('')
@@ -1475,17 +1492,27 @@ function App() {
 
             {/* Price + CTA */}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>${prog.price} USD</div>
-              <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Pago único · Acceso para siempre</div>
-              <button style={{
+              {!isPremium && (
+                <>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>Solo Premium</div>
+                  <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Disponible con Ronda+ · $9.99/mes</div>
+                </>
+              )}
+              <button onClick={() => {
+                if (!isPremium) {
+                  alert('Los programas de 21 días son una feature premium. Suscríbete a Ronda+ ($9.99/mes) para empezar.')
+                  return
+                }
+                showFoundingPerk('p21', 'Programas de 21 días')
+                alert(`¡Activaste "${prog.title}"!\n\nMañana te llega la primera práctica del Día 1. Tu camino de 21 días empieza ahora.`)
+              }} style={{
                 width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
                 background: `linear-gradient(135deg, ${C.gold}, #D4B87A)`,
                 color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
               }}>
-                Próximamente
+                {isPremium ? 'Empezar este programa' : 'Solo Premium'}
               </button>
-              <div style={{ fontSize: 19, color: C.subtle, marginTop: 8 }}>El pago se habilitará pronto</div>
             </div>
           </div>
         ))}
@@ -1741,6 +1768,11 @@ function App() {
 
   const addBoardPost = async () => {
     if (!boardNewText.trim()) return
+    if (!isPremium) {
+      alert('Escribir en la comunidad y recibir respuestas de Guías Ronda es una feature premium. Suscríbete a Ronda+ para participar.')
+      return
+    }
+    showFoundingPerk('board', 'Comunidad y Guías Ronda')
     const newPostId = `u${Date.now()}`
     const content = boardNewText.trim()
     const cat = boardNewCat
@@ -3540,7 +3572,7 @@ function App() {
             onChange={(t) => { setSubTab(t); if (t === 'ai') resetAiAgent() }}
           />
           {(subTab || 'programas') === 'programas' && programasView}
-          {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Crea tu programa con IA" price="$9.99/mes" desc="Dile a nuestra IA qué quieres lograr y te arma un programa personalizado, paso a paso, a tu ritmo." />)}
+          {subTab === 'ai' && (isPremium ? (() => { showFoundingPerk('chat', 'Tu Ronda · IA personal'); return aiAgentView })() : <Paywall feature="Tu Ronda — IA personal" price="$9.99/mes" desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." />)}
         </>}
 
         {view === 'juntas' && <>
@@ -3570,6 +3602,39 @@ function App() {
       {bottomNav}
       {morningModal}
       {nightModal}
+
+      {/* ─── Toast: Founding Member tiene esta feature gratis ─── */}
+      {foundingToast && (
+        <div style={{
+          position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
+          maxWidth: 420, width: 'calc(100% - 32px)', zIndex: 9999,
+          background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
+          borderRadius: 18, padding: '18px 20px',
+          boxShadow: '0 8px 32px rgba(198,169,78,0.45)',
+          color: 'white',
+          animation: 'slideUp 0.3s ease',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <div style={{ fontSize: 26, lineHeight: 1, marginTop: 2 }}>💛</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
+                Founding Member
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
+                {foundingToast.feature} es una feature premium.
+              </div>
+              <div style={{ fontSize: 14, lineHeight: 1.4, opacity: 0.95 }}>
+                La tienes gratis por ser de las primeras 50 mujeres en Ronda. Disfrútala. 💛
+              </div>
+            </div>
+            <button onClick={() => setFoundingToast(null)} style={{
+              background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
+              width: 24, height: 24, color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700,
+              flexShrink: 0,
+            }}>✕</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
