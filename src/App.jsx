@@ -10,6 +10,7 @@ import {
 import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD_COLORS } from './utils/helpers'
 import { useAuth } from './lib/useAuth'
 import { useNotifications } from './lib/useNotifications'
+import { useOneSignal } from './lib/useOneSignal'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile } from './lib/database'
 
@@ -91,6 +92,17 @@ function App() {
 
   const isPremium = isAdmin || premiumStatus.is_premium
   const isFoundingMember = premiumStatus.premium_source === 'founding_member'
+
+  // ─── Push notifications con OneSignal ───
+  const oneSignal = useOneSignal()
+  // Vincular el user.id de Supabase con la suscripción de OneSignal
+  // (permite mandar push targeted a usuarias específicas)
+  useEffect(() => {
+    if (oneSignal.status === 'subscribed' && user?.id) {
+      oneSignal.setExternalUserId(user.id)
+      if (user.email) oneSignal.setEmail(user.email)
+    }
+  }, [oneSignal.status, user])
 
   // ─── Modal genérico de la marca (reemplaza alert() feo del navegador) ───
   const [appModal, setAppModal] = useState(null) // { type: 'success'|'info'|'paywall', title, body, cta }
@@ -2572,6 +2584,85 @@ function App() {
         <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.05)', borderLeft: `4px solid ${C.gold}` }}>
           <div style={{ fontSize: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.gold, marginBottom: 6 }}>Mi intención</div>
           <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6 }}>{profile.intention}</div>
+        </div>
+      )}
+
+      {/* Notificaciones — OneSignal */}
+      {oneSignal.status === 'unsubscribed' && (
+        <div style={{
+          background: `linear-gradient(135deg, ${C.cream}, #E6F7F5)`,
+          borderRadius: 16, padding: 18,
+          border: `1px solid ${C.teal}30`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+              background: `linear-gradient(135deg, ${C.teal}, #0B7A71)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22,
+            }}>🔔</div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.text, fontFamily: 'Georgia, serif' }}>
+                Que Tu Ronda te acompañe
+              </div>
+              <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>
+                Buenos días, recordatorios suaves y mensajes cuando los necesites.
+              </div>
+            </div>
+          </div>
+          <button onClick={async () => {
+            const ok = await oneSignal.subscribe()
+            if (!ok) {
+              setAppModal({
+                type: 'info',
+                title: 'No se pudo activar',
+                body: 'Tu navegador bloqueó las notificaciones. Si estás en iPhone, instala Ronda en tu pantalla de inicio primero (botón Compartir → Agregar a pantalla de inicio).',
+                cta: 'Entendido',
+              })
+            }
+          }} style={{
+            width: '100%', padding: '12px 16px', borderRadius: 12, border: 'none',
+            background: C.teal, color: 'white', fontSize: 16, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            Activar notificaciones
+          </button>
+        </div>
+      )}
+
+      {oneSignal.status === 'subscribed' && (
+        <div style={{
+          background: `${C.teal}10`,
+          borderRadius: 16, padding: 14,
+          border: `1px solid ${C.teal}30`,
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+            background: C.teal, color: 'white',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, fontWeight: 800,
+          }}>✓</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.teal }}>Notificaciones activas</div>
+            <div style={{ fontSize: 13, color: C.muted }}>Tu Ronda te puede acompañar.</div>
+          </div>
+          <button onClick={() => oneSignal.unsubscribe()} style={{
+            background: 'transparent', border: `1px solid ${C.border}`,
+            borderRadius: 10, padding: '6px 10px', fontSize: 13,
+            color: C.muted, cursor: 'pointer', fontFamily: 'inherit',
+          }}>Pausar</button>
+        </div>
+      )}
+
+      {oneSignal.status === 'denied' && (
+        <div style={{
+          background: '#FEF3F0', borderRadius: 16, padding: 14,
+          border: '1px solid #F4845F40',
+        }}>
+          <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5 }}>
+            🔕 Tienes las notificaciones bloqueadas en este navegador. Para activarlas, ve a la configuración del sitio en tu navegador.
+          </div>
         </div>
       )}
 
