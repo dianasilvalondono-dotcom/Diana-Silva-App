@@ -92,6 +92,9 @@ function App() {
   const isPremium = isAdmin || premiumStatus.is_premium
   const isFoundingMember = premiumStatus.premium_source === 'founding_member'
 
+  // ─── Modal genérico de la marca (reemplaza alert() feo del navegador) ───
+  const [appModal, setAppModal] = useState(null) // { type: 'success'|'info'|'paywall', title, body, cta }
+
   // ─── Toast "feature premium gratis para founding member" — solo 1 vez por feature ───
   const [foundingMsgShown, setFoundingMsgShown] = useState(() => load('ronda-founding-msg-shown', {}))
   const [foundingToast, setFoundingToast] = useState(null) // { feature: 'Tu Ronda' }
@@ -395,7 +398,10 @@ function App() {
   // Voice journaling — Web Speech API
   const toggleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) { alert('Tu navegador no soporta voz. Usa Chrome o Safari.'); return }
+    if (!SpeechRecognition) {
+      setAppModal({ type: 'info', title: 'Voz no disponible', body: 'Tu navegador no soporta entrada de voz. Usa Chrome o Safari para el diario de voz.', cta: 'Listo' })
+      return
+    }
 
     if (isListening) {
       if (recognitionRef.current) recognitionRef.current.stop()
@@ -558,7 +564,10 @@ function App() {
   const header = (
     <div style={{
       background: '#0D9488',
-      padding: '20px 20px 16px', position: 'sticky', top: 0, zIndex: 100, overflow: 'hidden',
+      // Respeta el notch/Dynamic Island del iPhone — agrega padding extra arriba
+      paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)',
+      paddingLeft: 20, paddingRight: 20, paddingBottom: 16,
+      position: 'sticky', top: 0, zIndex: 100, overflow: 'hidden',
     }}>
       {/* Decorative Ronda circles */}
       <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: 'rgba(126,212,188,0.15)' }} />
@@ -1500,11 +1509,31 @@ function App() {
               )}
               <button onClick={() => {
                 if (!isPremium) {
-                  alert('Los programas de 21 días son una feature premium. Suscríbete a Ronda+ ($9.99/mes) para empezar.')
+                  setAppModal({
+                    type: 'paywall',
+                    title: 'Los programas de 21 días son premium',
+                    body: 'Estos programas profundos están disponibles con Ronda+. Te acompañan paso a paso con neurociencia y micro-acciones diarias.',
+                    cta: 'Ver planes',
+                  })
                   return
                 }
+                if (activePrograms[prog.id]) {
+                  setAppModal({
+                    type: 'info',
+                    title: 'Ya estás en este programa',
+                    body: `Sigues "${prog.title}". Continúa con tu día de hoy.`,
+                    cta: 'Listo',
+                  })
+                  return
+                }
+                startProgram(prog.id)
                 showFoundingPerk('p21', 'Programas de 21 días')
-                alert(`¡Activaste "${prog.title}"!\n\nMañana te llega la primera práctica del Día 1. Tu camino de 21 días empieza ahora.`)
+                setAppModal({
+                  type: 'success',
+                  title: `¡Activaste "${prog.title}"!`,
+                  body: 'Mañana te llega la primera práctica del Día 1. Tu camino de 21 días empieza ahora. 💛',
+                  cta: 'Empezar mi camino',
+                })
               }} style={{
                 width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
                 background: `linear-gradient(135deg, ${C.gold}, #D4B87A)`,
@@ -1769,7 +1798,12 @@ function App() {
   const addBoardPost = async () => {
     if (!boardNewText.trim()) return
     if (!isPremium) {
-      alert('Escribir en la comunidad y recibir respuestas de Guías Ronda es una feature premium. Suscríbete a Ronda+ para participar.')
+      setAppModal({
+        type: 'paywall',
+        title: 'Escribir en la comunidad es premium',
+        body: 'Publica preguntas anónimas y recibe respuestas de nuestras Guías Ronda verificadas. Disponible con Ronda+.',
+        cta: 'Ver planes',
+      })
       return
     }
     showFoundingPerk('board', 'Comunidad y Guías Ronda')
@@ -2579,7 +2613,7 @@ function App() {
                   <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>{plan.price}</div>
                 </div>
                 <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.5, marginBottom: 10 }}>{plan.features}</div>
-                <button onClick={() => alert(`Próximamente: pago para ${plan.name}. Te avisaremos cuando esté listo.`)} style={{
+                <button onClick={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${plan.name}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} style={{
                   width: '100%', padding: '10px', borderRadius: 12, border: 'none',
                   background: plan.color, color: 'white', fontSize: 17, fontWeight: 700,
                   cursor: 'pointer', fontFamily: 'inherit',
@@ -3609,6 +3643,67 @@ function App() {
       {bottomNav}
       {morningModal}
       {nightModal}
+
+      {/* ─── Modal de la marca (reemplaza alert nativo del navegador) ─── */}
+      {appModal && (
+        <div onClick={() => setAppModal(null)} style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(13, 73, 66, 0.55)', backdropFilter: 'blur(4px)',
+          zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24, animation: 'fadeIn 0.2s ease',
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: C.cream, borderRadius: 24, padding: '32px 28px 24px',
+            maxWidth: 380, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+            border: `1px solid ${C.border}`, position: 'relative',
+          }}>
+            {/* Decorative top accent */}
+            <div style={{
+              position: 'absolute', top: 0, left: '50%', transform: 'translate(-50%, -50%)',
+              width: 56, height: 56, borderRadius: '50%',
+              background: appModal.type === 'success'
+                ? `linear-gradient(135deg, ${C.gold}, ${C.rose})`
+                : appModal.type === 'paywall'
+                ? `linear-gradient(135deg, ${C.teal}, ${C.gold})`
+                : `linear-gradient(135deg, ${C.teal}, #0B7A71)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 26, color: 'white', fontWeight: 800,
+              boxShadow: '0 8px 20px rgba(13,148,136,0.3)',
+            }}>
+              {appModal.type === 'success' ? '✓' : appModal.type === 'paywall' ? '✦' : 'i'}
+            </div>
+
+            <div style={{ marginTop: 20, fontSize: 22, fontWeight: 800, color: C.text,
+                          fontFamily: 'Georgia, "Times New Roman", serif',
+                          textAlign: 'center', marginBottom: 12, lineHeight: 1.3 }}>
+              {appModal.title}
+            </div>
+
+            <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.6,
+                          textAlign: 'center', marginBottom: 24 }}>
+              {appModal.body}
+            </div>
+
+            <button onClick={() => {
+              if (appModal.type === 'paywall') {
+                setView('perfil')
+                setSubTab('')
+              }
+              setAppModal(null)
+            }} style={{
+              width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
+              background: appModal.type === 'paywall'
+                ? `linear-gradient(135deg, ${C.teal}, ${C.gold})`
+                : C.teal,
+              color: 'white', fontSize: 17, fontWeight: 800, cursor: 'pointer',
+              fontFamily: 'inherit', letterSpacing: '0.02em',
+              boxShadow: '0 4px 16px rgba(13,148,136,0.35)',
+            }}>
+              {appModal.cta || 'Listo'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ─── Toast: Founding Member tiene esta feature gratis ─── */}
       {foundingToast && (
