@@ -51,12 +51,16 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // Unregister old SW to clear cache issues
+      // Unregister ONLY old/legacy service workers — preserva OneSignal y nuestro sw.js
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
-          regs.forEach(r => r.unregister())
+          regs.forEach(r => {
+            const url = r.active?.scriptURL || r.installing?.scriptURL || ''
+            // No tocar OneSignal ni nuestro sw.js
+            if (url.includes('OneSignalSDK') || url.includes('/sw.js')) return
+            r.unregister()
+          })
         })
-        caches.keys().then(keys => keys.forEach(k => caches.delete(k)))
       }
     </script>
   </body>

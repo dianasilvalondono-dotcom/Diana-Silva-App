@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react'
 
 /**
- * Hook para integrar OneSignal Web Push
- * Estados:
- *  - status: 'loading' | 'unsupported' | 'denied' | 'subscribed' | 'unsubscribed'
- *  - subscribe(): pide permiso y suscribe
- *  - unsubscribe(): desuscribe
- *  - setExternalUserId(userId): vincula la suscripción con el ID de Supabase para notifications targeted
+ * Hook para integrar OneSignal Web Push — DEFENSIVE
+ * Garantiza que NUNCA rompe la app aunque OneSignal falle o se cuelgue.
  */
 export function useOneSignal() {
   const [status, setStatus] = useState('loading')
@@ -15,36 +11,49 @@ export function useOneSignal() {
   useEffect(() => {
     let cancelled = false
     const checkReady = async () => {
-      // Esperar a que OneSignal SDK cargue (max 10s)
-      for (let i = 0; i < 100; i++) {
-        if (cancelled) return
-        if (window.OneSignal && window.__ONESIGNAL_READY__) break
-        await new Promise(r => setTimeout(r, 100))
-      }
-      if (cancelled) return
-
-      const OS = window.OneSignal
-      if (!OS) { setStatus('unsupported'); return }
-      setOneSignal(OS)
-
       try {
-        // Detectar estado actual
-        const isSupported = OS.Notifications?.isPushSupported?.() ?? true
-        if (!isSupported) { setStatus('unsupported'); return }
-
-        const permission = OS.Notifications.permission
-        const optedIn = OS.User?.PushSubscription?.optedIn
-
-        if (permission === 'denied') setStatus('denied')
-        else if (optedIn) setStatus('subscribed')
-        else setStatus('unsubscribed')
-
-        // Listener para cambios futuros
-        OS.User?.PushSubscription?.addEventListener('change', (e) => {
+        // Esperar a que OneSignal SDK cargue (max 8s)
+        for (let i = 0; i < 80; i++) {
           if (cancelled) return
-          setStatus(e.current.optedIn ? 'subscribed' : 'unsubscribed')
-        })
+          if (window.OneSignal && window.__ONESIGNAL_READY__) break
+          await new Promise(r => setTimeout(r, 100))
+        }
+        if (cancelled) return
+
+        const OS = window.OneSignal
+        if (!OS) { setStatus('unsupported'); return }
+        setOneSignal(OS)
+
+        // Detectar estado actual — todo en try/catch defensivo
+        try {
+          const isSupported = OS.Notifications?.isPushSupported?.() ?? true
+          if (!isSupported) { setStatus('unsupported'); return }
+        } catch (e) {
+          setStatus('unsupported'); return
+        }
+
+        try {
+          const permission = OS.Notifications?.permission
+          const optedIn = OS.User?.PushSubscription?.optedIn
+
+          if (permission === 'denied') setStatus('denied')
+          else if (optedIn) setStatus('subscribed')
+          else setStatus('unsubscribed')
+        } catch (e) {
+          setStatus('unsubscribed')
+        }
+
+        // Listener para cambios futuros (defensive)
+        try {
+          OS.User?.PushSubscription?.addEventListener?.('change', (e) => {
+            if (cancelled) return
+            try {
+              setStatus(e?.current?.optedIn ? 'subscribed' : 'unsubscribed')
+            } catch {}
+          })
+        } catch {}
       } catch (e) {
+        // No bloquear la app por error de OneSignal
         setStatus('unsupported')
       }
     }
@@ -55,7 +64,12 @@ export function useOneSignal() {
   const subscribe = async () => {
     if (!oneSignal) return false
     try {
-      await oneSignal.User.PushSubscription.optIn()
+      // Timeout de 30s para evitar que cuelgue la UI
+      const subscribePromise = oneSignal.User.PushSubscription.optIn()
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 30000)
+      )
+      await Promise.race([subscribePromise, timeoutPromise])
       setStatus('subscribed')
       return true
     } catch (e) {
@@ -79,7 +93,7 @@ export function useOneSignal() {
     try {
       await oneSignal.login(userId)
     } catch (e) {
-      console.error('OneSignal setExternalUserId:', e)
+      // silencioso
     }
   }
 
@@ -88,7 +102,7 @@ export function useOneSignal() {
     try {
       await oneSignal.User.addEmail(email)
     } catch (e) {
-      // silencioso — falla si ya está agregado
+      // silencioso
     }
   }
 
