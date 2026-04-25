@@ -1739,19 +1739,52 @@ function App() {
   const allBoardPosts = [...SEED_POSTS, ...boardPosts]
   const filteredBoardPosts = boardFilter === 'todas' ? allBoardPosts : allBoardPosts.filter(p => p.cat === boardFilter)
 
-  const addBoardPost = () => {
+  const addBoardPost = async () => {
     if (!boardNewText.trim()) return
+    const newPostId = `u${Date.now()}`
+    const content = boardNewText.trim()
+    const cat = boardNewCat
+
     const newPost = {
-      id: `u${Date.now()}`,
-      cat: boardNewCat,
-      content: boardNewText.trim(),
+      id: newPostId,
+      cat,
+      content,
       time: 'Ahora',
       hearts: 0,
       replies: [],
+      awaitingGuia: true,  // mostrar "Una guía está respondiendo..."
     }
     setBoardPosts(prev => [newPost, ...prev])
     setBoardNewText('')
     setBoardShowForm(false)
+
+    // ── Pedir respuesta de Guía Ronda al backend (Claude AI en voz de Diana) ──
+    // Delay aleatorio 30-90s para que se sienta humano (no instantáneo)
+    const delaySec = 30 + Math.floor(Math.random() * 60)
+
+    try {
+      const resp = await fetch('/api/guia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, cat }),
+      })
+      const data = await resp.json()
+      if (data.error) throw new Error(data.error)
+
+      // Esperar el delay para realismo
+      setTimeout(() => {
+        setBoardPosts(prev => prev.map(p =>
+          p.id === newPostId
+            ? { ...p, replies: [data.reply], awaitingGuia: false }
+            : p
+        ))
+      }, delaySec * 1000)
+    } catch (err) {
+      // Si falla, marcar como sin respuesta pero no romper el post
+      setBoardPosts(prev => prev.map(p =>
+        p.id === newPostId ? { ...p, awaitingGuia: false } : p
+      ))
+    }
   }
 
   const toggleBoardHeart = (postId) => {
@@ -1893,6 +1926,24 @@ function App() {
             </span>
           </button>
 
+          {/* "Una guía está respondiendo" indicator while waiting */}
+          {post.awaitingGuia && (!post.replies || post.replies.length === 0) && (
+            <div style={{
+              marginTop: 14, padding: 14, borderRadius: 14,
+              background: `${C.teal}08`, border: `1px dashed ${C.teal}40`,
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', background: C.teal,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontSize: 14, fontWeight: 700,
+              }}>✓</div>
+              <div style={{ fontSize: 17, color: C.muted, fontStyle: 'italic' }}>
+                Una Guía Ronda está leyendo tu mensaje. Te responderá en breve.
+              </div>
+            </div>
+          )}
+
           {/* Professional replies */}
           {post.replies && post.replies.length > 0 && post.replies.map((reply, ri) => (
             <div key={ri} style={{
@@ -1934,10 +1985,10 @@ function App() {
         border: `1px solid ${C.roseLight}`,
       }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 6 }}>
-          ¿Eres profesional de la salud mental?
+          ¿Eres coach de bienestar, instructora o profesional?
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
-          Únete como profesional verificada y ayuda a miles de mujeres que necesitan apoyo.
+          Únete como Guía Ronda verificada y acompaña a mujeres en su camino.
         </div>
         <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
           Escríbenos → hola@rondahub.com
