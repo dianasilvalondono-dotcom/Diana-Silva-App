@@ -11,7 +11,7 @@ import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD
 import { useAuth } from './lib/useAuth'
 import { useNotifications } from './lib/useNotifications'
 import AuthScreen from './components/AuthScreen'
-import { syncFromLocal } from './lib/database'
+import { syncFromLocal, getUserProfile } from './lib/database'
 
 /* ── Reusable components ── */
 function Bar({ value, color = C.rose, height = 6 }) {
@@ -71,7 +71,25 @@ function App() {
   // Admin check — Diana sees everything, others see paywall
   const ADMIN_EMAILS = ['dianasilva.londono@gmail.com']
   const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase())
-  const isPremium = isAdmin // Later: check Stripe subscription
+
+  // Premium status from Supabase (founding members + paid subscribers)
+  const [premiumStatus, setPremiumStatus] = useState({ is_premium: false, premium_until: null, premium_source: null })
+  useEffect(() => {
+    if (!user) { setPremiumStatus({ is_premium: false, premium_until: null, premium_source: null }); return }
+    let cancelled = false
+    getUserProfile(user.id).then(profile => {
+      if (cancelled || !profile) return
+      const stillValid = profile.premium_until && new Date(profile.premium_until) > new Date()
+      setPremiumStatus({
+        is_premium: !!(profile.is_premium && stillValid),
+        premium_until: profile.premium_until,
+        premium_source: profile.premium_source,
+      })
+    })
+    return () => { cancelled = true }
+  }, [user])
+
+  const isPremium = isAdmin || premiumStatus.is_premium
 
   // AI Agent state
   const [aiGoal, setAiGoal] = useState('')
@@ -2446,6 +2464,25 @@ function App() {
         <div style={{ fontSize: 18, color: C.muted, marginBottom: 14 }}>
           {isPremium ? 'Tienes acceso completo a Ronda' : 'Plan actual: Freemium'}
         </div>
+
+        {/* Badge especial founding member */}
+        {premiumStatus.premium_source === 'founding_member' && premiumStatus.premium_until && (
+          <div style={{
+            background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
+            borderRadius: 14, padding: '14px 16px', marginBottom: 14,
+            color: 'white',
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
+              💛 Founding Member
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
+              Eres parte de las primeras 30 mujeres
+            </div>
+            <div style={{ fontSize: 14, opacity: 0.95, lineHeight: 1.4 }}>
+              Tienes acceso completo gratis hasta el {new Date(premiumStatus.premium_until).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}.
+            </div>
+          </div>
+        )}
 
         {!isPremium && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
