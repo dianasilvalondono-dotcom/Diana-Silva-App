@@ -3275,10 +3275,15 @@ function App() {
       zIndex: 1000, display: 'flex', flexDirection: 'column',
       animation: 'fadeIn 0.3s ease',
       overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+      // Respeta el notch / Dynamic Island del iPhone
+      paddingTop: 'max(env(safe-area-inset-top), 24px)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
     }}>
       {/* Close button */}
       <button onClick={() => { setShowPanic(false); setBreatheActive(false) }} style={{
-        position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.15)',
+        position: 'absolute',
+        top: 'calc(env(safe-area-inset-top) + 12px)',
+        right: 16, background: 'rgba(255,255,255,0.15)',
         border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
       }}>
@@ -3288,7 +3293,9 @@ function App() {
       {/* Back button */}
       {panicScreen !== 'home' && (
         <button onClick={() => { setPanicScreen('home'); setBreatheActive(false); setPanicDbtExpanded(null) }} style={{
-          position: 'absolute', top: 16, left: 16, background: 'rgba(255,255,255,0.15)',
+          position: 'absolute',
+          top: 'calc(env(safe-area-inset-top) + 12px)',
+          left: 16, background: 'rgba(255,255,255,0.15)',
           border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
         }}>
@@ -3296,7 +3303,7 @@ function App() {
         </button>
       )}
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, maxWidth: 440, margin: '0 auto', width: '100%' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px 24px', maxWidth: 440, margin: '0 auto', width: '100%' }}>
 
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
