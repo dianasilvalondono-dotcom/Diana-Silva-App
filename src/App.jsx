@@ -2588,7 +2588,7 @@ function App() {
       )}
 
       {/* Notificaciones — OneSignal */}
-      {oneSignal.status === 'unsubscribed' && (
+      {(oneSignal.status === 'idle' || oneSignal.status === 'error') && (
         <div style={{
           background: `linear-gradient(135deg, ${C.cream}, #E6F7F5)`,
           borderRadius: 16, padding: 18,

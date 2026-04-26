@@ -1,4 +1,4 @@
-const CACHE = 'ronda-v6'
+const CACHE = 'ronda-v7'
 const ASSETS = ['/', '/index.html']
 
 // Install — cache shell
