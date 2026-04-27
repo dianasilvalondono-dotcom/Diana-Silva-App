@@ -7,38 +7,14 @@ export const DIMS = {
 }
 
 /* ── Default habits ── */
-export const DEFAULT_HABITS = [
-  { id: 1,  name: 'Oración y gratitud — evangelio y meditaciones', dim: 'espiritual' },
-  { id: 2,  name: 'Meditación mañana',                            dim: 'espiritual' },
-  { id: 3,  name: 'Meditación de noche',                          dim: 'espiritual' },
-  { id: 4,  name: 'Lectura noche',                                dim: 'espiritual' },
-  { id: 5,  name: 'Respira y Pausa Activa',                       dim: 'emocional' },
-  { id: 6,  name: 'Respira Profundo — Estoy a salvo',             dim: 'emocional' },
-  { id: 7,  name: 'Journaling / Reflexión del día',               dim: 'emocional' },
-  { id: 8,  name: 'Gym',                                          dim: 'fisico' },
-  { id: 9,  name: 'Caldo + Paseo',                                dim: 'fisico' },
-  { id: 10, name: 'Proteína + Creatina',                          dim: 'fisico' },
-  { id: 11, name: 'Ajedrez',                                      dim: 'mental' },
-  { id: 12, name: 'Momento Mori — Take nothing personally',       dim: 'mental' },
-]
+// Cada usuaria empieza con todo vacío y construye su propia vida.
+// Hay un módulo de SUGGESTED_HABITS abajo si quiere inspiración.
+export const DEFAULT_HABITS = []
 
-/* ── Default routines (sugerencias para nuevas usuarias — editables) ── */
-export const DEFAULT_MORNING = [
-  { id: 1, time: '7:00', task: 'Intención del día' },
-  { id: 2, time: '7:15', task: 'Paseo o movimiento suave' },
-  { id: 3, time: '7:30', task: 'Meditación o respiración' },
-  { id: 4, time: '8:00', task: 'Ejercicio' },
-]
-export const DEFAULT_MIDDAY = [
-  { id: 20, time: '11:00', task: 'Pausa activa — respira profundo' },
-  { id: 21, time: '14:00', task: 'Momento de gratitud' },
-  { id: 22, time: '16:00', task: 'Estiramiento o caminata corta' },
-]
-export const DEFAULT_NIGHT = [
-  { id: 7,  time: '19:00', task: 'Lectura' },
-  { id: 8,  time: '20:00', task: 'Reflexión del día' },
-  { id: 9,  time: '21:00', task: 'Soltar el día y descansar' },
-]
+/* ── Rutinas vacías por defecto — cada mujer arma la suya ── */
+export const DEFAULT_MORNING = []
+export const DEFAULT_MIDDAY = []
+export const DEFAULT_NIGHT = []
 
 /* ── Quotes collection ── */
 export const QUOTES = [
