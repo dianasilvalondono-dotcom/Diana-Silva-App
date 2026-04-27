@@ -7,7 +7,11 @@ import {
   QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, CATS, CAT_LABELS, getDayQuote,
 } from './constants/data'
-import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD_COLORS } from './utils/helpers'
+import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+
+// Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
+// Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
+runMigrationCleanDianaDefaults()
 import { useAuth } from './lib/useAuth'
 import { useNotifications } from './lib/useNotifications'
 import { useOneSignal } from './lib/useOneSignal'
