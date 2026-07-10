@@ -5,7 +5,7 @@ import { ICONS, MOOD_ICONS } from './constants/icons'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
-  AVATARS, CATS, CAT_LABELS, getDayQuote,
+  AVATARS, CATS, CAT_LABELS, getDayQuote, MODULE_INTROS,
 } from './constants/data'
 import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
@@ -205,15 +205,20 @@ function App() {
   // Onboarding
   const [onboarded, setOnboarded] = useState(() => load('ronda-onboarded', false))
 
-  // Admin always sees onboarding (for demos/investors)
+  // Admin always sees onboarding (for demos/investors) — incluye las intros
+  // de módulo, para mostrar el flujo progresivo completo en una demo.
   useEffect(() => {
-    if (isAdmin) setOnboarded(false)
+    if (isAdmin) { setOnboarded(false); setModuleIntros({}) }
   }, [isAdmin])
 
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
   const [showFullStory, setShowFullStory] = useState(false)
+
+  // Intros de módulo ya vistas — { crecer: true, juntas: true }
+  const [moduleIntros, setModuleIntros] = useState(() => load('ronda-module-intros', {}))
+  useEffect(() => { save('ronda-module-intros', moduleIntros) }, [moduleIntros])
 
   // Panic button / Crisis mode
   const [showPanic, setShowPanic] = useState(false)
@@ -563,6 +568,19 @@ function App() {
     { id: 'juntas', label: 'Juntas' },
   ]
 
+  /* Abre un módulo. La primera vez muestra su intro; después entra directo.
+     Con { silent: true } entra directo y da la intro por vista — para cuando
+     la usuaria ya inició una acción concreta (arrancar un programa, tocar SOS)
+     y un modal explicativo la sacaría de contexto. */
+  const openModule = (id, sub = '', { silent = false } = {}) => {
+    setView(id)
+    setSubTab(sub)
+    if (moduleIntros[id]) return
+    setModuleIntros(prev => ({ ...prev, [id]: true }))
+    const intro = MODULE_INTROS[id]
+    if (intro && !silent) setAppModal({ type: 'info', ...intro })
+  }
+
   /* ── Logo ── */
   const logoIcon = (
     <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid #C6A94E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -625,7 +643,7 @@ function App() {
       {NAV.map(n => {
         const isActive = view === n.id
         return (
-          <button key={n.id} onClick={() => { setView(n.id); setSubTab('') }} style={{
+          <button key={n.id} onClick={() => openModule(n.id)} style={{
             flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
             background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
           }}>
@@ -712,7 +730,7 @@ function App() {
       {/* Active programs preview */}
       {Object.keys(activePrograms).length > 0 && (
         <div style={{ background: C.card, borderRadius: 16, padding: 16, cursor: 'pointer' }}
-          onClick={() => { setView('crecer'); setSubTab('programas') }}>
+          onClick={() => openModule('crecer', 'programas', { silent: true })}>
           <div style={{ fontSize: 19, fontWeight: 800, color: C.text, marginBottom: 10 }}>Mis programas</div>
           {Object.entries(activePrograms).map(([progId, progress]) => {
             const prog = PROGRAMAS.find(p => p.id === progId)
@@ -745,7 +763,7 @@ function App() {
         const hook = hooks[dayIdx]
         if (activePrograms[hook.prog]) return null
         return (
-          <div onClick={() => { setView('crecer'); setSubTab('programas') }} style={{
+          <div onClick={() => openModule('crecer', 'programas')} style={{
             background: `linear-gradient(135deg, ${hook.color}15, ${hook.color}08)`,
             borderRadius: 18, padding: 20, cursor: 'pointer',
             border: `1px solid ${hook.color}30`,
@@ -1214,7 +1232,7 @@ function App() {
               ))}
             </div>
             {rec.programa && (
-              <button onClick={() => { startProgram(rec.programa); setView('crecer'); setSubTab('programas') }} style={{
+              <button onClick={() => { startProgram(rec.programa); openModule('crecer', 'programas', { silent: true }) }} style={{
                 marginTop: 12, width: '100%', padding: 12, borderRadius: 12, border: `2px solid ${rec.color}`,
                 background: 'transparent', color: rec.color, fontSize: 20, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -2339,7 +2357,7 @@ function App() {
                 {msg.text}
                 {/* Action buttons: Connect with professional / SOS */}
                 {msg.connect && (
-                  <button onClick={() => { setView('juntas'); setSubTab('directorio'); setDirFilter(msg.connect) }} style={{
+                  <button onClick={() => { openModule('juntas', 'directorio', { silent: true }); setDirFilter(msg.connect) }} style={{
                     marginTop: 10, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
                     background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`, color: 'white',
                     fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
@@ -2850,23 +2868,47 @@ function App() {
     </div>
   )
 
-  /* ── Onboarding ── */
+  /* ── Onboarding ──
+     Progresivo: un módulo a la vez. Estos 4 pasos solo la dejan lista para
+     "Ahora". "Crecer" y "Juntas" se presentan solos cuando ella llega, vía
+     MODULE_INTROS. */
   const finishOnboarding = () => {
     if (onboardName.trim()) {
       setProfile(prev => ({ ...prev, name: onboardName.trim() }))
-      save('diana-profile', { ...profile, name: onboardName.trim() })
     }
     if (onboardHabits.length > 0) {
-      const newHabits = onboardHabits.map((sh, i) => ({ id: Date.now() + i, name: sh.name, dim: sh.dim }))
-      setHabits(newHabits)
+      // Merge, no reemplazo: si vuelve a pasar por el onboarding no pierde lo suyo.
+      setHabits(prev => {
+        const existing = new Set(prev.map(h => h.name))
+        const added = onboardHabits
+          .filter(sh => !existing.has(sh.name))
+          .map((sh, i) => ({ id: Date.now() + i, name: sh.name, dim: sh.dim }))
+        return [...prev, ...added]
+      })
     }
     setOnboarded(true)
     save('ronda-onboarded', true)
   }
 
+  const toggleOnboardHabit = (h) => {
+    setOnboardHabits(prev => {
+      const isOn = prev.some(x => x.name === h.name)
+      if (isOn) return prev.filter(x => x.name !== h.name)
+      if (prev.length >= 3) return prev
+      return [...prev, h]
+    })
+  }
+
+  const onboardStepShell = (key, children) => (
+    <div key={key} style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      minHeight: '100vh', textAlign: 'center', padding: '32px 32px 190px',
+    }}>{children}</div>
+  )
+
   const onboardSlides = [
-    /* Slide 0 — Bienvenida */
-    <div key={0} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
+    /* Paso 0 — Bienvenida. Solo la marca y la promesa. Nada de features. */
+    onboardStepShell(0, <>
       <div style={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid '+C.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
         <div style={{ width: 22, height: 22, borderRadius: '50%', background: C.gold }} />
       </div>
@@ -2879,157 +2921,108 @@ function App() {
         Tu compañera en cada etapa
       </div>
       <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
-        Bienestar, comunidad y profesionales verificadas — contigo en cada momento.
+        Vamos a empezar por lo tuyo. Dos preguntas y estás lista.
       </div>
-    </div>,
+    </>),
 
-    /* Slide 1 — Las 3 experiencias */
-    <div key={1} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        3 experiencias, 1 compañera
+    /* Paso 1 — Su nombre. La app le habla por su nombre desde el primer día. */
+    onboardStepShell(1, <>
+      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 10 }}>
+        ¿Cómo te llamas?
       </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300 }}>
-        Herramientas que funcionan, programas con estructura, comunidad que impulsa
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300, lineHeight: 1.6 }}>
+        Para llamarte por tu nombre. Puedes cambiarlo después en tu perfil.
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 340 }}>
+      <input
+        value={onboardName}
+        onChange={e => setOnboardName(e.target.value)}
+        placeholder="Tu nombre"
+        autoFocus
+        maxLength={40}
+        style={{
+          width: '100%', maxWidth: 320, padding: '16px 20px', borderRadius: 16,
+          border: `2px solid ${onboardName.trim() ? C.teal : C.border}`,
+          background: C.card, color: C.text, fontSize: 18, fontWeight: 600,
+          fontFamily: 'inherit', textAlign: 'center', outline: 'none',
+          transition: 'border-color 0.2s',
+        }}
+      />
+      <div style={{ fontSize: 14, color: C.subtle, marginTop: 14 }}>
+        Si prefieres, sigue y lo agregas cuando quieras.
+      </div>
+    </>),
+
+    /* Paso 2 — Un primer hábito. Que salga del onboarding habiendo HECHO algo. */
+    onboardStepShell(2, <>
+      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 10 }}>
+        {onboardName.trim() ? `${onboardName.trim()}, elige tu primer hábito` : 'Elige tu primer hábito'}
+      </div>
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 8, maxWidth: 320, lineHeight: 1.6 }}>
+        Empieza con uno. Puedes sumar más cuando quieras.
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: onboardHabits.length ? C.teal : C.subtle, marginBottom: 20 }}>
+        {onboardHabits.length} de 3
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', width: '100%', maxWidth: 360 }}>
+        {SUGGESTED_HABITS.map(h => {
+          const isOn = onboardHabits.some(x => x.name === h.name)
+          const full = onboardHabits.length >= 3 && !isOn
+          const dim = DIMS[h.dim]
+          return (
+            <button
+              key={h.name}
+              onClick={() => toggleOnboardHabit(h)}
+              disabled={full}
+              style={{
+                padding: '10px 16px', borderRadius: 22, cursor: full ? 'default' : 'pointer',
+                border: `2px solid ${isOn ? dim.color : C.border}`,
+                background: isOn ? dim.color + '25' : C.card,
+                color: full ? C.subtle : C.text,
+                fontSize: 14, fontWeight: isOn ? 800 : 600, fontFamily: 'inherit',
+                opacity: full ? 0.45 : 1, transition: 'all 0.15s',
+              }}
+            >
+              {h.name}
+            </button>
+          )
+        })}
+      </div>
+    </>),
+
+    /* Paso 3 — Un solo módulo: Ahora. Crecer y Juntas se presentan solos
+       cuando ella llegue (MODULE_INTROS). */
+    onboardStepShell(3, <>
+      <div style={{ width: 56, height: 56, borderRadius: '50%', border: `3px solid ${C.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+        <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.gold }} />
+      </div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 10 }}>
+        Empecemos por Ahora
+      </div>
+      <div style={{ fontSize: 16, color: C.muted, marginBottom: 26, maxWidth: 310, lineHeight: 1.6 }}>
+        Es tu pantalla del día: tus hábitos, tu rutina, tu diario y tu toolkit.
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 330 }}>
         {[
-          { title: 'Ahora', desc: 'Tu día, tus hábitos, tu rutina, diario y toolkit. Lo que necesitas hoy.', color: C.gold },
-          { title: 'Crecer', desc: 'Programas de 7 y 21 días con neurociencia + IA que crea el tuyo.', color: C.teal },
-          { title: 'Juntas', desc: 'Comunidad anónima 24/7 + profesionales verificadas del Talent Pot.', color: C.coral },
-        ].map((tab, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left', borderLeft: '3px solid '+tab.color }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', background: tab.color+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ width: 16, height: 16, borderRadius: '50%', background: tab.color }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: C.text }}>{tab.title}</div>
-              <div style={{ fontSize: 14, color: C.muted, marginTop: 3, lineHeight: 1.5 }}>{tab.desc}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>,
-
-    /* Slide 2 — Comunidad + SOS */
-    <div key={2} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Siempre contigo.
-      </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300 }}>
-        Una comunidad real que camina contigo
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+C.coral }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: C.coral+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.coral }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: C.coral }}>Botón SOS</div>
-            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Respiración guiada, grounding y herramientas DBT al instante.</div>
-          </div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+C.teal }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: C.teal+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.teal }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: C.teal }}>Comunidad 24/7</div>
-            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Publica anónima. Solo profesionales verificadas responden.</div>
-          </div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+C.gold }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: C.gold+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <div style={{ width: 16, height: 16, borderRadius: '50%', background: C.gold }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: C.gold }}>Directorio Ronda</div>
-            <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Profesionales y negocios de mujeres verificadas cerca de ti.</div>
-          </div>
-        </div>
-      </div>
-    </div>,
-
-    /* Slide 3 — Tu Ronda + Talent Pot */
-    <div key={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ width: 56, height: 56, borderRadius: '50%', border: `3px solid ${C.teal}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-        <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.teal }} />
-      </div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Tu Ronda — tu guía personal
-      </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300, lineHeight: 1.6 }}>
-        Una IA que te escucha, te orienta y te conecta con profesionales reales cuando lo necesitas
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 320 }}>
-        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', borderLeft: '3px solid '+C.teal }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: C.teal }}>Chat con Tu Ronda</div>
-          <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Escríbele como a una amiga. Te escucha, te valida y te guía.</div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', borderLeft: '3px solid '+C.gold }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: C.gold }}>Talent Pot</div>
-          <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Profesionales verificadas: psicólogas, coaches, nutricionistas y más. La IA te conecta con la indicada.</div>
-        </div>
-        <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', borderLeft: '3px solid '+C.rose }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: C.rose }}>Programas con IA</div>
-          <div style={{ fontSize: 14, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Dile qué quieres lograr y te crea un programa personalizado paso a paso.</div>
-        </div>
-      </div>
-    </div>,
-
-    /* Slide 4 — Programas */
-    <div key={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Programas con neurociencia
-      </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 20, maxWidth: 300 }}>
-        Paso a paso, a tu ritmo. Desde el primer paso hasta tu mejor versión.
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%', maxWidth: 340, marginBottom: 16 }}>
-        {[
-          { title: 'Recuperar mi energía', color: C.teal },
-          { title: 'Encontrar mi calma', color: C.gold },
-          { title: 'Volver a moverme', color: C.mint },
-          { title: 'Reconectar con Dios', color: C.lavanda },
-          { title: '7 días de disciplina', color: C.coral },
-          { title: 'Enamórate de ti', color: C.rose },
-        ].map((p, i) => (
-          <div key={i} style={{ background: C.card, borderRadius: 12, padding: '10px 12px', textAlign: 'center', borderTop: '3px solid '+p.color, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.title}</div>
-            <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>7 días Freemium</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ fontSize: 12, color: C.coral, fontWeight: 700, marginTop: 4 }}>Ronda+ $9.99/mes · Programas de 21 días, IA y más</div>
-    </div>,
-
-    /* Slide 5 — Tu día con Ronda */
-    <div key={5} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: 32 }}>
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
-        Tu día con Ronda
-      </div>
-      <div style={{ fontSize: 16, color: C.muted, marginBottom: 24, maxWidth: 300 }}>
-        Te acompañamos de la mañana a la noche
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 320 }}>
-        {[
-          { time: '7 AM', title: 'Intención del día', desc: 'Define tu meta y activa hábitos.', color: C.gold },
-          { time: 'Tu día', title: 'Rutina + hábitos + Tu Ronda', desc: 'Sigue tu rutina. Habla con la IA.', color: C.teal },
-          { time: 'SOS', title: 'Comunidad + profesionales', desc: 'Pregunta, toca SOS, o conecta con el Talent Pot.', color: C.coral },
-          { time: '9 PM', title: 'Reflexión de noche', desc: 'Escribe, planifica, suelta.', color: C.lavanda },
+          { title: 'Tus hábitos', desc: 'Márcalos cada día y mira tu racha crecer.', color: C.gold },
+          { title: 'Tu rutina', desc: 'Mañana, mediodía y noche, a tu medida.', color: C.teal },
+          { title: 'Tu diario', desc: 'Escribe cómo te fue. Solo tú lo lees.', color: C.rose },
         ].map((item, i) => (
-          <div key={i} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'center', borderLeft: '3px solid '+item.color }}>
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: item.color+'15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: item.color, textAlign: 'center' }}>{item.time}</div>
+          <div key={i} style={{ background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+item.color }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: item.color+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', background: item.color }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.text }}>{item.title}</div>
-              <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{item.desc}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{item.title}</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 2, lineHeight: 1.5 }}>{item.desc}</div>
             </div>
           </div>
         ))}
+      </div>
+      <div style={{ fontSize: 14, color: C.subtle, marginTop: 20, maxWidth: 300, lineHeight: 1.6 }}>
+        Crecer y Juntas te esperan abajo. Te los presento cuando llegues.
       </div>
       <button onClick={finishOnboarding} style={{
-        padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 340, marginTop: 24,
+        padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 330, marginTop: 22,
         background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
         color: 'white', fontSize: 18, fontWeight: 800, border: 'none',
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
@@ -3037,7 +3030,7 @@ function App() {
       }}>
         Comenzar mi Ronda
       </button>
-    </div>,
+    </>),
   ]
 
   /* ── Auth loading ── */
@@ -3310,7 +3303,7 @@ function App() {
   /* ── Tu Ronda FAB (floating) ── */
   const rondaFab = !(view === 'crecer' && subTab === 'ai') && !showPanic && (
     <button
-      onClick={() => { setView('crecer'); setSubTab('ai'); setChatMode('chat') }}
+      onClick={() => { openModule('crecer', 'ai', { silent: true }); setChatMode('chat') }}
       style={{
         position: 'fixed', bottom: 90, left: 16, zIndex: 200,
         display: 'flex', alignItems: 'center', gap: isMobile ? 0 : 8,
@@ -3473,7 +3466,7 @@ function App() {
           </div>
 
           {/* Go to community */}
-          <button onClick={() => { setShowPanic(false); setView('juntas') }} style={{
+          <button onClick={() => { setShowPanic(false); openModule('juntas', '', { silent: true }) }} style={{
             marginTop: 24, width: '100%', padding: '14px 18px',
             background: 'rgba(201,169,110,0.2)', borderRadius: 16,
             border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',

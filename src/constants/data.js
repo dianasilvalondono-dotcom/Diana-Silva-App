@@ -302,6 +302,22 @@ export const SUGGESTED_HABITS = [
   { name: 'No celular 1 hora antes de dormir', dim: 'mental' },
 ]
 
+/* ── Intro de módulo — se muestra una sola vez, la primera vez que la usuaria
+   abre cada módulo. El onboarding solo enseña "Ahora"; el resto se descubre
+   a medida que ella llega. ── */
+export const MODULE_INTROS = {
+  crecer: {
+    title: 'Crecer, a tu ritmo',
+    body: 'Programas de 7 y 21 días construidos sobre neurociencia. Elige uno, avanza un día a la vez, y la app te acompaña.',
+    cta: 'Ver programas',
+  },
+  juntas: {
+    title: 'Nunca sola',
+    body: 'Publica de forma anónima, lee a otras mujeres que están donde tú estás, y encuentra profesionales verificadas cerca de ti.',
+    cta: 'Entrar',
+  },
+}
+
 export const AVATARS = []
 
 export const CATS = ['todas', 'espiritual', 'sanacion', 'serenidad', 'motivacional', 'sabiduria']
