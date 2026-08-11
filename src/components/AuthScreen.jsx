@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { C } from '../constants/colors'
 import { FONT } from '../constants/tokens'
+import Button from './ui/Button'
 
 export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) {
   const [mode, setMode] = useState('login')
@@ -110,24 +111,17 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
             </div>
           )}
 
-          <button type="submit" disabled={loading} style={{
-            width: '100%', padding: 14, borderRadius: 12, border: 'none',
-            background: loading ? C.border : `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
-            color: 'white', fontSize: 16, fontWeight: 800, cursor: loading ? 'default' : 'pointer',
-            fontFamily: 'inherit', marginBottom: 16,
-            boxShadow: loading ? 'none' : '0 4px 12px rgba(201,169,110,0.3)',
-          }}>
-            {loading ? 'Cargando...' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
-          </button>
+          <Button type="submit" variant="primary" size="lg" loading={loading}
+            style={{ width: '100%', marginBottom: 16 }}>
+            {mode === 'login' ? 'Entrar' : 'Crear cuenta'}
+          </Button>
         </form>
 
         <div style={{ textAlign: 'center' }}>
-          <button onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }} style={{
-            background: 'none', border: 'none', fontSize: 14, color: C.teal,
-            fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-          }}>
+          <Button variant="ghost" size="sm"
+            onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}>
             {mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
-          </button>
+          </Button>
         </div>
       </div>
 
