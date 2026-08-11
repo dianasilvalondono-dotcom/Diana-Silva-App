@@ -1849,26 +1849,28 @@ function App() {
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
-      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Coach certificada DBT', verified: true },
+      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
         text: 'Muchas lo hemos sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estamos. 💛' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
-      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Coach certificada DBT', verified: true },
+      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
         text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
       replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
         text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
-      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Coach certificada DBT', verified: true },
-        text: 'Los patrones de relación se forman temprano — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar. 💪' }] },
+      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
+        text: 'Los patrones de relación se forman temprano — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar.' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
       replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
         text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
-      replies: [{ pro: { name: 'Camila S.', title: 'Guía Ronda · Coach de emprendimiento', verified: true },
-        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA. El 80% del éxito es empezar. 🚀' }] },
+      replies: [{ pro: { name: 'Camila S.', title: 'Guía Ronda · Mentora de emprendimiento', verified: true },
+        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA.' }] },
   ]
 
-  const allBoardPosts = [...SEED_POSTS, ...boardPosts]
+  // Los posts sembrados se muestran como EJEMPLOS (sin insignia de verificada),
+  // no como comunidad real. Correccion de brand voice (P1.2).
+  const allBoardPosts = [...SEED_POSTS.map(p => ({ ...p, example: true })), ...boardPosts]
   const filteredBoardPosts = boardFilter === 'todas' ? allBoardPosts : allBoardPosts.filter(p => p.cat === boardFilter)
 
   const addBoardPost = async () => {
@@ -2053,6 +2055,16 @@ function App() {
             </span>
           </div>
 
+          {/* Etiqueta de ejemplo (contenido sembrado, no comunidad real) */}
+          {post.example && (
+            <div style={{
+              marginBottom: 10, fontSize: 15, fontWeight: 700, color: C.teal,
+              background: `${C.teal}12`, borderRadius: 8, padding: '4px 10px', display: 'inline-block',
+            }}>
+              Ejemplo · así funciona el Board
+            </div>
+          )}
+
           {/* Post content */}
           <div style={{ fontSize: 20, color: C.text, lineHeight: 1.7, marginBottom: 12 }}>
             {post.content}
@@ -2107,7 +2119,7 @@ function App() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{reply.pro.name}</span>
-                    {reply.pro.verified && <span style={{
+                    {reply.pro.verified && !post.example && <span style={{
                       fontSize: 20, background: C.gold, color: 'white', padding: '1px 6px',
                       borderRadius: 8, fontWeight: 700,
                     }}>✓ Verificada</span>}
@@ -2130,7 +2142,7 @@ function App() {
         border: `1px solid ${C.roseLight}`,
       }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 6 }}>
-          ¿Eres coach de bienestar, instructora o profesional?
+          ¿Eres profesional del bienestar, instructora o terapeuta?
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           Únete como Guía Ronda verificada y acompaña a mujeres en su camino.
@@ -2193,7 +2205,7 @@ function App() {
           Próximamente
         </div>
         <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
-          Estamos armando un directorio de coaches, instructoras y profesionales verificadas para ti.
+          Estamos armando un directorio de profesionales verificadas para ti.
         </div>
         <div style={{ fontSize: 15, color: C.teal, fontWeight: 600, marginTop: 16 }}>
           Mientras tanto, pregunta lo que quieras en la Comunidad — nuestras Guías Ronda te responden.
@@ -2206,7 +2218,7 @@ function App() {
         border: `1px solid ${C.roseLight}`,
       }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 6 }}>
-          ¿Eres coach, instructora o profesional?
+          ¿Eres instructora, terapeuta o profesional del bienestar?
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           Estamos buscando Guías Ronda verificadas. Escríbenos.
@@ -2753,10 +2765,10 @@ function App() {
               💛 Founding Member
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
-              Eres parte de las primeras 30 mujeres
+              Eres parte de las primeras 50 mujeres
             </div>
             <div style={{ fontSize: 14, opacity: 0.95, lineHeight: 1.4 }}>
-              Tienes acceso completo gratis hasta el {new Date(premiumStatus.premium_until).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}.
+              Tienes acceso completo incluido hasta el {new Date(premiumStatus.premium_until).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}.
             </div>
           </div>
         )}
@@ -2765,7 +2777,7 @@ function App() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
               { name: 'Ronda Plus', price: '$9.99/mes', features: 'Tu Ronda (IA), programas 21 días, 5 respuestas profesionales/mes', color: C.teal },
-              { name: 'Ronda Pro', price: '$29.99/mes', features: 'Todo Plus + programas 60 días, respuestas ilimitadas, video calls, Círculos Privados', color: C.gold },
+              { name: 'Ronda Pro', price: 'Próximamente', features: 'El siguiente nivel de Ronda, en camino.', color: C.gold },
             ].map((plan, i) => (
               <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 14, border: `2px solid ${plan.color}30` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -3863,10 +3875,10 @@ function App() {
                 Founding Member
               </div>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
-                {foundingToast.feature} es una feature premium.
+                {foundingToast.feature} es una función premium.
               </div>
               <div style={{ fontSize: 14, lineHeight: 1.4, opacity: 0.95 }}>
-                La tienes gratis por ser de las primeras 50 mujeres en Ronda. Disfrútala. 💛
+                La tienes incluida por ser de las primeras 50 mujeres en Ronda. Disfrútala. 💛
               </div>
             </div>
             <button onClick={() => setFoundingToast(null)} style={{

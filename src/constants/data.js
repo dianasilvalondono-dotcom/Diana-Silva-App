@@ -20,15 +20,15 @@ export const DEFAULT_NIGHT = []
 export const QUOTES = [
   { text: 'Dios concédeme serenidad para aceptar todo aquello que no puedo cambiar, valor para cambiar lo que soy capaz de cambiar y sabiduría para entender la diferencia.', author: 'Oración de Serenidad', cat: 'espiritual' },
   { text: 'Quiero a quien me quiera y dejo ir lo que tiene que irse.', author: 'Marta Botero', cat: 'serenidad' },
-  { text: 'La paz viene de adentro. No la busques afuera.', author: 'Buda', cat: 'sabiduria' },
-  { text: 'Cada mañana nacemos de nuevo. Lo que hacemos hoy es lo que más importa.', author: 'Buda', cat: 'espiritual' },
-  { text: 'La felicidad no es algo hecho. Viene de tus propias acciones.', author: 'Dalai Lama', cat: 'sabiduria' },
+  { text: 'La paz viene de adentro. No la busques afuera.', author: 'Anónimo', cat: 'sabiduria' },
+  { text: 'Cada mañana nacemos de nuevo. Lo que hacemos hoy es lo que más importa.', author: 'Anónimo', cat: 'espiritual' },
+  { text: 'La felicidad no es algo hecho. Viene de tus propias acciones.', author: 'Anónimo', cat: 'sabiduria' },
   { text: 'La disciplina es el puente entre metas y logros.', author: 'Jim Rohn', cat: 'motivacional' },
   { text: 'La oración no cambia a Dios, pero cambia a quien ora.', author: 'Søren Kierkegaard', cat: 'espiritual' },
-  { text: 'El agua no lucha. Fluye. Y al fluir, es poderosa.', author: 'Lao Tzu', cat: 'sabiduria' },
-  { text: 'Eres más fuerte de lo que crees y más valiente de lo que imaginas.', author: 'A.A. Milne', cat: 'motivacional' },
+  { text: 'El agua no lucha. Fluye. Y al fluir, es poderosa.', author: 'Inspirada en el Tao Te Ching', cat: 'sabiduria' },
+  { text: 'Eres más fuerte de lo que crees y más valiente de lo que imaginas.', author: 'Anónimo', cat: 'motivacional' },
   { text: 'Tu cuerpo escucha todo lo que tu mente dice.', author: 'Naomi Judd', cat: 'sanacion' },
-  { text: 'No eres lo que te pasó. Eres lo que decides ser.', author: 'Carl Jung', cat: 'motivacional' },
+  { text: 'No eres lo que te pasó. Eres lo que decides ser.', author: 'Anónimo', cat: 'motivacional' },
   { text: 'La vulnerabilidad es nuestra medida más precisa de coraje.', author: 'Brené Brown', cat: 'sabiduria' },
   { text: 'Donde hay una mujer, hay magia.', author: 'Ntozake Shange', cat: 'motivacional' },
   { text: 'La sanación toma tiempo, y pedir ayuda es un paso valiente.', author: 'Mariska Hargitay', cat: 'sanacion' },
@@ -182,7 +182,7 @@ export const PROGRAMAS = [
     desc: '7 días para reconectar con tu cuerpo, a tu ritmo, paso a paso', color: '#A7F3D0',
     days: [
       { day: 1, title: 'Estira 2 minutos', task: 'Cuello, hombros, espalda. No necesitas más. Solo empezar.' },
-      { day: 2, title: 'Camina 10 minutos', task: 'Afuera, con música que te guste. Caminar es el mejor antidepresivo natural.' },
+      { day: 2, title: 'Camina 10 minutos', task: 'Afuera, con música que te guste. Caminar es uno de los reguladores del ánimo mejor estudiados: mueves el cuerpo y tu química cambia.' },
       { day: 3, title: 'Baila una canción', task: 'Pon tu canción favorita y muévete. No importa cómo. Tu cuerpo sabe.' },
       { day: 4, title: 'Respira y mueve', task: '5 respiraciones profundas + 5 sentadillas. Conecta la respiración con el movimiento.' },
       { day: 5, title: 'Yoga de 10 minutos', task: 'Busca "yoga suave 10 minutos" en YouTube. Déjate guiar. Fluye.' },
@@ -261,7 +261,7 @@ export const PROGRAMAS_PREMIUM = [
       { day: 2, title: 'Respira y llega', dim: 'espiritual', task: 'Respiración 4-7-8: inhala 4s, sostén 7s, exhala 8s. Repite 3 veces. Estás aquí.', prompt: '¿Cuándo fue la última vez que me sentí en paz?', neuro: 'La respiración lenta activa tu nervio vago y apaga la respuesta de "pelear o huir". En 60 segundos puedes cambiar tu estado nervioso de estrés a calma.' },
       { day: 3, title: 'Mueve tu cuerpo', dim: 'fisico', task: 'Estira tu cuerpo 2 minutos. Cuello, hombros, espalda. Tu cuerpo guarda todo.', prompt: '¿Dónde siento tensión en mi cuerpo hoy?', neuro: 'El movimiento libera BDNF (factor neurotrófico), que es como fertilizante para tu cerebro. Mover el cuerpo literalmente hace crecer nuevas neuronas.' },
       { day: 4, title: 'Observa tu mente', dim: 'mental', task: 'Por 1 minuto, solo observa tus pensamientos. No los juzgues. Solo míralos pasar.', prompt: '¿Qué pensamientos se repiten más en mi cabeza?', neuro: 'Observar tus pensamientos sin reaccionar fortalece tu corteza prefrontal. Es como hacer pesas para tu cerebro — se llama metacognición.' },
-      { day: 5, title: '3 gratitudes', dim: 'emocional', task: 'Escribe 3 cosas por las que estás agradecida hoy. Pueden ser pequeñas.', prompt: '¿Qué tengo hoy que antes soñaba con tener?', neuro: 'La gratitud aumenta la dopamina y serotonina — los neurotransmisores de la felicidad. Es un antidepresivo natural sin efectos secundarios.' },
+      { day: 5, title: '3 gratitudes', dim: 'emocional', task: 'Escribe 3 cosas por las que estás agradecida hoy. Pueden ser pequeñas.', prompt: '¿Qué tengo hoy que antes soñaba con tener?', neuro: 'La gratitud entrena tu atención para registrar lo bueno — y lo que tu atención repite, tu cerebro lo fortalece. Eso es neuroplasticidad.' },
       { day: 6, title: 'Conexión espiritual', dim: 'espiritual', task: 'Dedica 2 minutos a lo que te conecta: oración, naturaleza, silencio, música.', prompt: '¿Qué me hace sentir que soy parte de algo más grande?', neuro: 'La conexión espiritual activa la red neuronal por defecto (DMN), que procesa el sentido de vida y pertenencia. Tu cerebro necesita estos momentos.' },
       { day: 7, title: 'Revisa tu semana', dim: 'mental', task: 'Mira atrás: 6 días cumplidos. Escribe qué fue fácil y qué difícil.', prompt: '¿Qué aprendí de mí esta semana?', neuro: 'La reflexión activa la consolidación de memoria. Al revisar tu semana, tu hipocampo convierte las experiencias en aprendizaje permanente.' },
 
@@ -270,9 +270,9 @@ export const PROGRAMAS_PREMIUM = [
       { day: 9, title: 'Tu ancla neuronal', dim: 'emocional', task: 'Conecta tu hábito a algo que ya haces. Ejemplo: "Después de mi café, medito 2 min."', prompt: '¿A qué momento del día puedo anclar este nuevo hábito?', neuro: 'Esto se llama "habit stacking" — conectas una red neuronal nueva a una que ya existe. Es como colgar una hamaca de dos árboles que ya están firmes.' },
       { day: 10, title: 'Hazlo ridículamente fácil', dim: 'fisico', task: 'Reduce tu hábito a 1 minuto. Si es gym, pon los tenis. Si es leer, abre el libro. Solo eso.', prompt: '¿Cuál es la versión más pequeña de mi hábito que puedo hacer sin excusas?', neuro: 'Tu cerebro resiste el cambio grande (homeostasis). Pero cambios pequeños pasan por debajo del radar de la amígdala — no activan el miedo al cambio.' },
       { day: 11, title: 'Celebra cada vez', dim: 'emocional', task: 'Cada vez que hagas tu hábito hoy, sonríe y dite "¡Eso!". La celebración crea dopamina.', prompt: '¿Cómo me siento cuando cumplo lo que me propongo?', neuro: 'La dopamina no solo es placer — es la señal que le dice a tu cerebro "repite esto". Celebrar después del hábito crea un loop de recompensa que lo vuelve adictivo.' },
-      { day: 12, title: 'Diseña tu entorno', dim: 'fisico', task: 'Haz que tu hábito sea fácil: deja la ropa lista, el libro visible, la app abierta.', prompt: '¿Qué puedo cambiar en mi espacio para que sea más fácil cumplir?', neuro: 'Tu cerebro toma el 95% de decisiones en piloto automático basándose en el entorno. Cambia el entorno y cambias el comportamiento sin usar fuerza de voluntad.' },
+      { day: 12, title: 'Diseña tu entorno', dim: 'fisico', task: 'Haz que tu hábito sea fácil: deja la ropa lista, el libro visible, la app abierta.', prompt: '¿Qué puedo cambiar en mi espacio para que sea más fácil cumplir?', neuro: 'Casi la mitad de tus acciones diarias son hábitos automáticos disparados por tu entorno (Wood, Quinn & Kashy, 2002). Cambia el entorno y cambias el comportamiento sin usar fuerza de voluntad.' },
       { day: 13, title: 'El día difícil', dim: 'espiritual', task: 'Hoy haz tu hábito aunque no quieras. La consistencia importa más que la perfección.', prompt: '¿Qué me digo a mí misma cuando no tengo ganas?', neuro: 'Cada vez que haces algo difícil, se fortalece tu mielina — la capa que recubre tus conexiones neuronales y las hace más rápidas. La dificultad es el entrenamiento.' },
-      { day: 14, title: 'Revisa tu progreso', dim: 'mental', task: '2 semanas. Mira tu tracking. ¿Cuántos días cumpliste? Escribe qué sientes.', prompt: '¿En qué he cambiado desde el día 1?', neuro: 'Ver tu progreso visual activa el circuito de recompensa. Los estudios muestran que las personas que trackean sus hábitos tienen un 40% más de probabilidad de mantenerlos.' },
+      { day: 14, title: 'Revisa tu progreso', dim: 'mental', task: '2 semanas. Mira tu tracking. ¿Cuántos días cumpliste? Escribe qué sientes.', prompt: '¿En qué he cambiado desde el día 1?', neuro: 'Ver tu progreso visual activa el circuito de recompensa. Un metaanálisis de 138 estudios muestra que monitorear tu progreso aumenta significativamente la probabilidad de lograr tu meta (Harkin et al., 2016).' },
 
       /* === SEMANA 3: INTEGRAR — De hábito a identidad === */
       { day: 15, title: 'Sube el nivel', dim: 'fisico', task: 'Aumenta tu hábito un poquito. Si eran 2 minutos, haz 5. Si era 1 página, lee 3.', prompt: '¿Estoy lista para pedirme un poco más?', neuro: 'Esto es neuroplasticidad en acción: tus neuronas ya formaron la conexión base. Ahora cada repetición la hace más gruesa y fuerte, como un camino que se vuelve carretera.' },
@@ -281,7 +281,7 @@ export const PROGRAMAS_PREMIUM = [
       { day: 18, title: 'Perdónate', dim: 'espiritual', task: 'Si fallaste algún día, está bien. Escribe: "Me perdono por no ser perfecta. Sigo aquí."', prompt: '¿Qué necesito soltar para seguir avanzando?', neuro: 'La autocompasión reduce la actividad de la amígdala (centro del miedo) y activa la corteza prefrontal. Castigarte activa el modo amenaza. Perdonarte activa el modo crecimiento.' },
       { day: 19, title: 'Tu ritual sagrado', dim: 'espiritual', task: 'Tu hábito ya no es una tarea — es un ritual. Hazlo hoy con intención y presencia.', prompt: '¿Cómo puedo hacer de este hábito algo sagrado para mí?', neuro: 'Los rituales activan la ínsula — la zona del cerebro que conecta cuerpo y emociones. Por eso los rituales se sienten diferentes a las rutinas: involucran todo tu ser.' },
       { day: 20, title: 'Visualiza tu futuro', dim: 'emocional', task: 'Cierra los ojos 2 min. Imagínate dentro de 60 días con este hábito firme. ¿Cómo te ves?', prompt: '¿Cómo es mi vida cuando este hábito es automático?', neuro: 'La visualización activa las mismas áreas motoras que la acción real. Tu cerebro no distingue bien entre imaginar y hacer — por eso los atletas visualizan antes de competir.' },
-      { day: 21, title: 'Ya eres otra', dim: 'mental', task: 'Escribe una carta a la tú del día 1. Cuéntale todo lo que lograste. Estás lista para los 60 días.', prompt: '¿Qué le diría a la persona que empezó hace 21 días?', neuro: 'En 21 días tu cerebro ha creado nuevas sinapsis, fortalecido conexiones y empezado a mielinizar este nuevo camino neuronal. Ya no es fuerza de voluntad — es arquitectura cerebral.' },
+      { day: 21, title: 'Ya eres otra', dim: 'mental', task: 'Escribe una carta a la tú del día 1. Cuéntale todo lo que lograste. Estás lista para sostenerlo.', prompt: '¿Qué le diría a la persona que empezó hace 21 días?', neuro: 'En 21 días tu cerebro ha empezado a construir y fortalecer este camino neuronal. Un hábito tarda en promedio 66 días en volverse automático (Lally et al., 2010) — no es magia de 21 días: es un camino que ya empezaste y que ahora toca sostener.' },
     ],
   },
 ]
@@ -313,7 +313,7 @@ export const MODULE_INTROS = {
   },
   juntas: {
     title: 'Nunca sola',
-    body: 'Publica de forma anónima, lee a otras mujeres que están donde tú estás, y encuentra profesionales verificadas cerca de ti.',
+    body: 'Publica de forma anónima, lee a otras mujeres que están donde tú estás, y encuentra profesionales verificadas.',
     cta: 'Entrar',
   },
 }
