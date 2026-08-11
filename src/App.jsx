@@ -1868,9 +1868,20 @@ function App() {
         text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA.' }] },
   ]
 
-  // Los posts sembrados se muestran como EJEMPLOS (sin insignia de verificada),
-  // no como comunidad real. Correccion de brand voice (P1.2).
-  const allBoardPosts = [...SEED_POSTS.map(p => ({ ...p, example: true })), ...boardPosts]
+  // Los posts sembrados se muestran como EJEMPLOS y sus respuestas se atribuyen
+  // a la Guía IA de Ronda (misma identidad transparente que en vivo), no a
+  // profesionales humanas verificadas. Correccion de brand voice (P1.2).
+  const allBoardPosts = [
+    ...SEED_POSTS.map(p => ({
+      ...p,
+      example: true,
+      replies: (p.replies || []).map(r => ({
+        ...r,
+        pro: { name: 'Emilia', title: 'Guía IA de Ronda', verified: false, ai: true },
+      })),
+    })),
+    ...boardPosts,
+  ]
   const filteredBoardPosts = boardFilter === 'todas' ? allBoardPosts : allBoardPosts.filter(p => p.cat === boardFilter)
 
   const addBoardPost = async () => {
@@ -1905,9 +1916,9 @@ function App() {
     // Sin el contenido del post: solo la senal y la categoria.
     track('community_post_created', { category: cat })
 
-    // ── Pedir respuesta de Guía Ronda al backend (Claude AI en voz de Diana) ──
-    // Delay aleatorio 30-90s para que se sienta humano (no instantáneo)
-    const delaySec = 30 + Math.floor(Math.random() * 60)
+    // ── Pedir respuesta de la Guía IA de Ronda ──
+    // Pausa breve (se siente considerada). Es IA: responde rápido, sin fingir ser humana.
+    const delaySec = 2 + Math.floor(Math.random() * 3)
 
     try {
       const resp = await fetch('/api/guia', {
@@ -1918,7 +1929,16 @@ function App() {
       const data = await resp.json()
       if (data.error) throw new Error(data.error)
 
-      // Esperar el delay para realismo
+      // Señal de crisis del servidor: mostrar la respuesta ya y abrir el SOS de inmediato.
+      if (data.crisis) {
+        setBoardPosts(prev => prev.map(p =>
+          p.id === newPostId ? { ...p, replies: [data.reply], awaitingGuia: false } : p
+        ))
+        setShowPanic(true)
+        setPanicScreen('home')
+        return
+      }
+
       setTimeout(() => {
         setBoardPosts(prev => prev.map(p =>
           p.id === newPostId
@@ -1950,7 +1970,7 @@ function App() {
           Pregunta, crece, avanza.
         </div>
         <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
-          Tú eres anónima. Nuestras Guías Ronda están verificadas ✓
+          Tú eres anónima. Te acompaña la Guía IA de Ronda, al instante.
         </div>
         <div style={{ fontSize: 12, color: C.subtle, marginTop: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
           Contenido educativo de bienestar. No reemplaza atención profesional en salud mental.
@@ -1981,7 +2001,7 @@ function App() {
           background: C.card, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
         }}>
           <div style={{ fontSize: 20, color: C.muted }}>¿Qué necesitas hoy? Escribe aquí...</div>
-          <div style={{ fontSize: 19, color: C.subtle, marginTop: 4 }}>Tu publicación es anónima. Solo profesionales verificadas responden.</div>
+          <div style={{ fontSize: 19, color: C.subtle, marginTop: 4 }}>Tu publicación es anónima. Te responde la Guía IA de Ronda.</div>
         </button>
       ) : (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
@@ -2096,7 +2116,7 @@ function App() {
                 color: 'white', fontSize: 14, fontWeight: 700,
               }}>✓</div>
               <div style={{ fontSize: 17, color: C.muted, fontStyle: 'italic' }}>
-                Una Guía Ronda está leyendo tu mensaje. Te responderá en breve.
+                La Guía IA de Ronda está leyendo tu mensaje. Te responde en un momento.
               </div>
             </div>
           )}
@@ -2123,6 +2143,10 @@ function App() {
                       fontSize: 20, background: C.gold, color: 'white', padding: '1px 6px',
                       borderRadius: 8, fontWeight: 700,
                     }}>✓ Verificada</span>}
+                    {reply.pro.ai && <span style={{
+                      fontSize: 15, background: `${C.teal}18`, color: C.teal, padding: '2px 8px',
+                      borderRadius: 8, fontWeight: 700,
+                    }}>Guía IA</span>}
                   </div>
                   <div style={{ fontSize: 19, color: C.muted }}>{reply.pro.title}</div>
                 </div>
