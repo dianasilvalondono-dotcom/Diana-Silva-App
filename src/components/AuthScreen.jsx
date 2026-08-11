@@ -38,7 +38,7 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
   return (
     <div style={{
       maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontFamily: 'Montserrat, sans-serif',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: 32, position: 'relative', overflow: 'hidden',
     }}>
@@ -58,13 +58,13 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
         </div>
         <span style={{
           fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em',
-          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontFamily: 'Montserrat, sans-serif',
         }}>Ronda</span>
       </div>
 
       <div style={{
         fontSize: 16, color: C.teal, fontWeight: 600, fontStyle: 'italic',
-        fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 40,
+        fontFamily: 'Montserrat, sans-serif', marginBottom: 40,
       }}>
         Creces tú, crecemos todas
       </div>
@@ -76,7 +76,7 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
       }}>
         <div style={{
           fontSize: 22, fontWeight: 700, color: C.text, textAlign: 'center', marginBottom: 6,
-          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontFamily: 'Montserrat, sans-serif',
         }}>
           {mode === 'login' ? 'Bienvenida de vuelta' : 'Únete a Ronda'}
         </div>
