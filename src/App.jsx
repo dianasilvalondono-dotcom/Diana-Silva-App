@@ -401,7 +401,10 @@ function App() {
   }
 
   const toggleRoutine = (id) => {
+    const willBeChecked = !routineChecked[id]
     setRoutineChecked(prev => ({ ...prev, [id]: !prev[id] }))
+    // Parte del North Star: "marca hábito O completa parte de su rutina".
+    if (willBeChecked) track('routine_checked')
   }
 
   const addRoutineItem = () => {
