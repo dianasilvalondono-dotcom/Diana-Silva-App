@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { C } from '../constants/colors'
+import { FONT } from '../constants/tokens'
 
 export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) {
   const [mode, setMode] = useState('login')
@@ -38,7 +39,7 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
   return (
     <div style={{
       maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
-      fontFamily: 'Montserrat, sans-serif',
+      fontFamily: FONT,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: 32, position: 'relative', overflow: 'hidden',
     }}>
@@ -58,13 +59,13 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
         </div>
         <span style={{
           fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em',
-          fontFamily: 'Montserrat, sans-serif',
+          fontFamily: FONT,
         }}>Ronda</span>
       </div>
 
       <div style={{
         fontSize: 16, color: C.teal, fontWeight: 600, fontStyle: 'italic',
-        fontFamily: 'Montserrat, sans-serif', marginBottom: 40,
+        fontFamily: FONT, marginBottom: 40,
       }}>
         Creces tú, crecemos todas
       </div>
@@ -76,7 +77,7 @@ export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) 
       }}>
         <div style={{
           fontSize: 22, fontWeight: 700, color: C.text, textAlign: 'center', marginBottom: 6,
-          fontFamily: 'Montserrat, sans-serif',
+          fontFamily: FONT,
         }}>
           {mode === 'login' ? 'Bienvenida de vuelta' : 'Únete a Ronda'}
         </div>
