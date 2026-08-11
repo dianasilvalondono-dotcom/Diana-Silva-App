@@ -3,6 +3,7 @@ import './App.css'
 import { C } from './constants/colors'
 import { FONT, SHADOW } from './constants/tokens'
 import { ICONS, MOOD_ICONS } from './constants/icons'
+import Badge from './components/ui/Badge'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
@@ -2078,12 +2079,7 @@ function App() {
 
           {/* Etiqueta de ejemplo (contenido sembrado, no comunidad real) */}
           {post.example && (
-            <div style={{
-              marginBottom: 10, fontSize: 15, fontWeight: 700, color: C.teal,
-              background: `${C.teal}12`, borderRadius: 8, padding: '4px 10px', display: 'inline-block',
-            }}>
-              Ejemplo · así funciona el Board
-            </div>
+            <Badge variant="example" style={{ marginBottom: 10 }}>Ejemplo · así funciona el Board</Badge>
           )}
 
           {/* Post content */}
@@ -2140,14 +2136,8 @@ function App() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{reply.pro.name}</span>
-                    {reply.pro.verified && !post.example && <span style={{
-                      fontSize: 20, background: C.gold, color: 'white', padding: '1px 6px',
-                      borderRadius: 8, fontWeight: 700,
-                    }}>✓ Verificada</span>}
-                    {reply.pro.ai && <span style={{
-                      fontSize: 15, background: `${C.teal}18`, color: C.teal, padding: '2px 8px',
-                      borderRadius: 8, fontWeight: 700,
-                    }}>Guía IA</span>}
+                    {reply.pro.verified && !post.example && <Badge variant="verified">✓ Verificada</Badge>}
+                    {reply.pro.ai && <Badge variant="ai">Guía IA</Badge>}
                   </div>
                   <div style={{ fontSize: 19, color: C.muted }}>{reply.pro.title}</div>
                 </div>
