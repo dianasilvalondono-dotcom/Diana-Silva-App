@@ -631,7 +631,7 @@ function App() {
   const logo = (
     <button onClick={() => setView('ahora')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
       {logoIcon}
-      <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif' }}>Ronda</span>
+      <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: 'Montserrat, sans-serif' }}>Ronda</span>
     </button>
   )
 
@@ -653,7 +653,7 @@ function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {logo}
             <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 20, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif' }}>Creces tú, crecemos todas</span>
+            <span style={{ fontSize: 20, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: 'Montserrat, sans-serif' }}>Creces tú, crecemos todas</span>
             {isAdmin && <span style={{ fontSize: 8, background: '#C6A94E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
           </div>
           <div style={{ fontSize: 19, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
@@ -708,8 +708,8 @@ function App() {
         {/* Decorative circles */}
         <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: C.mint, opacity: 0.15 }} />
         <div style={{ position: 'absolute', bottom: -15, right: 30, width: 50, height: 50, borderRadius: '50%', background: C.coral, opacity: 0.1 }} />
-        <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif', color: C.text }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
-        <div style={{ fontSize: 20, marginTop: 6, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', color: C.rose }}>La mujer que quieres ser, empieza hoy</div>
+        <div style={{ fontSize: 26, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', color: C.text }}>{getGreeting()}{profile.name ? `, ${profile.name}` : ''}</div>
+        <div style={{ fontSize: 20, marginTop: 6, fontFamily: 'Montserrat, sans-serif', fontStyle: 'italic', color: C.rose }}>La mujer que quieres ser, empieza hoy</div>
         {totalHabits > 0 && (
           <div style={{ marginTop: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -809,7 +809,7 @@ function App() {
             borderRadius: 18, padding: 20, cursor: 'pointer',
             border: `1px solid ${hook.color}30`,
           }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: C.text, lineHeight: 1.4, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: C.text, lineHeight: 1.4, fontFamily: 'Montserrat, sans-serif' }}>
               {hook.q}
             </div>
             <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
@@ -875,7 +875,7 @@ function App() {
       {habits.length === 0 && (
         <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: 28, marginBottom: 8, color: C.gold, opacity: 0.5 }}>●</div>
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: 'Montserrat, sans-serif' }}>
             Escoge tus hábitos
           </div>
           <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>
@@ -1334,7 +1334,7 @@ function App() {
   const historiaView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ background: C.card, borderRadius: 20, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
-        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3, marginBottom: 16 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3, marginBottom: 16 }}>
           "Soy el puente de miles de mujeres"
         </div>
         <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
@@ -1384,7 +1384,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #0D9488, #14B5A3, #A7F3D0)', borderRadius: 18, padding: 22, color: 'white' }}>
-        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Programas</div>
+        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Montserrat, sans-serif' }}>Programas</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para crecer y brillar</div>
         <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
       </div>
@@ -1546,7 +1546,7 @@ function App() {
               <div style={{ background: C.gold, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: 19, fontWeight: 800, letterSpacing: '0.05em' }}>PREMIUM</div>
               <div style={{ fontSize: 20, color: C.gold, fontWeight: 700 }}>{prog.duration}</div>
             </div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 6 }}>{prog.title}</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.text, fontFamily: 'Montserrat, sans-serif', marginBottom: 6 }}>{prog.title}</div>
             <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 16 }}>{prog.desc}</div>
 
             {/* 3 fases */}
@@ -1695,7 +1695,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #C4B5FD, #D4C4E0)', borderRadius: 18, padding: 20, color: 'white' }}>
-        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>Mi Toolkit</div>
+        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: 'Montserrat, sans-serif' }}>Mi Toolkit</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
         <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
       </div>
@@ -1966,7 +1966,7 @@ function App() {
         <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
           Comunidad Ronda
         </div>
-        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3 }}>
           Pregunta, crece, avanza.
         </div>
         <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
@@ -2211,7 +2211,7 @@ function App() {
         <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
           Directorio Ronda
         </div>
-        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3 }}>
           Mujeres que te acompañan en el camino
         </div>
         <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
@@ -2225,7 +2225,7 @@ function App() {
         border: `1.5px dashed ${C.border}`,
       }}>
         <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', marginBottom: 8 }}>
           Próximamente
         </div>
         <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
@@ -2261,7 +2261,7 @@ function App() {
       borderRadius: 20, border: `1.5px solid ${C.roseLight}`,
     }}>
       <div style={{ fontSize: 40, marginBottom: 12, color: C.teal, opacity: 0.3 }}>●</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', marginBottom: 8 }}>
         {feature}
       </div>
       <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
@@ -2584,7 +2584,7 @@ function App() {
           {aiStep === 4 && aiProgram && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ background: `${C.rose}10`, borderRadius: 16, padding: 18, border: `1px solid ${C.roseLight}`, textAlign: 'center' }}>
-                <div style={{ fontSize: 19, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif' }}>{aiProgram.title}</div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif' }}>{aiProgram.title}</div>
                 <div style={{ fontSize: 18, color: C.muted, marginTop: 4 }}>{aiProgram.desc}</div>
                 <div style={{ fontSize: 17, color: C.rose, fontWeight: 700, marginTop: 6, textTransform: 'uppercase' }}>{aiProgram.days?.length || 7} días · Creado para ti</div>
               </div>
@@ -2620,10 +2620,10 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
       <div style={{ background: `${C.teal}`, borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
-        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, fontFamily: 'Georgia, serif', border: '2px solid rgba(255,255,255,0.5)' }}>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', border: '2px solid rgba(255,255,255,0.5)' }}>
           {(profile.name || 'R').charAt(0).toUpperCase()}
         </div>
-        <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif' }}>{profile.name || 'Tu nombre'}</div>
+        <div style={{ fontSize: 24, fontWeight: 700, fontFamily: 'Montserrat, sans-serif' }}>{profile.name || 'Tu nombre'}</div>
         {profile.city && <div style={{ fontSize: 20, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
         {profile.bio && <div style={{ fontSize: 20, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
         <button onClick={() => setEditingProfile(!editingProfile)} style={{
@@ -2707,7 +2707,7 @@ function App() {
               fontSize: 22,
             }}>🔔</div>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: C.text, fontFamily: 'Georgia, serif' }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif' }}>
                 Que Tu Ronda te acompañe
               </div>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 2 }}>
@@ -2880,7 +2880,7 @@ function App() {
               <div style={{ fontSize: 13, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
                 Tu Ronda · Memoria
               </div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Georgia, serif' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif' }}>
                 Lo que sé de ti
               </div>
             </div>
@@ -2999,12 +2999,12 @@ function App() {
       <div style={{ width: 70, height: 70, borderRadius: '50%', border: '3px solid '+C.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
         <div style={{ width: 22, height: 22, borderRadius: '50%', background: C.gold }} />
       </div>
-      <div style={{ fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 8 }}>Ronda</div>
-      <div style={{ fontSize: 20, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 32 }}>
+      <div style={{ fontSize: 36, fontWeight: 400, color: C.text, letterSpacing: '0.15em', fontFamily: 'Montserrat, sans-serif', marginBottom: 8 }}>Ronda</div>
+      <div style={{ fontSize: 20, color: C.gold, fontWeight: 600, fontStyle: 'italic', fontFamily: 'Montserrat, sans-serif', marginBottom: 32 }}>
         Creces tú, crecemos todas
       </div>
       <div style={{ width: 60, height: 2, background: C.gold, marginBottom: 32, borderRadius: 2 }} />
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.4, marginBottom: 12 }}>
+      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.4, marginBottom: 12 }}>
         Tu compañera en cada etapa
       </div>
       <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
@@ -3014,7 +3014,7 @@ function App() {
 
     /* Paso 1 — Su nombre. La app le habla por su nombre desde el primer día. */
     onboardStepShell(1, <>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 10 }}>
+      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', marginBottom: 10 }}>
         ¿Cómo te llamas?
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300, lineHeight: 1.6 }}>
@@ -3041,7 +3041,7 @@ function App() {
 
     /* Paso 2 — Un primer hábito. Que salga del onboarding habiendo HECHO algo. */
     onboardStepShell(2, <>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 10 }}>
+      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', marginBottom: 10 }}>
         {onboardName.trim() ? `${onboardName.trim()}, elige tu primer hábito` : 'Elige tu primer hábito'}
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 8, maxWidth: 320, lineHeight: 1.6 }}>
@@ -3082,7 +3082,7 @@ function App() {
       <div style={{ width: 56, height: 56, borderRadius: '50%', border: `3px solid ${C.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
         <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.gold }} />
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', marginBottom: 10 }}>
+      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', marginBottom: 10 }}>
         Empecemos por Ahora
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 26, maxWidth: 310, lineHeight: 1.6 }}>
@@ -3126,7 +3126,7 @@ function App() {
       <div style={{
         maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontFamily: 'Montserrat, sans-serif',
       }}>
         <div style={{
           width: 50, height: 50, borderRadius: '50%', border: '3px solid #C6A94E',
@@ -3153,7 +3153,7 @@ function App() {
   /* ── Onboarding screen ── */
   if (!onboarded) {
     return (
-      <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+      <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: 'Montserrat, sans-serif' }}>
         {onboardSlides[onboardStep]}
 
         {/* Dots + Navigation */}
@@ -3216,7 +3216,7 @@ function App() {
       <div style={{ ...modalCard, maxHeight: '85vh', overflowY: 'auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: 32, marginBottom: 8, color: C.gold }}>●</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, buenos días` : 'Buenos días'}
           </div>
           <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Define tu intención y activa tus hábitos</div>
@@ -3300,7 +3300,7 @@ function App() {
       <div style={modalCard}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{ fontSize: 36, marginBottom: 10, color: '#C4B5FD' }}>●</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Georgia, "Times New Roman", serif', lineHeight: 1.3 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
           </div>
           <div style={{ fontSize: 20, color: C.muted, marginTop: 6 }}>Revisa tu día y cierra con una reflexión</div>
@@ -3517,7 +3517,7 @@ function App() {
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
           <div style={{ fontSize: 56, marginBottom: 16 }}></div>
-          <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 8 }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3, marginBottom: 8 }}>
             Estás a salvo.
           </div>
           <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 8 }}>
@@ -3625,7 +3625,7 @@ function App() {
             <div style={{ fontSize: 19, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>
               {GROUND_STEPS[groundStep].sense}
             </div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.4, marginBottom: 24 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: 'Montserrat, sans-serif', lineHeight: 1.4, marginBottom: 24 }}>
               {GROUND_STEPS[groundStep].prompt}
             </div>
             <div style={{ fontSize: 20, color: '#E0FBF1', marginBottom: 32, textAlign: 'center' }}>
@@ -3640,7 +3640,7 @@ function App() {
             </button>
           </>) : (<>
             <div style={{ fontSize: 56, marginBottom: 16 }}>🌟</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 12 }}>
+            <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Montserrat, sans-serif', marginBottom: 12 }}>
               Estás aquí. Estás presente.
             </div>
             <div style={{ fontSize: 19, color: '#E0FBF1', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
@@ -3661,7 +3661,7 @@ function App() {
 
         {/* ── DBT: Skills menu ── */}
         {panicScreen === 'dbt' && <>
-          <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', marginBottom: 6 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Montserrat, sans-serif', marginBottom: 6 }}>
             Skills DBT
           </div>
           <div style={{ fontSize: 19, color: '#E0FBF1', textAlign: 'center', marginBottom: 24 }}>
@@ -3712,7 +3712,7 @@ function App() {
         {/* ── ACCEPT: Radical Acceptance guided ── */}
         {panicScreen === 'accept' && <>
           <div style={{ fontSize: 56, marginBottom: 16 }}>🙏</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Georgia, serif', lineHeight: 1.3, marginBottom: 12 }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: 'Montserrat, sans-serif', lineHeight: 1.3, marginBottom: 12 }}>
             Aceptación Radical
           </div>
           <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
@@ -3745,7 +3745,7 @@ function App() {
             background: 'rgba(201,169,110,0.15)', border: '1px solid rgba(201,169,110,0.3)',
             textAlign: 'center', width: '100%',
           }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#C6A94E', fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#C6A94E', fontFamily: 'Montserrat, sans-serif', fontStyle: 'italic', lineHeight: 1.5 }}>
               "No puedo controlar lo que pasa.<br/>Pero puedo elegir cómo respondo.<br/>Y hoy elijo la paz."
             </div>
           </div>
@@ -3757,7 +3757,7 @@ function App() {
 
   /* ── Render ── */
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: 'Montserrat, sans-serif' }}>
       {header}
       <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 120 }}>
         {view === 'ahora' && <>
@@ -3849,7 +3849,7 @@ function App() {
             </div>
 
             <div style={{ marginTop: 20, fontSize: 22, fontWeight: 800, color: C.text,
-                          fontFamily: 'Georgia, "Times New Roman", serif',
+                          fontFamily: 'Montserrat, sans-serif',
                           textAlign: 'center', marginBottom: 12, lineHeight: 1.3 }}>
               {appModal.title}
             </div>
