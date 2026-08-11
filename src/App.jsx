@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import './App.css'
 import { C } from './constants/colors'
 import { ICONS, MOOD_ICONS } from './constants/icons'
@@ -14,6 +14,7 @@ import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD
 runMigrationCleanDianaDefaults()
 import { useAuth } from './lib/useAuth'
 import { useNotifications } from './lib/useNotifications'
+import { track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
 import { useOneSignal } from './lib/useOneSignal'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile } from './lib/database'
@@ -81,14 +82,23 @@ function App() {
   const [premiumStatus, setPremiumStatus] = useState({ is_premium: false, premium_until: null, premium_source: null })
   useEffect(() => {
     if (!user) { setPremiumStatus({ is_premium: false, premium_until: null, premium_source: null }); return }
+    // Vincular analítica a la usuaria (base de la retención D1/D7/D30).
+    identifyUser(user.id)
+    track('app_opened')
     let cancelled = false
     getUserProfile(user.id).then(profile => {
       if (cancelled || !profile) return
       const stillValid = profile.premium_until && new Date(profile.premium_until) > new Date()
-      setPremiumStatus({
+      const status = {
         is_premium: !!(profile.is_premium && stillValid),
         premium_until: profile.premium_until,
         premium_source: profile.premium_source,
+      }
+      setPremiumStatus(status)
+      setUserProps({
+        is_premium: status.is_premium,
+        premium_source: status.premium_source || 'free',
+        is_founding_member: status.premium_source === 'founding_member',
       })
     })
     return () => { cancelled = true }
@@ -96,6 +106,22 @@ function App() {
 
   const isPremium = isAdmin || premiumStatus.is_premium
   const isFoundingMember = premiumStatus.premium_source === 'founding_member'
+
+  // ─── Analitica: paywall de pantalla (IA) — una vez por sesion ───
+  const paywallSeenRef = useRef({})
+  useEffect(() => {
+    if (view === 'crecer' && subTab === 'ai' && !isPremium && !paywallSeenRef.current.ai) {
+      paywallSeenRef.current.ai = true
+      track('paywall_viewed', { feature: 'tu_ronda_ia', price: '$9.99/mes' })
+    }
+  }, [view, subTab, isPremium])
+
+  // ─── Analitica: al cerrar sesion, desvincular a la usuaria ───
+  const prevUserIdRef = useRef(null)
+  useEffect(() => {
+    if (prevUserIdRef.current && !user) resetAnalytics()
+    prevUserIdRef.current = user?.id || null
+  }, [user])
 
   // ─── Push notifications con OneSignal ───
   const oneSignal = useOneSignal()
@@ -222,6 +248,8 @@ function App() {
 
   // Panic button / Crisis mode
   const [showPanic, setShowPanic] = useState(false)
+  // Capta cualquier apertura del SOS, sin importar desde qué botón.
+  useEffect(() => { if (showPanic) track('sos_opened') }, [showPanic])
   const [panicScreen, setPanicScreen] = useState('home') // home, breathe, ground, dbt, accept
   const [breathePhase, setBreathePhase] = useState('inhale') // inhale, hold, exhale
   const [breatheCount, setBreatheCount] = useState(0)
@@ -365,6 +393,10 @@ function App() {
     setChecked(next)
     if (next[id]) {
       setStreaks(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }))
+      track('habit_checked', {
+        streak: (streaks[id] || 0) + 1,
+        checked_today: Object.values(next).filter(Boolean).length,
+      })
     }
   }
 
@@ -414,6 +446,8 @@ function App() {
     setJournalText('')
     setJournalMood(2)
     setIsListening(false)
+    // Sin el texto del diario: solo la senal, nunca el contenido.
+    track('journal_created', { mood: journalMood })
   }
 
   // Voice journaling — Web Speech API
@@ -475,11 +509,14 @@ function App() {
 
   const startProgram = (progId) => {
     setActivePrograms(prev => ({ ...prev, [progId]: { startDate: todayKey(), completedDays: [] } }))
+    track('program_started', { program: progId })
   }
   const completeProgDay = (progId, day) => {
     setActivePrograms(prev => {
       const prog = prev[progId] || { startDate: todayKey(), completedDays: [] }
-      const completed = prog.completedDays.includes(day) ? prog.completedDays.filter(d => d !== day) : [...prog.completedDays, day]
+      const wasDone = prog.completedDays.includes(day)
+      const completed = wasDone ? prog.completedDays.filter(d => d !== day) : [...prog.completedDays, day]
+      if (!wasDone) track('program_day_completed', { program: progId, day, total_completed: completed.length })
       return { ...prev, [progId]: { ...prog, completedDays: completed } }
     })
   }
@@ -575,6 +612,7 @@ function App() {
   const openModule = (id, sub = '', { silent = false } = {}) => {
     setView(id)
     setSubTab(sub)
+    track('module_viewed', { module: id, sub: sub || null })
     if (moduleIntros[id]) return
     setModuleIntros(prev => ({ ...prev, [id]: true }))
     const intro = MODULE_INTROS[id]
@@ -1543,6 +1581,7 @@ function App() {
               )}
               <button onClick={() => {
                 if (!isPremium) {
+                  track('paywall_viewed', { feature: 'programa_21_dias', price: '$9.99/mes' })
                   setAppModal({
                     type: 'paywall',
                     title: 'Los programas de 21 días son premium',
@@ -1832,6 +1871,7 @@ function App() {
   const addBoardPost = async () => {
     if (!boardNewText.trim()) return
     if (!isPremium) {
+      track('paywall_viewed', { feature: 'comunidad_escribir', price: '$9.99/mes' })
       setAppModal({
         type: 'paywall',
         title: 'Escribir en la comunidad es premium',
@@ -1857,6 +1897,8 @@ function App() {
     setBoardPosts(prev => [newPost, ...prev])
     setBoardNewText('')
     setBoardShowForm(false)
+    // Sin el contenido del post: solo la senal y la categoria.
+    track('community_post_created', { category: cat })
 
     // ── Pedir respuesta de Guía Ronda al backend (Claude AI en voz de Diana) ──
     // Delay aleatorio 30-90s para que se sienta humano (no instantáneo)
@@ -2188,7 +2230,7 @@ function App() {
       </div>
       <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{price}</div>
       <div style={{ fontSize: 20, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
-      <button style={{
+      <button onClick={() => track('paywall_cta_clicked', { feature })} style={{
         padding: '14px 32px', borderRadius: 14, border: 'none',
         background: `linear-gradient(135deg, ${C.gold}, #0B7A71)`, color: 'white',
         fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
@@ -2248,6 +2290,8 @@ function App() {
     setChatMessages(prev => [...prev, userMsg])
     setChatInput('')
     setChatLoading(true)
+    // Sin texto del mensaje: solo la señal de uso, nunca el contenido.
+    track('chat_message_sent', { mode: chatMode, turn: chatMessages.length })
 
     // ── Build rich context from user state ──
     const todayChecked = Object.values(checked).filter(Boolean).length
@@ -2888,6 +2932,10 @@ function App() {
     }
     setOnboarded(true)
     save('ronda-onboarded', true)
+    track('onboarding_completed', {
+      added_name: !!onboardName.trim(),
+      habits_chosen: onboardHabits.length,
+    })
   }
 
   const toggleOnboardHabit = (h) => {
@@ -3774,6 +3822,7 @@ function App() {
 
             <button onClick={() => {
               if (appModal.type === 'paywall') {
+                track('paywall_cta_clicked', { title: appModal.title })
                 setView('perfil')
                 setSubTab('')
               }
