@@ -2880,6 +2880,12 @@ function App() {
         </div>
       )}
 
+      {/* La historia detrás de Ronda */}
+      <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 8, marginBottom: 2, textAlign: 'center' }}>
+        La historia detrás de Ronda
+      </div>
+      {historiaView}
+
       {/* Sign out */}
       {isConfigured && user && (
         <div style={{ textAlign: 'center', marginTop: 8 }}>
