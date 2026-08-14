@@ -4,6 +4,7 @@ import { C } from './constants/colors'
 import { FONT, SHADOW } from './constants/tokens'
 import { ICONS, MOOD_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
+import HistoriaView from './components/views/HistoriaView'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
@@ -1333,54 +1334,7 @@ function App() {
 
   /* ── PROGRAMAS ── */
   /* ── HISTORIA DE RONDA ── */
-  const historiaView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ background: C.card, borderRadius: 20, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
-        <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3, marginBottom: 16 }}>
-          "Soy el puente de miles de mujeres"
-        </div>
-        <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
-          Ronda nació de las mujeres que me formaron. Mis dos abuelas quedaron viudas muy jóvenes y sacaron adelante familias enteras con las manos y con el alma. Crecí rodeada de mujeres poderosas — tías, primas, amigas — que se reinventaban una y otra vez sin pedir permiso.
-        </div>
-        <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
-          Yo también he tenido muchas vidas. Me divorcié a los 25 con tres maletas y a echar pa'lante. Me fui pa' Nueva York sin diploma, me gradué magna cum laude, me devolví pa' Colombia. Y cada vez que me caí, me levanté — pero nunca sola. Siempre hubo una mujer del otro lado tendiéndome la mano.
-        </div>
-        <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
-          Cada mujer que Dios me ha puesto en el camino me ha enseñado algo. Y sé que a ti también te ha pasado: alguien te sostuvo cuando no podías más.
-        </div>
-        {showFullStory && <>
-          <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
-            Vivo con TLP desde los 16 años. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días a Grecia con 20 mujeres. En ese camino vi el potencial: mujeres creciendo juntas. Eso tenía que ser una plataforma.
-          </div>
-          <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
-            Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy. He sido personajes de mujeres de las que no me he sentido orgullosa. Pero las lecciones que me dejaron esas mujeres que me rodean — mis abuelas, mis maestras, mis amigas — esas me han sostenido.
-          </div>
-          <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
-            En los momentos de crisis buscaba apoyo y la psicóloga tenía citas — no estaba disponible. Pensé: ¿cómo tengo a alguien ahí cuando lo necesito? Alguien que conteste del otro lado. No importa de dónde, pero que esté ahí.
-          </div>
-          <div style={{ fontSize: 19, color: C.rose, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
-            Ronda es mi forma de devolver todo lo que recibí. No es mi historia — es la historia de todas las mujeres que me construyeron. Y yo solo quiero ser puente para que tú también tengas esa red, esas herramientas, esa ronda de mujeres que te acompaña.
-          </div>
-        </>}
-        <button onClick={() => setShowFullStory(!showFullStory)} style={{
-          background: 'none', border: 'none', color: C.rose, fontSize: 19, fontWeight: 700,
-          cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-        }}>
-          {showFullStory ? 'Leer menos ↑' : 'Leer la historia completa →'}
-        </button>
-        <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: '50%', background: `${C.teal}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20, fontWeight: 700,
-          }}>D</div>
-          <div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>Diana Silva</div>
-            <div style={{ fontSize: 19, color: C.muted }}>Fundadora de Ronda · Puente de miles de mujeres</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  const historiaView = <HistoriaView showFullStory={showFullStory} setShowFullStory={setShowFullStory} />
 
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -2215,7 +2169,7 @@ function App() {
         textAlign: 'center', padding: 48, background: C.card, borderRadius: 20,
         border: `1.5px dashed ${C.border}`,
       }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
+        <div style={{ fontSize: 40, marginBottom: 12, color: C.teal, opacity: 0.3 }}>●</div>
         <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 8 }}>
           Próximamente
         </div>
@@ -2266,7 +2220,7 @@ function App() {
         fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         boxShadow: '0 4px 16px rgba(201,169,110,0.3)',
       }}>
-        Desbloquear Ronda Premium ✨
+        Desbloquear Ronda Premium
       </button>
       <div style={{ fontSize: 19, color: C.subtle, marginTop: 12 }}>
         Próximamente · Te avisamos cuando esté disponible
@@ -2670,7 +2624,7 @@ function App() {
             background: C.teal, color: 'white',
             fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
           }}>
-            Guardar ✨
+            Guardar
           </button>
         </div>
       )}
@@ -3597,7 +3551,7 @@ function App() {
 
           {!breatheActive && breatheCount > 0 && (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
+              <div style={{ fontSize: 40, marginBottom: 12, color: C.teal, opacity: 0.3 }}>●</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
               <div style={{ fontSize: 20, color: '#E0FBF1', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
               <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
@@ -3630,7 +3584,7 @@ function App() {
               Listo → {groundStep < 4 ? 'Siguiente sentido' : 'Terminar'}
             </button>
           </>) : (<>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🌟</div>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>💛</div>
             <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 12 }}>
               Estás aquí. Estás presente.
             </div>
