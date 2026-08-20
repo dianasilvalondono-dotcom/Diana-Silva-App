@@ -2,13 +2,14 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import './App.css'
 import { C } from './constants/colors'
 import { FONT, SHADOW } from './constants/tokens'
-import { ICONS, MOOD_ICONS } from './constants/icons'
+import { ICONS, MOOD_ICONS, UI_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
 import HistoriaView from './components/views/HistoriaView'
+import FrasesView from './components/views/FrasesView'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
-  QUOTES, TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
-  AVATARS, CATS, CAT_LABELS, getDayQuote, MODULE_INTROS,
+  TOOLKIT_CATS, MOOD_RECS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
+  AVATARS, getDayQuote, MODULE_INTROS,
 } from './constants/data'
 import { todayKey, load, save, getGreeting, formatDate, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
@@ -909,7 +910,7 @@ function App() {
                     background: checked[h.id] ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
                   }}>
-                    {checked[h.id] && '✓'}
+                    {checked[h.id] && UI_ICONS.check('white', 15)}
                   </div>
                   <span style={{ fontSize: 19, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
                     {h.name}
@@ -922,7 +923,8 @@ function App() {
                   )}
                   <button onClick={(e) => { e.stopPropagation(); removeHabit(h.id) }} style={{
                     background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1,
-                  }}>✕</button>
+                    display: 'flex', alignItems: 'center',
+                  }}>{UI_ICONS.close(C.subtle, 16)}</button>
                 </div>
               ))}
             </div>
@@ -1053,7 +1055,7 @@ function App() {
                 background: routineChecked[item.id] ? C.greenDone : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 19, flexShrink: 0, cursor: 'pointer',
               }}>
-                {routineChecked[item.id] && '✓'}
+                {routineChecked[item.id] && UI_ICONS.check('white', 14)}
               </div>
               <div onClick={() => toggleRoutine(item.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
                 <span style={{ fontSize: 20, fontWeight: 700, color: color }}>{item.time}</span>
@@ -1171,7 +1173,7 @@ function App() {
                 width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.roseLight}`,
                 background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'white', fontSize: 20, flexShrink: 0,
-              }}>{t.done && '✓'}</div>
+              }}>{t.done && UI_ICONS.check('white', 13)}</div>
               <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
             </div>
           ))}
@@ -1366,7 +1368,8 @@ function App() {
                     </div>
                     <button onClick={() => quitProgram(progId)} style={{
                       background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4,
-                    }}>✕</button>
+                      display: 'flex', alignItems: 'center',
+                    }}>{UI_ICONS.close(C.subtle, 16)}</button>
                   </div>
                   <Bar value={pct} color={prog.color} height={6} />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 }}>
@@ -1384,7 +1387,7 @@ function App() {
                             background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
                           }}>
-                            {isDone && '✓'}
+                            {isDone && UI_ICONS.check('white', 15)}
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 20, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
@@ -1583,61 +1586,14 @@ function App() {
   )
 
   /* ── FRASES ── */
-  const filteredQuotes = quoteFilter === 'todas' ? QUOTES : QUOTES.filter(q => q.cat === quoteFilter)
-  const catLabels = CAT_LABELS
-
   const frasesView = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Quote of the day */}
-      <div style={{ background: 'linear-gradient(135deg, #C6A94E, #E8D5A8)', borderRadius: 18, padding: 22, color: 'white' }}>
-        <div style={{ fontSize: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>Frase del día</div>
-        <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
-        <div style={{ fontSize: 20, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
-      </div>
-
-      {/* Filter chips */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
-        {CATS.map(cat => (
-          <button key={cat} onClick={() => setQuoteFilter(cat)} style={{
-            padding: '6px 14px', borderRadius: 20, border: `2px solid ${quoteFilter === cat ? C.rose : C.border}`,
-            background: quoteFilter === cat ? C.rose : C.card, color: quoteFilter === cat ? 'white' : C.muted,
-            fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
-          }}>
-            {catLabels[cat]}
-          </button>
-        ))}
-      </div>
-
-      {/* Quotes list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {filteredQuotes.map((q, idx) => {
-          const globalIdx = QUOTES.indexOf(q)
-          const isFav = favQuotes.includes(globalIdx)
-          const isDiana = q.author === 'Diana'
-          return (
-            <div key={idx} style={{
-              background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-              borderLeft: isDiana ? `3px solid ${C.rose}` : `3px solid ${C.border}`,
-            }}>
-              <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6, fontStyle: 'italic' }}>"{q.text}"</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 19, color: isDiana ? C.rose : C.muted, fontWeight: 600 }}>— {q.author}</span>
-                  <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: C.muted, fontWeight: 600 }}>
-                    {catLabels[q.cat] || q.cat}
-                  </span>
-                </div>
-                <button onClick={() => toggleFavQuote(globalIdx)} style={{
-                  background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', padding: 4,
-                }}>
-                  {isFav ? '❤️' : '🤍'}
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
+    <FrasesView
+      quote={quote}
+      quoteFilter={quoteFilter}
+      setQuoteFilter={setQuoteFilter}
+      favQuotes={favQuotes}
+      toggleFavQuote={toggleFavQuote}
+    />
   )
 
   /* ── TOOLKIT ── */
@@ -1756,7 +1712,8 @@ function App() {
                 </div>
                 <button onClick={() => removeToolkitItem(item.id)} style={{
                   background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0,
-                }}>✕</button>
+                  display: 'flex', alignItems: 'center',
+                }}>{UI_ICONS.close(C.subtle, 16)}</button>
               </div>
             )
           })}
@@ -2065,7 +2022,7 @@ function App() {
                 width: 28, height: 28, borderRadius: '50%', background: C.teal,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'white', fontSize: 14, fontWeight: 700,
-              }}>✓</div>
+              }}>{UI_ICONS.check('white', 16)}</div>
               <div style={{ fontSize: 17, color: C.muted, fontStyle: 'italic' }}>
                 La Guía IA de Ronda está leyendo tu mensaje. Te responde en un momento.
               </div>
@@ -2692,7 +2649,7 @@ function App() {
             background: C.teal, color: 'white',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, fontWeight: 800,
-          }}>✓</div>
+          }}>{UI_ICONS.check('white', 18)}</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: C.teal }}>Notificaciones activas</div>
             <div style={{ fontSize: 13, color: C.muted }}>Tu Ronda te puede acompañar.</div>
@@ -3224,7 +3181,7 @@ function App() {
                     background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'white', fontSize: 18, fontWeight: 700, flexShrink: 0,
                   }}>
-                    {checked[h.id] && '✓'}
+                    {checked[h.id] && UI_ICONS.check('white', 13)}
                   </div>
                   <span style={{ fontSize: 18, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
                     textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
@@ -3447,7 +3404,7 @@ function App() {
         border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
       }}>
-        <span style={{ color: 'white', fontSize: 20, lineHeight: 1 }}>✕</span>
+        {UI_ICONS.close('white', 18)}
       </button>
 
       {/* Back button */}
@@ -3859,8 +3816,8 @@ function App() {
             <button onClick={() => setFoundingToast(null)} style={{
               background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
               width: 24, height: 24, color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700,
-              flexShrink: 0,
-            }}>✕</button>
+              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>{UI_ICONS.close('white', 13)}</button>
           </div>
         </div>
       )}

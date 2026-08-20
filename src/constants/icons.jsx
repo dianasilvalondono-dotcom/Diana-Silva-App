@@ -19,6 +19,23 @@ export const MOOD_ICONS = [
   (s = 32, active = false) => <MiniIcon size={s}><circle cx="12" cy="12" r="10" stroke="#1B8A7A" strokeWidth={active ? "2.5" : "1.5"} fill={active ? "#1B8A7A15" : "none"} /><path d="M7 11 Q12 18 17 11" stroke="#1B8A7A" strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M7 9 L10 8 M17 9 L14 8" stroke="#1B8A7A" strokeWidth="1.2" strokeLinecap="round" /><circle cx="9" cy="10" r="1" fill="#1B8A7A" /><circle cx="15" cy="10" r="1" fill="#1B8A7A" /></MiniIcon>,
 ]
 
+/* ── Iconos funcionales (UI, no de marca) ──
+   Reemplazan los glifos ✓ y ✕ del monolito. Por defecto heredan el
+   color del contenedor (currentColor), que es como ya venían pintados
+   los checkboxes y botones de cerrar. */
+export const UI_ICONS = {
+  check: (c = 'currentColor', s = 14) => (
+    <MiniIcon size={s} color={c}>
+      <path d="M5 12.5 L9.5 17 L19 7" stroke={c} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </MiniIcon>
+  ),
+  close: (c = 'currentColor', s = 14) => (
+    <MiniIcon size={s} color={c}>
+      <path d="M6 6 L18 18 M18 6 L6 18" stroke={c} strokeWidth="2" fill="none" strokeLinecap="round" />
+    </MiniIcon>
+  ),
+}
+
 export const ICONS = {
   espiritual: (c = '#C4908A', s = 20) => <MiniIcon size={s} color={c}><path d="M12 3 C12 3 6 8 6 13 C6 16.3 8.7 19 12 19 C15.3 19 18 16.3 18 13 C18 8 12 3 12 3Z" stroke={c} strokeWidth="1.8" fill={`${c}20`} /><path d="M12 10 L12 16 M10 13 L14 13" stroke={c} strokeWidth="1.5" strokeLinecap="round" /></MiniIcon>,
   emocional: (c = '#C9A96E', s = 20) => <MiniIcon size={s} color={c}><circle cx="12" cy="12" r="8.5" stroke={c} strokeWidth="1.8" fill={`${c}15`} /><path d="M8 11 Q8 8 12 8 Q16 8 16 11" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M9 14 Q12 17 15 14" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" /></MiniIcon>,
