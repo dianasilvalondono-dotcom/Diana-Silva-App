@@ -34,6 +34,24 @@ export const UI_ICONS = {
       <path d="M6 6 L18 18 M18 6 L6 18" stroke={c} strokeWidth="2" fill="none" strokeLinecap="round" />
     </MiniIcon>
   ),
+  /* Dictado por voz en el Diario — reemplazan 🎙️, ⏹️ y 🔴. */
+  mic: (c = 'currentColor', s = 18) => (
+    <MiniIcon size={s} color={c}>
+      <rect x="9" y="3" width="6" height="10" rx="3" stroke={c} strokeWidth="1.8" fill="none" />
+      <path d="M6 11 Q6 16 12 16 Q18 16 18 11" stroke={c} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      <path d="M12 16 L12 20 M9 20 L15 20" stroke={c} strokeWidth="1.6" strokeLinecap="round" />
+    </MiniIcon>
+  ),
+  stop: (c = 'currentColor', s = 18) => (
+    <MiniIcon size={s} color={c}>
+      <rect x="7" y="7" width="10" height="10" rx="2" fill={c} />
+    </MiniIcon>
+  ),
+  rec: (c = 'currentColor', s = 10) => (
+    <MiniIcon size={s} color={c}>
+      <circle cx="12" cy="12" r="7" fill={c} />
+    </MiniIcon>
+  ),
 }
 
 export const ICONS = {
