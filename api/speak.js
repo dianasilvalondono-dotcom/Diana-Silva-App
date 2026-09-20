@@ -8,22 +8,29 @@ const MAX_CHARS = 1200
 // Voz cacheada entre invocaciones tibias para no resolverla en cada request.
 let cachedVoiceId = null
 
+// Devuelve { voiceId } o { reason } para poder decir QUE fallo, no solo que fallo.
 async function resolveVoiceId(apiKey) {
-  if (process.env.ELEVENLABS_VOICE_ID) return process.env.ELEVENLABS_VOICE_ID
-  if (cachedVoiceId) return cachedVoiceId
+  if (process.env.ELEVENLABS_VOICE_ID) return { voiceId: process.env.ELEVENLABS_VOICE_ID }
+  if (cachedVoiceId) return { voiceId: cachedVoiceId }
 
   const resp = await fetch('https://api.elevenlabs.io/v1/voices', {
     headers: { 'xi-api-key': apiKey },
   })
-  if (!resp.ok) return null
+  if (!resp.ok) {
+    const body = await resp.text()
+    return { reason: `GET /v1/voices devolvio ${resp.status}: ${body.slice(0, 200)}` }
+  }
+
   const data = await resp.json()
   const voices = data.voices || []
-  if (!voices.length) return null
+  if (!voices.length) {
+    return { reason: 'La cuenta no tiene voces propias. Elige una en ElevenLabs > Voices (boton Add/Use) y pega su ID en ELEVENLABS_VOICE_ID.' }
+  }
 
   // Preferimos una voz femenina; si no hay metadata, la primera disponible.
   const female = voices.find(v => v.labels && v.labels.gender === 'female')
   cachedVoiceId = (female || voices[0]).voice_id
-  return cachedVoiceId
+  return { voiceId: cachedVoiceId }
 }
 
 // El texto que llega de /api/agent ya viene sin [CONECTAR:x], [SOS] ni bloque
@@ -55,12 +62,9 @@ export default async function handler(req, res) {
   const clean = sanitizeForSpeech(text)
   if (!clean) return res.status(400).json({ error: 'Nothing to say' })
 
-  const voiceId = await resolveVoiceId(apiKey)
+  const { voiceId, reason } = await resolveVoiceId(apiKey)
   if (!voiceId) {
-    return res.status(503).json({
-      error: 'no_voice_configured',
-      details: 'No hay voces en la cuenta de ElevenLabs. Configura ELEVENLABS_VOICE_ID.',
-    })
+    return res.status(503).json({ error: 'no_voice_configured', details: reason })
   }
 
   // En crisis la voz baja el ritmo y sube la estabilidad: presente, pausada,
