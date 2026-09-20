@@ -70,6 +70,14 @@ export default async function handler(req, res) {
     ? { stability: 0.80, similarity_boost: 0.75, style: 0.0, speed: 0.88, use_speaker_boost: true }
     : { stability: 0.50, similarity_boost: 0.75, style: 0.15, speed: 1.0, use_speaker_boost: true }
 
+  // multilingual_v2 sostiene la calidad de voz en español sin cambiar de timbre.
+  const modelId = process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2'
+
+  const payload = { text: clean, model_id: modelId, voice_settings }
+  // language_code no esta soportado por multilingual_v2 — solo lo mandamos
+  // con los modelos que si lo aceptan (flash/turbo/v3).
+  if (!modelId.includes('multilingual_v2')) payload.language_code = 'es'
+
   try {
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`
     const response = await fetch(url, {
@@ -79,13 +87,7 @@ export default async function handler(req, res) {
         'xi-api-key': apiKey,
         Accept: 'audio/mpeg',
       },
-      body: JSON.stringify({
-        text: clean,
-        // multilingual_v2 sostiene la calidad de voz en español sin cambiar de timbre.
-        model_id: process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',
-        language_code: 'es',
-        voice_settings,
-      }),
+      body: JSON.stringify(payload),
     })
 
     if (!response.ok) {
