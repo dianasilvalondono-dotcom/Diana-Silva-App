@@ -21,6 +21,7 @@ import { useAuth } from './lib/useAuth'
 import { useNotifications } from './lib/useNotifications'
 import { track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
 import { useOneSignal } from './lib/useOneSignal'
+import { useSpeech } from './lib/useSpeech'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile } from './lib/database'
 
@@ -172,6 +173,9 @@ function App() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatMode, setChatMode] = useState('chat') // 'chat' or 'create'
+  // Voz de Tu Ronda. Si /api/speak no está configurado, available queda en false
+  // y el botón no se muestra.
+  const { speak, speakingId, loadingId: speechLoadingId, available: voiceAvailable } = useSpeech()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [dirFilter, setDirFilter] = useState('todas')
 
@@ -2214,6 +2218,35 @@ function App() {
                   <div style={{ fontSize: 17, fontWeight: 700, color: C.rose, marginBottom: 4 }}>Tu Ronda</div>
                 )}
                 {msg.text}
+                {/* Escuchar la respuesta en voz. En crisis la voz va más pausada. */}
+                {msg.role === 'assistant' && voiceAvailable && msg.text && !msg.isProgram && (
+                  <button
+                    onClick={() => speak(msg.text, { id: i, tone: msg.sos ? 'sos' : 'chat' })}
+                    aria-label={speakingId === i ? 'Silenciar' : 'Escuchar esta respuesta'}
+                    style={{
+                      marginTop: 10, padding: '5px 12px 5px 6px', borderRadius: 20,
+                      border: `1px solid ${C.roseLight}`, cursor: 'pointer',
+                      background: 'transparent', color: C.rose,
+                      fontSize: 15, fontWeight: 600, fontFamily: 'inherit',
+                      display: 'flex', alignItems: 'center', gap: 7,
+                    }}>
+                    <div style={{
+                      width: 20, height: 20, borderRadius: '50%',
+                      border: `2px solid ${C.rose}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      opacity: speechLoadingId === i ? 0.45 : 1,
+                      animation: speakingId === i ? 'chatDot 1.2s ease-in-out infinite' : 'none',
+                    }}>
+                      <div style={{
+                        width: speakingId === i ? 7 : 6,
+                        height: speakingId === i ? 7 : 6,
+                        borderRadius: speakingId === i ? 2 : '50%',
+                        background: C.rose,
+                      }} />
+                    </div>
+                    {speechLoadingId === i ? 'Un momento…' : speakingId === i ? 'Silenciar' : 'Escuchar'}
+                  </button>
+                )}
                 {/* Action buttons: Connect with professional / SOS */}
                 {msg.connect && (
                   <button onClick={() => { openModule('juntas', 'directorio', { silent: true }); setDirFilter(msg.connect) }} style={{
