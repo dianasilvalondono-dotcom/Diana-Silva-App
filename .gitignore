@@ -25,3 +25,10 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Contexto personal — nunca versionar
+CLAUDE.md
+
+# Documentos de negocio — no van en un repo de codigo
+*.xlsx
+*.pptx

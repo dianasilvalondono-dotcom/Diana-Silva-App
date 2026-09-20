@@ -23,7 +23,7 @@ export default function HistoriaView({ showFullStory, setShowFullStory }) {
         </div>
         {showFullStory && <>
           <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
-            Desde los 16 años pasé por diagnósticos que no eran míos. Pasé por malos diagnósticos, por depresión. Hasta que llegué al DBT y eso me cambió la vida. Me certifiqué como profesora de yoga. Me fui 35 días a Grecia con 20 mujeres. En ese camino vi el potencial: mujeres creciendo juntas. Eso tenía que ser una plataforma.
+            Pasé años con diagnósticos que no eran míos. Desde los 16 me nombraron de muchas maneras y ninguna encajaba, hasta que una neuropsicóloga puso la palabra correcta: altas capacidades cognitivas. Entenderlo me cambió la vida — no porque arreglara nada, sino porque por fin supe cómo funciono. En ese camino aprendí las herramientas que hoy son Ronda: DBT, regulación, respiración. Me certifiqué como profesora de yoga. Me fui 35 días a Grecia con 20 mujeres. Ahí vi el potencial: mujeres creciendo juntas. Eso tenía que ser una plataforma.
           </div>
           <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
             Yo también he escogido mal. He tomado malas decisiones. Me paro firme con ellas hoy. He sido personajes de mujeres de las que no me he sentido orgullosa. Pero las lecciones que me dejaron esas mujeres que me rodean — mis abuelas, mis maestras, mis amigas — esas me han sostenido.
