@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 const ONESIGNAL_APP_ID = '7ae00782-88c2-4963-a660-aa62a85891ad'
 const ONESIGNAL_SDK_URL = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
@@ -128,15 +128,17 @@ export function useOneSignal() {
     }
   }
 
-  const setExternalUserId = async (userId) => {
+  // useCallback para que la identidad sea estable: App.jsx las usa como
+  // dependencias de un efecto, y sin esto el efecto correria en cada render.
+  const setExternalUserId = useCallback(async (userId) => {
     if (!window.OneSignal || !userId) return
     try { await window.OneSignal.login(userId) } catch {}
-  }
+  }, [])
 
-  const setEmail = async (email) => {
+  const setEmail = useCallback(async (email) => {
     if (!window.OneSignal || !email) return
     try { await window.OneSignal.User.addEmail(email) } catch {}
-  }
+  }, [])
 
   return { status, subscribe, unsubscribe, setExternalUserId, setEmail }
 }

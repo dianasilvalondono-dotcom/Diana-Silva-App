@@ -5,7 +5,6 @@ import { FONT, SHADOW } from './constants/tokens'
 import { ICONS, MOOD_ICONS, UI_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
 import HistoriaView from './components/views/HistoriaView'
-import FrasesView from './components/views/FrasesView'
 import DiarioView from './components/views/DiarioView'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
@@ -75,7 +74,7 @@ function NavItem({ icon, label, active, onClick }) {
 
 function App() {
   // Auth
-  const { user, loading: authLoading, isConfigured, signInWithGoogle, signInWithEmail, signUp, signOut } = useAuth()
+  const { user, loading: authLoading, isConfigured, signInWithEmail, signUp, signOut } = useAuth()
   useNotifications()
 
   const [view, setView] = useState('ahora')
@@ -131,14 +130,15 @@ function App() {
 
   // ─── Push notifications con OneSignal ───
   const oneSignal = useOneSignal()
+  const { status: osStatus, setExternalUserId: osSetExternalUserId, setEmail: osSetEmail } = oneSignal
   // Vincular el user.id de Supabase con la suscripción de OneSignal
   // (permite mandar push targeted a usuarias específicas)
   useEffect(() => {
-    if (oneSignal.status === 'subscribed' && user?.id) {
-      oneSignal.setExternalUserId(user.id)
-      if (user.email) oneSignal.setEmail(user.email)
+    if (osStatus === 'subscribed' && user?.id) {
+      osSetExternalUserId(user.id)
+      if (user.email) osSetEmail(user.email)
     }
-  }, [oneSignal.status, user])
+  }, [osStatus, user, osSetExternalUserId, osSetEmail])
 
   // ─── Modal genérico de la marca (reemplaza alert() feo del navegador) ───
   const [appModal, setAppModal] = useState(null) // { type: 'success'|'info'|'paywall', title, body, cta }
@@ -207,8 +207,8 @@ function App() {
   const recognitionRef = { current: null }
 
   // Quotes
-  const [favQuotes, setFavQuotes] = useState(() => load('diana-fav-quotes', []))
-  const [quoteFilter, setQuoteFilter] = useState('todas')
+  // Solo lectura: se conserva lo guardado y se muestra en el perfil.
+  const [favQuotes] = useState(() => load('diana-fav-quotes', []))
 
   // Toolkit
   const [toolkitItems, setToolkitItems] = useState(() => load('diana-toolkit', []))
@@ -325,7 +325,9 @@ function App() {
       { name: 'exhale', label: 'Exhala', duration: 8000 },
     ]
     let phaseIndex = 0
-    let cycleCount = breatheCount
+    // Los dos disparadores hacen setBreatheCount(0) antes de activar,
+    // asi que el ciclo siempre arranca en cero.
+    let cycleCount = 0
     const runPhase = () => {
       if (cycleCount >= 5 || !breatheActive) return
       setBreathePhase(phases[phaseIndex].name)
@@ -346,8 +348,8 @@ function App() {
     if (user && isConfigured) {
       syncFromLocal(user.id)
       const authName = user.user_metadata?.name || user.user_metadata?.full_name
-      if (authName && authName !== profile.name) {
-        setProfile(prev => ({ ...prev, name: authName }))
+      if (authName) {
+        setProfile(prev => (prev.name === authName ? prev : { ...prev, name: authName }))
       }
     }
   }, [user, isConfigured])
@@ -379,6 +381,9 @@ function App() {
       } catch (e) {}
     })
     return history
+    // `checked` no se lee aqui: es el disparador. Al marcar un habito se
+    // reescribe localStorage, que es de donde sale este historial.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checked])
 
   // Day change detection
@@ -513,10 +518,6 @@ function App() {
 
   const removeHabit = (id) => {
     setHabits(habits.filter(h => h.id !== id))
-  }
-
-  const toggleFavQuote = (idx) => {
-    setFavQuotes(prev => prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx])
   }
 
   const startProgram = (progId) => {
@@ -1464,16 +1465,6 @@ function App() {
   )
 
   /* ── FRASES ── */
-  const frasesView = (
-    <FrasesView
-      quote={quote}
-      quoteFilter={quoteFilter}
-      setQuoteFilter={setQuoteFilter}
-      favQuotes={favQuotes}
-      toggleFavQuote={toggleFavQuote}
-    />
-  )
-
   /* ── TOOLKIT ── */
   const filteredTools = toolFilter === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === toolFilter)
   const toolkitCounts = TOOLKIT_CATS.reduce((acc, cat) => {
@@ -2956,7 +2947,6 @@ function App() {
   if (isConfigured && !user) {
     return (
       <AuthScreen
-        onSignInGoogle={signInWithGoogle}
         onSignInEmail={signInWithEmail}
         onSignUp={signUp}
       />

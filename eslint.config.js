@@ -38,4 +38,13 @@ export default defineConfig([
       sourceType: 'module',
     },
   },
+  {
+    // Los service workers de /public corren en su propio scope:
+    // importScripts, clients y self no son globals de navegador.
+    files: ['public/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.serviceworker, ...globals.browser },
+      sourceType: 'script',
+    },
+  },
 ])

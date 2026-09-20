@@ -4,13 +4,12 @@ import { signInWithGoogle, signInWithEmail, signUp as authSignUp, signOut as aut
 
 export function useAuth() {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // Si no hay Supabase configurado no hay nada que cargar: el estado
+  // inicial ya es el definitivo y el efecto no necesita tocarlo.
+  const [loading, setLoading] = useState(Boolean(supabase))
 
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false)
-      return
-    }
+    if (!supabase) return
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {

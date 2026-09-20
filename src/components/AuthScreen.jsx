@@ -3,7 +3,7 @@ import { C } from '../constants/colors'
 import { FONT } from '../constants/tokens'
 import Button from './ui/Button'
 
-export default function AuthScreen({ onSignInGoogle, onSignInEmail, onSignUp }) {
+export default function AuthScreen({ onSignInEmail, onSignUp }) {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

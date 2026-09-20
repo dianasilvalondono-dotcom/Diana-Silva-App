@@ -1,5 +1,9 @@
-/* ── Mini SVG Brand Icons — Ronda ── */
-const MiniIcon = ({ children, size = 20, color = '#C4908A' }) => (
+/* ── Mini SVG Brand Icons — Ronda ──
+   Este archivo exporta catalogos de iconos, no componentes: fast refresh
+   no aplica aqui. */
+/* eslint-disable react-refresh/only-export-components */
+// El color lo pone el contenedor via currentColor, no este componente.
+const MiniIcon = ({ children, size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
     {children}
   </svg>
