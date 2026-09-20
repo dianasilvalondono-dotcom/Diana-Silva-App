@@ -38,7 +38,10 @@ async function resolveVoiceId(apiKey) {
 function sanitizeForSpeech(text) {
   return text
     // Emojis y simbolos decorativos: se leerian como ruido.
-    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}]/gu, '')
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}]/gu, '')
+    // Selector de variacion, aparte: dentro de la clase anterior el motor lo
+    // combinaria con el caracter previo y la regla es ambigua.
+    .replace(/️/g, '')
     // Markdown residual.
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')

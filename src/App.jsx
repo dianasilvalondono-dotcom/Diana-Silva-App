@@ -76,7 +76,7 @@ function NavItem({ icon, label, active, onClick }) {
 function App() {
   // Auth
   const { user, loading: authLoading, isConfigured, signInWithGoogle, signInWithEmail, signUp, signOut } = useAuth()
-  const { isSubscribed, isReady: notifReady, requestPermission } = useNotifications()
+  useNotifications()
 
   const [view, setView] = useState('ahora')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
@@ -177,7 +177,7 @@ function App() {
   // y el botón no se muestra.
   const { speak, speakingId, loadingId: speechLoadingId, available: voiceAvailable } = useSpeech()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [dirFilter, setDirFilter] = useState('todas')
+  const [, setDirFilter] = useState('todas')
 
   // Habits
   const [habits, setHabits] = useState(() => load('diana-habits', []))
@@ -1982,8 +1982,6 @@ function App() {
   /* ── Directorio / Marketplace ── */
   const DIRECTORIO_CATS = []
   const SEED_DIRECTORIO = []
-  const filteredDir = []
-
   const directorioView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
