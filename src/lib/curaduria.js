@@ -11,6 +11,7 @@ const fromRow = (r) => ({
   ciudad: r.ciudad,
   barrio: r.barrio,
   sala: r.sala,
+  modalidad: r.modalidad || 'presencial',
   colecciones: r.colecciones || [],
   titulo: r.titulo,
   cuando: r.cuando,

@@ -8,10 +8,10 @@
    ────────────────────────────────────────────────────────────── */
 import { C } from './colors'
 
-/* Tipografía de marca: Montserrat para el cuerpo y Fraunces (serif
-   orgánica) para títulos, cédulas y la voz de la curaduría. */
-export const FONT = 'Montserrat, sans-serif'
-export const FONT_DISPLAY = "'Fraunces', Georgia, 'Times New Roman', serif"
+/* Tipografía de marca: Jost para el cuerpo y Cormorant Garamond
+   (serif de galería) para títulos, cédulas y la voz de la curaduría. */
+export const FONT = "'Jost', 'Helvetica Neue', Arial, sans-serif"
+export const FONT_DISPLAY = "'Cormorant Garamond', Georgia, 'Times New Roman', serif"
 
 /* Escala tipográfica (px) — objetivo consolidado: ~8 pasos
    (hoy el código usa 23 tamaños sueltos; migrar hacia estos). */
@@ -26,7 +26,7 @@ export const TYPE = {
   display: 56, // portada / hero
 }
 
-/* Pesos — Montserrat se carga en 400/600/700/800/900 */
+/* Pesos — Jost se carga en 400/500/600/700 (800 y 900 caen en 700) */
 export const WEIGHT = {
   regular: 400,
   medium: 600,

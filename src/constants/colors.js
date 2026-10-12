@@ -1,65 +1,80 @@
-/* ── Color tokens: paleta de Diana (oct 2026) ──
-   Tres colores Pantone, nada más:
-     · Merlot        PANTONE 19-1534 TCX  #73272D  (identidad, acción)
-     · Spinach Green PANTONE 16-0439 TCX  #909B4C  (secundario)
-     · Placid Blue   PANTONE 15-3920 TCX  #8CACD3  (acento frío)
-   Más sus versiones oscuras (para texto legible) y claras (fondos), y
-   neutros. Sin círculos decorativos: el círculo queda solo en el logo.
+/* ── Color tokens: paleta de Diana (oct 2026, segunda versión) ──
+   Los tonos de su moodboard:
+     · Dark Purple    PANTONE 19-2524 TCX  #592147  (telón, botones, identidad)
+     · Orchid Hush    PANTONE 256 C        #D6BFDD  (etiquetas, acentos rosados)
+     · Sage           PANTONE 16-0421 TCX  #91946E  (acento verde)
+     · Olive                               #726D2D  (etiquetas pequeñas)
+     · Ice Water      PANTONE 13-4202 TCX  #BFD5EB  (recuadros de calma)
+     · Neon Navy      PANTONE 20-0142 TPM  #141833  (texto principal)
+   Regla: el telón es morado; la hoja es clara; rosado y verde solo en
+   etiquetas y detalles. El color nunca va solo: siempre con texto.
+   Sin círculos decorativos: el círculo queda solo en el logo.
 
-   Los nombres heredados (rose, teal, gold, mint...) se conservan para no
-   romper el código existente: cambia el valor, no el nombre. En código
-   nuevo, usa los nombres semánticos de la primera sección. */
+   Los nombres heredados (merlot, espinaca, placido, rose, teal…) se
+   conservan para no romper el código existente: cambia el valor, no el
+   nombre. En código nuevo, usa los nombres de la primera sección. */
 export const C = {
   /* Paleta (código nuevo) */
-  merlot:         '#73272D',
-  merlotOscuro:   '#4E1A1F',
-  merlotClaro:    '#F4E9EA',
-  espinaca:       '#909B4C',   // relleno; texto encima: tinta
-  espinacaOscura: '#5C6430',   // versión legible como texto
-  espinacaClara:  '#EEF0E1',
-  placido:        '#8CACD3',   // relleno o texto sobre merlot; texto encima: tinta
-  placidoOscuro:  '#3E6390',   // versión legible como texto
-  placidoClaro:   '#EDF2F8',
-  tinta:          '#2A1E21',   // texto principal
-  fondo:          '#F7F6F2',
+  morado:        '#592147',
+  moradoOscuro:  '#3E1631',
+  orquidea:      '#D6BFDD',
+  orquideaClara: '#F3EAF5',
+  sage:          '#91946E',
+  sageClara:     '#E3E5D3',
+  oliva:         '#726D2D',
+  olivaOscura:   '#4F4B1E',   // texto sobre sageClara
+  agua:          '#BFD5EB',
+  aguaClara:     '#DCE7F3',
+  hoja:          '#EEF3F9',   // fondo de la hoja de contenido
+  navy:          '#141833',
 
-  /* Antes rosa → merlot */
-  rose:      '#73272D',
-  roseDark:  '#4E1A1F',
-  roseBloom: '#C99498',
-  roseLight: '#F4E9EA',
+  /* Nombres de la primera versión → misma función, tono nuevo */
+  merlot:         '#592147',
+  merlotOscuro:   '#3E1631',
+  merlotClaro:    '#F3EAF5',
+  espinaca:       '#91946E',
+  espinacaOscura: '#726D2D',
+  espinacaClara:  '#E3E5D3',
+  placido:        '#BFD5EB',
+  placidoOscuro:  '#141833',
+  placidoClaro:   '#DCE7F3',
+  tinta:          '#141833',
+  fondo:          '#EEF3F9',
 
-  /* Antes teal → plácido oscuro */
-  teal:      '#3E6390',
-  tealDark:  '#2C4A6E',
-  tealLight: '#8CACD3',
+  /* Antes rosa */
+  rose:      '#592147',
+  roseDark:  '#3E1631',
+  roseBloom: '#D6BFDD',
+  roseLight: '#F3EAF5',
 
-  /* Antes mint → espinaca clara */
-  mint:      '#C9D19A',
-  mintLight: '#EEF0E1',
+  /* Antes teal */
+  teal:      '#592147',
+  tealDark:  '#3E1631',
+  tealLight: '#D6BFDD',
 
-  /* Coral → merlot */
-  coral:     '#73272D',
+  /* Antes mint */
+  mint:      '#91946E',
+  mintLight: '#E3E5D3',
 
-  /* Lavanda → plácido oscuro */
-  lavanda:   '#3E6390',
+  coral:     '#592147',
+  lavanda:   '#592147',
 
-  /* Dorado → espinaca oscura */
-  gold:      '#5C6430',
-  goldDark:  '#454B22',
-  goldLight: '#E3E7C8',
+  /* Antes dorado → oliva */
+  gold:      '#726D2D',
+  goldDark:  '#4F4B1E',
+  goldLight: '#E3E5D3',
 
   /* Neutros */
-  cream:     '#F7F6F2',
+  cream:     '#EEF3F9',
   card:      '#FFFFFF',
-  border:    '#E4E1DA',
-  text:      '#2A1E21',
-  muted:     '#5F5658',
-  subtle:    '#7A7174',
+  border:    '#DCE3EC',
+  text:      '#141833',
+  muted:     '#4A4E66',
+  subtle:    '#63677D',
 
   /* Funcionales */
-  green:     '#5C6430',
-  greenDone: '#EEF0E1',
-  beige:     '#F7F6F2',
-  nude:      '#F7F6F2',
+  green:     '#726D2D',
+  greenDone: '#726D2D',
+  beige:     '#EEF3F9',
+  nude:      '#EEF3F9',
 }

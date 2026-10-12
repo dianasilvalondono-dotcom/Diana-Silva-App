@@ -18,8 +18,15 @@ export const SALAS = [
   { id: 'mesa', label: 'Mesa', desc: 'Catas, cocina y sobremesa' },
   { id: 'taller', label: 'Taller', desc: 'Crear con las manos' },
   { id: 'movimiento', label: 'Movimiento', desc: 'Caminar, bailar, entrenar' },
+  { id: 'ciudad', label: 'Ciudad', desc: 'Galerías, aperturas y recorridos' },
   { id: 'acompanamiento', label: 'Acompañamiento', desc: 'Profesionales verificadas' },
 ]
+
+/* Modalidad del plan: en persona o en línea (por voz, en grupo pequeño). */
+export const MODALIDAD = {
+  presencial: 'En persona',
+  'en-linea': 'En línea',
+}
 
 export const COLECCIONES = [
   { id: 'recien-llegada', label: 'Recién llegada', desc: 'Para la que todavía no tiene a quién escribirle el viernes.' },
@@ -37,6 +44,14 @@ export const TEMPORADA = {
   mes: 'Octubre',
   nombre: 'Las que llegaron',
   texto: 'Este mes la curaduría mira a las mujeres que acaban de llegar a la ciudad.',
+  /* "Para llevar": lo que se vive adentro durante la semana y se
+     conversa afuera. Ejemplo hasta que la curadora elija el real. */
+  libro: {
+    titulo: 'Una habitación propia',
+    autora: 'Virginia Woolf',
+    donde: 'Se conversa en el Salón del miércoles',
+    ejemplo: true,
+  },
 }
 
 export const PLANES_EJEMPLO = [
@@ -93,6 +108,17 @@ export const PLANES_EJEMPLO = [
       porque: 'Un espacio cuidado y guiado por una profesional verificada.',
       paraQuien: 'Para la que está atravesando un cambio y quiere compañía con criterio.',
       comoLlegas: 'Ocho cupos. La profesional te escribe antes para saludarte.',
+    },
+  },
+  {
+    id: 'ej-ctg-6', ciudad: 'cartagena', barrio: 'En línea', sala: 'salon', modalidad: 'en-linea',
+    colecciones: ['voz-alta', 'sin-hablar'],
+    titulo: 'Club de lectura por voz', cuando: 'Domingo, 5:00 p. m.', anfitriona: 'Isabel',
+    acceso: 'solo-mujeres', verificacion: 1, cupos: 8,
+    cedula: {
+      porque: 'Ocho voces, un libro y una hora de conversación por audio.',
+      paraQuien: 'Para la que prefiere conversar desde su casa.',
+      comoLlegas: 'Te llega el enlace el día antes. Puedes entrar y solo escuchar.',
     },
   },
   {

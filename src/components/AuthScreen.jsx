@@ -68,7 +68,7 @@ export default function AuthScreen({ onSignInEmail, onSignUp }) {
       {/* Card */}
       <div style={{
         background: C.card, borderRadius: 20, padding: 28, width: '100%', maxWidth: 380,
-        boxShadow: '0 4px 20px rgba(62,99,144,0.08)', position: 'relative',
+        boxShadow: '0 4px 20px rgba(20,24,51,0.08)', position: 'relative',
       }}>
         <div style={{
           fontSize: 22, fontWeight: 700, color: C.text, textAlign: 'center', marginBottom: 6,

@@ -4,8 +4,8 @@
   "description": "Herramientas de bienestar para mujeres. Hábitos, diario de voz, programas y comunidad con guías verificadas.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F7F6F2",
-  "theme_color": "#73272D",
+  "background_color": "#EEF3F9",
+  "theme_color": "#592147",
   "orientation": "portrait",
   "icons": [
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },

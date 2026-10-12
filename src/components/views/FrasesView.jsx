@@ -12,7 +12,7 @@ export default function FrasesView({ quote, quoteFilter, setQuoteFilter, favQuot
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Quote of the day */}
-      <div style={{ background: 'linear-gradient(135deg, #5C6430, #E3E7C8)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #726D2D, #E3E5D3)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8, marginBottom: 8 }}>Frase del día</div>
         <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.5, fontStyle: 'italic' }}>"{quote.text}"</div>
         <div style={{ fontSize: 20, marginTop: 10, opacity: 0.85 }}>— {quote.author}</div>
