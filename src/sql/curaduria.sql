@@ -2,7 +2,8 @@
 --  RONDA — Curaduría (oct 2026)
 --  Planes curados, reservas de cupo, reportes privados y la encuesta
 --  "¿Te sentiste segura?". Tablas nuevas: no tocan las existentes.
---  Estado: PENDIENTE de aplicar en producción (requiere visto bueno).
+--  Estado: APLICADO en producción el 12-oct-2026 con visto bueno de Diana
+--  (migración curaduria_planes_reservas_reportes).
 -- ═══════════════════════════════════════════
 
 -- Registro de organizadoras (Ley 1480, art. 53: nombre, documento,
@@ -27,7 +28,8 @@ CREATE TABLE IF NOT EXISTS planes (
   organizadora_id UUID REFERENCES organizadoras(id) ON DELETE SET NULL,
   ciudad TEXT NOT NULL,
   barrio TEXT NOT NULL,
-  sala TEXT NOT NULL CHECK (sala IN ('salon', 'mesa', 'taller', 'movimiento', 'acompanamiento')),
+  sala TEXT NOT NULL CHECK (sala IN ('salon', 'mesa', 'taller', 'movimiento', 'ciudad', 'acompanamiento')),
+  modalidad TEXT NOT NULL DEFAULT 'presencial' CHECK (modalidad IN ('presencial', 'en-linea')),
   colecciones TEXT[] NOT NULL DEFAULT '{}',
   titulo TEXT NOT NULL,
   cuando TEXT NOT NULL,              -- texto visible: "Jueves, 6:00 p. m."
@@ -58,9 +60,10 @@ CREATE TABLE IF NOT EXISTS reservas (
 );
 
 ALTER TABLE reservas ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Cada usuaria ve sus reservas" ON reservas FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Cada usuaria crea sus reservas" ON reservas FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Cada usuaria cancela sus reservas" ON reservas FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Cada usuaria ve sus reservas" ON reservas FOR SELECT USING ((select auth.uid()) = user_id);
+CREATE POLICY "Cada usuaria crea sus reservas" ON reservas FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
+CREATE POLICY "Cada usuaria cancela sus reservas" ON reservas FOR DELETE USING ((select auth.uid()) = user_id);
+CREATE INDEX IF NOT EXISTS idx_reservas_user ON reservas(user_id);
 
 -- Reportes privados ("Algo no estuvo bien"): los lee solo la curadora
 CREATE TABLE IF NOT EXISTS reportes (
@@ -72,7 +75,7 @@ CREATE TABLE IF NOT EXISTS reportes (
 );
 
 ALTER TABLE reportes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Cada usuaria crea sus reportes" ON reportes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Cada usuaria crea sus reportes" ON reportes FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
 
 -- Encuesta posterior al plan
 CREATE TABLE IF NOT EXISTS encuestas_seguridad (
@@ -85,4 +88,4 @@ CREATE TABLE IF NOT EXISTS encuestas_seguridad (
 );
 
 ALTER TABLE encuestas_seguridad ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Cada usuaria responde su encuesta" ON encuestas_seguridad FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Cada usuaria responde su encuesta" ON encuestas_seguridad FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
