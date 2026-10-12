@@ -19,12 +19,12 @@ body::before, body::after {
 body::before {
   width: 200px; height: 200px;
   top: 15%; right: -60px;
-  background: rgba(126, 212, 188, 0.08);
+  background: rgba(203,214,142, 0.08);
 }
 body::after {
   width: 160px; height: 160px;
   bottom: 20%; left: -50px;
-  background: rgba(184, 169, 201, 0.07);
+  background: rgba(128,97,114, 0.07);
 }
 
 /* Extra circles via root pseudo */
@@ -41,12 +41,12 @@ body::after {
 #root::before {
   width: 120px; height: 120px;
   top: 50%; right: -30px;
-  background: rgba(232, 115, 109, 0.06);
+  background: rgba(119,20,65, 0.06);
 }
 #root::after {
   width: 100px; height: 100px;
   bottom: 10%; left: 20%;
-  background: rgba(201, 169, 110, 0.06);
+  background: rgba(140,94,14, 0.06);
 }
 
 @keyframes fadeIn {
@@ -58,6 +58,6 @@ body::after {
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse-gentle {
-  0%, 100% { box-shadow: 0 4px 20px rgba(184,169,201,0.5); transform: scale(1); }
-  50% { box-shadow: 0 4px 30px rgba(184,169,201,0.8); transform: scale(1.05); }
+  0%, 100% { box-shadow: 0 4px 20px rgba(128,97,114,0.5); transform: scale(1); }
+  50% { box-shadow: 0 4px 30px rgba(128,97,114,0.8); transform: scale(1.05); }
 }

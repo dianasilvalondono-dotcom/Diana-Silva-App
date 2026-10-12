@@ -8,8 +8,10 @@
    ────────────────────────────────────────────────────────────── */
 import { C } from './colors'
 
-/* Única familia tipográfica de marca */
+/* Tipografía de marca: Montserrat para el cuerpo y Fraunces (serif
+   orgánica) para títulos, cédulas y la voz de la curaduría. */
 export const FONT = 'Montserrat, sans-serif'
+export const FONT_DISPLAY = "'Fraunces', Georgia, 'Times New Roman', serif"
 
 /* Escala tipográfica (px) — objetivo consolidado: ~8 pasos
    (hoy el código usa 23 tamaños sueltos; migrar hacia estos). */

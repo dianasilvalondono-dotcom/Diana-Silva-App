@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import './App.css'
 import { C } from './constants/colors'
-import { FONT, SHADOW } from './constants/tokens'
+import { FONT, FONT_DISPLAY, SHADOW } from './constants/tokens'
 import { ICONS, MOOD_ICONS, UI_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
 import HistoriaView from './components/views/HistoriaView'
 import DiarioView from './components/views/DiarioView'
+import RondasView from './components/views/RondasView'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
@@ -77,7 +78,7 @@ function App() {
   const { user, loading: authLoading, isConfigured, signInWithEmail, signUp, signOut } = useAuth()
   useNotifications()
 
-  const [view, setView] = useState('ahora')
+  const [view, setView] = useState('rondas')
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
   // Admin check — Diana sees everything, others see paywall
   const ADMIN_EMAILS = ['dianasilva.londono@gmail.com']
@@ -599,11 +600,13 @@ function App() {
   /* ── Brand Icons (SVG, Ronda style) ── */
   const BrandIcon = ({ children, active }) => (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="14.5" stroke={active ? C.teal : C.subtle} strokeWidth="2" fill={active ? 'rgba(27,138,122,0.1)' : 'none'} />
+      <circle cx="16" cy="16" r="14.5" stroke={active ? C.teal : C.subtle} strokeWidth="2" fill={active ? 'rgba(42,95,100,0.1)' : 'none'} />
       {children}
     </svg>
   )
   const NAV_ICONS = {
+    /* Rondas — tres círculos en ronda (la curaduría) */
+    rondas: (a) => <BrandIcon active={a}><circle cx="16" cy="9.5" r="3" fill={a ? C.higo : C.subtle} /><circle cx="10.4" cy="19.2" r="3" fill={a ? C.teal : C.subtle} opacity="0.9" /><circle cx="21.6" cy="19.2" r="3" fill={a ? C.teal : C.subtle} opacity="0.9" /><circle cx="16" cy="16" r="8.5" stroke={a ? C.teal : C.subtle} strokeWidth="1.2" strokeDasharray="2 2.4" fill="none" /></BrandIcon>,
     /* Ahora — sol con rayos (tu día) */
     ahora: (a) => <BrandIcon active={a}><circle cx="16" cy="16" r="4" fill={a ? C.teal : C.subtle} /><g stroke={a ? C.teal : C.subtle} strokeWidth="1.5" strokeLinecap="round">{[[16,5,16,8],[16,24,16,27],[5,16,8,16],[24,16,27,16],[8.5,8.5,10.6,10.6],[21.4,21.4,23.5,23.5],[8.5,23.5,10.6,21.4],[21.4,10.6,23.5,8.5]].map(([x1,y1,x2,y2],i)=><line key={i} x1={x1} y1={y1} x2={x2} y2={y2}/>)}</g></BrandIcon>,
     /* Crecer — semilla/planta creciendo */
@@ -613,6 +616,7 @@ function App() {
   }
 
   const NAV = [
+    { id: 'rondas', label: 'Rondas' },
     { id: 'ahora',  label: 'Ahora' },
     { id: 'crecer', label: 'Crecer' },
     { id: 'juntas', label: 'Juntas' },
@@ -634,47 +638,47 @@ function App() {
 
   /* ── Logo ── */
   const logoIcon = (
-    <div style={{ width: 30, height: 30, borderRadius: '50%', border: '2px solid #C6A94E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#C6A94E' }} />
+    <div style={{ width: 30, height: 30, borderRadius: '50%', border: `2px solid ${C.chartreuse}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 10, height: 10, borderRadius: '50%', background: C.higo }} />
     </div>
   )
   const logo = (
-    <button onClick={() => setView('ahora')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+    <button onClick={() => setView('rondas')} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
       {logoIcon}
-      <span style={{ fontSize: 24, fontWeight: 400, color: 'white', letterSpacing: '0.15em', fontFamily: FONT }}>Ronda</span>
+      <span style={{ fontSize: 26, fontWeight: 600, color: 'white', letterSpacing: '0.02em', fontFamily: FONT_DISPLAY }}>Ronda</span>
     </button>
   )
 
   /* ── Top Header ── */
   const header = (
     <div style={{
-      background: '#0D9488',
+      background: `linear-gradient(135deg, ${C.vino} 0%, ${C.orquidea} 100%)`,
       // Respeta el notch/Dynamic Island del iPhone — agrega padding extra arriba
       paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)',
       paddingLeft: 20, paddingRight: 20, paddingBottom: 16,
       position: 'sticky', top: 0, zIndex: 100, overflow: 'hidden',
     }}>
-      {/* Decorative Ronda circles */}
-      <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: 'rgba(126,212,188,0.15)' }} />
-      <div style={{ position: 'absolute', bottom: -20, right: 60, width: 60, height: 60, borderRadius: '50%', background: 'rgba(184,169,201,0.12)' }} />
-      <div style={{ position: 'absolute', top: 5, left: -20, width: 50, height: 50, borderRadius: '50%', background: 'rgba(201,169,110,0.1)' }} />
+      {/* Círculos de Ronda: oleaje */}
+      <div style={{ position: 'absolute', top: -40, right: -30, width: 120, height: 120, borderRadius: '50%', border: `2px solid ${C.lila}33` }} />
+      <div style={{ position: 'absolute', top: -10, right: 0, width: 60, height: 60, borderRadius: '50%', border: `2px solid ${C.chartreuse}40` }} />
+      <div style={{ position: 'absolute', bottom: -24, right: 70, width: 48, height: 48, borderRadius: '50%', background: `${C.higo}33` }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {logo}
             <span style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 20, color: '#E8D5A8', fontWeight: 600, fontStyle: 'italic', fontFamily: FONT }}>Creces tú, crecemos todas</span>
-            {isAdmin && <span style={{ fontSize: 8, background: '#C6A94E', color: 'white', padding: '2px 6px', borderRadius: 6, fontWeight: 700, marginLeft: 6, letterSpacing: '0.05em' }}>ADMIN</span>}
+            <span style={{ fontSize: 18, color: C.chartreuse, fontWeight: 600, fontStyle: 'italic', fontFamily: FONT_DISPLAY }}>Llegas sola, sales en ronda</span>
+            {isAdmin && <span style={{ fontSize: 8, background: C.chartreuse, color: C.text, padding: '2px 6px', borderRadius: 6, fontWeight: 800, marginLeft: 6, letterSpacing: '0.05em' }}>CURADORA</span>}
           </div>
-          <div style={{ fontSize: 19, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()} · Hábitos: {totalDone}/{totalHabits}</div>
+          <div style={{ fontSize: 17, color: 'rgba(255,255,255,0.85)', fontWeight: 500, marginTop: 4 }}>{formatDate()}</div>
         </div>
-        <button onClick={() => { setView('perfil'); setSubTab('') }} style={{
-          width: 40, height: 40, borderRadius: '50%', border: '2px solid #C6A94E',
-          background: 'rgba(201,169,110,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        <button onClick={() => { setView('perfil'); setSubTab('') }} aria-label="Mi perfil" style={{
+          width: 40, height: 40, borderRadius: '50%', border: `2px solid ${C.chartreuse}`,
+          background: 'rgba(237,226,136,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', flexShrink: 0, padding: 0,
         }}>
-          <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #C6A94E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#C6A94E' }} />
+          <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${C.chartreuse}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: C.higo }} />
           </div>
         </button>
       </div>
@@ -686,10 +690,10 @@ function App() {
     <div style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 600,
-      background: 'linear-gradient(180deg, #FFF8F0 0%, #F0FAF7 100%)',
+      background: 'linear-gradient(180deg, #F5F0E6 0%, #EEF1DA 100%)',
       borderTop: `1.5px solid ${C.mintLight}`,
       display: 'flex', padding: '8px 4px 20px', zIndex: 100,
-      boxShadow: '0 -2px 12px rgba(27,138,122,0.08)',
+      boxShadow: '0 -2px 12px rgba(42,95,100,0.08)',
     }}>
       {NAV.map(n => {
         const isActive = view === n.id
@@ -1022,7 +1026,7 @@ function App() {
             /* Inline edit mode */
             <div key={item.id} style={{
               background: C.card, borderRadius: 12, padding: 14,
-              boxShadow: '0 2px 8px rgba(27,138,122,0.15)', border: `2px solid ${C.rose}`,
+              boxShadow: '0 2px 8px rgba(42,95,100,0.15)', border: `2px solid ${C.rose}`,
             }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <input value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
@@ -1220,7 +1224,7 @@ function App() {
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0D9488, #14B5A3, #A7F3D0)', borderRadius: 18, padding: 22, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #2A5F64, #3D7A7F, #CBD68E)', borderRadius: 18, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Programas</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para crecer y brillar</div>
         <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
@@ -1377,8 +1381,8 @@ function App() {
         </div>
         {PROGRAMAS_PREMIUM.map(prog => (
           <div key={prog.id} style={{
-            background: `linear-gradient(135deg, ${C.cream}, #FFF8F0)`, borderRadius: 20, padding: 22,
-            border: `2px solid ${C.gold}40`, boxShadow: '0 4px 16px rgba(201,169,110,0.15)',
+            background: `linear-gradient(135deg, ${C.cream}, #F5F0E6)`, borderRadius: 20, padding: 22,
+            border: `2px solid ${C.gold}40`, boxShadow: '0 4px 16px rgba(140,94,14,0.15)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <div style={{ background: C.gold, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: 19, fontWeight: 800, letterSpacing: '0.05em' }}>PREMIUM</div>
@@ -1406,7 +1410,7 @@ function App() {
               display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
               background: C.goldLight, borderRadius: 12, marginBottom: 16,
             }}>
-              {ICONS.mental('#0D9488', 22)}
+              {ICONS.mental('#2A5F64', 22)}
               <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.5 }}>
                 <span style={{ fontWeight: 800 }}>Basado en neurociencia:</span> cada día incluye el porqué científico detrás de tu micro-acción.
               </div>
@@ -1450,9 +1454,9 @@ function App() {
                 })
               }} style={{
                 width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
-                background: `linear-gradient(135deg, ${C.gold}, #D4B87A)`,
+                background: `linear-gradient(135deg, ${C.gold}, #DAA43C)`,
                 color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 4px 16px rgba(201,169,110,0.35)', letterSpacing: '0.02em',
+                boxShadow: '0 4px 16px rgba(140,94,14,0.35)', letterSpacing: '0.02em',
               }}>
                 {isPremium ? 'Empezar este programa' : 'Solo Premium'}
               </button>
@@ -1475,7 +1479,7 @@ function App() {
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #C4B5FD, #D4C4E0)', borderRadius: 18, padding: 20, color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #806172, #E5D5E1)', borderRadius: 18, padding: 20, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Mi Toolkit</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
         <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
@@ -1618,14 +1622,14 @@ function App() {
 
   /* ── Board categories ── */
   const BOARD_CATS = [
-    { id: 'todas', label: 'Todas', color: '#0D9488' },
-    { id: 'ansiedad', label: 'Ansiedad', color: '#C6A94E' },
-    { id: 'relaciones', label: 'Relaciones', color: '#F4845F' },
-    { id: 'autoestima', label: 'Autoestima', color: '#E8B4B8' },
-    { id: 'maternidad', label: 'Maternidad', color: '#E8B4B8' },
-    { id: 'duelo', label: 'Duelo', color: '#C4B5FD' },
-    { id: 'emprendimiento', label: 'Emprender', color: '#A7F3D0' },
-    { id: 'general', label: 'General', color: '#0D9488' },
+    { id: 'todas', label: 'Todas', color: '#2A5F64' },
+    { id: 'ansiedad', label: 'Ansiedad', color: '#8C5E0E' },
+    { id: 'relaciones', label: 'Relaciones', color: '#771441' },
+    { id: 'autoestima', label: 'Autoestima', color: '#771441' },
+    { id: 'maternidad', label: 'Maternidad', color: '#771441' },
+    { id: 'duelo', label: 'Duelo', color: '#806172' },
+    { id: 'emprendimiento', label: 'Emprender', color: '#CBD68E' },
+    { id: 'general', label: 'General', color: '#2A5F64' },
   ]
 
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
@@ -1902,7 +1906,7 @@ function App() {
           {post.replies && post.replies.length > 0 && post.replies.map((reply, ri) => (
             <div key={ri} style={{
               marginTop: 14, padding: 16, borderRadius: 14,
-              background: 'linear-gradient(135deg, #FBF6F3, #F5E1DE40)',
+              background: 'linear-gradient(135deg, #F5F0E6, #F3E6EE40)',
               border: `1px solid ${C.roseLight}`,
             }}>
               {/* Professional header */}
@@ -2040,9 +2044,9 @@ function App() {
       <div style={{ fontSize: 20, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
       <button onClick={() => track('paywall_cta_clicked', { feature })} style={{
         padding: '14px 32px', borderRadius: 14, border: 'none',
-        background: `linear-gradient(135deg, ${C.gold}, #0B7A71)`, color: 'white',
+        background: `linear-gradient(135deg, ${C.gold}, #372C41)`, color: 'white',
         fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-        boxShadow: '0 4px 16px rgba(201,169,110,0.3)',
+        boxShadow: '0 4px 16px rgba(140,94,14,0.3)',
       }}>
         Desbloquear Ronda Premium
       </button>
@@ -2075,7 +2079,7 @@ function App() {
   const saveAiProgram = () => {
     if (!aiProgram) return
     const id = 'custom_' + Date.now()
-    const prog = { ...aiProgram, id, color: '#E8B4B8', custom: true }
+    const prog = { ...aiProgram, id, color: '#771441', custom: true }
     const saved = JSON.parse(localStorage.getItem('diana-custom-programs') || '[]')
     saved.push(prog)
     localStorage.setItem('diana-custom-programs', JSON.stringify(saved))
@@ -2493,14 +2497,14 @@ function App() {
       {/* Notificaciones — OneSignal */}
       {(oneSignal.status === 'idle' || oneSignal.status === 'error') && (
         <div style={{
-          background: `linear-gradient(135deg, ${C.cream}, #E6F7F5)`,
+          background: `linear-gradient(135deg, ${C.cream}, #EEF1DA)`,
           borderRadius: 16, padding: 18,
           border: `1px solid ${C.teal}30`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
             <div style={{
               width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-              background: `linear-gradient(135deg, ${C.teal}, #0B7A71)`,
+              background: `linear-gradient(135deg, ${C.teal}, #372C41)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 22,
             }}>🔔</div>
@@ -2560,8 +2564,8 @@ function App() {
 
       {oneSignal.status === 'denied' && (
         <div style={{
-          background: '#FEF3F0', borderRadius: 16, padding: 14,
-          border: '1px solid #F4845F40',
+          background: '#F3E6EE', borderRadius: 16, padding: 14,
+          border: '1px solid #77144140',
         }}>
           <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5 }}>
             🔕 Tienes las notificaciones bloqueadas en este navegador. Para activarlas, ve a la configuración del sitio en tu navegador.
@@ -2917,7 +2921,7 @@ function App() {
         background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
         color: 'white', fontSize: 18, fontWeight: 800, border: 'none',
         cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
-        boxShadow: '0 4px 16px rgba(27,138,122,0.35)',
+        boxShadow: '0 4px 16px rgba(42,95,100,0.35)',
       }}>
         Comenzar mi Ronda
       </button>
@@ -2933,10 +2937,10 @@ function App() {
         fontFamily: FONT,
       }}>
         <div style={{
-          width: 50, height: 50, borderRadius: '50%', border: '3px solid #C6A94E',
+          width: 50, height: 50, borderRadius: '50%', border: '3px solid #8C5E0E',
           display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
         }}>
-          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#C6A94E' }} />
+          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#8C5E0E' }} />
         </div>
         <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>Cargando...</div>
       </div>
@@ -2989,7 +2993,7 @@ function App() {
                 background: `${C.teal}`,
                 color: 'white', fontSize: 19, fontWeight: 800,
                 cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 4px 12px rgba(27,138,122,0.3)',
+                boxShadow: '0 4px 12px rgba(42,95,100,0.3)',
               }}>
                 Siguiente
               </button>
@@ -3003,13 +3007,13 @@ function App() {
   /* ── Modal overlay style ── */
   const modalOverlay = {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    background: 'rgba(74,48,53,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+    background: 'rgba(55,44,65,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
     zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center',
     padding: 16, animation: 'fadeIn 0.3s ease',
   }
   const modalCard = {
     background: C.card, borderRadius: 24, padding: 28, width: '100%', maxWidth: 420,
-    maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(74,48,53,0.3)',
+    maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(55,44,65,0.3)',
     WebkitOverflowScrolling: 'touch',
   }
 
@@ -3043,7 +3047,7 @@ function App() {
           width: '100%', padding: 16, borderRadius: 16, border: 'none',
           background: `linear-gradient(135deg, ${C.gold}, ${C.goldDark})`,
           color: 'white', fontSize: 19, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
-          boxShadow: '0 6px 20px rgba(201,169,110,0.35)', letterSpacing: '0.02em', marginBottom: 16,
+          boxShadow: '0 6px 20px rgba(140,94,14,0.35)', letterSpacing: '0.02em', marginBottom: 16,
         }}>
           Comenzar mi Ronda
         </button>
@@ -3102,7 +3106,7 @@ function App() {
     <div style={modalOverlay}>
       <div style={modalCard}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 36, marginBottom: 10, color: '#C4B5FD' }}>●</div>
+          <div style={{ fontSize: 36, marginBottom: 10, color: '#806172' }}>●</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
           </div>
@@ -3182,7 +3186,7 @@ function App() {
           marginTop: 16, width: '100%', padding: 16, borderRadius: 16, border: 'none',
           background: `linear-gradient(135deg, ${C.roseDark}, ${C.rose})`,
           color: 'white', fontSize: 19, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
-          boxShadow: '0 6px 20px rgba(166,113,107,0.35)', letterSpacing: '0.02em',
+          boxShadow: '0 6px 20px rgba(74,14,38,0.35)', letterSpacing: '0.02em',
         }}>
           Cerrar mi día
         </button>
@@ -3204,7 +3208,7 @@ function App() {
         width: isMobile ? 56 : 'auto',
         height: isMobile ? 56 : 'auto',
         justifyContent: 'center',
-        boxShadow: '0 4px 20px rgba(27,138,122,0.4)',
+        boxShadow: '0 4px 20px rgba(42,95,100,0.4)',
       }}
       aria-label="Habla con Tu Ronda — tu guía de bienestar"
     >
@@ -3235,7 +3239,7 @@ function App() {
         width: isMobile ? 56 : 'auto',
         height: isMobile ? 56 : 'auto',
         justifyContent: 'center',
-        boxShadow: '0 4px 20px rgba(184,169,201,0.5)',
+        boxShadow: '0 4px 20px rgba(128,97,114,0.5)',
         animation: 'pulse-gentle 3s ease-in-out infinite',
       }}
       aria-label="Botón de emergencia — Respiración, grounding y herramientas DBT"
@@ -3258,11 +3262,11 @@ function App() {
 
   /* ── Panic Modal — Full Crisis Support ── */
   const GROUND_STEPS = [
-    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#14B5A3' },
-    { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#C6A94E' },
-    { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#E8B4B8' },
-    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#0D9488' },
-    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#0D9488' },
+    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#3D7A7F' },
+    { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#8C5E0E' },
+    { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#771441' },
+    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#2A5F64' },
+    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#2A5F64' },
   ]
 
   const DBT_SKILLS = [
@@ -3280,10 +3284,10 @@ function App() {
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: panicScreen === 'breathe'
-        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #0B7A71, #0D9488)'
-          : breathePhase === 'hold' ? 'linear-gradient(180deg, #0D9488, #0B7A71)'
+        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #372C41, #2A5F64)'
+          : breathePhase === 'hold' ? 'linear-gradient(180deg, #2A5F64, #372C41)'
           : 'linear-gradient(180deg, #1A202C, #2D3748)')
-        : 'linear-gradient(180deg, #0B7A71 0%, #0D4A42 100%)',
+        : 'linear-gradient(180deg, #372C41 0%, #0D4A42 100%)',
       zIndex: 1000, display: 'flex', flexDirection: 'column',
       animation: 'fadeIn 0.3s ease',
       overflowY: 'auto', WebkitOverflowScrolling: 'touch',
@@ -3323,19 +3327,19 @@ function App() {
           <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8 }}>
             Estás a salvo.
           </div>
-          <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 20, color: '#EEF1DA', textAlign: 'center', marginBottom: 8 }}>
             Respira. Este momento va a pasar.
           </div>
-          <div style={{ fontSize: 19, color: '#E8B4B8', textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ fontSize: 19, color: '#771441', textAlign: 'center', marginBottom: 32 }}>
             Escoge lo que necesitas ahora mismo:
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
             {[
-              { id: 'breathe', icon: '', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#14B5A3' },
-              { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#C6A94E' },
-              { id: 'dbt', icon: '', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#E8B4B8' },
-              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#0D9488' },
+              { id: 'breathe', icon: '', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#3D7A7F' },
+              { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#8C5E0E' },
+              { id: 'dbt', icon: '', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#771441' },
+              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#2A5F64' },
             ].map(opt => (
               <button key={opt.id} onClick={() => {
                 setPanicScreen(opt.id)
@@ -3349,7 +3353,7 @@ function App() {
                 <div style={{ fontSize: 28, minWidth: 40, textAlign: 'center' }}>{opt.icon}</div>
                 <div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{opt.title}</div>
-                  <div style={{ fontSize: 20, color: '#E0FBF1', marginTop: 2 }}>{opt.sub}</div>
+                  <div style={{ fontSize: 20, color: '#EEF1DA', marginTop: 2 }}>{opt.sub}</div>
                 </div>
               </button>
             ))}
@@ -3358,19 +3362,19 @@ function App() {
           {/* Go to community */}
           <button onClick={() => { setShowPanic(false); openModule('juntas', '', { silent: true }) }} style={{
             marginTop: 24, width: '100%', padding: '14px 18px',
-            background: 'rgba(201,169,110,0.2)', borderRadius: 16,
-            border: '1px solid rgba(201,169,110,0.4)', cursor: 'pointer', textAlign: 'center',
+            background: 'rgba(140,94,14,0.2)', borderRadius: 16,
+            border: '1px solid rgba(140,94,14,0.4)', cursor: 'pointer', textAlign: 'center',
           }}>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#C6A94E' }}>💬 Ir a la Comunidad</div>
-            <div style={{ fontSize: 20, color: '#E0FBF1', marginTop: 4 }}>Pregunta lo que necesites. Guías Ronda verificadas te acompañan.</div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: '#8C5E0E' }}>💬 Ir a la Comunidad</div>
+            <div style={{ fontSize: 20, color: '#EEF1DA', marginTop: 4 }}>Pregunta lo que necesites. Guías Ronda verificadas te acompañan.</div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. No reemplaza atención en crisis.</div>
           </button>
 
           <div style={{ marginTop: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, color: '#E8B4B8', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
+            <div style={{ fontSize: 20, color: '#771441', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
             <a href="tel:106" style={{
               display: 'inline-block', padding: '10px 24px', borderRadius: 20,
-              background: '#0D9488', color: 'white', fontWeight: 700, fontSize: 20,
+              background: '#2A5F64', color: 'white', fontWeight: 700, fontSize: 20,
               textDecoration: 'none',
             }}>
               📞 Línea 106 — Atención en crisis
@@ -3385,10 +3389,10 @@ function App() {
             height: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
             borderRadius: '50%',
             background: breathePhase === 'inhale'
-              ? 'radial-gradient(circle, rgba(27,138,122,0.6), rgba(27,138,122,0.1))'
+              ? 'radial-gradient(circle, rgba(42,95,100,0.6), rgba(42,95,100,0.1))'
               : breathePhase === 'hold'
-              ? 'radial-gradient(circle, rgba(201,169,110,0.6), rgba(201,169,110,0.1))'
-              : 'radial-gradient(circle, rgba(123,165,110,0.6), rgba(123,165,110,0.1))',
+              ? 'radial-gradient(circle, rgba(140,94,14,0.6), rgba(140,94,14,0.1))'
+              : 'radial-gradient(circle, rgba(42,95,100,0.6), rgba(42,95,100,0.1))',
             transition: 'all 1.5s ease-in-out',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginBottom: 32,
@@ -3398,12 +3402,12 @@ function App() {
             </div>
           </div>
 
-          <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 8 }}>
+          <div style={{ fontSize: 20, color: '#EEF1DA', textAlign: 'center', marginBottom: 8 }}>
             {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
              breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
              '8 segundos — suelta todo, deja ir'}
           </div>
-          <div style={{ fontSize: 19, color: '#E8B4B8', marginBottom: 24 }}>
+          <div style={{ fontSize: 19, color: '#771441', marginBottom: 24 }}>
             Ciclo {Math.min(breatheCount + 1, 5)} de 5
           </div>
 
@@ -3411,7 +3415,7 @@ function App() {
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12, color: C.teal, opacity: 0.3 }}>●</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
-              <div style={{ fontSize: 20, color: '#E0FBF1', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
+              <div style={{ fontSize: 20, color: '#EEF1DA', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
               <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
                 padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
                 border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
@@ -3431,7 +3435,7 @@ function App() {
             <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.4, marginBottom: 24 }}>
               {GROUND_STEPS[groundStep].prompt}
             </div>
-            <div style={{ fontSize: 20, color: '#E0FBF1', marginBottom: 32, textAlign: 'center' }}>
+            <div style={{ fontSize: 20, color: '#EEF1DA', marginBottom: 32, textAlign: 'center' }}>
               Tómate tu tiempo. No hay prisa.
             </div>
             <button onClick={() => setGroundStep(groundStep + 1)} style={{
@@ -3446,7 +3450,7 @@ function App() {
             <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 12 }}>
               Estás aquí. Estás presente.
             </div>
-            <div style={{ fontSize: 19, color: '#E0FBF1', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 19, color: '#EEF1DA', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.
             </div>
             <button onClick={() => setGroundStep(0)} style={{
@@ -3467,7 +3471,7 @@ function App() {
           <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 6 }}>
             Skills DBT
           </div>
-          <div style={{ fontSize: 19, color: '#E0FBF1', textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ fontSize: 19, color: '#EEF1DA', textAlign: 'center', marginBottom: 24 }}>
             Herramientas de regulación emocional. Escoge la que necesitas.
           </div>
 
@@ -3483,9 +3487,9 @@ function App() {
                   <div style={{ fontSize: 26 }}>{skill.icon}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{skill.name}</div>
-                    <div style={{ fontSize: 19, color: '#E0FBF1', marginTop: 2 }}>{skill.desc}</div>
+                    <div style={{ fontSize: 19, color: '#EEF1DA', marginTop: 2 }}>{skill.desc}</div>
                   </div>
-                  <span style={{ color: '#E8B4B8', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
+                  <span style={{ color: '#771441', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
                 </button>
                 {panicDbtExpanded === idx && (
                   <div style={{
@@ -3502,7 +3506,7 @@ function App() {
                           color: 'white', fontSize: 20, fontWeight: 800,
                           display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
                         }}>{si + 1}</div>
-                        <div style={{ fontSize: 20, color: '#E0FBF1', lineHeight: 1.5 }}>{step}</div>
+                        <div style={{ fontSize: 20, color: '#EEF1DA', lineHeight: 1.5 }}>{step}</div>
                       </div>
                     ))}
                   </div>
@@ -3518,7 +3522,7 @@ function App() {
           <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 12 }}>
             Aceptación Radical
           </div>
-          <div style={{ fontSize: 20, color: '#E0FBF1', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 20, color: '#EEF1DA', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
             No significa que apruebas lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
           </div>
 
@@ -3535,20 +3539,20 @@ function App() {
             }}>
               <div style={{
                 minWidth: 28, height: 28, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #E8B4B8, #C6A94E)',
+                background: 'linear-gradient(135deg, #771441, #8C5E0E)',
                 color: 'white', fontSize: 19, fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{step.num}</div>
-              <div style={{ fontSize: 20, color: '#E0FBF1', lineHeight: 1.6 }}>{step.text}</div>
+              <div style={{ fontSize: 20, color: '#EEF1DA', lineHeight: 1.6 }}>{step.text}</div>
             </div>
           ))}
 
           <div style={{
             marginTop: 16, padding: 18, borderRadius: 16,
-            background: 'rgba(201,169,110,0.15)', border: '1px solid rgba(201,169,110,0.3)',
+            background: 'rgba(140,94,14,0.15)', border: '1px solid rgba(140,94,14,0.3)',
             textAlign: 'center', width: '100%',
           }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#C6A94E', fontFamily: FONT, fontStyle: 'italic', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#8C5E0E', fontFamily: FONT, fontStyle: 'italic', lineHeight: 1.5 }}>
               "No puedo controlar lo que pasa.<br/>Pero puedo elegir cómo respondo.<br/>Y hoy elijo la paz."
             </div>
           </div>
@@ -3563,6 +3567,10 @@ function App() {
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: FONT }}>
       {header}
       <div style={{ padding: isMobile ? 16 : 24, paddingBottom: 120 }}>
+        {view === 'rondas' && (
+          <RondasView user={user} onOpenProfesionales={() => openModule('juntas', 'directorio', { silent: true })} />
+        )}
+
         {view === 'ahora' && <>
           {!subTab && inicioView}
           <SubTabs
@@ -3626,7 +3634,7 @@ function App() {
       {appModal && (
         <div onClick={() => setAppModal(null)} style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(13, 73, 66, 0.55)', backdropFilter: 'blur(4px)',
+          background: 'rgba(55,44,65, 0.55)', backdropFilter: 'blur(4px)',
           zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 24, animation: 'fadeIn 0.2s ease',
         }}>
@@ -3643,10 +3651,10 @@ function App() {
                 ? `linear-gradient(135deg, ${C.gold}, ${C.rose})`
                 : appModal.type === 'paywall'
                 ? `linear-gradient(135deg, ${C.teal}, ${C.gold})`
-                : `linear-gradient(135deg, ${C.teal}, #0B7A71)`,
+                : `linear-gradient(135deg, ${C.teal}, #372C41)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 26, color: 'white', fontWeight: 800,
-              boxShadow: '0 8px 20px rgba(13,148,136,0.3)',
+              boxShadow: '0 8px 20px rgba(42,95,100,0.3)',
             }}>
               {appModal.type === 'success' ? '✓' : appModal.type === 'paywall' ? '✦' : 'i'}
             </div>
@@ -3676,7 +3684,7 @@ function App() {
                 : C.teal,
               color: 'white', fontSize: 17, fontWeight: 800, cursor: 'pointer',
               fontFamily: 'inherit', letterSpacing: '0.02em',
-              boxShadow: '0 4px 16px rgba(13,148,136,0.35)',
+              boxShadow: '0 4px 16px rgba(42,95,100,0.35)',
             }}>
               {appModal.cta || 'Listo'}
             </button>
@@ -3691,7 +3699,7 @@ function App() {
           maxWidth: 420, width: 'calc(100% - 32px)', zIndex: 9999,
           background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
           borderRadius: 18, padding: '18px 20px',
-          boxShadow: '0 8px 32px rgba(198,169,78,0.45)',
+          boxShadow: '0 8px 32px rgba(140,94,14,0.45)',
           color: 'white',
           animation: 'slideUp 0.3s ease',
         }}>

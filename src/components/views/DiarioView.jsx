@@ -49,7 +49,7 @@ export default function DiarioView({
               width: '100%', minHeight: 100, padding: '14px 50px 14px 14px', borderRadius: 12,
               border: `1px solid ${isListening ? C.coral : C.border}`,
               fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.6,
-              boxSizing: 'border-box', background: isListening ? '#FFF5F3' : C.cream,
+              boxSizing: 'border-box', background: isListening ? '#F3E6EE' : C.cream,
               transition: 'border-color 0.2s, background 0.2s',
             }}
           />
