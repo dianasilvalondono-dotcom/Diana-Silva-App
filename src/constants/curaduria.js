@@ -21,15 +21,6 @@ export const SALAS = [
   { id: 'acompanamiento', label: 'Acompañamiento', desc: 'Profesionales verificadas' },
 ]
 
-/* Cada sala tiene su color de la naturaleza: fondo y color de texto encima. */
-export const SALA_COLORES = {
-  salon:          { fondo: '#771441', texto: '#FFFFFF', acento: '#EDE288' }, // orquídea
-  mesa:           { fondo: '#880500', texto: '#FFFFFF', acento: '#EBD174' }, // merlot / higo
-  taller:         { fondo: '#DAA43C', texto: '#372C41', acento: '#4A0E26' }, // ocre
-  movimiento:     { fondo: '#93A052', texto: '#372C41', acento: '#2E3F28' }, // musgo
-  acompanamiento: { fondo: '#2A5F64', texto: '#FFFFFF', acento: '#EDE288' }, // laguna
-}
-
 export const COLECCIONES = [
   { id: 'recien-llegada', label: 'Recién llegada', desc: 'Para la que todavía no tiene a quién escribirle el viernes.' },
   { id: 'sesenta', label: 'Sesenta y estreno', desc: 'Planes de día, cerca de casa, con conversación de verdad.' },

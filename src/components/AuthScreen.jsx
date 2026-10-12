@@ -44,12 +44,6 @@ export default function AuthScreen({ onSignInEmail, onSignUp }) {
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: 32, position: 'relative', overflow: 'hidden',
     }}>
-      {/* Decorative Ronda circles */}
-      <div style={{ position: 'absolute', top: -40, right: -40, width: 150, height: 150, borderRadius: '50%', background: `${C.mint}20` }} />
-      <div style={{ position: 'absolute', bottom: -30, left: -30, width: 120, height: 120, borderRadius: '50%', background: `${C.lavanda}15` }} />
-      <div style={{ position: 'absolute', top: '30%', left: -20, width: 80, height: 80, borderRadius: '50%', background: `${C.coral}10` }} />
-      <div style={{ position: 'absolute', bottom: '20%', right: -15, width: 60, height: 60, borderRadius: '50%', background: `${C.gold}15` }} />
-
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, position: 'relative' }}>
         <div style={{
@@ -74,7 +68,7 @@ export default function AuthScreen({ onSignInEmail, onSignUp }) {
       {/* Card */}
       <div style={{
         background: C.card, borderRadius: 20, padding: 28, width: '100%', maxWidth: 380,
-        boxShadow: '0 4px 20px rgba(42,95,100,0.08)', position: 'relative',
+        boxShadow: '0 4px 20px rgba(62,99,144,0.08)', position: 'relative',
       }}>
         <div style={{
           fontSize: 22, fontWeight: 700, color: C.text, textAlign: 'center', marginBottom: 6,

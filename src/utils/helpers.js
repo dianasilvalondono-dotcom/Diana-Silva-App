@@ -22,7 +22,7 @@ export function formatDate() {
 }
 
 export const MOOD_LABELS = ['Difícil', 'Meh', 'Bien', 'Genial', 'Increíble']
-export const MOOD_COLORS = ['#771441', '#806172', '#8C5E0E', '#CBD68E', '#2A5F64']
+export const MOOD_COLORS = ['#73272D', '#3E6390', '#5C6430', '#C9D19A', '#3E6390']
 export const MOODS = ['😢','😐','🙂','😊','🤩'] // kept for backward compat with saved data
 
 /**
