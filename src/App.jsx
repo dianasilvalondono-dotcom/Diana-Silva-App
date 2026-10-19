@@ -13,7 +13,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -107,17 +107,16 @@ function juntarTexto(a, b) {
 /* ═══════════════════════════════════════════ */
 
 /* ── La puerta que se abre sola ──
-   En la mañana y en la noche, Ronda abre en Adentro (tus rituales); el
-   resto del día, en Afuera. La usuaria puede fijar una puerta desde
+   En la mañana y en la noche (madrugada incluida), Ronda abre en Adentro
+   (tus rituales); en la tarde, en Afuera. Las franjas salen de
+   franjaDelDia (helpers.js). La usuaria puede fijar una puerta desde
    "Cambiar"; se guarda en este dispositivo. */
 const PUERTA_KEY = 'ronda_puerta'
 function puertaInicial() {
   const fija = load(PUERTA_KEY, 'auto')
   if (['rondas', 'ahora', 'juntas'].includes(fija)) return { view: fija, motivo: 'elegida' }
-  const h = new Date().getHours()
-  if (h >= 5 && h < 11) return { view: 'ahora', motivo: 'mañana' }
-  if (h >= 20 || h < 2) return { view: 'ahora', motivo: 'noche' }
-  return { view: 'rondas', motivo: h < 5 ? 'noche' : 'tarde' }
+  const franja = franjaDelDia()
+  return { view: franja === 'tarde' ? 'rondas' : 'ahora', motivo: franja }
 }
 
 function App() {
@@ -715,8 +714,11 @@ function App() {
 
 
   const currentHour = new Date().getHours()
-  const isMorningTime = currentHour < 12
-  const isNightTime = currentHour >= 18
+  const franjaActual = franjaDelDia(currentHour)
+  const isMorningTime = franjaActual === 'mañana'
+  // El cierre de la noche va de las 7 p. m. a la medianoche: en la madrugada
+  // el día ya cambió y se gastaría el cierre de la noche siguiente.
+  const isNightTime = franjaActual === 'noche' && currentHour >= 12
   const showMorningCheckin = isMorningTime && !morningDone && !checkinPospuesto && !showPanic
   const showNightCheckin = isNightTime && !nightDone && !checkinPospuesto && !showPanic
 
@@ -941,10 +943,7 @@ function App() {
   )
 
   /* ── ADENTRO: tu momento, tu ruta, para llevar y tus herramientas ── */
-  const momentoDelDia = (() => {
-    const h = new Date().getHours()
-    return h < 5 ? 'noche' : h < 12 ? 'mañana' : h < 19 ? 'tarde' : 'noche'
-  })()
+  const momentoDelDia = franjaDelDia()
   const siguienteRutina = (() => {
     const now = new Date()
     const nowMin = now.getHours() * 60 + now.getMinutes()
@@ -3309,7 +3308,7 @@ function App() {
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div aria-hidden="true" style={{ fontSize: 32, marginBottom: 8, color: C.gold }}>●</div>
           <div id="checkin-manana-titulo" style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
-            {profile.name ? `${profile.name}, buenos días` : 'Buenos días'}
+            {profile.name ? `${profile.name}, ${getGreeting(currentHour).toLowerCase()}` : getGreeting(currentHour)}
           </div>
           <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Define tu intención y activa tus hábitos</div>
         </div>

@@ -59,10 +59,20 @@ export function limpiarDiasVacios() {
   } catch { /* sin almacenamiento */ }
 }
 
-export function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 18) return 'Buenas tardes'
+/* La única tabla de franjas del día de la app (puerta, saludos, 'Pausa de la…'
+   y check-ins). Para cambiar los cortes basta con tocar aquí.
+   mañana: 5:00-11:59 · tarde: 12:00-18:59 · noche: 19:00-4:59 (la madrugada
+   cuenta como noche). */
+export function franjaDelDia(h = new Date().getHours()) {
+  if (h >= 5 && h < 12) return 'mañana'
+  if (h >= 12 && h < 19) return 'tarde'
+  return 'noche'
+}
+
+export function getGreeting(h = new Date().getHours()) {
+  const franja = franjaDelDia(h)
+  if (franja === 'mañana') return 'Buenos días'
+  if (franja === 'tarde') return 'Buenas tardes'
   return 'Buenas noches'
 }
 
