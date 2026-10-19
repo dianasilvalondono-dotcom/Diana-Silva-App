@@ -886,15 +886,19 @@ function App() {
       return h * 60 + m > nowMin
     }) || null
   })()
+  // La primera ruta SIN terminar, con su primer día sin marcar. Si todas
+  // están terminadas, la última terminada marcada como completada.
   const rutaActiva = (() => {
+    let completada = null
     for (const [progId, progress] of Object.entries(activePrograms)) {
       const prog = [...PROGRAMAS, ...PROGRAMAS_PREMIUM].find(p => p.id === progId)
       if (!prog || !prog.days?.length) continue
-      const hechos = progress.completedDays.length
-      const siguiente = prog.days.find(d => !progress.completedDays.includes(d.day)) || prog.days[prog.days.length - 1]
-      return { prog, hechos, total: prog.days.length, siguiente }
+      const hechosDias = progress?.completedDays || []
+      const siguiente = prog.days.find(d => !hechosDias.includes(d.day))
+      if (!siguiente) { completada = prog; continue }
+      return { prog, hechos: hechosDias.length, total: prog.days.length, siguiente }
     }
-    return null
+    return completada ? { prog: completada, completada: true } : null
   })()
   const eyebrowAdentro = { fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.oliva }
   const ACCESOS = [
@@ -934,9 +938,17 @@ function App() {
 
       <dl style={{ margin: 0, borderTop: '1px solid rgba(20,24,51,0.12)' }}>
         <div style={{ padding: '14px 0', borderBottom: '1px solid rgba(20,24,51,0.12)' }}>
-          {rutaActiva ? <>
+          {rutaActiva?.completada ? <>
+            <dt style={eyebrowAdentro}>Tu ruta · {rutaActiva.prog.title} · Completada</dt>
+            <dd style={{ margin: '6px 0 0', fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 600, lineHeight: 1.15, color: C.navy }}>
+              Completaste esta ruta
+            </dd>
+            <dd style={{ margin: '8px 0 0' }}>
+              <button onClick={() => abrirAcceso('programas')} style={{ background: 'none', border: 'none', minHeight: 44, padding: 0, color: C.morado, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Elegir otra ruta</button>
+            </dd>
+          </> : rutaActiva ? <>
             <dt style={eyebrowAdentro}>
-              Tu ruta · {rutaActiva.prog.title} · Día {Math.min(rutaActiva.hechos + 1, rutaActiva.total)} de {rutaActiva.total}
+              Tu ruta · {rutaActiva.prog.title} · Día {rutaActiva.siguiente.day} de {rutaActiva.total}
             </dt>
             <dd style={{ margin: '6px 0 0', fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 600, lineHeight: 1.15, color: C.navy }}>
               {rutaActiva.siguiente.title}
