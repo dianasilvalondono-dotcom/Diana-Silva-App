@@ -25,6 +25,7 @@ import { useNotifications } from './lib/useNotifications'
 import { track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
 import { useOneSignal } from './lib/useOneSignal'
 import { useSpeech } from './lib/useSpeech'
+import { useDialog } from './lib/useDialog'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile } from './lib/database'
 
@@ -782,6 +783,21 @@ function App() {
   const empezarRespiracion = () => {
     setShowPanic(true); setPanicScreen('breathe'); setBreatheActive(true); setBreatheCount(0); setBreathePhase('inhale')
   }
+  const cerrarAyuda = () => { setShowPanic(false); setBreatheActive(false) }
+
+  /* ── Diálogos: foco adentro, Tab atrapado, Escape cierra y el foco vuelve.
+     Mientras hay uno abierto, el encabezado, el contenido y el menú quedan
+     inertes (ni el teclado ni el lector de pantalla llegan ahí). ── */
+  const pantallaPrincipal = !authLoading && !(isConfigured && !user) && onboarded
+  const panicRef = useRef(null)
+  const morningRef = useRef(null)
+  const nightRef = useRef(null)
+  const appModalRef = useRef(null)
+  useDialog(panicRef, showPanic && pantallaPrincipal, cerrarAyuda)
+  useDialog(morningRef, showMorningCheckin && pantallaPrincipal, posponerCheckin)
+  useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
+  useDialog(appModalRef, !!appModal && pantallaPrincipal, () => setAppModal(null))
+  const fondoInerte = showPanic || showMorningCheckin || showNightCheckin || !!appModal
 
   const PUERTAS = [
     { id: 'auto', label: 'Según mi momento' },
@@ -842,7 +858,7 @@ function App() {
 
   /* ── Encabezado: el telón ── */
   const header = (
-    <header style={{
+    <header inert={fondoInerte} style={{
       background: C.morado,
       paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)',
       paddingLeft: 20, paddingRight: 12, paddingBottom: 18,
@@ -885,7 +901,7 @@ function App() {
 
   /* ── Barra inferior: Afuera · Adentro · Juntas ── */
   const bottomNav = (
-    <nav aria-label="Secciones" style={{
+    <nav aria-label="Secciones" inert={fondoInerte} style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 600, background: '#F7F9FC',
       borderTop: `1px solid ${C.border}`, display: 'flex',
@@ -3271,11 +3287,12 @@ function App() {
   /* ── Morning Modal ── */
   const morningModal = showMorningCheckin && (
     <div style={modalOverlay} onClick={posponerCheckin}>
-      <div onClick={e => e.stopPropagation()} style={modalCard}>
+      <div ref={morningRef} role="dialog" aria-modal="true" aria-labelledby="checkin-manana-titulo" tabIndex={-1}
+        onClick={e => e.stopPropagation()} style={{ ...modalCard, outline: 'none' }}>
         {barraCheckin}
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
-          <div style={{ fontSize: 32, marginBottom: 8, color: C.gold }}>●</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
+          <div aria-hidden="true" style={{ fontSize: 32, marginBottom: 8, color: C.gold }}>●</div>
+          <div id="checkin-manana-titulo" style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, buenos días` : 'Buenos días'}
           </div>
           <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Define tu intención y activa tus hábitos</div>
@@ -3356,11 +3373,12 @@ function App() {
   /* ── Night Modal ── */
   const nightModal = showNightCheckin && (
     <div style={modalOverlay} onClick={posponerCheckin}>
-      <div onClick={e => e.stopPropagation()} style={modalCard}>
+      <div ref={nightRef} role="dialog" aria-modal="true" aria-labelledby="checkin-noche-titulo" tabIndex={-1}
+        onClick={e => e.stopPropagation()} style={{ ...modalCard, outline: 'none' }}>
         {barraCheckin}
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontSize: 36, marginBottom: 10, color: '#141833' }}>●</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
+          <div aria-hidden="true" style={{ fontSize: 36, marginBottom: 10, color: '#141833' }}>●</div>
+          <div id="checkin-noche-titulo" style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
             {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
           </div>
           <div style={{ fontSize: 20, color: C.muted, marginTop: 6 }}>Revisa tu día y cierra con una reflexión</div>
@@ -3471,7 +3489,7 @@ function App() {
   ]
 
   const panicModal = showPanic && (
-    <div role="dialog" aria-modal="true" aria-label="Ayuda" style={{
+    <div ref={panicRef} role="dialog" aria-modal="true" aria-label="Ayuda" style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: panicScreen === 'breathe'
         ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #141833, #141833)'
@@ -3486,7 +3504,7 @@ function App() {
       paddingBottom: 'env(safe-area-inset-bottom)',
     }}>
       {/* Close button */}
-      <button onClick={() => { setShowPanic(false); setBreatheActive(false) }} aria-label="Cerrar la ayuda" style={{
+      <button onClick={cerrarAyuda} aria-label="Cerrar la ayuda" data-autofocus style={{
         position: 'absolute',
         top: 'calc(env(safe-area-inset-top) + 12px)',
         right: 16, background: 'rgba(255,255,255,0.15)',
@@ -3756,7 +3774,7 @@ function App() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.morado, fontFamily: FONT }}>
       {header}
-      <main style={{
+      <main inert={fondoInerte} style={{
         background: C.hoja, borderRadius: '24px 24px 0 0',
         minHeight: 'calc(100vh - 110px)',
         padding: isMobile ? '24px 16px 110px' : '28px 24px 110px',
@@ -3817,13 +3835,14 @@ function App() {
           zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center',
           padding: 24, animation: 'fadeIn 0.2s ease',
         }}>
-          <div onClick={e => e.stopPropagation()} style={{
+          <div ref={appModalRef} role="dialog" aria-modal="true" aria-labelledby="app-modal-titulo" aria-describedby="app-modal-cuerpo"
+            onClick={e => e.stopPropagation()} style={{
             background: C.cream, borderRadius: 24, padding: '32px 28px 24px',
             maxWidth: 380, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
             border: `1px solid ${C.border}`, position: 'relative',
           }}>
             {/* Decorative top accent */}
-            <div style={{
+            <div aria-hidden="true" style={{
               position: 'absolute', top: 0, left: '50%', transform: 'translate(-50%, -50%)',
               width: 52, height: 52, borderRadius: 16,
               background: appModal.type === 'success'
@@ -3838,18 +3857,18 @@ function App() {
               {appModal.type === 'success' ? '✓' : appModal.type === 'paywall' ? '✦' : 'i'}
             </div>
 
-            <div style={{ marginTop: 20, fontSize: 22, fontWeight: 800, color: C.text,
+            <div id="app-modal-titulo" style={{ marginTop: 20, fontSize: 22, fontWeight: 800, color: C.text,
                           fontFamily: FONT,
                           textAlign: 'center', marginBottom: 12, lineHeight: 1.3 }}>
               {appModal.title}
             </div>
 
-            <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.6,
+            <div id="app-modal-cuerpo" style={{ fontSize: 16, color: C.muted, lineHeight: 1.6,
                           textAlign: 'center', marginBottom: 24 }}>
               {appModal.body}
             </div>
 
-            <button onClick={() => {
+            <button data-autofocus onClick={() => {
               if (appModal.type === 'paywall') {
                 track('paywall_cta_clicked', { title: appModal.title })
                 setView('perfil')
@@ -3867,6 +3886,15 @@ function App() {
             }}>
               {appModal.cta || 'Listo'}
             </button>
+            {/* El aviso de pago siempre se puede cerrar sin ir a los planes */}
+            {appModal.type === 'paywall' && (
+              <button onClick={() => setAppModal(null)} style={{
+                width: '100%', minHeight: 44, marginTop: 8, background: 'none', border: 'none',
+                color: C.muted, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                Ahora no
+              </button>
+            )}
           </div>
         </div>
       )}
