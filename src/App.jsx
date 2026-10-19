@@ -78,6 +78,13 @@ function escribiendo() {
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
 }
 
+/* Une dos trozos de texto con un espacio, sin duplicarlo. */
+function juntarTexto(a, b) {
+  if (!b) return a
+  if (!a) return b
+  return /\s$/.test(a) ? a + b : `${a} ${b}`
+}
+
 /* ═══════════════════════════════════════════ */
 /*                   APP                       */
 /* ═══════════════════════════════════════════ */
@@ -244,7 +251,7 @@ function App() {
   const [journalText, setJournalText] = useState('')
   const [journalMood, setJournalMood] = useState(2)
   const [isListening, setIsListening] = useState(false)
-  const recognitionRef = { current: null }
+  const recognitionRef = useRef(null)
 
   // Quotes
   // Solo lectura: se conserva lo guardado y se muestra en el perfil.
@@ -521,14 +528,41 @@ function App() {
     if (!journalText.trim()) return
     const entry = { id: Date.now(), date: todayKey(), text: journalText, mood: journalMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) }
     setEntries([entry, ...entries])
+    // Primero se apaga el dictado: si no, el reconocedor vuelve a escribir
+    // en el cuadro el texto que se acaba de guardar.
+    stopVoice()
     setJournalText('')
     setJournalMood(2)
-    setIsListening(false)
     // Sin el texto del diario: solo la senal, nunca el contenido.
     track('journal_created', { mood: journalMood })
   }
 
   // Voice journaling — Web Speech API
+  // Apaga el dictado de verdad: suelta los handlers (para que nada más
+  // escriba en el cuadro) y detiene el micrófono.
+  const stopVoice = () => {
+    const r = recognitionRef.current
+    recognitionRef.current = null
+    if (r) {
+      r.onresult = null
+      r.onerror = null
+      r.onend = null
+      try { r.stop() } catch { /* ya estaba detenido */ }
+    }
+    setIsListening(false)
+  }
+
+  const avisarDictado = (motivo) => {
+    const body = motivo === 'not-allowed' || motivo === 'service-not-allowed'
+      ? 'Permite el micrófono en tu navegador para dictar tu reflexión.'
+      : motivo === 'audio-capture'
+        ? 'No encontramos un micrófono. Revisa que esté conectado.'
+        : motivo === 'network'
+          ? 'Revisa tu conexión e inténtalo de nuevo.'
+          : 'Inténtalo de nuevo en un momento. También puedes escribir tu reflexión.'
+    setAppModal({ type: 'info', title: 'No pudimos escucharte', body, cta: 'Listo' })
+  }
+
   const toggleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) {
@@ -536,10 +570,9 @@ function App() {
       return
     }
 
-    if (isListening) {
-      if (recognitionRef.current) recognitionRef.current.stop()
-      setIsListening(false)
-      return
+    if (isListening || recognitionRef.current) {
+      stopVoice()
+      if (isListening) return
     }
 
     const recognition = new SpeechRecognition()
@@ -548,24 +581,49 @@ function App() {
     recognition.interimResults = true
     recognitionRef.current = recognition
 
-    let finalTranscript = journalText
-
+    // Texto provisional que se muestra al final del cuadro mientras se habla;
+    // se reemplaza por el definitivo. Solo se anexa lo nuevo (desde
+    // resultIndex) sobre el texto actual, sin pisar lo editado a mano.
+    let parcial = ''
     recognition.onresult = (event) => {
-      let interim = ''
+      if (recognitionRef.current !== recognition) return
+      let nuevoFinal = ''
+      let nuevoParcial = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += (finalTranscript ? ' ' : '') + event.results[i][0].transcript
-        } else {
-          interim += event.results[i][0].transcript
-        }
+        const texto = event.results[i][0].transcript.trim()
+        if (!texto) continue
+        if (event.results[i].isFinal) nuevoFinal = juntarTexto(nuevoFinal, texto)
+        else nuevoParcial = juntarTexto(nuevoParcial, texto)
       }
-      setJournalText(finalTranscript + (interim ? ' ' + interim : ''))
+      const anterior = parcial
+      parcial = nuevoParcial
+      setJournalText(prev => {
+        const base = anterior && prev.endsWith(anterior) ? prev.slice(0, prev.length - anterior.length) : prev
+        return juntarTexto(juntarTexto(base, nuevoFinal), nuevoParcial)
+      })
     }
 
-    recognition.onerror = () => { setIsListening(false) }
-    recognition.onend = () => { setIsListening(false) }
+    recognition.onerror = (event) => {
+      if (recognitionRef.current !== recognition) return
+      stopVoice()
+      const motivo = event?.error
+      if (motivo === 'aborted' || motivo === 'no-speech') return
+      avisarDictado(motivo)
+    }
+    recognition.onend = () => {
+      if (recognitionRef.current !== recognition) return
+      recognitionRef.current = null
+      setIsListening(false)
+    }
 
-    recognition.start()
+    try {
+      recognition.start()
+    } catch {
+      recognitionRef.current = null
+      setIsListening(false)
+      avisarDictado()
+      return
+    }
     setIsListening(true)
   }
 
