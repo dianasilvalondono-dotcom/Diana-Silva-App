@@ -13,7 +13,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS,
 } from './constants/data'
-import { todayKey, load, save, saveDay, limpiarDiasVacios, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -231,7 +231,12 @@ function App() {
   const [newRoutineEmoji, setNewRoutineEmoji] = useState('✨')
   const [newRoutineSection, setNewRoutineSection] = useState('morning')
   // Tomorrow planning (night ritual)
+  // Lo que se escribe hoy en "¿Qué necesito hacer mañana?" se guarda en
+  // ronda-tomorrow-<hoy>. Al día siguiente esa misma clave (la de ayer) se
+  // muestra como "Lo que planeaste para hoy".
   const [tomorrowTasks, setTomorrowTasks] = useState(() => load(`ronda-tomorrow-${diaApp}`, []))
+  const [ayerApp] = useState(() => dateKey(-1))
+  const [plannedToday, setPlannedToday] = useState(() => load(`ronda-tomorrow-${ayerApp}`, []))
   const [newTomorrowTask, setNewTomorrowTask] = useState('')
 
   // Journal
@@ -350,6 +355,7 @@ function App() {
   useEffect(() => { save('diana-midday', midday) }, [midday])
   useEffect(() => { save('diana-night', night) }, [night])
   useEffect(() => { saveDay(`ronda-tomorrow-${diaApp}`, tomorrowTasks) }, [tomorrowTasks, diaApp])
+  useEffect(() => { saveDay(`ronda-tomorrow-${ayerApp}`, plannedToday) }, [plannedToday, ayerApp])
 
   // Breathing timer for panic button
   useEffect(() => {
@@ -504,9 +510,12 @@ function App() {
     setNewTomorrowTask('')
   }
 
-  const toggleTomorrowTask = (id) => {
-    setTomorrowTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t))
+  // Marca o desmarca una tarea en una lista de tareas (para mañana o para hoy).
+  const toggleTaskIn = (setList) => (id) => {
+    setList(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t))
   }
+  const toggleTomorrowTask = toggleTaskIn(setTomorrowTasks)
+  const togglePlannedTask = toggleTaskIn(setPlannedToday)
 
   const addJournalEntry = () => {
     if (!journalText.trim()) return
@@ -1171,8 +1180,38 @@ function App() {
 
   const ROUTINE_EMOJIS = []
 
+  // Lista de tareas del ritual de noche (para mañana o planeadas para hoy).
+  const renderTaskList = (tasks, onToggle) => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {tasks.map(t => (
+        <div key={t.id} onClick={() => onToggle(t.id)} style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: C.cream,
+          borderRadius: 10, cursor: 'pointer',
+        }}>
+          <div style={{
+            width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.roseLight}`,
+            background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontSize: 20, flexShrink: 0,
+          }}>{t.done && UI_ICONS.check('white', 13)}</div>
+          <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
+        </div>
+      ))}
+    </div>
+  )
+
   const rutinaView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Lo que se planeó anoche en el ritual de noche */}
+      {plannedToday.length > 0 && (
+        <div style={{ background: C.card, borderRadius: 18, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.gold}30` }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 4 }}>Lo que planeaste para hoy</div>
+          <div style={{ fontSize: 19, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
+            Lo dejaste listo en tu ritual de noche. Marca lo que vayas haciendo.
+          </div>
+          {renderTaskList(plannedToday, togglePlannedTask)}
+        </div>
+      )}
+
       {/* Edit toggle */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button onClick={() => setEditingRoutine(!editingRoutine)} style={{
@@ -1254,21 +1293,7 @@ function App() {
 
         {/* Tomorrow tasks */}
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-          {tomorrowTasks.map(t => (
-            <div key={t.id} onClick={() => toggleTomorrowTask(t.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: C.cream,
-              borderRadius: 10, cursor: 'pointer',
-            }}>
-              <div style={{
-                width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.roseLight}`,
-                background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'white', fontSize: 20, flexShrink: 0,
-              }}>{t.done && UI_ICONS.check('white', 13)}</div>
-              <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
-            </div>
-          ))}
-        </div>
+        <div style={{ marginBottom: 12 }}>{renderTaskList(tomorrowTasks, toggleTomorrowTask)}</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
             style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
