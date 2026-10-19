@@ -78,6 +78,22 @@ function escribiendo() {
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
 }
 
+/* Un programa creado con la IA llega como { title, desc, days: [{ day, title, task }] }.
+   Se completa lo que la app necesita para pintarlo (color y número de día). */
+function normalizarPrograma(p) {
+  const dias = Array.isArray(p?.days) ? p.days : []
+  return {
+    ...p,
+    color: p?.color || '#592147',
+    days: dias.map((d, i) => ({
+      ...d,
+      day: Number.isInteger(d?.day) ? d.day : i + 1,
+      title: d?.title || `Día ${i + 1}`,
+      task: d?.task || '',
+    })),
+  }
+}
+
 /* Une dos trozos de texto con un espacio, sin duplicarlo. */
 function juntarTexto(a, b) {
   if (!b) return a
@@ -331,6 +347,13 @@ function App() {
   // Programs (paso a paso)
   const [activePrograms, setActivePrograms] = useState(() => load('ronda-programs', {}))
   // activePrograms = { tusa: { startDate: '2026-03-14', completedDays: [1,2] }, ... }
+  // Programas creados con la IA ("Guardar y empezar"). Misma clave de siempre.
+  const [customPrograms, setCustomPrograms] = useState(() => {
+    const guardados = load('diana-custom-programs', [])
+    return Array.isArray(guardados) ? guardados.filter(p => p && p.id).map(normalizarPrograma) : []
+  })
+  // Catálogo completo: los fijos más los creados con la IA.
+  const todosLosProgramas = useMemo(() => [...PROGRAMAS, ...PROGRAMAS_PREMIUM, ...customPrograms], [customPrograms])
 
   // Habit editor
   const [newHabitName, setNewHabitName] = useState('')
@@ -354,6 +377,7 @@ function App() {
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
   useEffect(() => { save('diana-profile', profile) }, [profile])
   useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
+  useEffect(() => { save('diana-custom-programs', customPrograms) }, [customPrograms])
   useEffect(() => { save('ronda-board', boardPosts) }, [boardPosts])
   useEffect(() => { save('ronda-board-hearts', boardHearts) }, [boardHearts])
   useEffect(() => { saveDay(`ronda-morning-${diaApp}`, morningDone) }, [morningDone, diaApp])
@@ -891,7 +915,7 @@ function App() {
   const rutaActiva = (() => {
     let completada = null
     for (const [progId, progress] of Object.entries(activePrograms)) {
-      const prog = [...PROGRAMAS, ...PROGRAMAS_PREMIUM].find(p => p.id === progId)
+      const prog = todosLosProgramas.find(p => p.id === progId)
       if (!prog || !prog.days?.length) continue
       const hechosDias = progress?.completedDays || []
       const siguiente = prog.days.find(d => !hechosDias.includes(d.day))
@@ -1410,22 +1434,22 @@ function App() {
       </div>
 
       {/* Active programs */}
-      {Object.keys(activePrograms).length > 0 && (
+      {Object.keys(activePrograms).some(id => todosLosProgramas.some(p => p.id === id && p.days?.length)) && (
         <div>
           <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
             Mis programas activos
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {Object.entries(activePrograms).map(([progId, progress]) => {
-              const prog = [...PROGRAMAS, ...PROGRAMAS_PREMIUM].find(p => p.id === progId)
-              if (!prog) return null
+              const prog = todosLosProgramas.find(p => p.id === progId)
+              if (!prog || !prog.days?.length) return null
               const completedCount = progress.completedDays.length
               const pct = Math.round((completedCount / prog.days.length) * 100)
               return (
                 <div key={progId} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : prog.id} {prog.title}</div>
+                      <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : <span aria-hidden="true" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: prog.color, verticalAlign: 'middle' }} />} {prog.title}</div>
                       <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
                     </div>
                     <button onClick={() => quitProgram(progId)} style={{
@@ -2269,15 +2293,10 @@ function App() {
   const saveAiProgram = () => {
     if (!aiProgram) return
     const id = 'custom_' + Date.now()
-    const prog = { ...aiProgram, id, color: '#592147', custom: true }
-    const saved = JSON.parse(localStorage.getItem('diana-custom-programs') || '[]')
-    saved.push(prog)
-    localStorage.setItem('diana-custom-programs', JSON.stringify(saved))
-    // Also activate it
-    const ap = { ...activePrograms }
-    ap[id] = { startDate: todayKey(), completedDays: [] }
-    setActivePrograms(ap)
-    localStorage.setItem('diana-active-programs', JSON.stringify(ap))
+    const prog = normalizarPrograma({ ...aiProgram, id, color: '#592147', custom: true })
+    // Se guarda en el catálogo (diana-custom-programs) y queda empezado en Rutas.
+    setCustomPrograms(prev => [...prev, prog])
+    startProgram(id)
     setAiSaved(true)
   }
 
@@ -2306,6 +2325,17 @@ function App() {
       : null
     const lastJournalNote = recentEntries[0]?.text || null
 
+    // Rutas activas, con el día en que va cada una (las creadas con la IA incluidas).
+    const rutasEnCurso = Object.entries(activePrograms).map(([id, p]) => {
+      const prog = todosLosProgramas.find(x => x.id === id)
+      if (!prog || !prog.days?.length) return null
+      const hechos = p?.completedDays || []
+      const siguiente = prog.days.find(d => !hechos.includes(d.day))
+      return siguiente
+        ? `${prog.title} (día ${siguiente.day} de ${prog.days.length})`
+        : `${prog.title} (completada)`
+    }).filter(Boolean)
+
     const ctx = {
       name: profile.name || 'Usuaria',
       city: profile.city || null,
@@ -2313,7 +2343,7 @@ function App() {
       habitsToday: `${todayChecked}/${totalHabits}`,
       avgMood7d: avgMood,                    // 0-4 promedio últimos 7 días
       lastJournalNote: lastJournalNote ? lastJournalNote.slice(0, 200) : null,
-      programActive: aiProgram?.title || null,
+      programActive: rutasEnCurso.length ? rutasEnCurso.join('; ') : null,
     }
 
     // Send history for multi-turn conversation
