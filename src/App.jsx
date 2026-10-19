@@ -342,7 +342,10 @@ function App() {
   const [nightDone, setNightDone] = useState(() => load(`ronda-night-${diaApp}`, false))
   const [morningIntention, setMorningIntention] = useState('')
   const [nightReflection, setNightReflection] = useState('')
-  const [nightMood, setNightMood] = useState(2)
+  // null = todavía no eligió ánimo (no se registra uno que no escogió)
+  const [nightMood, setNightMood] = useState(null)
+  // "Ahora no": oculta el check-in en esta sesión sin darlo por hecho.
+  const [checkinPospuesto, setCheckinPospuesto] = useState(false)
 
   // Programs (paso a paso)
   const [activePrograms, setActivePrograms] = useState(() => load('ronda-programs', {}))
@@ -711,14 +714,15 @@ function App() {
   const currentHour = new Date().getHours()
   const isMorningTime = currentHour < 12
   const isNightTime = currentHour >= 18
-  const showMorningCheckin = isMorningTime && !morningDone
-  const showNightCheckin = isNightTime && !nightDone
+  const showMorningCheckin = isMorningTime && !morningDone && !checkinPospuesto && !showPanic
+  const showNightCheckin = isNightTime && !nightDone && !checkinPospuesto && !showPanic
 
   const completeMorningCheckin = () => {
     if (morningIntention.trim()) {
+      // La intención no lleva ánimo: el modal de la mañana no lo pregunta.
       const entry = {
         id: Date.now(), date: todayKey(), text: `Intención del día: ${morningIntention}`,
-        mood: 3, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
+        mood: null, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
         type: 'morning',
       }
       setEntries([entry, ...entries])
@@ -728,9 +732,12 @@ function App() {
   }
 
   const completeNightCheckin = () => {
-    if (nightReflection.trim()) {
+    const reflexion = nightReflection.trim()
+    // Se guarda si escribió algo o si eligió cómo se siente.
+    if (reflexion || nightMood !== null) {
       const entry = {
-        id: Date.now(), date: todayKey(), text: `Reflexión de noche: ${nightReflection}`,
+        id: Date.now(), date: todayKey(),
+        text: reflexion ? `Reflexión de noche: ${nightReflection}` : 'Cierre del día',
         mood: nightMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
         type: 'night',
       }
@@ -738,7 +745,11 @@ function App() {
     }
     setNightDone(true)
     setNightReflection('')
+    setNightMood(null)
   }
+
+  // Cierra el check-in por ahora; vuelve a salir la próxima vez que abra la app.
+  const posponerCheckin = () => setCheckinPospuesto(true)
 
   /* ── Navegación: tres puertas ── */
   const NAV_ICONS = {
@@ -2320,8 +2331,11 @@ function App() {
 
     // Recent mood from last 7 journal entries
     const recentEntries = entries.slice(0, 7)
-    const avgMood = recentEntries.length > 0
-      ? (recentEntries.reduce((s, e) => s + (e.mood || 2), 0) / recentEntries.length).toFixed(1)
+    // Solo entradas con un ánimo elegido (0 = Difícil cuenta). La intención de
+    // la mañana no lleva ánimo. Se envía como texto ('0.0' no es falsy).
+    const conAnimo = recentEntries.filter(e => typeof e.mood === 'number' && e.type !== 'morning')
+    const avgMood = conAnimo.length > 0
+      ? (conAnimo.reduce((s, e) => s + e.mood, 0) / conAnimo.length).toFixed(1)
       : null
     const lastJournalNote = recentEntries[0]?.text || null
 
@@ -3232,15 +3246,33 @@ function App() {
     padding: 16, animation: 'fadeIn 0.3s ease',
   }
   const modalCard = {
-    background: C.card, borderRadius: 24, padding: 28, width: '100%', maxWidth: 420,
+    background: C.card, borderRadius: 24, padding: '28px 20px', width: '100%', maxWidth: 420,
     maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(20,24,51,0.3)',
     WebkitOverflowScrolling: 'touch',
   }
 
+  /* Arriba de cada check-in: la Ayuda siempre a mano y "Ahora no" para
+     cerrarlo sin darlo por hecho. */
+  const botonCheckinSecundario = {
+    minHeight: 44, padding: '0 10px', background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: 16, fontWeight: 600, fontFamily: 'inherit',
+  }
+  const barraCheckin = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-14px -10px 4px' }}>
+      <button type="button" onClick={() => { posponerCheckin(); abrirAyuda() }} style={{ ...botonCheckinSecundario, color: C.morado, textDecoration: 'underline' }}>
+        Ayuda
+      </button>
+      <button type="button" onClick={posponerCheckin} style={{ ...botonCheckinSecundario, color: C.muted }}>
+        Ahora no
+      </button>
+    </div>
+  )
+
   /* ── Morning Modal ── */
   const morningModal = showMorningCheckin && (
-    <div style={modalOverlay}>
-      <div style={{ ...modalCard, maxHeight: '85vh', overflowY: 'auto' }}>
+    <div style={modalOverlay} onClick={posponerCheckin}>
+      <div onClick={e => e.stopPropagation()} style={modalCard}>
+        {barraCheckin}
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: 32, marginBottom: 8, color: C.gold }}>●</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
@@ -3277,7 +3309,7 @@ function App() {
           Mis hábitos de hoy
         </div>
         {habits.length === 0 ? (
-          <button onClick={() => { completeMorningCheckin(); setView('ahora'); setSubTab('habitos') }} style={{
+          <button type="button" onClick={() => { posponerCheckin(); openModule('ahora', 'habitos') }} style={{
             width: '100%', padding: '14px', borderRadius: 14, border: `1.5px dashed ${C.roseLight}`,
             background: C.cream, color: C.rose, fontSize: 18, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center',
@@ -3310,10 +3342,10 @@ function App() {
               )
             })}
             {habits.length > 6 && (
-              <div style={{ fontSize: 17, color: C.teal, fontWeight: 600, textAlign: 'center', padding: 4, cursor: 'pointer' }}
-                onClick={() => { completeMorningCheckin(); setView('ahora'); setSubTab('habitos') }}>
+              <button type="button" style={{ fontSize: 17, color: C.teal, fontWeight: 600, textAlign: 'center', padding: 4, minHeight: 44, cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}
+                onClick={() => { posponerCheckin(); openModule('ahora', 'habitos') }}>
                 Ver todos mis hábitos ({habits.length}) →
-              </div>
+              </button>
             )}
           </div>
         )}
@@ -3323,8 +3355,9 @@ function App() {
 
   /* ── Night Modal ── */
   const nightModal = showNightCheckin && (
-    <div style={modalOverlay}>
-      <div style={modalCard}>
+    <div style={modalOverlay} onClick={posponerCheckin}>
+      <div onClick={e => e.stopPropagation()} style={modalCard}>
+        {barraCheckin}
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{ fontSize: 36, marginBottom: 10, color: '#141833' }}>●</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
@@ -3334,22 +3367,22 @@ function App() {
         </div>
 
         {/* Summary */}
-        <div style={{ background: C.cream, borderRadius: 16, padding: 18, marginBottom: 18 }}>
+        <div style={{ background: C.cream, borderRadius: 16, padding: '18px 14px', marginBottom: 18 }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
             Resumen del día
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: 14 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 30, fontWeight: 900, color: C.rose }}>{totalDone}</div>
-              <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>completados</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 14 }}>
+            <div style={{ textAlign: 'center', minWidth: 0 }}>
+              <div style={{ fontSize: 26, fontWeight: 900, color: C.rose }}>{totalDone}</div>
+              <div style={{ fontSize: 14, color: C.muted, fontWeight: 600, lineHeight: 1.2, overflowWrap: 'anywhere' }}>completados</div>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 30, fontWeight: 900, color: C.subtle }}>{totalHabits - totalDone}</div>
-              <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>pendientes</div>
+            <div style={{ textAlign: 'center', minWidth: 0 }}>
+              <div style={{ fontSize: 26, fontWeight: 900, color: C.subtle }}>{totalHabits - totalDone}</div>
+              <div style={{ fontSize: 14, color: C.muted, fontWeight: 600, lineHeight: 1.2, overflowWrap: 'anywhere' }}>pendientes</div>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 30, fontWeight: 900, color: C.gold }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</div>
-              <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>progreso</div>
+            <div style={{ textAlign: 'center', minWidth: 0 }}>
+              <div style={{ fontSize: 26, fontWeight: 900, color: C.gold }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</div>
+              <div style={{ fontSize: 14, color: C.muted, fontWeight: 600, lineHeight: 1.2, overflowWrap: 'anywhere' }}>progreso</div>
             </div>
           </div>
           {/* Uncompleted habits */}
@@ -3378,14 +3411,17 @@ function App() {
         <div style={{ fontSize: 20, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>
           ¿Cómo te sientes?
         </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 18, justifyContent: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 2, marginBottom: 18 }}>
           {MOOD_ICONS.map((icon, i) => (
             <button key={i} onClick={() => setNightMood(i)} style={{
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              transition: 'all 0.15s', transform: nightMood === i ? 'scale(1.2)' : 'scale(1)', padding: 4,
+              background: 'transparent', border: 'none', cursor: 'pointer', minWidth: 0,
+              padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', fontFamily: 'inherit',
             }}>
-              {icon(36, nightMood === i)}
-              <div style={{ fontSize: 19, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
+              {/* Solo crece la carita: el botón no se sale de su columna */}
+              <span style={{ display: 'inline-flex', transition: 'transform 0.15s', transform: nightMood === i ? 'scale(1.15)' : 'none' }}>
+                {icon(36, nightMood === i)}
+              </span>
+              <span style={{ fontSize: 'clamp(12px, 3.75vw, 14px)', fontWeight: nightMood === i ? 800 : 700, color: MOOD_COLORS[i], marginTop: 4, maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{MOOD_LABELS[i]}</span>
             </button>
           ))}
         </div>

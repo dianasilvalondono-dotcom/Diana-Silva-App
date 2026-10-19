@@ -146,7 +146,8 @@ export default function DiarioView({
                     <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                         <span style={{ fontSize: 19, fontWeight: 700, color: C.muted }}>{e.time}</span>
-                        {MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](22, true) : <span style={{ fontSize: 20, fontWeight: 700, color: MOOD_COLORS[e.mood] }}>{MOOD_LABELS[e.mood]}</span>}
+                        {/* Carita solo si la entrada tiene un ánimo elegido (la intención de la mañana no lo tiene) */}
+                        {Number.isInteger(e.mood) && e.type !== 'morning' && (MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](22, true) : <span style={{ fontSize: 20, fontWeight: 700, color: MOOD_COLORS[e.mood] }}>{MOOD_LABELS[e.mood]}</span>)}
                       </div>
                       <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
                     </div>
