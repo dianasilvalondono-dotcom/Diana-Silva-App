@@ -321,8 +321,10 @@ function App() {
 
   // Panic button / Crisis mode
   const [showPanic, setShowPanic] = useState(false)
-  // Capta cualquier apertura del SOS, sin importar desde qué botón.
-  useEffect(() => { if (showPanic) track('sos_opened') }, [showPanic])
+  // Para qué se abrió la ventana: 'ayuda' (el SOS) o 'pausa' (los 2 minutos
+  // de respiración de Adentro o de 'Antes de ir'). La analítica se registra
+  // en cada apertura: sos_opened solo para la Ayuda.
+  const [panicOrigen, setPanicOrigen] = useState('ayuda')
   const [panicScreen, setPanicScreen] = useState('home') // home, breathe, ground, dbt, accept
   const [breathePhase, setBreathePhase] = useState('inhale') // inhale, hold, exhale
   const [breatheCount, setBreatheCount] = useState(0)
@@ -777,11 +779,16 @@ function App() {
     track('module_viewed', { module: destino, sub: sub || null })
   }
 
-  const abrirAyuda = () => {
-    setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0)
+  const abrirAyuda = (desde = 'encabezado') => {
+    setPanicOrigen('ayuda')
+    setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicDbtExpanded(null)
+    track('sos_opened', { origen: desde })
   }
-  const empezarRespiracion = () => {
+  // La pausa de 2 minutos: respiración guiada, sin el menú de crisis.
+  const empezarRespiracion = (origen) => {
+    setPanicOrigen('pausa')
     setShowPanic(true); setPanicScreen('breathe'); setBreatheActive(true); setBreatheCount(0); setBreathePhase('inhale')
+    track('pausa_iniciada', { origen })
   }
   const cerrarAyuda = () => { setShowPanic(false); setBreatheActive(false) }
 
@@ -798,6 +805,16 @@ function App() {
   useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
   useDialog(appModalRef, !!appModal && pantallaPrincipal, () => setAppModal(null))
   const fondoInerte = showPanic || showMorningCheckin || showNightCheckin || !!appModal
+  // Cada pantalla de la Ayuda empieza arriba (el contenedor que hace scroll se reutiliza).
+  useEffect(() => { if (panicRef.current) panicRef.current.scrollTop = 0 }, [panicScreen, showPanic])
+  // Con la Ayuda abierta, la página de atrás no se mueve.
+  useEffect(() => {
+    if (!showPanic) return
+    const raiz = document.documentElement
+    const antes = raiz.style.overflow
+    raiz.style.overflow = 'hidden'
+    return () => { raiz.style.overflow = antes }
+  }, [showPanic])
 
   const PUERTAS = [
     { id: 'auto', label: 'Según mi momento' },
@@ -870,7 +887,7 @@ function App() {
           {isAdmin && <span style={{ fontSize: 10, background: C.orquidea, color: C.morado, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: '0.06em' }}>CURADORA</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <button onClick={abrirAyuda} style={{
+          <button onClick={() => abrirAyuda('encabezado')} style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: '12px 10px',
             color: C.orquidea, fontSize: 15, fontWeight: 600, letterSpacing: '0.04em', fontFamily: 'inherit',
           }}>Ayuda</button>
@@ -979,7 +996,7 @@ function App() {
         <p style={{ margin: '10px 0 16px', fontFamily: FONT_DISPLAY, fontStyle: 'italic', fontSize: 24, lineHeight: 1.25, color: C.navy }}>
           {siguienteRutina ? siguienteRutina.task : 'Suelta los hombros, respira lento y vuelve a lo tuyo.'}
         </p>
-        <button onClick={siguienteRutina ? () => abrirAcceso('rutina') : empezarRespiracion} style={{
+        <button onClick={siguienteRutina ? () => abrirAcceso('rutina') : () => empezarRespiracion('adentro')} style={{
           width: '100%', height: 50, border: 'none', borderRadius: 14, cursor: 'pointer',
           background: C.morado, color: '#FFFFFF', fontSize: 16, fontWeight: 600, letterSpacing: '0.03em', fontFamily: 'inherit',
         }}>
@@ -1961,8 +1978,7 @@ function App() {
         setBoardPosts(prev => prev.map(p =>
           p.id === newPostId ? { ...p, replies: [data.reply], awaitingGuia: false } : p
         ))
-        setShowPanic(true)
-        setPanicScreen('home')
+        abrirAyuda('crisis_comunidad')
         return
       }
 
@@ -2505,7 +2521,7 @@ function App() {
                   </button>
                 )}
                 {msg.sos && (
-                  <button onClick={() => { setShowPanic(true); setPanicScreen('home') }} style={{
+                  <button onClick={() => abrirAyuda('chat')} style={{
                     marginTop: 8, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
                     background: C.lavanda, color: 'white',
                     fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
@@ -3275,7 +3291,7 @@ function App() {
   }
   const barraCheckin = (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-14px -10px 4px' }}>
-      <button type="button" onClick={() => { posponerCheckin(); abrirAyuda() }} style={{ ...botonCheckinSecundario, color: C.morado, textDecoration: 'underline' }}>
+      <button type="button" onClick={() => { posponerCheckin(); abrirAyuda('checkin') }} style={{ ...botonCheckinSecundario, color: C.morado, textDecoration: 'underline' }}>
         Ayuda
       </button>
       <button type="button" onClick={posponerCheckin} style={{ ...botonCheckinSecundario, color: C.muted }}>
@@ -3489,7 +3505,7 @@ function App() {
   ]
 
   const panicModal = showPanic && (
-    <div ref={panicRef} role="dialog" aria-modal="true" aria-label="Ayuda" style={{
+    <div ref={panicRef} role="dialog" aria-modal="true" aria-label={panicOrigen === 'pausa' ? 'Pausa' : 'Ayuda'} style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: panicScreen === 'breathe'
         ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #141833, #141833)'
@@ -3498,36 +3514,36 @@ function App() {
         : 'linear-gradient(180deg, #141833 0%, #592147 100%)',
       zIndex: 1000, display: 'flex', flexDirection: 'column',
       animation: 'fadeIn 0.3s ease',
-      overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-      // Respeta el notch / Dynamic Island del iPhone
-      paddingTop: 'max(env(safe-area-inset-top), 24px)',
-      paddingBottom: 'env(safe-area-inset-bottom)',
+      overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain',
     }}>
-      {/* Close button */}
-      <button onClick={cerrarAyuda} aria-label="Cerrar la ayuda" data-autofocus style={{
-        position: 'absolute',
-        top: 'calc(env(safe-area-inset-top) + 12px)',
-        right: 16, background: 'rgba(255,255,255,0.15)',
-        border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+      {/* Barra fija arriba: volver y cerrar siempre a la vista al bajar.
+         Respeta el notch / Dynamic Island del iPhone. */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: 'calc(max(env(safe-area-inset-top, 0px), 12px)) 16px 8px',
+        background: 'rgba(20,24,51,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
       }}>
-        {UI_ICONS.close('white', 18)}
-      </button>
-
-      {/* Back button */}
-      {panicScreen !== 'home' && (
-        <button onClick={() => { setPanicScreen('home'); setBreatheActive(false); setPanicDbtExpanded(null) }} aria-label="Volver" style={{
-          position: 'absolute',
-          top: 'calc(env(safe-area-inset-top) + 12px)',
-          left: 16, background: 'rgba(255,255,255,0.15)',
-          border: 'none', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+        {panicScreen !== 'home' ? (
+          // En la pausa, volver es salir: no lleva al menú de crisis.
+          <button onClick={panicOrigen === 'pausa' ? cerrarAyuda : () => { setPanicScreen('home'); setBreatheActive(false); setPanicDbtExpanded(null) }} aria-label="Volver" style={{
+            background: 'rgba(255,255,255,0.15)',
+            border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ color: 'white', fontSize: 20, lineHeight: 1 }}>←</span>
+          </button>
+        ) : <span />}
+        <button onClick={cerrarAyuda} aria-label={panicOrigen === 'pausa' ? 'Cerrar la pausa' : 'Cerrar la ayuda'} data-autofocus style={{
+          background: 'rgba(255,255,255,0.15)',
+          border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: 'white', fontSize: 20, lineHeight: 1 }}>←</span>
+          {UI_ICONS.close('white', 18)}
         </button>
-      )}
+      </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px 24px', maxWidth: 440, margin: '0 auto', width: '100%' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '12px 24px 24px', maxWidth: 440, margin: '0 auto', width: '100%' }}>
 
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
@@ -3577,17 +3593,6 @@ function App() {
             <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 4 }}>Pregunta lo que necesites. Guías Ronda verificadas te acompañan.</div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. No reemplaza atención en crisis.</div>
           </button>
-
-          <div style={{ marginTop: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, color: '#D6BFDD', marginBottom: 8 }}>Si sientes que tu vida está en riesgo:</div>
-            <a href="tel:106" style={{
-              display: 'inline-block', padding: '10px 24px', borderRadius: 20,
-              background: '#D6BFDD', color: '#141833', fontWeight: 700, fontSize: 20,
-              textDecoration: 'none',
-            }}>
-              📞 Línea 106 — Atención en crisis
-            </a>
-          </div>
         </>}
 
         {/* ── BREATHE: 4-7-8 Guided Breathing ── */}
@@ -3767,6 +3772,24 @@ function App() {
         </>}
 
       </div>
+
+      {/* Línea de crisis: fija abajo en todas las pantallas de la Ayuda */}
+      {panicOrigen === 'ayuda' && (
+        <div style={{
+          position: 'sticky', bottom: 0, zIndex: 10, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px 12px', flexWrap: 'wrap',
+          padding: '8px 16px calc(8px + env(safe-area-inset-bottom, 0px))',
+          background: 'rgba(20,24,51,0.92)', textAlign: 'center',
+        }}>
+          <span style={{ fontSize: 15, color: '#D6BFDD' }}>Si sientes que tu vida está en riesgo:</span>
+          <a href="tel:106" style={{
+            display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 18px', borderRadius: 22,
+            background: '#D6BFDD', color: '#141833', fontWeight: 700, fontSize: 17, textDecoration: 'none',
+          }}>
+            📞 Línea 106 — Atención en crisis
+          </a>
+        </div>
+      )}
     </div>
   )
 
@@ -3783,7 +3806,7 @@ function App() {
           <RondasView
             user={user}
             onOpenProfesionales={() => openModule('juntas', 'directorio')}
-            onIrAdentro={() => { openModule('ahora'); empezarRespiracion() }}
+            onIrAdentro={() => empezarRespiracion('afuera')}
           />
         )}
 

@@ -203,7 +203,7 @@ function HojaPlan({ plan, reservado, onCerrar, onReservar, onReportar, onIrAdent
           fontSize: 15, lineHeight: 1.4, textAlign: 'left', fontFamily: 'inherit',
         }}>
           <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7" fill="none" stroke={C.navy} strokeWidth="1.6" strokeLinecap="round" /></svg>
-          <span><b style={{ fontWeight: 600 }}>Antes de ir:</b> 2 minutos para llegar tranquila, en Adentro.</span>
+          <span><b style={{ fontWeight: 600 }}>Antes de ir:</b> 2 minutos para llegar tranquila.</span>
         </button>
 
         <button
@@ -375,7 +375,7 @@ export default function RondasView({ user, onOpenProfesionales, onIrAdentro }) {
           onCerrar={cerrar}
           onReservar={reservar}
           onReportar={(p) => { setReportando(p); setAbierto(null) }}
-          onIrAdentro={() => { setAbierto(null); onIrAdentro?.() }}
+          onIrAdentro={() => onIrAdentro?.()}
         />
       )}
 
