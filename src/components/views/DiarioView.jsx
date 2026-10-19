@@ -9,7 +9,7 @@ import { C } from '../../constants/colors'
 import { SHADOW } from '../../constants/tokens'
 import { ICONS, MOOD_ICONS, UI_ICONS } from '../../constants/icons'
 import { MOOD_RECS } from '../../constants/data'
-import { todayKey, MOOD_LABELS, MOOD_COLORS } from '../../utils/helpers'
+import { formatDayKey, MOOD_LABELS, MOOD_COLORS } from '../../utils/helpers'
 
 export default function DiarioView({
   journalMood, setJournalMood,
@@ -136,7 +136,7 @@ export default function DiarioView({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {Object.entries(grouped).map(([date, dayEntries]) => (
               <div key={date}>
-                <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, marginBottom: 6 }}>{date === todayKey() ? 'Hoy' : date}</div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: C.rose, marginBottom: 6 }}>{formatDayKey(date)}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {dayEntries.map(e => (
                     <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>

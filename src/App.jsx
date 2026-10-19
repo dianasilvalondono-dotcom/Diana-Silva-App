@@ -70,6 +70,12 @@ function NavItem({ icon, label, active, onClick }) {
   )
 }
 
+/* ¿La usuaria está escribiendo? (el foco está en un campo de texto) */
+function escribiendo() {
+  const el = document.activeElement
+  return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+}
+
 /* ═══════════════════════════════════════════ */
 /*                   APP                       */
 /* ═══════════════════════════════════════════ */
@@ -201,16 +207,21 @@ function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [, setDirFilter] = useState('todas')
 
+  // Día al que pertenecen los estados diarios (hábitos, rutina, check-ins,
+  // tareas). Se fija al montar: si cambia el día con la app abierta, lo de
+  // ayer se sigue guardando en la clave de ayer y nunca se copia a hoy.
+  const [diaApp] = useState(todayKey)
+
   // Habits
   const [habits, setHabits] = useState(() => load('diana-habits', []))
-  const [checked, setChecked] = useState(() => load(`diana-checked-${todayKey()}`, {}))
+  const [checked, setChecked] = useState(() => load(`diana-checked-${diaApp}`, {}))
   const [streaks, setStreaks] = useState(() => load('diana-streaks', {}))
 
   // Routines (editable by each user)
   const [morning, setMorning] = useState(() => load('diana-morning', DEFAULT_MORNING))
   const [midday, setMidday] = useState(() => load('diana-midday', DEFAULT_MIDDAY))
   const [night, setNight] = useState(() => load('diana-night', DEFAULT_NIGHT))
-  const [routineChecked, setRoutineChecked] = useState(() => load(`diana-routine-${todayKey()}`, {}))
+  const [routineChecked, setRoutineChecked] = useState(() => load(`diana-routine-${diaApp}`, {}))
   const [editingRoutine, setEditingRoutine] = useState(false)
   const [editingRoutineItem, setEditingRoutineItem] = useState(null) // { sectionKey, id, time, task, emoji }
   const [newRoutineTask, setNewRoutineTask] = useState('')
@@ -218,7 +229,7 @@ function App() {
   const [newRoutineEmoji, setNewRoutineEmoji] = useState('✨')
   const [newRoutineSection, setNewRoutineSection] = useState('morning')
   // Tomorrow planning (night ritual)
-  const [tomorrowTasks, setTomorrowTasks] = useState(() => load(`ronda-tomorrow-${todayKey()}`, []))
+  const [tomorrowTasks, setTomorrowTasks] = useState(() => load(`ronda-tomorrow-${diaApp}`, []))
   const [newTomorrowTask, setNewTomorrowTask] = useState('')
 
   // Journal
@@ -297,8 +308,8 @@ function App() {
   const [boardHearts, setBoardHearts] = useState(() => load('ronda-board-hearts', {}))
 
   // Morning/Night check-in
-  const [morningDone, setMorningDone] = useState(() => load(`ronda-morning-${todayKey()}`, false))
-  const [nightDone, setNightDone] = useState(() => load(`ronda-night-${todayKey()}`, false))
+  const [morningDone, setMorningDone] = useState(() => load(`ronda-morning-${diaApp}`, false))
+  const [nightDone, setNightDone] = useState(() => load(`ronda-night-${diaApp}`, false))
   const [morningIntention, setMorningIntention] = useState('')
   const [nightReflection, setNightReflection] = useState('')
   const [nightMood, setNightMood] = useState(2)
@@ -321,9 +332,9 @@ function App() {
 
   // Persist
   useEffect(() => { save('diana-habits', habits) }, [habits])
-  useEffect(() => { save(`diana-checked-${todayKey()}`, checked) }, [checked])
+  useEffect(() => { save(`diana-checked-${diaApp}`, checked) }, [checked, diaApp])
   useEffect(() => { save('diana-streaks', streaks) }, [streaks])
-  useEffect(() => { save(`diana-routine-${todayKey()}`, routineChecked) }, [routineChecked])
+  useEffect(() => { save(`diana-routine-${diaApp}`, routineChecked) }, [routineChecked, diaApp])
   useEffect(() => { save('diana-journal', entries) }, [entries])
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
@@ -331,12 +342,12 @@ function App() {
   useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
   useEffect(() => { save('ronda-board', boardPosts) }, [boardPosts])
   useEffect(() => { save('ronda-board-hearts', boardHearts) }, [boardHearts])
-  useEffect(() => { save(`ronda-morning-${todayKey()}`, morningDone) }, [morningDone])
-  useEffect(() => { save(`ronda-night-${todayKey()}`, nightDone) }, [nightDone])
+  useEffect(() => { save(`ronda-morning-${diaApp}`, morningDone) }, [morningDone, diaApp])
+  useEffect(() => { save(`ronda-night-${diaApp}`, nightDone) }, [nightDone, diaApp])
   useEffect(() => { save('diana-morning', morning) }, [morning])
   useEffect(() => { save('diana-midday', midday) }, [midday])
   useEffect(() => { save('diana-night', night) }, [night])
-  useEffect(() => { save(`ronda-tomorrow-${todayKey()}`, tomorrowTasks) }, [tomorrowTasks])
+  useEffect(() => { save(`ronda-tomorrow-${diaApp}`, tomorrowTasks) }, [tomorrowTasks, diaApp])
 
   // Breathing timer for panic button
   useEffect(() => {
@@ -410,23 +421,38 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checked])
 
-  // Day change detection
+  // Texto escrito y sin guardar: una recarga lo borraría. El detector de
+  // cambio de día lo lee por esta ref.
+  const borradoresRef = useRef('')
   useEffect(() => {
-    const checkDay = setInterval(() => {
+    borradoresRef.current = [journalText, morningIntention, nightReflection, newTomorrowTask, chatInput, boardNewText].join('').trim()
+  }, [journalText, morningIntention, nightReflection, newTomorrowTask, chatInput, boardNewText])
+
+  // Cambio de día: a la medianoche local la app se recarga para empezar el
+  // día nuevo, pero no mientras la usuaria escribe o tiene texto sin guardar;
+  // en ese caso lo vuelve a intentar en la siguiente revisión.
+  useEffect(() => {
+    const revisarDia = () => {
       const now = todayKey()
-      const stored = localStorage.getItem('ronda-current-day')
-      if (stored && stored !== now) {
-        localStorage.setItem('ronda-current-day', now)
-        window.location.reload()
-      } else if (!stored) {
-        localStorage.setItem('ronda-current-day', now)
-      }
-    }, 60000)
-    localStorage.setItem('ronda-current-day', todayKey())
-    return () => clearInterval(checkDay)
-  }, [])
+      if (now === diaApp) return
+      if (escribiendo() || borradoresRef.current) return
+      try { localStorage.setItem('ronda-current-day', now) } catch { /* sin almacenamiento */ }
+      window.location.reload()
+    }
+    const alVolver = () => { if (document.visibilityState === 'visible') revisarDia() }
+    const intervalo = setInterval(revisarDia, 60000)
+    document.addEventListener('visibilitychange', alVolver)
+    try { localStorage.setItem('ronda-current-day', diaApp) } catch { /* sin almacenamiento */ }
+    return () => {
+      clearInterval(intervalo)
+      document.removeEventListener('visibilitychange', alVolver)
+    }
+  }, [diaApp])
 
   const toggleHabit = (id) => {
+    // Si ya cambió el día, lo que hay en pantalla es de ayer: recargar en vez
+    // de marcar sobre ello (salvo que haya texto sin guardar).
+    if (todayKey() !== diaApp && !borradoresRef.current) { window.location.reload(); return }
     const next = { ...checked, [id]: !checked[id] }
     setChecked(next)
     if (next[id]) {
@@ -911,6 +937,7 @@ function App() {
           ))}
           {(() => {
             const now = new Date()
+            const hoy = todayKey(now)
             const year = now.getFullYear(), month = now.getMonth()
             const firstDay = new Date(year, month, 1).getDay()
             const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -918,8 +945,8 @@ function App() {
             const cells = []
             for (let i = 0; i < offset; i++) cells.push(<div key={'e'+i} />)
             for (let d = 1; d <= daysInMonth; d++) {
-              const dateStr = year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')
-              const isToday = dateStr === todayKey()
+              const dateStr = todayKey(new Date(year, month, d))
+              const isToday = dateStr === hoy
               const count = monthlyHistory[dateStr] || 0
               const bg = count > 0 ? (count >= totalHabits && totalHabits > 0 ? C.teal : C.teal+'40') : (isToday ? C.gold+'20' : 'transparent')
               cells.push(
@@ -2137,7 +2164,7 @@ function App() {
     localStorage.setItem('diana-custom-programs', JSON.stringify(saved))
     // Also activate it
     const ap = { ...activePrograms }
-    ap[id] = { startDate: new Date().toISOString().split('T')[0], completedDays: [] }
+    ap[id] = { startDate: todayKey(), completedDays: [] }
     setActivePrograms(ap)
     localStorage.setItem('diana-active-programs', JSON.stringify(ap))
     setAiSaved(true)
