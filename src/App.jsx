@@ -13,11 +13,13 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS,
 } from './constants/data'
-import { todayKey, load, save, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+import { todayKey, load, save, saveDay, limpiarDiasVacios, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
 runMigrationCleanDianaDefaults()
+// Borra las claves diarias vacías que dejaban las versiones anteriores.
+limpiarDiasVacios()
 import { useAuth } from './lib/useAuth'
 import { useNotifications } from './lib/useNotifications'
 import { track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
@@ -332,9 +334,9 @@ function App() {
 
   // Persist
   useEffect(() => { save('diana-habits', habits) }, [habits])
-  useEffect(() => { save(`diana-checked-${diaApp}`, checked) }, [checked, diaApp])
+  useEffect(() => { saveDay(`diana-checked-${diaApp}`, checked) }, [checked, diaApp])
   useEffect(() => { save('diana-streaks', streaks) }, [streaks])
-  useEffect(() => { save(`diana-routine-${diaApp}`, routineChecked) }, [routineChecked, diaApp])
+  useEffect(() => { saveDay(`diana-routine-${diaApp}`, routineChecked) }, [routineChecked, diaApp])
   useEffect(() => { save('diana-journal', entries) }, [entries])
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
@@ -342,12 +344,12 @@ function App() {
   useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
   useEffect(() => { save('ronda-board', boardPosts) }, [boardPosts])
   useEffect(() => { save('ronda-board-hearts', boardHearts) }, [boardHearts])
-  useEffect(() => { save(`ronda-morning-${diaApp}`, morningDone) }, [morningDone, diaApp])
-  useEffect(() => { save(`ronda-night-${diaApp}`, nightDone) }, [nightDone, diaApp])
+  useEffect(() => { saveDay(`ronda-morning-${diaApp}`, morningDone) }, [morningDone, diaApp])
+  useEffect(() => { saveDay(`ronda-night-${diaApp}`, nightDone) }, [nightDone, diaApp])
   useEffect(() => { save('diana-morning', morning) }, [morning])
   useEffect(() => { save('diana-midday', midday) }, [midday])
   useEffect(() => { save('diana-night', night) }, [night])
-  useEffect(() => { save(`ronda-tomorrow-${diaApp}`, tomorrowTasks) }, [tomorrowTasks, diaApp])
+  useEffect(() => { saveDay(`ronda-tomorrow-${diaApp}`, tomorrowTasks) }, [tomorrowTasks, diaApp])
 
   // Breathing timer for panic button
   useEffect(() => {
@@ -1685,9 +1687,20 @@ function App() {
   /* ── PERFIL ── */
   const AVATARS = []
   const profileStats = {
+    // Días con actividad real: algún hábito o paso de la rutina marcado, o
+    // una entrada del diario. Abrir la app no cuenta. Hoy sale del estado
+    // en memoria (localStorage se escribe después del render).
     daysActive: (() => {
-      const keys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
-      return keys.length
+      const dias = new Set(entries.map(e => e.date).filter(Boolean))
+      Object.keys(monthlyHistory).forEach(d => { if (d !== diaApp) dias.add(d) })
+      try {
+        Object.keys(localStorage).forEach(k => {
+          const d = k.slice('diana-routine-'.length)
+          if (k.startsWith('diana-routine-') && d !== diaApp && Object.values(load(k, {})).some(Boolean)) dias.add(d)
+        })
+      } catch { /* sin almacenamiento */ }
+      if (Object.values(checked).some(Boolean) || Object.values(routineChecked).some(Boolean)) dias.add(diaApp)
+      return dias.size
     })(),
     totalEntries: entries.length,
     totalHabitsEver: Object.values(streaks).reduce((s, v) => s + v, 0),

@@ -21,6 +21,44 @@ export const load = (key, fallback) => {
 
 export const save = (key, val) => localStorage.setItem(key, JSON.stringify(val))
 
+/* ¿Un valor diario está vacío? ({} sin ningún true, [], false o null) */
+const diaVacio = (val) => {
+  if (val == null || val === false) return true
+  if (Array.isArray(val)) return val.length === 0
+  if (typeof val === 'object') return !Object.values(val).some(Boolean)
+  return false
+}
+
+/* Guarda una clave diaria solo si tiene datos. Si está vacía la borra, para
+   no dejar un registro vacío por cada día en que se abre la app. Las lecturas
+   usan load(clave, vacío), así que la ausencia de la clave no cambia nada. */
+export const saveDay = (key, val) => {
+  try {
+    if (diaVacio(val)) localStorage.removeItem(key)
+    else save(key, val)
+  } catch { /* sin almacenamiento: no se guarda */ }
+}
+
+const DAILY_PREFIXES = ['diana-checked-', 'diana-routine-', 'ronda-morning-', 'ronda-night-', 'ronda-tomorrow-']
+
+/* Limpieza (una vez por dispositivo): borra las claves diarias VACÍAS que
+   dejaron versiones anteriores. Nunca toca días con datos: el calendario y
+   las rachas leen ese historial. */
+export function limpiarDiasVacios() {
+  const FLAG = 'ronda-migration-dias-vacios-v1'
+  try {
+    if (localStorage.getItem(FLAG) === 'done') return
+    for (const key of Object.keys(localStorage)) {
+      const prefijo = DAILY_PREFIXES.find(p => key.startsWith(p))
+      if (!prefijo || !/^\d{4}-\d{2}-\d{2}$/.test(key.slice(prefijo.length))) continue
+      let val
+      try { val = JSON.parse(localStorage.getItem(key)) } catch { continue }
+      if (diaVacio(val)) localStorage.removeItem(key)
+    }
+    localStorage.setItem(FLAG, 'done')
+  } catch { /* sin almacenamiento */ }
+}
+
 export function getGreeting() {
   const h = new Date().getHours()
   if (h < 12) return 'Buenos días'
