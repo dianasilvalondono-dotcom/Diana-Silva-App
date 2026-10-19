@@ -639,8 +639,10 @@ function App() {
     setHabits(habits.filter(h => h.id !== id))
   }
 
+  // Empieza una ruta. Si ya estaba activa no la reinicia: conserva su avance.
   const startProgram = (progId) => {
-    setActivePrograms(prev => ({ ...prev, [progId]: { startDate: todayKey(), completedDays: [] } }))
+    if (activePrograms[progId]) return
+    setActivePrograms(prev => prev[progId] ? prev : { ...prev, [progId]: { startDate: todayKey(), completedDays: [] } })
     track('program_started', { program: progId })
   }
   const completeProgDay = (progId, day) => {
@@ -1376,6 +1378,7 @@ function App() {
       toggleVoiceInput={toggleVoiceInput}
       addJournalEntry={addJournalEntry}
       entries={entries}
+      activePrograms={activePrograms}
       startProgram={startProgram}
       openModule={openModule}
     />

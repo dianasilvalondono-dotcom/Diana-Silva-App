@@ -16,7 +16,7 @@ export default function DiarioView({
   journalText, setJournalText,
   isListening, toggleVoiceInput,
   addJournalEntry, entries,
-  startProgram, openModule,
+  activePrograms, startProgram, openModule,
 }) {
   const rec = MOOD_RECS[journalMood]
 
@@ -116,7 +116,11 @@ export default function DiarioView({
             ))}
           </div>
           {rec.programa && (
-            <button onClick={() => { startProgram(rec.programa); openModule('crecer', 'programas', { silent: true }) }} style={{
+            <button onClick={() => {
+              // Si la ruta ya está en curso solo se abre; si no, se empieza.
+              if (!activePrograms?.[rec.programa]) startProgram(rec.programa)
+              openModule('crecer', 'programas', { silent: true })
+            }} style={{
               marginTop: 12, width: '100%', padding: 12, borderRadius: 12, border: `2px solid ${rec.color}`,
               background: 'transparent', color: rec.color, fontSize: 20, fontWeight: 700,
               cursor: 'pointer', fontFamily: 'inherit',
