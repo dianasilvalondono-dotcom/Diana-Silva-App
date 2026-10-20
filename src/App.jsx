@@ -1464,7 +1464,9 @@ function App() {
                   background: habitoNuevo?.id === h.id ? C.orquideaClara : C.card, borderRadius: 12, paddingRight: 4,
                   display: 'flex', alignItems: 'center',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.04)', borderLeft: `3px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
-                  transition: 'all 0.15s', opacity: checked[h.id] ? 0.65 : 1,
+                  // Hecho se nota en el borde, la casilla y el tachado; sin bajar la
+                  // opacidad, que dejaba el nombre y la X por debajo del contraste mínimo.
+                  transition: 'all 0.15s',
                 }}>
                   {/* La fila se marca con un solo botón (Tab + Espacio/Enter); la X queda aparte */}
                   <button type="button" role="checkbox" aria-checked={!!checked[h.id]}
