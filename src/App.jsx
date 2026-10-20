@@ -829,12 +829,26 @@ function App() {
     setNewTomorrowTask('')
   }
   const removeTomorrowTask = (id) => setTomorrowTasks(prev => prev.filter(t => t.id !== id))
+  const pedirQuitarTareaHoy = (t) => setAppModal({
+    type: 'confirm',
+    title: `¿Quitar "${String(t.task ?? '').trim()}" de lo que planeaste para hoy?`,
+    body: 'Se quita de esta lista.',
+    cta: 'Quitar',
+    onConfirm: () => { focoTrasQuitarTarea(t); setPlannedToday(prev => prev.filter(x => x.id !== t.id)) },
+  })
+  // Al quitar una tarea, su × se va con ella: el foco pasa a la tarea de al
+  // lado o, si no queda ninguna, al campo para escribir una.
+  const focoTrasQuitarTarea = (t) => {
+    const fila = document.querySelector(`[data-tarea="${t.id}"]`)
+    const otra = fila?.nextElementSibling || fila?.previousElementSibling
+    focoTrasModalRef.current = () => (otra?.isConnected && otra.querySelector('[role="checkbox"]')) || document.getElementById('tarea-manana')
+  }
   const pedirQuitarTareaManana = (t) => setAppModal({
     type: 'confirm',
     title: `¿Quitar "${String(t.task ?? '').trim()}" de tus tareas para mañana?`,
     body: 'Puedes volver a escribirla cuando quieras.',
     cta: 'Quitar',
-    onConfirm: () => removeTomorrowTask(t.id),
+    onConfirm: () => { focoTrasQuitarTarea(t); removeTomorrowTask(t.id) },
   })
 
   // Marca o desmarca una tarea en una lista de tareas (para mañana o para hoy).
@@ -1875,7 +1889,7 @@ function App() {
   const renderTaskList = (tasks, onToggle, onRemove) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {tasks.map(t => (
-        <div key={t.id} style={{ display: 'flex', alignItems: 'center', background: C.cream, borderRadius: 10 }}>
+        <div key={t.id} data-tarea={t.id} style={{ display: 'flex', alignItems: 'center', background: C.cream, borderRadius: 10 }}>
           <button type="button" role="checkbox" aria-checked={!!t.done} onClick={() => onToggle(t.id)} style={{
             display: 'flex', alignItems: 'center', gap: 10, padding: onRemove ? '8px 0 8px 12px' : '8px 12px', background: 'none',
             borderRadius: 10, cursor: 'pointer', border: 'none', margin: 0, flex: 1, minWidth: 0, textAlign: 'left',
@@ -1908,7 +1922,7 @@ function App() {
           <div style={{ fontSize: 19, color: C.muted, marginBottom: 14, lineHeight: 1.5 }}>
             Lo dejaste listo en tu ritual de noche. Marca lo que vayas haciendo.
           </div>
-          {renderTaskList(plannedToday, togglePlannedTask)}
+          {renderTaskList(plannedToday, togglePlannedTask, pedirQuitarTareaHoy)}
         </div>
       )}
 
@@ -1927,7 +1941,7 @@ function App() {
       {/* Rutina vacía (usuaria nueva): invitación a armarla en vez de tres títulos sueltos */}
       {morning.length + midday.length + night.length === 0 && !editingRoutine ? (
         <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: 'center', boxShadow: SHADOW.sm }}>
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: FONT }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: FONT }}>
             Arma tu rutina
           </div>
           <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>
@@ -1953,11 +1967,18 @@ function App() {
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 19, fontWeight: 800, color: C.text, marginBottom: 12 }}>+ Agregar a mi rutina</div>
           {renderSectionPicker(newRoutineSection, setNewRoutineSection)}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-            <input type="time" aria-label="Hora" value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)}
-              style={{ flexShrink: 0, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+          {/* La hora con su etiqueta visible. Si no queda espacio para leer
+              "¿Qué quieres hacer?" (en el celular el selector de hora mide
+              ~150 px), el campo de la tarea baja a su propia línea. */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, fontSize: 17, fontWeight: 700, color: C.muted }}>
+              Hora
+              <input type="time" value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)}
+                style={{ padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', boxSizing: 'border-box', color: C.text }} />
+            </label>
             <input value={newRoutineTask} onChange={e => setNewRoutineTask(e.target.value)} placeholder="¿Qué quieres hacer?"
-              style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
+              aria-label="Qué quieres hacer"
+              style={{ flex: '1 1 200px', minWidth: 0, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', boxSizing: 'border-box' }}
               onKeyDown={e => e.key === 'Enter' && addRoutineItem()} />
           </div>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -1975,6 +1996,10 @@ function App() {
             background: newRoutineTask.trim() && horaValida(newRoutineTime) ? C.rose : C.border,
             color: newRoutineTask.trim() && horaValida(newRoutineTime) ? 'white' : C.subtle,
           }}>Agregar</button>
+          {/* Con la tarea escrita y sin hora, se dice qué falta (el botón sigue apagado). */}
+          <div aria-live="polite" style={{ fontSize: 17, color: C.muted, marginTop: newRoutineTask.trim() && !horaValida(newRoutineTime) ? 8 : 0 }}>
+            {newRoutineTask.trim() && !horaValida(newRoutineTime) ? 'Elige la hora para agregarlo.' : ''}
+          </div>
         </div>
       )}
 
@@ -2007,7 +2032,8 @@ function App() {
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
         <div style={{ marginBottom: 12 }}>{renderTaskList(tomorrowTasks, toggleTomorrowTask, pedirQuitarTareaManana)}</div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <input value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
+          <input id="tarea-manana" value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
+            aria-label="Tarea para mañana"
             style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
             onKeyDown={e => e.key === 'Enter' && addTomorrowTask()} />
           <button onClick={addTomorrowTask} disabled={!newTomorrowTask.trim()} aria-label="Agregar tarea para mañana" style={{
