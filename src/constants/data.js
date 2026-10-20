@@ -330,7 +330,5 @@ export const MODULE_INTROS = {
   },
 }
 
-export const AVATARS = []
-
 export const CATS = ['todas', 'espiritual', 'sanacion', 'serenidad', 'motivacional', 'sabiduria']
 export const CAT_LABELS = { todas: 'Todas', espiritual: 'Espiritual', sanacion: 'Sanación', serenidad: 'Serenidad', motivacional: 'Motivacional', sabiduria: 'Sabiduría' }

@@ -10,11 +10,11 @@ import DiarioView from './components/views/DiarioView'
 import RondasView from './components/views/RondasView'
 import { TEMPORADA, temporadaVigente, mesTemporada, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from './constants/curaduria'
 import {
-  DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
+  DIMS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
-  AVATARS, PLAN_PAGO, PLAN_PRECIO,
+  PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -22,7 +22,6 @@ runMigrationCleanDianaDefaults()
 // Borra las claves diarias vacías que dejaban las versiones anteriores.
 limpiarDiasVacios()
 import { useAuth } from './lib/useAuth'
-import { useNotifications } from './lib/useNotifications'
 import { track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
 import { useOneSignal } from './lib/useOneSignal'
 import { useSpeech } from './lib/useSpeech'
@@ -40,41 +39,6 @@ function Bar({ value, color = C.rose, height = 6 }) {
     <div style={{ height, background: C.border, borderRadius: height, overflow: 'hidden' }}>
       <div style={{ height: '100%', width: `${Math.min(value, 100)}%`, background: color, borderRadius: height, transition: 'width 0.6s ease' }} />
     </div>
-  )
-}
-
-function DimCard({ dim, done, total, onClick }) {
-  const d = DIMS[dim]
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0
-  return (
-    <div onClick={onClick} style={{
-      background: C.card, borderRadius: 14, padding: 14, boxShadow: SHADOW.sm,
-      borderLeft: `3px solid ${d.color}`, flex: '1 1 140px', minWidth: 140, cursor: 'pointer',
-      transition: 'transform 0.15s', ':hover': { transform: 'translateY(-2px)' },
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <span style={{ fontSize: 19, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''} {d.label}</span>
-        <span style={{ fontSize: 20, fontWeight: 900, color: d.color }}>{pct}%</span>
-      </div>
-      <Bar value={pct} color={d.color} />
-      <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{done}/{total} completados</div>
-    </div>
-  )
-}
-
-/* ── Bottom Nav Item ── */
-function NavItem({ icon, label, active, onClick }) {
-  return (
-    <button onClick={onClick} style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-      background: 'none', border: 'none', padding: '8px 0', cursor: 'pointer',
-      color: active ? C.rose : C.subtle, fontFamily: 'inherit', flex: 1,
-      transition: 'color 0.15s',
-    }}>
-      <span style={{ fontSize: 26, lineHeight: 1 }}>{icon}</span>
-      <span style={{ fontSize: 20, fontWeight: active ? 800 : 600, letterSpacing: '0.02em' }}>{label}</span>
-      {active && <div style={{ width: 5, height: 5, borderRadius: 3, background: C.rose, marginTop: 2 }} />}
-    </button>
   )
 }
 
@@ -236,7 +200,6 @@ function puertaInicial() {
 function App() {
   // Auth
   const { user, loading: authLoading, isConfigured, signInWithEmail, signUp, signOut, resetPassword, updatePassword, recovering, clearRecovering } = useAuth()
-  useNotifications()
 
   const [puerta] = useState(puertaInicial)
   const [view, setView] = useState(puerta.view)
@@ -428,10 +391,6 @@ function App() {
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef(null)
 
-  // Quotes
-  // Solo lectura: se conserva lo guardado y se muestra en el perfil.
-  const [favQuotes] = useState(() => load('diana-fav-quotes', []))
-
   // Toolkit
   const [toolkitItems, setToolkitItems] = useState(() => load('diana-toolkit', []))
   const [showAddTool, setShowAddTool] = useState(false)
@@ -548,7 +507,6 @@ function App() {
   useEffect(() => { saveDay(`diana-checked-${diaApp}`, checked) }, [checked, diaApp])
   useEffect(() => { saveDay(`diana-routine-${diaApp}`, routineChecked) }, [routineChecked, diaApp])
   useEffect(() => { save('diana-journal', entries) }, [entries])
-  useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
   useEffect(() => { save('diana-toolkit', toolkitItems) }, [toolkitItems])
   useEffect(() => { save('diana-profile', profile) }, [profile])
   useEffect(() => { save('ronda-programs', activePrograms) }, [activePrograms])
@@ -2058,7 +2016,6 @@ function App() {
     </div>
   )
 
-  /* ── FRASES ── */
   /* ── TOOLKIT ── */
   const filteredTools = toolFilter === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === toolFilter)
   const toolkitCounts = TOOLKIT_CATS.reduce((acc, cat) => {
@@ -2200,7 +2157,6 @@ function App() {
   )
 
   /* ── PERFIL ── */
-  const AVATARS = []
   const profileStats = {
     // Días con actividad real: algún hábito o paso de la rutina marcado, o
     // una entrada del diario. Abrir la app no cuenta. Hoy sale del estado
@@ -2218,7 +2174,6 @@ function App() {
     totalEntries: entries.length,
     // Marcas reales del historial (un hábito, un día), solo de hábitos que existen.
     totalHabitsEver: Object.values(monthlyHistory).reduce((s, v) => s + v, 0),
-    favQuotesCount: favQuotes.length,
     toolkitCount: toolkitItems.length,
   }
 
@@ -2609,7 +2564,6 @@ function App() {
   )
 
   /* ── Directorio / Marketplace ── */
-  const DIRECTORIO_CATS = []
   const SEED_DIRECTORIO = []
   const directorioView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -3120,20 +3074,6 @@ function App() {
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 14 }}>Editar perfil</div>
 
-          {/* Avatar picker */}
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 6 }}>Tu avatar</div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-            {AVATARS.map(a => (
-              <button key={a} onClick={() => updateProfile('emoji', a)} style={{
-                fontSize: 28, padding: 6, borderRadius: 12, cursor: 'pointer',
-                border: profile.emoji === a ? `2px solid ${C.rose}` : '2px solid transparent',
-                background: profile.emoji === a ? C.beige : 'transparent',
-              }}>
-                {a}
-              </button>
-            ))}
-          </div>
-
           <label htmlFor="perfil-nombre" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</label>
           <input id="perfil-nombre" value={profile.name} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?"
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box' }}
@@ -3336,12 +3276,12 @@ function App() {
             { label: 'Días activa', value: profileStats.daysActive, color: C.teal },
             { label: 'Hábitos cumplidos', value: profileStats.totalHabitsEver, color: C.coral },
             { label: 'Entradas diario', value: profileStats.totalEntries, color: C.lavanda },
-            { label: 'Frases favoritas', value: profileStats.favQuotesCount, color: C.gold },
             // El salvia queda en el punto; el número va en un tono que se lee (8:1).
             { label: 'Recursos guardados', value: profileStats.toolkitCount, color: C.mint, textColor: C.olivaOscura },
             { label: 'Hoy', value: `${totalDone}/${totalHabits}`, color: C.rose },
-          ].map((stat, i) => (
-            <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 16, textAlign: 'center', border: `1px solid ${C.border}` }}>
+          ].map((stat, i, lista) => (
+            // Con un número impar de tarjetas, la última ocupa la fila entera.
+            <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 16, textAlign: 'center', border: `1px solid ${C.border}`, gridColumn: lista.length % 2 && i === lista.length - 1 ? '1 / -1' : undefined }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${stat.color}15`, margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ width: 14, height: 14, borderRadius: '50%', background: stat.color }} />
               </div>
