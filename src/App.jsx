@@ -1034,8 +1034,9 @@ function App() {
     stopVoice()
     setJournalText('')
     setJournalMood(2)
-    // Sin el texto del diario: solo la senal, nunca el contenido.
-    track('journal_created', { mood: journalMood })
+    // Solo la señal: ni el texto ni el ánimo (datos sensibles; la política
+    // dice que PostHog nunca recibe tu ánimo).
+    track('journal_created')
   }
   // Por id; una entrada sin id (dato viejo o dañado) se quita solo a ella misma.
   const removeJournalEntry = (entry) => setEntries(prev => prev.filter(e => entry.id != null ? e.id !== entry.id : e !== entry))
@@ -1458,13 +1459,15 @@ function App() {
     // "Estás a salvo." y con el 123 en el primer texto.
     setPanicOrigen(String(desde).startsWith('crisis') ? 'crisis' : 'ayuda')
     setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicDbtExpanded(null)
-    track('sos_opened', { origen: desde })
+    // Sin analítica: PostHog va unido a la cuenta, y la política promete que
+    // nunca sabe si usaste Ayuda.
   }
   // La pausa de 2 minutos: respiración guiada, sin el menú de crisis.
-  const empezarRespiracion = (origen) => {
+  // Sin analítica, como Ayuda (ver abrirAyuda). Quien la llama dice desde
+  // dónde ('afuera', 'adentro'), solo para leer el código.
+  const empezarRespiracion = () => {
     setPanicOrigen('pausa')
     setShowPanic(true); setPanicScreen('breathe'); setBreatheActive(true); setBreatheCount(0); setBreathePhase('inhale')
-    track('pausa_iniciada', { origen })
   }
   const cerrarAyuda = () => { setShowPanic(false); setBreatheActive(false) }
 
@@ -3049,7 +3052,8 @@ function App() {
       // leer): la publicación queda guardada, se puede reintentar y el aviso
       // deja a la vista Ayuda, la Línea 106 y el 123 (SalidaAyuda).
       actualizar({ awaitingGuia: false, guiaFallo: true })
-      track('community_guia_failed', { category: cat })
+      // Sin la categoría: dice de qué habla (ansiedad, duelo…).
+      track('community_guia_failed')
     } finally {
       clearTimeout(corte)
     }
@@ -3114,8 +3118,8 @@ function App() {
     // del borde de la pantalla (juntas-2).
     if (boardFilter !== 'todas' && boardFilter !== newPost.cat) setBoardFilter('todas')
     requestAnimationFrame(() => document.getElementById(`post-${newPost.id}`)?.scrollIntoView({ block: 'nearest' }))
-    // Sin el contenido del post: solo la senal y la categoria.
-    track('community_post_created', { category: newPost.cat })
+    // Solo la señal: ni el contenido ni la categoría (dice de qué habla).
+    track('community_post_created')
 
     requestGuiaReply(newPost)
   }
