@@ -254,7 +254,10 @@ function App() {
   }, [osStatus, user, osSetExternalUserId, osSetEmail])
 
   // ─── Modal genérico de la marca (reemplaza alert() feo del navegador) ───
-  const [appModal, setAppModal] = useState(null) // { type: 'success'|'info'|'paywall', title, body, cta }
+  // { type: 'success'|'info'|'paywall'|'confirm', title, body, cta, onConfirm }
+  // 'confirm' pide un sí antes de borrar: el CTA ejecuta onConfirm; "Cancelar",
+  // Escape o tocar el fondo lo cierran sin hacer nada.
+  const [appModal, setAppModal] = useState(null)
 
   // ─── Toast "feature premium gratis para founding member" — solo 1 vez por feature ───
   const [foundingMsgShown, setFoundingMsgShown] = useState(() => load('ronda-founding-msg-shown', {}))
@@ -587,6 +590,13 @@ function App() {
     else if (section === 'midday') setMidday(prev => prev.filter(i => i.id !== id))
     else setNight(prev => prev.filter(i => i.id !== id))
   }
+  const pedirQuitarRutina = (section, item) => setAppModal({
+    type: 'confirm',
+    title: `¿Quitar "${item.task}" de tu rutina?`,
+    body: 'Puedes volver a agregarlo cuando quieras.',
+    cta: 'Quitar',
+    onConfirm: () => removeRoutineItem(section, item.id),
+  })
 
   const saveRoutineItemEdit = () => {
     if (!editingRoutineItem) return
@@ -723,7 +733,20 @@ function App() {
   }
 
   const removeHabit = (id) => {
-    setHabits(habits.filter(h => h.id !== id))
+    setHabits(prev => prev.filter(h => h.id !== id))
+  }
+  // Antes de borrar un hábito se pregunta; si tiene racha, se dice que se pierde.
+  const pedirQuitarHabito = (h) => {
+    const racha = streaks[h.id] || 0
+    setAppModal({
+      type: 'confirm',
+      title: `¿Eliminar el hábito "${h.name}"?`,
+      body: racha > 0
+        ? `Llevas una racha de ${racha} ${racha === 1 ? 'día' : 'días'}. Si lo eliminas, la racha se pierde.`
+        : 'Puedes volver a agregarlo cuando quieras.',
+      cta: 'Eliminar',
+      onConfirm: () => removeHabit(h.id),
+    })
   }
 
   // Empieza una ruta. Si ya estaba activa no la reinicia: conserva su avance.
@@ -744,6 +767,15 @@ function App() {
   const quitProgram = (progId) => {
     setActivePrograms(prev => { const next = { ...prev }; delete next[progId]; return next })
   }
+  const pedirDejarRuta = (prog, hechos) => setAppModal({
+    type: 'confirm',
+    title: `¿Dejar la ruta "${prog.title}"?`,
+    body: hechos > 0
+      ? `Perderás tu avance: ${hechos} de ${prog.days.length} días.`
+      : 'Puedes volver a empezarla cuando quieras.',
+    cta: 'Dejar la ruta',
+    onConfirm: () => quitProgram(prog.id),
+  })
   const addSuggestedHabit = (habit) => {
     const id = Date.now()
     setHabits(prev => [...prev, { id, name: habit.name, dim: habit.dim }])
@@ -767,8 +799,15 @@ function App() {
   }
 
   const removeToolkitItem = (id) => {
-    setToolkitItems(toolkitItems.filter(t => t.id !== id))
+    setToolkitItems(prev => prev.filter(t => t.id !== id))
   }
+  const pedirBorrarRecurso = (item) => setAppModal({
+    type: 'confirm',
+    title: `¿Borrar "${item.name}" de tu toolkit?`,
+    body: 'Después no lo podrás recuperar.',
+    cta: 'Borrar recurso',
+    onConfirm: () => removeToolkitItem(item.id),
+  })
 
 
   const currentHour = new Date().getHours()
@@ -920,7 +959,7 @@ function App() {
 
   /* ── Logo ── */
   const logo = (
-    <button onClick={() => openModule('rondas')} aria-label="Ronda: ir a Afuera" style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+    <button onClick={() => openModule('rondas')} aria-label="Ronda: ir a Afuera" style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: 'pointer', padding: 0, minHeight: 44 }}>
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="9.5" fill="none" stroke={C.orquidea} strokeWidth="2" />
         <circle cx="12" cy="12" r="3.5" fill={C.agua} />
@@ -1246,9 +1285,10 @@ function App() {
                       {streaks[h.id]}
                     </span>
                   )}
-                  <button onClick={(e) => { e.stopPropagation(); removeHabit(h.id) }} style={{
-                    background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1,
-                    display: 'flex', alignItems: 'center',
+                  <button type="button" aria-label={`Eliminar hábito ${h.name}`} onClick={(e) => { e.stopPropagation(); pedirQuitarHabito(h) }} style={{
+                    background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 0, lineHeight: 1,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    minWidth: 44, minHeight: 44, flexShrink: 0, margin: -10,
                   }}>{UI_ICONS.close(C.subtle, 16)}</button>
                 </div>
               ))}
@@ -1314,7 +1354,7 @@ function App() {
                   <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{sh.name}</div>
                   <div style={{ fontSize: 19, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].label}</div>
                 </div>
-                <button onClick={() => addSuggestedHabit(sh)} style={{
+                <button onClick={() => addSuggestedHabit(sh)} aria-label={`Agregar hábito ${sh.name}`} style={{
                   padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${DIMS[sh.dim].color}`,
                   background: 'transparent', color: DIMS[sh.dim].color, fontSize: 20, fontWeight: 700,
                   cursor: 'pointer', fontFamily: 'inherit',
@@ -1389,12 +1429,14 @@ function App() {
                 {item.task}
               </span>
               {editingRoutine && <>
-                <button onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: item.time, task: item.task, emoji: item.emoji })} style={{
-                  background: 'none', border: 'none', color: C.gold, fontSize: 20, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
-                }}>✎</button>
-                <button onClick={() => removeRoutineItem(sectionKey, item.id)} style={{
-                  background: 'none', border: 'none', color: C.coral, fontSize: 20, cursor: 'pointer', padding: '0 4px', flexShrink: 0,
-                }}>×</button>
+                <button type="button" aria-label={`Editar ${item.task}`} onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: item.time, task: item.task, emoji: item.emoji })} style={{
+                  background: 'none', border: 'none', color: C.gold, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
+                  minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: -10,
+                }}><span aria-hidden="true">✎</span></button>
+                <button type="button" aria-label={`Quitar ${item.task} de la rutina`} onClick={() => pedirQuitarRutina(sectionKey, item)} style={{
+                  background: 'none', border: 'none', color: C.coral, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
+                  minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', margin: '0 -14px 0 -10px',
+                }}><span aria-hidden="true">×</span></button>
               </>}
             </div>
           )
@@ -1581,9 +1623,10 @@ function App() {
                       <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : <span aria-hidden="true" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: prog.color, verticalAlign: 'middle' }} />} {prog.title}</div>
                       <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
                     </div>
-                    <button onClick={() => quitProgram(progId)} style={{
-                      background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4,
-                      display: 'flex', alignItems: 'center',
+                    <button type="button" aria-label={`Dejar la ruta ${prog.title}`} onClick={() => pedirDejarRuta(prog, completedCount)} style={{
+                      background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      minWidth: 44, minHeight: 44, flexShrink: 0, margin: '-10px -10px -10px 0',
                     }}>{UI_ICONS.close(C.subtle, 16)}</button>
                   </div>
                   <Bar value={pct} color={prog.color} height={6} />
@@ -1915,9 +1958,10 @@ function App() {
                     )}
                   </div>
                 </div>
-                <button onClick={() => removeToolkitItem(item.id)} style={{
-                  background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0,
-                  display: 'flex', alignItems: 'center',
+                <button type="button" aria-label={`Borrar recurso ${item.name}`} onClick={() => pedirBorrarRecurso(item)} style={{
+                  background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  minWidth: 44, minHeight: 44, marginTop: -10, marginRight: -10,
                 }}>{UI_ICONS.close(C.subtle, 16)}</button>
               </div>
             )
@@ -2478,9 +2522,9 @@ function App() {
   const aiAgentView = (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 240px)', maxHeight: 600 }}>
       {/* Mode toggle */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
+      <div role="group" aria-label="Modo de Tu Ronda" style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
         {[{ id: 'chat', label: 'Habla conmigo' }, { id: 'create', label: 'Crea tu programa' }].map(m => (
-          <button key={m.id} onClick={() => setChatMode(m.id)} style={{
+          <button key={m.id} type="button" aria-pressed={chatMode === m.id} onClick={() => setChatMode(m.id)} style={{
             flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: chatMode === m.id ? C.teal : 'transparent',
             color: chatMode === m.id ? 'white' : C.muted,
@@ -2608,12 +2652,12 @@ function App() {
               outline: 'none',
             }}
           />
-          <button onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} style={{
+          <button onClick={sendChatMessage} disabled={!chatInput.trim() || chatLoading} aria-label="Enviar mensaje" style={{
             width: 48, height: 48, borderRadius: '50%', border: 'none', cursor: 'pointer',
             background: chatInput.trim() ? `linear-gradient(135deg, ${C.teal}, ${C.tealDark})` : C.border,
             color: 'white', fontSize: 22, fontWeight: 700, fontFamily: 'inherit',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>↑</button>
+          }}><span aria-hidden="true">↑</span></button>
         </div>
         <style>{`@keyframes chatDot { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }`}</style>
       </>}
@@ -2646,10 +2690,10 @@ function App() {
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..."
                   style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`, fontSize: 19, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none' }} />
-                <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} style={{
+                <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} aria-label="Continuar con esta meta" style={{
                   padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
                   background: aiGoal.trim() ? C.rose : C.border, color: 'white', fontSize: 19, fontWeight: 700,
-                }}>→</button>
+                }}><span aria-hidden="true">→</span></button>
               </div>
             </div>
           )}
@@ -3006,11 +3050,13 @@ function App() {
                 Lo que sé de ti
               </div>
             </div>
-            <button onClick={() => {
-              if (confirm('¿Borrar lo que Ronda ha aprendido de ti? Esta acción no se puede deshacer.')) {
-                setMemory({ facts: [], patterns: [], preferences: {}, summary: '', lastUpdated: null, conversationCount: 0 })
-              }
-            }} style={{
+            <button onClick={() => setAppModal({
+              type: 'confirm',
+              title: '¿Borrar lo que Ronda ha aprendido de ti?',
+              body: 'Esta acción no se puede deshacer.',
+              cta: 'Borrar',
+              onConfirm: () => setMemory({ facts: [], patterns: [], preferences: {}, summary: '', lastUpdated: null, conversationCount: 0 }),
+            })} style={{
               padding: '6px 12px', borderRadius: 10, border: `1px solid ${C.border}`,
               background: 'transparent', color: C.muted, fontSize: 14, fontWeight: 600,
               cursor: 'pointer', fontFamily: 'inherit',
@@ -3928,12 +3974,14 @@ function App() {
                 ? `linear-gradient(135deg, ${C.gold}, ${C.rose})`
                 : appModal.type === 'paywall'
                 ? `linear-gradient(135deg, ${C.teal}, ${C.gold})`
+                : appModal.type === 'confirm'
+                ? `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`
                 : `linear-gradient(135deg, ${C.teal}, #141833)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 26, color: 'white', fontWeight: 800,
               boxShadow: '0 8px 20px rgba(20,24,51,0.3)',
             }}>
-              {appModal.type === 'success' ? '✓' : appModal.type === 'paywall' ? '✦' : 'i'}
+              {appModal.type === 'success' ? '✓' : appModal.type === 'paywall' ? '✦' : appModal.type === 'confirm' ? '!' : 'i'}
             </div>
 
             <div id="app-modal-titulo" style={{ marginTop: 20, fontSize: 22, fontWeight: 800, color: C.text,
@@ -3947,11 +3995,13 @@ function App() {
               {appModal.body}
             </div>
 
-            <button data-autofocus onClick={() => {
+            {/* En 'confirm' el foco empieza en "Cancelar": Enter no borra por accidente */}
+            <button type="button" data-autofocus={appModal.type === 'confirm' ? undefined : true} onClick={() => {
               if (appModal.type === 'paywall') {
                 track('paywall_cta_clicked', { title: appModal.title })
                 openModule('perfil')
               }
+              if (appModal.type === 'confirm') appModal.onConfirm?.()
               setAppModal(null)
             }} style={{
               width: '100%', padding: '14px 24px', borderRadius: 14, border: 'none',
@@ -3971,6 +4021,14 @@ function App() {
                 color: C.muted, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 Ahora no
+              </button>
+            )}
+            {appModal.type === 'confirm' && (
+              <button type="button" data-autofocus onClick={() => setAppModal(null)} style={{
+                width: '100%', minHeight: 44, marginTop: 8, background: 'none', border: 'none',
+                color: C.muted, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+                Cancelar
               </button>
             )}
           </div>

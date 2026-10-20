@@ -3,8 +3,9 @@
    no aplica aqui. */
 /* eslint-disable react-refresh/only-export-components */
 // El color lo pone el contenedor via currentColor, no este componente.
+// Siempre decorativo: el nombre lo da el texto o el aria-label del control.
 const MiniIcon = ({ children, size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" style={{ flexShrink: 0 }}>
     {children}
   </svg>
 )
