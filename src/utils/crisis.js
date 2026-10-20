@@ -126,7 +126,7 @@ export const CRISIS_PATTERNS = [
   new RegExp(`ganas de (morir(me)?\\b${NO_ES_RISA}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|no despertar|no existir)`),
   /\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|ojala|deseo) (estar |estuviera |estuviese )?muert[ao]s?\b/,
   new RegExp(`\\b(quiero|quisiera|queria|prefiero|preferiria|me gustaria|desearia|deseo|deseaba|provoca) morir(me)?\\b${NO_ES_RISA}`),
-  /\bojala (me muera|no despertar|no despierte|no amanecer)/,
+  /\bojala (no despertar|no despierte|no amanecer)/,
   /\bme (hago|estoy haciendo|sigo haciendo) dano\b/, /\bme lastimo\b/,
   /no vale la pena (vivir|seguir)/, /estarian mejor sin mi/,
   // Formas que no caían (verificación final, unas 60 de 142 frases reales).
@@ -139,12 +139,28 @@ export const CRISIS_PATTERNS = [
   new RegExp(`dormir(me)? y no (volver a )?despertar(me)?\\b${NO_ES_SUENO}`),
   new RegExp(`\\bno (quiero|quisiera|deseo) (volver a )?despertar(me)?\\b${NO_ES_SUENO}`),
   new RegExp(`\\bdejar de vivir\\b${NO_ES_VIVIR_CON}`),
-  /\bno quiero estar (aqui|aca|en este mundo|viva|vivo)\b/,
+  /\bno quiero estar (mas )?(aqui|aca|en este mundo|viva|vivo)\b/,
   new RegExp(`\\b(ya no quiero seguir|no quiero seguir mas)\\b${NO_ES_ALGO}`),
   /\bque (se acabe|se termine) todo\b/, /\bque todo (se acabe|se termine)\b/,
   new RegExp(`\\bmejor (me muero|me muera|morirme)\\b${NO_ES_RISA}`), /\bmejor (estar|estaria) muert[ao]/,
   new RegExp(ME_MATO),
   /\bno me importa(ria)? (si me muero|si muero|morir(me)?)\b/,
+  // Desearse la muerte en subjuntivo, la indiferencia ante morir, "para qué
+  // sigo viviendo" y no ver otra salida: "ojalá me pase algo y me muera",
+  // "me da igual vivir o morir", "si me muero a nadie le importa", "la única
+  // salida es la muerte", "mejor desaparezco". No activan "ojalá me muriera de
+  // la risa", "no sé para qué vivo en esta ciudad tan cara", "no hay otra
+  // salida que pagar" ni "la vida no vale la pena sin amigos".
+  new RegExp(`\\bojala (\\w+ ){0,4}me (muera|muriera|muriese)\\b${NO_ES_RISA}`),
+  new RegExp(`\\bmejor si (yo )?(me muero|me muera|me muriera|muriera|no existiera|no hubiera nacido)\\b${NO_ES_RISA}(?! (el|la|los|las|un|una|eso|esto|ese|esa|este|esta)\\b)`),
+  new RegExp(`\\bme (da|daria|daba) (igual|lo mismo) (vivir o morir|morir o vivir|si (me muero|muero|vivo o (me )?muero)|morir(me)?\\b${NO_ES_RISA})`),
+  /\bsi me muero (a )?nadie\b/,
+  new RegExp(`\\bpara que (sigo viviendo|sigo viva|sigo vivo|estoy viva|estoy vivo|vivo|existo)\\b${NO_ES_VIVIR_CON}(?! (aqui|aca|sola|solo|lejos)\\b)`),
+  new RegExp(`\\bde que sirve (vivir|seguir viviendo|seguir con vida|estar viva|estar vivo|existir)\\b${NO_ES_VIVIR_CON}`),
+  /\bsalida (es|seria|que veo es) (la muerte|morir(me)?|matarme|suicidarme)\b/,
+  /\botra salida (que|mas que|distinta a|aparte de) (la muerte|morir(me)?|matarme|suicidarme)\b/,
+  new RegExp(`\\bmejor (me )?desaparezco\\b${NO_ES_REDES}(?! (un rato|unos dias|un tiempo|por un|por unos|de aqui)\\b)`),
+  /\b(la|mi) vida no vale la pena\b(?! (sin|si no|cuando)\b)/,
   /\bno (le )?(veo|encuentro|tiene|hay) (ningun )?sentido (a |de |en )?(la |mi )?(vida|vivir|seguir)\b/,
   /\b(mi|la) vida no tiene (ningun )?sentido\b/, /\bya nada tiene sentido\b/,
   /\bcarta de despedida\b/,
