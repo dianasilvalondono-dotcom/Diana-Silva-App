@@ -98,7 +98,7 @@ const NO_ES_RISA = '(?!(me)? (de (la )?ternura (con|por|al|cuando|de)|de (la |lo
 
 // Lo que viene después de "matar(me)" cuando exagera el esfuerzo: "me voy a
 // matar estudiando", "matarme en el gym".
-const NO_ES_ESFUERZO = '(?! (estudiando|trabajando|entrenando|corriendo|haciendo (ejercicio|deporte|tareas)|en el (gym|gimnasio|trabajo)|de (la )?risa)\\b)'
+const NO_ES_ESFUERZO = '(?! (estudiando|trabajando|entrenando|corriendo|haciendo (ejercicio|deporte|tareas|dieta|aseo|oficio|oficios|la tarea|mercado|vueltas|fila|el almuerzo|la comida|la cena)|limpiando|cocinando|lavando|planchando|barriendo|trapeando|bailando|caminando|aprendiendo|leyendo|practicando|ensayando|organizando|arreglando|pintando|cosiendo|tejiendo|madrugando|trasnochando|en el (gym|gimnasio|trabajo)|de (la )?risa)\\b)'
 
 // Lo que viene después de "me corté" o "me hice daño" cuando fue un
 // accidente: "el dedo cocinando", "en la rodilla", "jugando", "con una hoja
@@ -109,7 +109,16 @@ const NO_ES_ACCIDENTE = '(?!( (el|la|un|una|mi|con (el|la|un|una)|en (el|la|un|u
 
 // Lo que viene después de "me pega" o "me pegó" cuando no es un golpe: "me
 // pegó la gripa", "un susto", "se me pegó la canción", "me pegó el sol".
-const NO_ES_GRIPA = '(?! (la|una|un|el|los) (gripa|gripe|susto|virus|resfriado|resfrio|tos|chicle|moda|cancion|mania|costumbre|piojos|varicela|covid|sol|calor|frio|sereno|aire|guayabo|bajon|sueno|hambre|antojo)\\b)'
+// También "me pegó un grito", "un abrazo", "un regaño", "una vaciada", "un
+// balonazo", "me pego una siesta" o "una ducha", "su mal genio", y "con la
+// pelota sin querer", salvo que en seguida venga el golpe ("me pegó un grito
+// y una cachetada").
+const GOLPE_REAL = '(?!.{0,40}\\b(cachetad|bofetad|punet|puno|golp|patad|trompad|correaz|chancl|empujon|paliza|pela)\\w*)'
+const NO_ES_GRIPA = `(?! (la|una|un|el|los|su|sus) (gripa|gripe|susto|virus|resfriado|resfrio|tos|chicle|moda|cancion|mania|costumbre|piojos|varicela|covid|sol|calor|frio|sereno|aire|guayabo|bajon|sueno|hambre|antojo|mal genio|mal humor|depre|pereza|flojera|tusa)\\b| (un|una|el|la|su|tremendo|tremenda|semejante) (grito|gritos|abrazo|abrazote|abrazos|beso|besos|besote|regano|reganada|vaciada|cantaleta|sermon|balonazo|pelotazo|madrugon|siesta|siestica|siestita|ducha|duchada|banada|banadita|dormida|dormidita|pasadita|vuelta|vueltica|escapada|escapadita|rumba|leida|repasada|mirada)\\b${GOLPE_REAL}| con (la|el|una|un) (pelota|balon|juguete|carrito|codo|rodilla|bolso|morral)\\b(?=.{0,30}\\b(sin querer|por accidente|jugando)\\b))`
+// Lo que viene después de "me pego" o "me golpeo" cuando es un mueble con el
+// que una se tropieza: "siempre me pego con esa mesa", "me pego en la cabeza
+// con la alacena", "me golpeo la cabeza con la alacena".
+const NO_ES_MUEBLE = '(?!( (en )?(la|el|mi) (cabeza|rodilla|dedo|pie|codo|frente|espalda|brazo|pierna|mano|cadera|canilla))? con (esa|ese|la|el|una|un|esta|este) (mesa|mesita|alacena|esquina|closet|cajon|escalera|escalon|marco|repisa|gabinete|techo|columna|nevera|mueble|cama|lavamanos|baranda)\\b)'
 
 // Lo que va antes de "me pega", "me golpea", "me patea" o "me da patadas"
 // cuando es una niña o un niño pequeño, dicho de forma explícita: "mi bebé me
@@ -131,11 +140,11 @@ const NO_ES_NINO = `(?<!\\b((beb\\w*|nene|nena|chiquit[oa]s?)( ${EDAD_PEQUENA}| 
 
 // Lo que va antes de "me pegó" cuando lo que golpea es la vida: "la tusa me
 // pegó duro", "la noticia me pegó".
-const NO_ES_TUSA = '(?<!\\b(tusa|noticia|realidad|vida|crisis|perdida|muerte|nostalgia|tristeza|ansiedad|cansancio|estres|duelo|pandemia|gripa|gripe|sol|calor|guayabo|bajon|depre) )'
+const NO_ES_TUSA = '(?<!\\b(tusa|noticia|realidad|vida|crisis|perdida|muerte|nostalgia|tristeza|ansiedad|cansancio|estres|duelo|pandemia|gripa|gripe|sol|calor|guayabo|bajon|depre|aguacero|lluvia|granizo|viento|brisa|ola|olas|rayo|corriente) )'
 
 // Lo que viene después de "me golpeó" o "me pegó" cuando lo que golpea es
 // la vida: "me golpeó la noticia", "me pegó duro la tusa".
-const NO_ES_NOTICIA = '(?!( (muy )?(fuerte|duro))? (la|el|esa|ese|esta|este) (realidad|noticia|vida|crisis|perdida|muerte|nostalgia|tristeza|ansiedad|cansancio|estres|duelo|tusa|pandemia)\\b)'
+const NO_ES_NOTICIA = '(?!( (muy )?(fuerte|duro|durisimo))? (la|el|esa|ese|esta|este) (realidad|noticia|vida|crisis|perdida|muerte|nostalgia|tristeza|ansiedad|cansancio|estres|duelo|tusa|pandemia|guayabo|depre|gripa|gripe|sueno|hambre|pereza|resaca|ratabo|sol|calor|frio|bajon|virus|covid)\\b)'
 
 // Lo que viene después de "despertar(me)" cuando habla del sueño y no de
 // una crisis: "no despertarme en la noche", "tan temprano", "a las 3", "a
@@ -287,7 +296,7 @@ export const CRISIS_PATTERNS = [
   new RegExp(`ganas de (morir(me)?\\b${NO_ES_RISA}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|no despertar|no existir)`),
   /\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|ojala|deseo) (estar |estuviera |estuviese )?muert[ao]s?\b/,
   new RegExp(`\\b(quiero|quisiera|queria|quise|prefiero|preferiria|me gustaria|desearia|deseo|deseaba|provoca) morir(me)?\\b${NO_ES_RISA}`),
-  /\bojala (no despertar|no despierte|no amanecer)/,
+  /\bojala (no despertar|no despierte|no amanecer)(?! con (guayabo|resaca|ratabo|dolor de cabeza|ojeras|hambre|frio|sueno|la alarma|el despertador|ruido|bulla)\b| (tan |muy )?temprano\b)/,
   /\bme (hago|estoy haciendo|sigo haciendo) dano\b/, new RegExp(`\\bme lastimo\\b${NO_ES_ACCIDENTE}`),
   /no vale la pena (vivir|seguir)/, /estarian mejor sin mi/,
   // Formas que no caían (verificación final, unas 60 de 142 frases reales).
@@ -329,7 +338,7 @@ export const CRISIS_PATTERNS = [
   /\botra salida (que|mas que|distinta a|aparte de) (la muerte|morir(me)?|matarme|suicidarme)\b/,
   new RegExp(`\\bmejor (me )?desaparezco\\b${NO_ES_REDES}${NO_ES_UN_RATO}`),
   /\b(la|mi) vida no vale la pena\b(?! (sin|si no|cuando)\b)/,
-  /\bno (le )?(veo|encuentro|tiene|hay) (ningun )?sentido (a |de |en )?(la |mi )?(vida|vivir|seguir)\b/,
+  new RegExp(`\\bno (le )?(veo|encuentro|tiene|hay) (ningun )?sentido (a |de |en )?(la |mi )?(vida|vivir|seguir${NO_ES_ALGO})\\b`),
   /\b(mi|la) vida no tiene (ningun )?sentido\b/, /\bya nada tiene sentido\b/,
   /\bcarta de despedida\b/,
   // Despedidas y legado: "les dejo todo a mis hijos", "esta es mi despedida",
@@ -426,7 +435,7 @@ export const CRISIS_PATTERNS = [
   /\b(amenaza|amenazo|amenazaba|amenazan|amenazaron|amenazando) con (matar|matarme|matarnos|matarlos|matarla|hacerme dano|hacerle dano|hacernos dano|quemar(me|nos)?|echarme|tirarme|lanzarme|desaparecer(me|nos)?|picarme|rajarme|desfigurarme|pegarme|golpearme|llevarse a (mis|los) (hijos|ninos)|quitarme a (mis|los) (hijos|ninos)|matarse|suicidarse)\b(?! (el|la) (tiempo|rato)\b)/,
   /\btiene (un|una) (arma|pistola|revolver|machete|escopeta|cuchillo|navaja) y me (amenaza|amenazo|amenazaba|apunta|apunto)\b/,
   new RegExp(`\\b(dijo|dice|decia|amenazo|amenaza|amenazaba|jura|juro|grito|escribio) que me (va|iba) a (matar|picar|rajar|desaparecer|desfigurar|quemar|apunalar|acuchillar|degollar|descuartizar|enterrar|golpear|cascar|hacer dano|pegar|ahorcar)\\b${NO_ES_GRIPA}`),
-  /\b(me tiene|me tienen|me tenia|me tenian|estoy|vivo|me siento) amenazad[ao]\b(?! (de|con) (despido|despedirme|echarme|demanda|demandarme|multa|sacarme del|quitarme el (puesto|trabajo)))/,
+  /\b(me tiene|me tienen|me tenia|me tenian|estoy|vivo|me siento) amenazad[ao]\b(?! (de|con) (despido|despedirme|echarme|demanda|demandarme|multa|sacarme del|quitarme el (puesto|trabajo)|(el |la |los |las )?(arriendo|cobros?|deudas?|cuentas?|factura|banco|datacredito|embargo|desalojo|tarjeta|cuotas?|intereses|recibos?)\b))/,
   new RegExp(`\\b(miedo|temo|temor|temer) por mi vida\\b${NO_ES_ETAPA}`),
   /\bnos (va|van|iba|iban|quiere|quieren) a matar\b/,
   // Revisión sistemática (verbos, tiempos y formas con y sin "me").
@@ -458,7 +467,7 @@ export const CRISIS_PATTERNS = [
   // ibuprofenos"), "todo el frasco", "el blíster de rivotril", "la caja de
   // sertralina", "me las voy a tomar todas", "las de mi abuela, todas".
   new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (como |unas |unos |mas de |casi |al menos |cerca de |hasta )?([1-9]\\d+|diez|quince|veinte|treinta|cuarenta|cincuenta|cien|demasiadas|toda la caja de|todo el frasco de|el frasco de|la caja de|el blister de|la tira de|las tiras de) ${PASTILLAS}\\b`),
-  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todo el (frasco|tarro|blister)|toda la caja|el (frasco|tarro|blister) (entero|completo)|la caja (entera|completa))\b/,
+  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todo el (frasco|tarro|blister)|toda la caja|el (frasco|tarro|blister) (entero|completo)|la caja (entera|completa))\b(?! de (chocolate|chocolatina|panela|yogurt|yogur|kumis|avena|leche|jugo|vino|cerveza|aguardiente|ron|gaseosa|agua|cafe|te|aromatica|colada|proteina|helado|suero|electrolitos|sopa|caldo|vitaminas?|colageno|tinto|mermelada|arequipe|miel|galletas|dulces|gomitas|chicles?|mani|chocolates|bocadillo)\b)/,
   /\bme las (\w+ ){0,2}(tomar|tome|tomo|tragar|trague|trago) todas\b/,
   new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (las|mis) ${PASTILLAS}( de (mi|mis|la|el|los) \\w+| (de|para) dormir)? todas\\b(?! (las|los)\\b)`),
   // Sin ganas de vivir: "estoy cansada de vivir", "perdí las ganas de vivir",
@@ -498,8 +507,8 @@ export const CRISIS_PATTERNS = [
   /\b(pienso|pense|pensando|pensado|penso|pensar) (\w+ ){0,3}en (morir(me)?|la muerte|no (despertar|existir|estar))\b(?! de (la )?(risa|verguenza|pena ajena|mi|mis|su|sus|el|la|los|las|un|una|alguien)\b)/,
   // Violencia: "mi esposo me pegó", "me golpearon", "me tiene encerrada",
   // "me obliga a tener sexo", "me amenaza con…", "le tengo miedo a mi pareja".
-  new RegExp(`${NO_ES_NINO}${NO_ES_TUSA}\\bme (pego|pegaron|pegaban)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}`),
-  new RegExp(`${NO_ES_NINO}${NO_ES_TUSA}\\bme (golpeo|golpearon|golpeaba|golpeaban|golpean)\\b${NO_ES_NOTICIA}`),
+  new RegExp(`${NO_ES_NINO}${NO_ES_TUSA}\\bme (pego|pegaron|pegaban)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}${NO_ES_MUEBLE}`),
+  new RegExp(`${NO_ES_NINO}${NO_ES_TUSA}\\bme (golpeo|golpearon|golpeaba|golpeaban|golpean)\\b${NO_ES_NOTICIA}${NO_ES_MUEBLE}`),
   /\bme (ahorco|ahorque|ahorcaron|estrangula|estrangulo|estrangularon|cachetea|cacheteo|cachetearon|abofeteo|violaron|encerro|encerraron)\b/,
   /\bme (tiene|tienen|tenia|tenian) encerrada\b/,
   // Más formas de violencia física: empujar, patear, la cachetada, levantar
