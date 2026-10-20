@@ -7,6 +7,8 @@
    El guion bajo del nombre hace que Vercel no lo publique como endpoint. */
 import { esAdmin, rondaPlusVigente } from '../src/utils/plan.js'
 import { AYUDA_TEXT } from '../src/utils/crisis.js'
+// La misma versión de los textos que usa la app (src/lib/autorizaciones.js).
+import { VERSION_POLITICA } from '../src/utils/autorizacionVersion.js'
 
 const tokenDe = (req) => {
   const auth = req.headers?.authorization || ''
@@ -51,11 +53,11 @@ export async function exigirSesion(req, res) {
   return user
 }
 
-// Su fila de profiles: el plan y la autorización de la IA. Se lee con el
-// token de ella (RLS: solo ve la suya) y una sola vez por petición. Si la
-// columna autorizacion_ia aún no existe (src/sql/consentimiento.sql sin
-// aplicar), se lee solo el plan y la IA queda sin autorizar. null si no se
-// pudo leer.
+// Su fila de profiles: el plan y la autorización de la IA (con la versión
+// del texto que aceptó). Se lee con el token de ella (RLS: solo ve la suya) y
+// una sola vez por petición. Si las columnas de autorización aún no existen
+// (src/sql/consentimiento.sql sin aplicar), se lee solo el plan y la IA queda
+// sin autorizar. null si no se pudo leer.
 const perfiles = new WeakMap()
 async function leerPerfil(req, user) {
   const url = supabaseUrl()
@@ -70,7 +72,7 @@ async function leerPerfil(req, user) {
     return Array.isArray(filas) ? (filas[0] || null) : undefined
   }
   try {
-    const fila = await pedir('is_premium,premium_until,autorizacion_ia')
+    const fila = await pedir('is_premium,premium_until,autorizacion_ia,autorizacion_version')
     if (fila !== undefined) return fila
     return (await pedir('is_premium,premium_until')) ?? null
   } catch {
@@ -103,11 +105,13 @@ export async function exigirRondaPlus(req, res, user) {
 // ¿Autorizó «Usar la IA de Ronda»? (Ley 1581, art. 6: datos sensibles.) Vale
 // el estado actual de profiles.autorizacion_ia, el mismo que la app lee y
 // escribe (src/lib/autorizaciones.js): si la quitó en otro teléfono, aquí ya
-// no está. Sin respuesta, o si no se pudo leer, es no. También para la
-// administradora: es una autorización de datos, no un plan.
+// no está. Y solo si lo dijo con los textos vigentes (autorizacion_version):
+// cuando cambie la versión, el «sí» de la anterior deja de valer hasta que
+// vuelva a responder. Sin respuesta, o si no se pudo leer, es no. También
+// para la administradora: es una autorización de datos, no un plan.
 export async function iaAutorizada(req, user) {
   const perfil = await perfilDe(req, user)
-  return perfil?.autorizacion_ia === true
+  return perfil?.autorizacion_ia === true && perfil.autorizacion_version === VERSION_POLITICA
 }
 
 // Sin la autorización de la IA corta con 403, antes de enviarle nada a
