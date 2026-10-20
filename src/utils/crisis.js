@@ -128,7 +128,7 @@ export const CRISIS_PATTERNS = [
   new RegExp(`${ME_QUIERO} (matar|suicidar|ahorcar|envenenar|lastimar|hacer dano)\\b${NO_ES_ESFUERZO}`),
   new RegExp(`${ME_QUIERO} cortar\\b${NO_ES_PELO}`),
   new RegExp(`\\bme corto\\b${NO_ES_PELO}`),
-  /cortar(me)? (las|mis) venas/,
+  /\b(cortar(me)?|abrir(me)?|me (abro|abri|abrire|abriria)) (las|mis) venas/,
   new RegExp(`ganas de (morir(me)?\\b${NO_ES_RISA}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|no despertar|no existir)`),
   /\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|ojala|deseo) (estar |estuviera |estuviese )?muert[ao]s?\b/,
   new RegExp(`\\b(quiero|quisiera|queria|prefiero|preferiria|me gustaria|desearia|deseo|deseaba|provoca) morir(me)?\\b${NO_ES_RISA}`),
@@ -191,7 +191,16 @@ export const CRISIS_PATTERNS = [
   /\b(compre|consegui) (el |un )?veneno\b(?! (contra|para (las |los |el |la |mis |mi )?(ratas|ratones|cucarachas|hormigas|plagas|moscas|zancudos|pulgas|garrapatas|maleza|jardin|finca|matas|plantas)))/,
   /\bsobredosis\b/,
   /\bahorcarme\b/, new RegExp(`(${ME_QUIERO} colgar|\\bcolgarme)\\b(?! (con|en)\\b)`),
-  /(\bdarme|\bpegarme|\bme (\w+ ){0,2}(dar|pegar|pego|doy|di|pegue)) un (tiro|balazo|disparo)\b/, /\bvolarme (la cabeza|los sesos)\b/,
+  // Colgarse en un lugar o con una cuerda ("me voy a colgar en el baño",
+  // "colgarme de una viga"), aunque diga "en": "me colgué en los pagos" no.
+  new RegExp(`(${ME_QUIERO} colgar|\\bcolgarme|\\bme (cuelgo|colgue|colgare|colgaria)) (en|de|del) (el |la |una |un |mi )?(bano|closet|armario|cuarto|habitacion|techo|viga|arbol|ducha|baranda|lampara|ventilador)\\b`),
+  new RegExp(`(${ME_QUIERO} colgar|\\bcolgarme|\\bme (cuelgo|colgare|colgaria)) (\\w+ ){0,4}con (una |un |la |el |mi )?(cuerda|soga|correa|cinturon|sabana|lazo|cable)\\b`),
+  /\b(tengo|ya tengo) (la|una) (cuerda|soga) (lista|amarrada|preparada|colgada)\b/,
+  // Un tiro, también "meterse un tiro" ("un tiro de 3 horas" es un viaje largo).
+  /(\bdarme|\bpegarme|\bmeterme|\bme (\w+ ){0,2}(dar|pegar|meter|pego|doy|di|pegue|meto|meti)) un (tiro|balazo|disparo)\b(?! de (\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|varias|muchas)\b)/,
+  /\bvolarme (la cabeza|los sesos)\b/, new RegExp(`${ME_QUIERO} volar (la cabeza|los sesos)\\b`),
+  // Ahogarse en el río o el mar ("tengo miedo de ahogarme en el mar" no).
+  new RegExp(`(${ME_QUIERO} ahogar|(?<!\\b(miedo|panico|terror) (de|a) )\\bahogarme) (en|al|a la) (el |la )?(rio|mar|lago|laguna|represa|oceano|tina|banera)\\b`),
   // Autolesiones ya hechas o que se repiten: "me corté", "me volví a
   // cortar", "me sigo cortando", "me hice daño", "a propósito".
   new RegExp(`\\bme (corte|cortaba|volvi a cortar|sigo cortando|segui cortando|he cortado|he vuelto a cortar|estuve cortando)\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`),
