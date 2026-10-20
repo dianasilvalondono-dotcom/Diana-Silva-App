@@ -260,16 +260,14 @@ function App() {
   const [foundingMsgShown, setFoundingMsgShown] = useState(() => load('ronda-founding-msg-shown', {}))
   const [foundingToast, setFoundingToast] = useState(null) // { feature: 'Tu Ronda' }
 
+  // Se llama desde handlers (nunca en el render).
   const showFoundingPerk = (featureKey, featureName) => {
     if (!isFoundingMember) return
     if (foundingMsgShown[featureKey]) return
+    const next = { ...foundingMsgShown, [featureKey]: true }
+    setFoundingMsgShown(next)
+    save('ronda-founding-msg-shown', next)
     setFoundingToast({ feature: featureName, key: featureKey })
-    setTimeout(() => setFoundingToast(null), 8000)
-    setFoundingMsgShown(prev => {
-      const next = { ...prev, [featureKey]: true }
-      save('ronda-founding-msg-shown', next)
-      return next
-    })
   }
 
   // AI Agent state
@@ -877,6 +875,15 @@ function App() {
   useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
   useDialog(appModalRef, !!appModal && pantallaPrincipal, () => setAppModal(null))
   const fondoInerte = showPanic || showMorningCheckin || showNightCheckin || !!appModal
+  // Aviso de miembro fundadora: se cierra solo a los 8 s de estar a la vista.
+  // Cada aviso tiene su propio temporizador: se cancela al cerrarlo con la X,
+  // al llegar otro aviso o al desmontar. Mientras hay un diálogo abierto
+  // (modal, Ayuda o check-in) el aviso espera sin mostrarse y el reloj no corre.
+  useEffect(() => {
+    if (!foundingToast || fondoInerte) return
+    const t = setTimeout(() => setFoundingToast(null), 8000)
+    return () => clearTimeout(t)
+  }, [foundingToast, fondoInerte])
   // Cada pantalla de la Ayuda empieza arriba (el contenedor que hace scroll se reutiliza).
   useEffect(() => { if (panicRef.current) panicRef.current.scrollTop = 0 }, [panicScreen, showPanic])
   // Con la Ayuda abierta, la página de atrás no se mueve.
@@ -1053,7 +1060,10 @@ function App() {
     { id: 'programas', label: 'Rutas', icon: <path d="M5 19c0-4 3-4 7-7s7-3 7-7M5 19h4M19 5h-4" /> },
   ]
   const abrirAcceso = (id) => {
-    if (id === 'ai') { resetAiAgent(); setChatMode('chat') }
+    if (id === 'ai') {
+      resetAiAgent(); setChatMode('chat')
+      if (isPremium) showFoundingPerk('chat', 'Tu Ronda · IA personal')
+    }
     irASubTab(id)
     track('module_viewed', { module: 'ahora', sub: id })
   }
@@ -3863,7 +3873,7 @@ function App() {
           {subTab === 'diario' && diarioView}
           {subTab === 'toolkit' && toolkitView}
           {subTab === 'programas' && programasView}
-          {subTab === 'ai' && (isPremium ? (() => { showFoundingPerk('chat', 'Tu Ronda · IA personal'); return aiAgentView })() : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
+          {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
         </>}
 
         {view === 'juntas' && <>
@@ -3967,38 +3977,49 @@ function App() {
         </div>
       )}
 
-      {/* ─── Toast: Founding Member tiene esta feature gratis ─── */}
-      {foundingToast && (
-        <div style={{
-          position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
-          maxWidth: 420, width: 'calc(100% - 32px)', zIndex: 9999,
-          background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
-          borderRadius: 18, padding: '18px 20px',
-          boxShadow: '0 8px 32px rgba(114,109,45,0.45)',
-          color: 'white',
-          animation: 'slideUp 0.3s ease',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-            <div style={{ fontSize: 26, lineHeight: 1, marginTop: 2 }}>💛</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
-                Miembro fundadora
+      {/* ─── Aviso: una miembro fundadora tiene incluida esta función premium ───
+          Arriba, bajo el encabezado, para no tapar el campo del chat ni el
+          menú, y nunca encima de un diálogo. Centrado sin transform (la
+          animación no lo descentra). La región viva existe siempre, así el
+          lector de pantalla lo anuncia. */}
+      <div role="status" aria-live="polite">
+        {foundingToast && !fondoInerte && (
+          <div style={{
+            position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 136px)', left: 16, right: 16,
+            margin: '0 auto', maxWidth: 420, zIndex: 9999,
+            background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
+            borderRadius: 18, padding: '14px 12px 14px 20px',
+            boxShadow: '0 8px 32px rgba(114,109,45,0.45)',
+            color: 'white',
+            animation: 'slideDown 0.3s ease',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <div aria-hidden="true" style={{ fontSize: 26, lineHeight: 1, marginTop: 6 }}>💛</div>
+              <div style={{ flex: 1, paddingTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
+                  Miembro fundadora
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
+                  {foundingToast.feature} es una función premium.
+                </div>
+                <div style={{ fontSize: 14, lineHeight: 1.4, opacity: 0.95 }}>
+                  La tienes incluida por ser de las primeras 50 mujeres en Ronda. Disfrútala. 💛
+                </div>
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
-                {foundingToast.feature} es una función premium.
-              </div>
-              <div style={{ fontSize: 14, lineHeight: 1.4, opacity: 0.95 }}>
-                La tienes incluida por ser de las primeras 50 mujeres en Ronda. Disfrútala. 💛
-              </div>
+              <button type="button" aria-label="Cerrar aviso" onClick={() => setFoundingToast(null)} style={{
+                background: 'none', border: 'none', padding: 0,
+                width: 44, height: 44, cursor: 'pointer',
+                flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span aria-hidden="true" style={{
+                  width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>{UI_ICONS.close('white', 14)}</span>
+              </button>
             </div>
-            <button onClick={() => setFoundingToast(null)} style={{
-              background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
-              width: 24, height: 24, color: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 700,
-              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>{UI_ICONS.close('white', 13)}</button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
