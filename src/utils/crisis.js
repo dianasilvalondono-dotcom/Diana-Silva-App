@@ -14,11 +14,16 @@ export function normalize(s) {
 // emojis y los saltos de línea como un solo espacio ("me quiero... morir",
 // "me-quiero-morir"), las letras alargadas una sola vez ("me quierooo
 // morirrr") y las abreviaturas de chat más comunes ("kiero", "q", "x").
+// También la ortografía de chat de las palabras de crisis: "kero", "qero" y
+// "quero" (quiero), "mequiero", "bivir" y "bida" (vivir, vida).
 function textoParaCrisis(content) {
   return ` ${normalize(content)} `
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .replace(/(\p{L})\1{2,}/gu, '$1')
+    .replace(/ me(?=[kq]u?i?ero )/g, ' me ')
     .replace(/ [kq](?=[ei])/g, ' qu')
+    .replace(/ quero(?= )/g, ' quiero')
+    .replace(/ b(?=(ivir|iviendo|ida|iva|ivo) )/g, ' v')
     .replace(/ (q|k) /g, ' que ').replace(/ (q|k) /g, ' que ')
     .replace(/ (xq|pq|porq) /g, ' porque ')
     .replace(/ x /g, ' por ').replace(/ x /g, ' por ')
@@ -97,7 +102,7 @@ const LUGAR_ALTO = '(de|del|desde|por|al|a|hacia|contra|frente a|frente al|debaj
 
 // Señales de crisis de alto riesgo.
 export const CRISIS_PATTERNS = [
-  /\bsui[cs]id/, /\bquitar(me|se)? la vida\b/, new RegExp(`matarme\\b${NO_ES_ESFUERZO}`), new RegExp(`me quiero morir${NO_ES_RISA}`),
+  /\bsu(i[cs]|c)id/, /\bquitar(me|se)? la vida\b/, new RegExp(`matarme\\b${NO_ES_ESFUERZO}`), new RegExp(`me quiero morir${NO_ES_RISA}`),
   new RegExp(`quiero morir${NO_ES_RISA}`), /no quiero (vivir|seguir viviendo|seguir aca|seguir aqui)/,
   /mejor no estar/, /acabar con todo/, /hacerme dano/, /lastimarme/, new RegExp(`cortarme\\b${NO_ES_PELO}`),
   /\bautolesion/, /me estoy cortando/,
