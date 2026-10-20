@@ -88,8 +88,15 @@ function textoParaCrisis(content, clausulas = true) {
 }
 
 // Lo que viene después de "cortar(me)" cuando no es una crisis: el pelo, las
-// uñas, el fleco… ("me quiero cortar el pelo").
-const NO_ES_PELO = '(?!( (el|la|los|las|mi|mis|un|una))? (pelo|cabello|unas|fleco|flequillo|pollina|capul|cerquillo|puntas|barba|melena)\\b)'
+// uñas, el fleco… ("me quiero cortar el pelo"), o un servicio ("amenazaron
+// con cortarme el gas").
+const NO_ES_PELO = '(?!( (el|la|los|las|mi|mis|un|una))? (pelo|cabello|unas|fleco|flequillo|pollina|capul|cerquillo|puntas|barba|melena|gas|luz|agua|internet|wifi|servicio|servicios|linea|telefono|cable|credito|sueldo|salario|pension|subsidio|mesada)\\b)'
+
+// "Me cortó" cuando es "terminó conmigo": "mi novio me cortó", "el man me
+// cortó ayer", "me cortó por whatsapp", "me cortó mi novio y estoy triste".
+// "Mi novio me cortó la cara", "me cortó con un cuchillo" o "mi ex me cortó"
+// sí activan.
+const NO_ES_RUPTURA = '(?!(?<=\\b(novio|novia|man|pelado|pelada|crush|amante|muchacho|chico|moza|mozo) (\\w+ )?me corto)(?=$| (ayer|hoy|anoche|porque|sin (razon|motivo|explicacion|decir)|de (la nada|repente|un momento a otro)|despues de|hace|otra vez|para (irse|estar|volver)|asi (no mas|nomas|de feo)|como (si|un)|cuando|esta (semana|manana|tarde|noche)|este (fin|mes|ano)|desde|por (whatsapp?|mensaje|chat|telefono|celular|instagram|faceboo?k|texto|nota de voz|audio|otra|una (vieja|pelada|china)|ella|mi culpa)|y (estoy|me siento|me dejo|no se|ando|quede|lloro|llore|me duele el corazon|me rompio el corazon))\\b))(?! (mi|el|ese) (novio|novia|man|pelado|pelada|crush|amante)\\b(?! con\\b))'
 
 // Lo que viene después de "morir(me)" cuando es una exageración cómica y no
 // una crisis: "me quiero morir de (la) risa", "quiero morirme de la
@@ -208,8 +215,9 @@ const NO_ES_SUJETO = '(?<!\\b(el|la|los|las|este|esta|ese|esa|mi|mis|tu|su) \\w+
 const ME_MATO = `(\\b(mejor|yo|juro que|(un|algun|cualquier) dia( de estos)?|ahora si|esta noche|manana|hoy mismo|ya mismo|de una vez)|${NO_ES_SUJETO}\\b(hoy|ya)|\\bsi (?!(me )?(caigo|resbalo|tropiezo)\\b)(\\w+ ){0,4}\\w+) me (mato|suicido)\\b${NO_ES_ME_MATO}|\\bme (mato|suicido) (y ya|y se acaba|de una vez|esta noche|manana|hoy mismo|si (no|me|te|se|lo|la|le|el|ella|mi|manana))\\b|${NO_ES_SUJETO}\\bme (mato|suicido) (hoy|ya)( mismo|(?! mismo))\\b${NO_ES_ME_MATO}`
 
 // Lo que va antes de "me va a matar" cuando no es una persona: "el estrés me
-// va a matar", "este calor", "el dolor de cabeza".
-const NO_ES_COSA = '(?<!\\b(estres|calor|frio|trabajo|trafico|cansancio|examen|parcial|tarea|tareas|guayabo|hambre|sueno|espera|suspenso|intriga|curiosidad|sol|gastritis|migrana|colicos?|gripa|gripe|tos|novela|serie|clima|ruido|bulla|dolor de (cabeza|muela|muelas|espalda|estomago|barriga|garganta|oido|rodilla)) )'
+// va a matar", "este calor", "el dolor de cabeza", "este trancón", "la tusa",
+// "la universidad", "la dieta", "el gimnasio", "el arriendo".
+const NO_ES_COSA = '(?<!\\b(estres|calor|frio|trabajo|trafico|trancon|tusa|universidad|u|dieta|gimnasio|gym|colegio|colegio de (los|mis) (ninos|hijos)|arriendo|tesis|semestre|carrera|maestria|oficina|rutina|entreno|jornada|turno|mudanza|trasteo|fila|tramites?|cansancio|examen|parcial|tarea|tareas|guayabo|hambre|sueno|espera|suspenso|intriga|curiosidad|sol|gastritis|migrana|colicos?|gripa|gripe|tos|novela|serie|clima|ruido|bulla|dolor de (cabeza|muela|muelas|espalda|estomago|barriga|garganta|oido|rodilla)) )'
 // Lo que viene después de "me va a matar" cuando es un regaño y no una
 // amenaza: "de la risa", "la curiosidad", "cuando vea las notas", "si no
 // entrego el informe", "en el trabajo si no llego". "Mi esposo me va a matar"
@@ -305,7 +313,7 @@ export const CRISIS_PATTERNS = [
   // las uñas o el fleco.
   new RegExp(`${ME_QUIERO} (matar|suicidar|ahorcar|envenenar|lastimar|hacer dano)\\b${NO_ES_ESFUERZO}`),
   new RegExp(`${ME_QUIERO} cortar\\b${NO_ES_PELO}`),
-  new RegExp(`\\bme corto\\b${NO_ES_PELO}`),
+  new RegExp(`\\bme corto\\b${NO_ES_PELO}${NO_ES_RUPTURA}`),
   /\b(cortar(me)?|abrir(me)?|me (abro|abri|abrire|abriria)) (las|mis) venas/,
   new RegExp(`ganas de (morir(me)?\\b${NO_ES_RISA}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|no despertar|no existir)`),
   /\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|ojala|deseo) (estar |estuviera |estuviese )?muert[ao]s?\b/,
@@ -443,10 +451,11 @@ export const CRISIS_PATTERNS = [
   // Contra los hijos, con un arma, con ácido o fuego, y lo que "dijo que me
   // iba a hacer": "dijo que va a matar a mis hijos", "amenazó con quemar la
   // casa", "me amenaza con el machete", "me dijo que me iba a picar". No
-  // activan "va a matar a mi hijo cuando vea el carro" ni "me dijo que me iba
-  // a pegar la gripa".
+  // activan "va a matar a mi hijo cuando vea el carro", "me dijo que me iba
+  // a pegar la gripa", "el jefe me amenazó con echarme si llego tarde" ni "la
+  // profe amenazó con rajarme en matemáticas".
   /\b(va|van|iba|iban) a matar a (mis|mi|los|las|nuestros|nuestras) (hijos|hijas|hijo|hija|bebe|bebes|ninos|ninas|nino|nina|familia|mama|papa)\b(?!.{0,20}\b(cuando|si) (vea|ve|sepa|se entere|descubra)\b)(?! (de (la )?(risa|susto|emocion)|del susto)\b)/,
-  /\b(amenaza|amenazo|amenazaba|amenazan|amenazaron|amenazando) con (matar|matarme|matarnos|matarlos|matarla|hacerme dano|hacerle dano|hacernos dano|quemar(me|nos)?|echarme|tirarme|lanzarme|desaparecer(me|nos)?|picarme|rajarme|desfigurarme|pegarme|golpearme|llevarse a (mis|los) (hijos|ninos)|quitarme a (mis|los) (hijos|ninos)|matarse|suicidarse)\b(?! (el|la) (tiempo|rato)\b)/,
+  /\b(amenaza|amenazo|amenazaba|amenazan|amenazaron|amenazando) con (matar|matarme|matarnos|matarlos|matarla|hacerme dano|hacerle dano|hacernos dano|quemar(me|nos)?|echarme\b(?! (si|del (trabajo|colegio|grupo|equipo|curso|salon|puesto)|de (la )?(empresa|oficina|clase|universidad|u))\b)|tirarme|lanzarme|desaparecer(me|nos)?|picarme|rajarme\b(?! (en|el|del|la (materia|nota|clase|asignatura|evaluacion|tesis))\b)|desfigurarme|pegarme|golpearme|llevarse a (mis|los) (hijos|ninos)|quitarme a (mis|los) (hijos|ninos)|matarse|suicidarse)\b(?! (el|la) (tiempo|rato)\b)/,
   /\btiene (un|una) (arma|pistola|revolver|machete|escopeta|cuchillo|navaja) y me (amenaza|amenazo|amenazaba|apunta|apunto)\b/,
   new RegExp(`\\b(dijo|dice|decia|amenazo|amenaza|amenazaba|jura|juro|grito|escribio) que me (va|iba) a (matar|picar|rajar|desaparecer|desfigurar|quemar|apunalar|acuchillar|degollar|descuartizar|enterrar|golpear|cascar|hacer dano|pegar|ahorcar)\\b${NO_ES_GRIPA}`),
   /\b(me tiene|me tienen|me tenia|me tenian|estoy|vivo|me siento) amenazad[ao]\b(?! (de|con) (despido|despedirme|echarme|demanda|demandarme|multa|sacarme del|quitarme el (puesto|trabajo)|(el |la |los |las )?(arriendo|cobros?|deudas?|cuentas?|factura|banco|datacredito|embargo|desalojo|tarjeta|cuotas?|intereses|recibos?)\b))/,
