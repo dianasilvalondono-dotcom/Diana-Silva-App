@@ -14,7 +14,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, seGuardo, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, totalesHabitosPorDia, guardarTotalDia, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, seGuardo, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -97,12 +97,6 @@ function Paywall({ feature, price, desc, onCta }) {
       </div>
     </div>
   )
-}
-
-/* ¿La usuaria está escribiendo? (el foco está en un campo de texto) */
-function escribiendo() {
-  const el = document.activeElement
-  return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
 }
 
 /* Un programa creado con la IA llega como { title, desc, days: [{ day, title, task }] }.
@@ -395,20 +389,24 @@ function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   // Día al que pertenecen los estados diarios (hábitos, rutina, check-ins,
-  // tareas). Se fija al montar: si cambia el día con la app abierta, lo de
-  // ayer se sigue guardando en la clave de ayer y nunca se copia a hoy.
-  const [diaApp] = useState(todayKey)
+  // tareas). Si cambia el día con la app abierta, pasa al nuevo con
+  // cambiarDeDia (sin recargar): lo de ayer queda en la clave de ayer y
+  // nunca se copia a hoy.
+  const [diaApp, setDiaApp] = useState(todayKey)
 
   // Habits
   const [habits, setHabits] = useState(() => load('diana-habits', []))
   const [checked, setChecked] = useState(() => load(`diana-checked-${diaApp}`, {}))
   // Días anteriores con hábitos marcados ({ 'AAAA-MM-DD': { id: true } }). Se
   // lee una sola vez: durante la sesión solo cambia hoy, que sale de `checked`.
-  const [historialPrevio] = useState(() => {
+  const [historialPrevio, setHistorialPrevio] = useState(() => {
     const h = leerHistorialHabitos()
     delete h[diaApp]
     return h
   })
+  // Cuántos hábitos tenía cada día anterior (habitos-5): el calendario
+  // compara cada día con su propio total, no con los hábitos de hoy.
+  const [totalesPrevios, setTotalesPrevios] = useState(() => totalesHabitosPorDia(historialPrevio, diaApp, habits.length))
 
   // Routines (editable by each user)
   const [morning, setMorning] = useState(() => load('diana-morning', DEFAULT_MORNING))
@@ -426,7 +424,7 @@ function App() {
   // ronda-tomorrow-<hoy>. Al día siguiente esa misma clave (la de ayer) se
   // muestra como "Lo que planeaste para hoy".
   const [tomorrowTasks, setTomorrowTasks] = useState(() => load(`ronda-tomorrow-${diaApp}`, []))
-  const [ayerApp] = useState(() => dateKey(-1))
+  const [ayerApp, setAyerApp] = useState(() => dateKey(-1))
   const [plannedToday, setPlannedToday] = useState(() => load(`ronda-tomorrow-${ayerApp}`, []))
   const [newTomorrowTask, setNewTomorrowTask] = useState('')
 
@@ -550,6 +548,7 @@ function App() {
 
   // Persist
   useEffect(() => { save('diana-habits', habits) }, [habits])
+  useEffect(() => { guardarTotalDia(diaApp, habits.length) }, [habits, diaApp])
   useEffect(() => { saveDay(`diana-checked-${diaApp}`, checked) }, [checked, diaApp])
   useEffect(() => { saveDay(`diana-routine-${diaApp}`, routineChecked) }, [routineChecked, diaApp])
   useEffect(() => { save('diana-journal', entries) }, [entries])
@@ -692,50 +691,77 @@ function App() {
   }, [habits, historialHabitos, diaApp])
   useEffect(() => { save('diana-streaks', streaks) }, [streaks])
 
-  // Hábitos cumplidos por día ({ 'AAAA-MM-DD': n }), de todo el historial.
-  // Solo cuentan los hábitos que existen: uno borrado no pinta el calendario.
+  // Hábitos cumplidos por día ({ 'AAAA-MM-DD': { done, total } }), de todo el
+  // historial (habitos-5). Los días anteriores cuentan todo lo que se marcó
+  // ese día, también hábitos que ya se borraron (borrar un hábito no borra su
+  // historia), contra el total que tenía ese día. Hoy cuenta solo los
+  // hábitos que existen contra los de la lista.
   const monthlyHistory = useMemo(() => {
     const ids = new Set(habits.map(h => String(h.id)))
     const history = {}
-    Object.entries(historialHabitos).forEach(([date, data]) => {
-      const doneCount = Object.entries(data || {}).filter(([id, v]) => v && ids.has(id)).length
-      if (doneCount > 0) history[date] = doneCount
+    Object.entries(historialPrevio).forEach(([date, data]) => {
+      const done = Object.values(data || {}).filter(Boolean).length
+      if (done > 0) history[date] = { done, total: Math.max(done, Number.isFinite(totalesPrevios[date]) ? totalesPrevios[date] : done) }
     })
+    const hechosHoy = Object.entries(checked).filter(([id, v]) => v && ids.has(id)).length
+    if (hechosHoy > 0) history[diaApp] = { done: hechosHoy, total: habits.length }
     return history
-  }, [historialHabitos, habits])
+  }, [historialPrevio, totalesPrevios, checked, habits, diaApp])
 
-  // Texto escrito y sin guardar: una recarga lo borraría. El detector de
-  // cambio de día lo lee por esta ref.
-  const borradoresRef = useRef('')
+  // Pasa los estados diarios al día nuevo sin recargar la página: así no se
+  // pierde nada de lo escrito (diario, chat, Comunidad, tareas). Se llama en
+  // un evento propio, nunca junto con un cambio de los estados de ayer.
+  const cambiarDeDia = (nuevo) => {
+    const ayer = dateKey(-1)
+    const historial = leerHistorialHabitos()
+    delete historial[nuevo]
+    setDiaApp(nuevo)
+    setAyerApp(ayer)
+    setChecked(load(`diana-checked-${nuevo}`, {}))
+    setRoutineChecked(load(`diana-routine-${nuevo}`, {}))
+    setTomorrowTasks(load(`ronda-tomorrow-${nuevo}`, []))
+    setPlannedToday(load(`ronda-tomorrow-${ayer}`, []))
+    setMorningDone(load(`ronda-morning-${nuevo}`, false))
+    setNightDone(load(`ronda-night-${nuevo}`, false))
+    setHistorialPrevio(historial)
+    setTotalesPrevios(totalesHabitosPorDia(historial, nuevo, habits.length))
+    setCheckinPospuesto(false)
+    // Lo escrito en un check-in de ayer que ella cerró con "Ahora no" no
+    // pasa al de hoy (con uno abierto, el día no cambia todavía).
+    setMorningIntention('')
+    setNightReflection('')
+    setNightMood(null)
+  }
+  // ¿Ya cambió el día? Entonces lo que hay en pantalla es de ayer: pasa al
+  // día nuevo y devuelve true (el toque que lo descubrió no se aplica, igual
+  // que antes con la recarga). Mientras un check-in de ese día está abierto
+  // (el cierre de la noche pasada la medianoche), no: lo que se marque o se
+  // escriba ahí es de ese día (adentro-2).
+  const pasarAlDiaNuevo = () => {
+    const hoy = todayKey()
+    if (hoy === diaApp || showNightCheckin || showMorningCheckin) return false
+    cambiarDeDia(hoy)
+    return true
+  }
+  // Revisión cada minuto y al volver a la app.
+  const pasarAlDiaNuevoRef = useRef(null)
+  useEffect(() => { pasarAlDiaNuevoRef.current = pasarAlDiaNuevo })
   useEffect(() => {
-    borradoresRef.current = [journalText, morningIntention, nightReflection, newTomorrowTask, chatInput, boardNewText].join('').trim()
-  }, [journalText, morningIntention, nightReflection, newTomorrowTask, chatInput, boardNewText])
-
-  // Cambio de día: a la medianoche local la app se recarga para empezar el
-  // día nuevo, pero no mientras la usuaria escribe o tiene texto sin guardar;
-  // en ese caso lo vuelve a intentar en la siguiente revisión.
-  useEffect(() => {
-    const revisarDia = () => {
-      const now = todayKey()
-      if (now === diaApp) return
-      if (escribiendo() || borradoresRef.current) return
-      try { localStorage.setItem('ronda-current-day', now) } catch { /* sin almacenamiento */ }
-      window.location.reload()
-    }
+    const revisarDia = () => pasarAlDiaNuevoRef.current?.()
     const alVolver = () => { if (document.visibilityState === 'visible') revisarDia() }
     const intervalo = setInterval(revisarDia, 60000)
     document.addEventListener('visibilitychange', alVolver)
-    try { localStorage.setItem('ronda-current-day', diaApp) } catch { /* sin almacenamiento */ }
     return () => {
       clearInterval(intervalo)
       document.removeEventListener('visibilitychange', alVolver)
     }
+  }, [])
+  useEffect(() => {
+    try { localStorage.setItem('ronda-current-day', diaApp) } catch { /* sin almacenamiento */ }
   }, [diaApp])
 
   const toggleHabit = (id) => {
-    // Si ya cambió el día, lo que hay en pantalla es de ayer: recargar en vez
-    // de marcar sobre ello (salvo que haya texto sin guardar).
-    if (todayKey() !== diaApp && !borradoresRef.current) { window.location.reload(); return }
+    if (pasarAlDiaNuevo()) return
     const next = { ...checked, [id]: !checked[id] }
     setChecked(next)
     if (next[id]) {
@@ -747,6 +773,7 @@ function App() {
   }
 
   const toggleRoutine = (id) => {
+    if (pasarAlDiaNuevo()) return
     const willBeChecked = !routineChecked[id]
     setRoutineChecked(prev => ({ ...prev, [id]: !prev[id] }))
     // Parte del North Star: "marca hábito O completa parte de su rutina".
@@ -1117,18 +1144,23 @@ function App() {
 
   const currentHour = new Date().getHours()
   const franjaActual = franjaDelDia(currentHour)
-  const isMorningTime = franjaActual === 'mañana'
+  // Un check-in con algo escrito o elegido no se esconde porque cambió la
+  // hora (a las 12 m. el de la mañana; a la medianoche el de la noche): sigue
+  // hasta que ella lo envíe o lo cierre (adentro-2).
+  const isMorningTime = franjaActual === 'mañana' || !!morningIntention.trim()
   // El cierre de la noche va de las 7 p. m. a la medianoche: en la madrugada
   // el día ya cambió y se gastaría el cierre de la noche siguiente.
-  const isNightTime = franjaActual === 'noche' && currentHour >= 12
+  const isNightTime = (franjaActual === 'noche' && currentHour >= 12) || !!nightReflection.trim() || nightMood !== null
   const showMorningCheckin = isMorningTime && !morningDone && !checkinPospuesto && !showPanic
   const showNightCheckin = isNightTime && !nightDone && !checkinPospuesto && !showPanic
 
   const completeMorningCheckin = () => {
-    if (morningIntention.trim()) {
+    const intencion = morningIntention.trim()
+    if (intencion) {
       // La intención no lleva ánimo: el modal de la mañana no lo pregunta.
+      // Va con el día del check-in (diaApp) y sin espacios en los bordes.
       const entry = {
-        id: Date.now(), date: todayKey(), text: `Intención del día: ${morningIntention}`,
+        id: Date.now(), date: diaApp, text: `Intención del día: ${intencion}`,
         mood: null, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
         type: 'morning',
       }
@@ -1142,9 +1174,11 @@ function App() {
     const reflexion = nightReflection.trim()
     // Se guarda si escribió algo o si eligió cómo se siente.
     if (reflexion || nightMood !== null) {
+      // Con el día que cierra (diaApp: si se envía pasada la medianoche,
+      // sigue siendo el de ayer) y sin espacios en los bordes.
       const entry = {
-        id: Date.now(), date: todayKey(),
-        text: reflexion ? `Reflexión de noche: ${nightReflection}` : 'Cierre del día',
+        id: Date.now(), date: diaApp,
+        text: reflexion ? `Reflexión de noche: ${reflexion}` : 'Cierre del día',
         mood: nightMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
         type: 'night',
       }
@@ -1546,14 +1580,17 @@ function App() {
             for (let d = 1; d <= daysInMonth; d++) {
               const dateStr = todayKey(new Date(year, month, d))
               const isToday = dateStr === hoy
-              const count = monthlyHistory[dateStr] || 0
-              const bg = count > 0 ? (count >= totalHabits && totalHabits > 0 ? C.teal : C.teal+'40') : (isToday ? C.gold+'20' : 'transparent')
+              // Cada día contra su propio total (habitos-5), no contra los hábitos de hoy.
+              const dia = monthlyHistory[dateStr]
+              const count = dia?.done || 0
+              const completo = !!dia && dia.total > 0 && dia.done >= dia.total
+              const bg = count > 0 ? (completo ? C.teal : C.teal+'40') : (isToday ? C.gold+'20' : 'transparent')
               cells.push(
                 <div key={d} style={{
                   width: 28, height: 28, borderRadius: '50%', margin: '0 auto',
                   background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 11, fontWeight: isToday ? 800 : 500,
-                  color: count >= totalHabits && totalHabits > 0 ? 'white' : (count > 0 ? C.teal : (isToday ? C.gold : C.subtle)),
+                  color: completo ? 'white' : (count > 0 ? C.teal : (isToday ? C.gold : C.subtle)),
                   border: isToday ? '2px solid '+C.gold : 'none',
                 }}>{d}</div>
               )
@@ -2537,8 +2574,9 @@ function App() {
       return dias.size
     })(),
     totalEntries: entries.length,
-    // Marcas reales del historial (un hábito, un día), solo de hábitos que existen.
-    totalHabitsEver: Object.values(monthlyHistory).reduce((s, v) => s + v, 0),
+    // Marcas reales del historial (un hábito, un día), también de hábitos ya
+    // borrados: borrar un hábito no borra lo que se cumplió.
+    totalHabitsEver: Object.values(monthlyHistory).reduce((s, v) => s + v.done, 0),
     toolkitCount: toolkitItems.length,
   }
 

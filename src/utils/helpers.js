@@ -120,6 +120,34 @@ export function leerHistorialHabitos() {
   return historial
 }
 
+/* Cuántos hábitos tenía cada día ({ 'AAAA-MM-DD': n }), para que un día
+   completo de antes no cambie porque hoy se agreguen o borren hábitos
+   (habitos-5). El de hoy se va guardando con guardarTotalDia. Los días de
+   antes de este cambio no tienen total: se fija una vez con lo que se veía
+   (el mayor entre lo marcado ese día y los hábitos de hoy) y desde ahí no
+   se mueve. */
+const TOTALES_DIA_KEY = 'diana-habitos-por-dia'
+export function totalesHabitosPorDia(historial, hoy, habitosHoy) {
+  const guardados = load(TOTALES_DIA_KEY, {})
+  const totales = guardados && typeof guardados === 'object' && !Array.isArray(guardados) ? { ...guardados } : {}
+  let cambio = false
+  for (const [dia, marcas] of Object.entries(historial || {})) {
+    if (dia >= hoy || Number.isFinite(totales[dia])) continue
+    const hechos = Object.values(marcas || {}).filter(Boolean).length
+    if (!hechos) continue
+    totales[dia] = Math.max(hechos, habitosHoy)
+    cambio = true
+  }
+  if (cambio) save(TOTALES_DIA_KEY, totales)
+  return totales
+}
+export function guardarTotalDia(dia, n) {
+  const guardados = load(TOTALES_DIA_KEY, {})
+  const totales = guardados && typeof guardados === 'object' && !Array.isArray(guardados) ? guardados : {}
+  if (totales[dia] === n) return
+  save(TOTALES_DIA_KEY, { ...totales, [dia]: n })
+}
+
 /* Racha de un hábito: días seguidos con el hábito marcado que terminan en
    `hoy`, o en ayer si hoy todavía no está marcado. Sale del historial, así
    que sube como mucho 1 por día, baja si se desmarca y se rompe sola si pasa
