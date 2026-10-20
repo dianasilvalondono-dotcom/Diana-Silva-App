@@ -103,9 +103,12 @@ const ME_MATO = `(\\b(mejor|yo|juro que|(un|algun|cualquier) dia( de estos)?|aho
 // tirarme", "me lancé", "saltaré", "quiero brincar". "Salto" no entra: "un
 // salto al vacío" es también emprender.
 const TIRARME = '(\\bme (\\w+ ){0,2}(tir|lanz|lanc|bot|avent|arroj|ech|salt)(ar|o|e|are|aria|aba)|\\b(tir|lanz|bot|avent|arroj|ech)arme|\\b(salt|brinc)(ar|are|aria|aba)|\\b(salte|brinco|brinque))'
+// Un lugar alto: "el puente", "la terraza", "el quinto piso", "el piso 10",
+// "el 5to piso". "El piso" a secas no.
+const SITIO_ALTO = '(puentes?|edificio|ventana|balcon|terraza|techo|azotea|precipicio|abismo|barranco|risco|acantilado|penasco|viaducto|mirador|torre|(\\d+(to|vo|mo|ro|er|do|no|o)?|primer|segundo|tercer|cuarto|quinto|sexto|septimo|octavo|noveno|decimo|ultimo) piso|piso \\d+)'
 // Desde dónde o hacia dónde: un lugar alto, el vacío, un vehículo, la vía.
 // "Al piso" o "a la cama" no; "del quinto piso" o "del piso 10", sí.
-const LUGAR_ALTO = '(de|del|desde|por|al|a|hacia|contra|frente a|frente al|debajo de|debajo del|bajo|a las (llantas|ruedas) de|a las (llantas|ruedas) del) ((el|la|los|las|un|una|este|esta|ese|esa|mi|lo alto de|lo alto del|lo mas alto de|lo mas alto del) )?(vacio|puentes?|edificio|ventana|balcon|terraza|techo|azotea|precipicio|abismo|barranco|risco|acantilado|penasco|viaducto|mirador|torre|metro|tren|transmilenio|carros?|bus|buses|buseta|camion|tractomula|rio|vias?|carrilera|rieles|carretera|autopista|(\\d+|primer|segundo|tercer|cuarto|quinto|sexto|septimo|octavo|noveno|decimo|ultimo) piso|piso \\d+)\\b'
+const LUGAR_ALTO = `(de|del|desde|por|al|a|hacia|contra|frente a|frente al|debajo de|debajo del|bajo|a las (llantas|ruedas) de|a las (llantas|ruedas) del) ((el|la|los|las|un|una|este|esta|ese|esa|mi|lo alto de|lo alto del|lo mas alto de|lo mas alto del) )?(vacio|${SITIO_ALTO}|metro|tren|transmilenio|carros?|bus|buses|buseta|camion|tractomula|rio|vias?|carrilera|rieles|carretera|autopista)\\b`
 
 // Señales de crisis de alto riesgo.
 export const CRISIS_PATTERNS = [
@@ -168,6 +171,14 @@ export const CRISIS_PATTERNS = [
   // veneno, colgarse, un tiro. "Colgarse con los pagos" es atrasarse.
   new RegExp(`${TIRARME} ${LUGAR_ALTO}`),
   /\b(ojala|quiero que|quisiera que) me (atropelle|atropellen|pise)\b/, /\bojala me (mate|maten)\b/,
+  // El lugar antes del verbo ("estoy en la terraza y quiero saltar", "me subí
+  // al puente y me voy a tirar"), dejarse caer, atravesarse en la vía y "ojalá
+  // un carro me atropelle". No activan "estoy en la terraza y quiero tirar la
+  // basura", "me voy a lanzar a hacer yoga" ni "me dejé caer en el sofá".
+  new RegExp(`\\b(estoy|ando|sigo|me subi|subi) (en|a|al) (el |la |un |una |lo alto de(l)? (el |la )?)?${SITIO_ALTO}\\b(?! festivo).{0,60}${TIRARME}\\b(?! (en|la|el|los|las|un|una|a (la|el) (cama|piscina|sofa|hamaca|agua|mar)|a \\w+(ar|er|ir))\\b)`),
+  new RegExp(`(\\bdejarme|\\bme (\\w+ ){0,2}dej(ar|o|e|are|aria)) caer ${LUGAR_ALTO}`),
+  new RegExp(`(${ME_QUIERO} atravesar|\\batravesarme|\\bme atravieso) (en|a|frente a|delante de) (la |el |un |una |los )?(autopista|via|carretera|calle|avenida|carros?|bus|buses|camion|tractomula|tren|metro|transmilenio)\\b`),
+  /\bojala (?!(\w+ ){0,2}no )(\w+ ){1,3}me (atropelle|atropellen|pise|pisen|mate|maten)\b/,
   /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todas (las|mis)|un frasco de|un tarro de|una caja de|un monton de|un punado de|muchas|varias cajas de) (pastillas|pepas|pildoras|medicinas|medicamentos|tabletas|capsulas|pastas)\b/,
   /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (el |la |un |una )?(veneno|raticida|matarratas|cloro|varsol|insecticida)\b/,
   /\bsobredosis\b/,
