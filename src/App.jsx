@@ -30,6 +30,7 @@ import { useDialog } from './lib/useDialog'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL } from './lib/database'
 import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
+import { esAdmin, rondaPlusVigente } from './utils/plan'
 
 // Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
 const BOARD_MAX = 2000
@@ -237,8 +238,8 @@ function App() {
   // Al cambiar de sección o de herramienta, la pantalla nueva empieza arriba
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [view, subTab])
   // Admin check — Diana sees everything, others see paywall
-  const ADMIN_EMAILS = ['dianasilva.londono@gmail.com']
-  const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase())
+  // (La misma regla del servidor: src/utils/plan.js.)
+  const isAdmin = !!user && esAdmin(user.email)
 
   // Premium status from Supabase (founding members + paid subscribers)
   const [premiumStatus, setPremiumStatus] = useState({ is_premium: false, premium_until: null, premium_source: null })
@@ -250,9 +251,8 @@ function App() {
     let cancelled = false
     getUserProfile(user.id).then(profile => {
       if (cancelled || !profile) return
-      const stillValid = profile.premium_until && new Date(profile.premium_until) > new Date()
       const status = {
-        is_premium: !!(profile.is_premium && stillValid),
+        is_premium: rondaPlusVigente(profile),
         premium_until: profile.premium_until,
         premium_source: profile.premium_source,
       }

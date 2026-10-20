@@ -1,6 +1,6 @@
 // Patrones y respuesta de crisis: los mismos de la Guía IA y de la app.
 import { normalize, isCrisis, CRISIS_TEXT_CHAT, BOTON_AYUDA } from '../src/utils/crisis.js'
-import { exigirSesion } from './_auth.js'
+import { exigirSesion, exigirRondaPlus } from './_auth.js'
 
 // Largo máximo de cada turno del historial que se le pasa al modelo.
 const MAX_TURNO = 4000
@@ -32,7 +32,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).
-  if (!(await exigirSesion(req, res))) return
+  const user = await exigirSesion(req, res)
+  if (!user) return
 
   const { message, context, history, memory } = req.body || {}
   if (typeof message !== 'string' || !message.trim()) return res.status(400).json({ error: 'Message is required' })
@@ -42,6 +43,9 @@ export default async function handler(req, res) {
   if (isCrisis(message)) {
     return res.status(200).json({ reply: CRISIS_TEXT_CHAT, sos: true, crisis: true, connect: null, memoryUpdate: null })
   }
+
+  // Tu Ronda es de Ronda+, como en la app (después de la crisis).
+  if (!(await exigirRondaPlus(req, res, user))) return
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 

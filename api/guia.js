@@ -11,7 +11,7 @@
 // Patrones y respuesta de crisis: compartidos con la app (la app también
 // detecta crisis antes de llamar aquí, para abrir Ayuda aunque esto falle).
 import { isCrisis, CRISIS_TEXT, BOTON_AYUDA } from '../src/utils/crisis.js'
-import { exigirSesion } from './_auth.js'
+import { exigirSesion, exigirRondaPlus } from './_auth.js'
 
 const GUIA_IA = { name: 'Emilia', title: 'Guía IA de Ronda' }
 
@@ -28,7 +28,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).
-  if (!(await exigirSesion(req, res))) return
+  const user = await exigirSesion(req, res)
+  if (!user) return
 
   const { content, cat } = req.body || {}
   if (typeof content !== 'string' || !content.trim()) return res.status(400).json({ error: 'Content is required' })
@@ -44,6 +45,9 @@ export default async function handler(req, res) {
       },
     })
   }
+
+  // Escribir en la Comunidad es de Ronda+, como en la app (después de la crisis).
+  if (!(await exigirRondaPlus(req, res, user))) return
 
   if (content.length > MAX_CONTENT) return res.status(413).json({ error: 'El mensaje es demasiado largo' })
   if (!CATEGORIAS.includes(cat)) return res.status(400).json({ error: 'Categoría no válida' })

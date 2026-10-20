@@ -1,6 +1,6 @@
 // Patrones de crisis: los mismos de la app, la Guía IA y Tu Ronda.
 import { isCrisis } from '../src/utils/crisis.js'
-import { exigirSesion } from './_auth.js'
+import { exigirSesion, exigirRondaPlus } from './_auth.js'
 
 // Los mensajes de error son internos (la app muestra su propio texto fijo),
 // pero van en español por si alguien los lee en los registros.
@@ -8,7 +8,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' })
 
   // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).
-  if (!(await exigirSesion(req, res))) return
+  const user = await exigirSesion(req, res)
+  if (!user) return
 
   const { goal, context } = req.body || {}
   if (typeof goal !== 'string' || !goal.trim()) return res.status(400).json({ error: 'Falta la meta' })
@@ -19,6 +20,9 @@ export default async function handler(req, res) {
   if (isCrisis(goal) || (typeof context === 'string' && isCrisis(context))) {
     return res.status(200).json({ crisis: true, program: null })
   }
+
+  // Crea tu programa es de Ronda+, como en la app (después de la crisis).
+  if (!(await exigirRondaPlus(req, res, user))) return
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 
