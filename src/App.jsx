@@ -1152,7 +1152,14 @@ function App() {
     title: `¿Borrar "${item.name}" de tu toolkit?`,
     body: 'Después no lo podrás recuperar.',
     cta: 'Borrar recurso',
-    onConfirm: () => removeToolkitItem(item.id),
+    onConfirm: () => {
+      // La X se va con la tarjeta: el foco pasa a la X del recurso de al lado
+      // o, si no queda ninguno, a "+ Agregar recurso".
+      const fila = document.querySelector(`[data-recurso="${item.id}"]`)
+      const otra = fila?.nextElementSibling || fila?.previousElementSibling
+      focoTrasModalRef.current = () => (otra?.isConnected && otra.querySelector('button[aria-label^="Borrar recurso"]')) || document.getElementById('recurso-agregar')
+      removeToolkitItem(item.id)
+    },
   })
 
 
@@ -1230,8 +1237,10 @@ function App() {
   }
   const openModule = (id, sub = '') => {
     const destino = id === 'crecer' ? 'ahora' : id
-    // Al salir del chat, la voz de Tu Ronda se calla.
+    // Al salir del chat, la voz de Tu Ronda se calla; al salir del Diario, el
+    // micrófono deja de escuchar (si no, lo dictado afuera caía en el cuadro).
     stopSpeech()
+    stopVoice()
     setView(destino)
     setSubTab(sub)
     limpiarTelon()
@@ -1241,6 +1250,7 @@ function App() {
   // Cambia de subpestaña dentro de la misma sección.
   const irASubTab = (id) => {
     stopSpeech()
+    stopVoice()
     setSubTab(id)
     limpiarTelon()
     setFoundingToast(null)
@@ -1346,7 +1356,7 @@ function App() {
     if (view === 'juntas') return <div style={estiloTelon}>Tu gente</div>
     if (view === 'perfil') return <div style={estiloTelon}>Tu perfil</div>
     if (view === 'ahora' && subTab) return (
-      <button onClick={() => { stopSpeech(); setSubTab('') }} style={{ ...estiloTelon, ...botonTelon, gap: 6 }}>
+      <button onClick={() => irASubTab('')} style={{ ...estiloTelon, ...botonTelon, gap: 6 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         Volver a Adentro
       </button>
@@ -2515,7 +2525,7 @@ function App() {
           </div>
         </div>
       ) : (
-        <button onClick={() => {
+        <button id="recurso-agregar" onClick={() => {
           // Con un filtro activo, el formulario abre con esa categoría (toolkit-6).
           if (filtroToolkit !== 'todas') setNewToolCat(filtroToolkit)
           setShowAddTool(true)
@@ -2536,7 +2546,7 @@ function App() {
             // si el texto no es una dirección web no se ofrece un enlace roto.
             const link = urlDelRecurso(item.url)
             return (
-              <div key={item.id} style={{
+              <div key={item.id} data-recurso={item.id} style={{
                 background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 borderLeft: `3px solid ${cat.color}`, display: 'flex', alignItems: 'flex-start', gap: 12,
               }}>
@@ -2544,8 +2554,9 @@ function App() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{item.name}</div>
                   {item.note && <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{item.note}</div>}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                    <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.textColor || cat.color, fontWeight: 700 }}>
+                  {/* La categoría no se parte: si no cabe con "Abrir →", el link baja de línea. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.textColor || cat.color, fontWeight: 700, whiteSpace: 'nowrap' }}>
                       {cat.label}
                     </span>
                     {link && (
@@ -2562,6 +2573,13 @@ function App() {
                       </a>
                     )}
                   </div>
+                  {/* Un link guardado antes de la validación que no es una dirección
+                      web: no se ofrece abrirlo, pero se muestra lo que guardó. */}
+                  {!link && typeof item.url === 'string' && item.url.trim() && (
+                    <div style={{ fontSize: 17, color: C.muted, marginTop: 6, overflowWrap: 'anywhere' }}>
+                      Link guardado (no se puede abrir): {item.url.trim()}
+                    </div>
+                  )}
                 </div>
                 <button type="button" aria-label={`Borrar recurso ${item.name}`} onClick={() => pedirBorrarRecurso(item)} style={{
                   background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0,
@@ -2670,7 +2688,9 @@ function App() {
   const fundadoraFecha = premiumStatus.premium_source === 'founding_member' && premiumStatus.premium_until
     ? new Date(premiumStatus.premium_until) : null
   const fundadoraFechaTexto = fundadoraFecha
-    ? fundadoraFecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+    // premium_until llega como medianoche UTC: en Colombia (UTC-5) sin timeZone
+    // se veía un día antes ('2026-03-01T00:00Z' → '28 de febrero').
+    ? fundadoraFecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : ''
   const fundadoraAcceso = !fundadoraFecha ? ''
     : premiumStatus.is_premium ? `Tienes acceso completo incluido hasta el ${fundadoraFechaTexto}.`
       : fundadoraFecha <= new Date() ? `Tu acceso completo incluido terminó el ${fundadoraFechaTexto}.`
@@ -3825,7 +3845,7 @@ function App() {
         {!isPremium && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { name: PLAN_PAGO, price: PLAN_PRECIO, features: 'Tu Ronda (IA), programas 21 días, 5 respuestas profesionales/mes', color: C.teal },
+              { name: PLAN_PAGO, price: PLAN_PRECIO, features: 'Tu Ronda (IA), rutas de 21 días, 5 respuestas profesionales/mes', color: C.teal },
               { name: 'Ronda Pro', price: 'Próximamente', features: 'El siguiente nivel de Ronda, en camino.', color: C.gold },
             ].map((plan, i) => (
               <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 14, border: `2px solid ${plan.color}30` }}>
@@ -4715,7 +4735,7 @@ function App() {
             {DBT_SKILLS.map((skill, idx) => (
               <div key={skill.name}>
                 <button onClick={() => setPanicDbtExpanded(panicDbtExpanded === idx ? null : idx)}
-                  aria-expanded={panicDbtExpanded === idx} aria-controls={`dbt-skill-panel-${idx}`} style={{
+                  aria-expanded={panicDbtExpanded === idx} aria-controls={panicDbtExpanded === idx ? `dbt-skill-panel-${idx}` : undefined} style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
                   background: panicDbtExpanded === idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
                   borderRadius: panicDbtExpanded === idx ? '16px 16px 0 0' : 16,
