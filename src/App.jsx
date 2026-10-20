@@ -3895,7 +3895,7 @@ function App() {
 
   const DBT_SKILLS = [
     { name: 'TIPP', icon: '🧊', desc: 'Temperatura · Ejercicio Intenso · Respiración Pautada · Relajación Muscular',
-      steps: ['Pon hielo o agua fría en tu cara 30 segundos', 'Haz ejercicio intenso 5-10 minutos (correr, saltar)', 'Respira 4 segundos inhala, 8 exhala × 5 veces', 'Tensa y relaja cada grupo muscular de pies a cabeza'] },
+      steps: ['Pon hielo o agua fría en tu cara 30 segundos', 'Haz ejercicio intenso 5-10 minutos (correr, saltar)', 'Inhala 4 segundos y exhala 8. Repite 5 veces.', 'Tensa y relaja cada grupo muscular de pies a cabeza'] },
     { name: 'STOP', icon: '🛑', desc: 'Para · Toma distancia · Observa · Procede con conciencia',
       steps: ['PARA: Congélate. No reacciones aún.', 'TOMA DISTANCIA: Da un paso atrás mentalmente.', 'OBSERVA: ¿Qué sientes en el cuerpo? ¿Qué piensas?', 'PROCEDE: Actúa con la mente sabia, no la emocional.'] },
     { name: 'Acción Opuesta', icon: '🔄', desc: 'Haz lo contrario de lo que la emoción te pide',
@@ -3961,7 +3961,7 @@ function App() {
             {[
               { id: 'breathe', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#BFD5EB' },
               { id: 'ground', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#E3E5D3' },
-              { id: 'dbt', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#D6BFDD' },
+              { id: 'dbt', title: 'Habilidades DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#D6BFDD' },
               { id: 'accept', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#141833' },
             ].map(opt => (
               <button key={opt.id} onClick={() => {
@@ -4085,10 +4085,10 @@ function App() {
           </>)}
         </>}
 
-        {/* ── DBT: Skills menu ── */}
+        {/* ── DBT: menú de habilidades ── */}
         {panicScreen === 'dbt' && <>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 6 }}>
-            Skills DBT
+            Habilidades DBT
           </div>
           <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24 }}>
             Herramientas de regulación emocional. Escoge la que necesitas.
