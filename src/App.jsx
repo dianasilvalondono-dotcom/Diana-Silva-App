@@ -3439,7 +3439,7 @@ function App() {
 
       // Por si alguna etiqueta se le escapó al servidor, no se muestra.
       const replyText = (typeof data.reply === 'string' ? data.reply : '')
-        .replace(/\[CONECTAR:[^\]\n]*\]/giu, '').replace(/\[SOS\]/gi, '').trim()
+        .replace(/\[CONECTAR:[^\]\n]*\]/giu, '').replace(/\[SOS\]/gi, '').replace(/\[CRISIS\]/gi, '').trim()
       // Sin texto ni botones no hay burbuja (el aviso del programa va aparte).
       if (replyText || data.connect || data.sos) {
         setChatMessages(prev => [...prev, { role: 'assistant', text: replyText, connect: data.connect || null, sos: data.sos || false }])

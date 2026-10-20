@@ -102,12 +102,21 @@ LO QUE SABES HACER:
 4. CREAR programas personalizados de 7 días si te los piden
 5. RECORDAR patrones de la usuaria y referenciarlos con naturalidad
 
+SI HAY RIESGO (esto va antes que todo lo demás):
+Si su mensaje sugiere, aunque sea de forma indirecta, que su vida o su integridad está en riesgo (que quiere morir o desaparecer, hacerse daño, que ya no quiere seguir) o que vive violencia o abuso:
+- No sigas la conversación normal: no des consejos, no armes programas, no sugieras la Comunidad.
+- Responde con calidez, en pocas frases: valida lo que siente, dile que no está sola y que ahora necesita a una persona real.
+- Remítela a "${BOTON_AYUDA}" en la app, a la Línea 106 (salud mental, gratuita y confidencial en Colombia) y, si hay peligro inmediato, al 123.
+- Sin lenguaje clínico ni diagnósticos.
+- Empieza tu respuesta con [CRISIS] (la app abre Ayuda) y no incluyas el bloque MEMORY.
+
 COMUNIDAD DE RONDA: la usuaria puede publicar su pregunta de forma anónima en la Comunidad, donde le responde la Guía IA de Ronda. El directorio de profesionales todavía no está disponible: NUNCA prometas conectarla con una Guía, una psicóloga ni otra profesional, y no ofrezcas "¿Te conecto?".
 
 FORMATO DE RESPUESTA:
 - Texto plano conversacional
 - Usa [CONECTAR:categoria] si le sugieres preguntar en la Comunidad (la app le muestra un botón para hacerlo). Escribe la categoría exactamente así, sin tildes: ansiedad, relaciones, autoestima, maternidad, duelo, emprendimiento o general. Ejemplo: [CONECTAR:relaciones]
 - Usa [SOS] si sugieres herramientas de emergencia
+- Usa [CRISIS] al inicio si hay riesgo (ver SI HAY RIESGO)
 - Si te piden programa: devuélvelo como JSON {"type":"program","title":"...","desc":"...","days":[...]}
 
 EXTRACCIÓN DE MEMORIA (CRÍTICO):
@@ -171,6 +180,10 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
       }
       // Cortada por el tope de tokens: lo que venga como JSON quedó a medias.
       const cortada = data.stop_reason === 'max_tokens'
+      // [CRISIS]: el modelo vio una señal de riesgo que se le escapó a
+      // isCrisis. Se busca en todo el texto, también si quedó después del
+      // bloque de memoria.
+      const marcaCrisis = /\[CRISIS\]/i.test(rawText)
 
       // ── Separate reply from memory block ──
       let replyText = rawText
@@ -195,6 +208,7 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
       let cleanText = replyText
         .replace(/\[CONECTAR:[^\]\n]*\]/giu, '')
         .replace(/\[SOS\]/gi, '')
+        .replace(/\[CRISIS\]/gi, '')
         .replace(/[ \t]{2,}/g, ' ')
         .trim()
       // La categoría va sin tildes y en minúscula; si no es una de la
@@ -224,6 +238,16 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
       cleanText = cleanText.replace(/```(?:json)?/gi, '').replace(/[ \t]{2,}/g, ' ').trim()
 
       let reply = cleanText
+
+      // Con la marca de crisis, lo mismo que el chequeo de antes del modelo:
+      // sos y crisis (la app abre Ayuda), sin programa, sin Comunidad y sin
+      // memoria. Si su texto no nombra la Línea 106 o quedó cortado, va la
+      // respuesta fija de crisis.
+      if (marcaCrisis) {
+        const texto = !cortada && /\b106\b/.test(reply) ? reply : CRISIS_TEXT_CHAT
+        return res.status(200).json({ reply: texto, sos: true, crisis: true, connect: null, memoryUpdate: null })
+      }
+
       if (!reply && program) reply = 'Armé un programa pensado para ti.'
       // Sin nada que mostrar (por ejemplo, solo un JSON cortado): respaldo.
       if (!reply) return res.status(200).json(respuestaDeRespaldo(message))

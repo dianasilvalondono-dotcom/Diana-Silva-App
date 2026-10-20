@@ -4,7 +4,8 @@
 // por profesional certificada). Acompaña con herramientas basadas en DBT y
 // neurociencia, pero NO diagnostica ni trata. Ante señales de crisis, corta
 // el modo "consejo" y dirige a ayuda real (chequeo del lado del servidor,
-// no depende del modelo).
+// no depende del modelo). Segunda capa: si el modelo ve un riesgo que el
+// chequeo no vio, empieza con [CRISIS] y la respuesta va marcada crisis.
 //
 // Para cambiar el nombre de la Guía IA, edita GUIA_IA.name (una sola línea).
 
@@ -76,9 +77,12 @@ NUNCA:
 - Atribuirte credenciales, certificaciones o experiencia humana ("cuando yo estudiaba", "en mi consulta"). No las tienes.
 - Empujar, juzgar o minimizar. Evita "deberías" (mejor "una cosa que ayuda es...").
 
-SI APARECE ALGO GRAVE (ideación suicida, autolesión, abuso, violencia, peligro):
-- No intentes resolverlo tú. Valida con calma, sin amplificar el pánico.
-- Dirige a ayuda real YA: el botón "${BOTON_AYUDA}" (arriba a la derecha de la app) y la Línea 106 (Colombia). Si hay peligro inmediato, el 123.
+SI HAY RIESGO (esto va antes que todo lo demás):
+Si la publicación sugiere, aunque sea de forma indirecta, que su vida o su integridad está en riesgo (que quiere morir o desaparecer, hacerse daño, que ya no puede seguir) o que vive violencia o abuso:
+- No sigas el formato normal ni le des una herramienta para resolverlo tú. Valida con calma y calidez, sin amplificar el pánico, y dile que no tiene que cargarlo sola.
+- Dirige a ayuda real YA: el botón "${BOTON_AYUDA}" (arriba a la derecha de la app), la Línea 106 (salud mental, gratuita y confidencial en Colombia) y, si hay peligro inmediato, el 123.
+- Sin lenguaje clínico ni diagnósticos.
+- Empieza tu respuesta con [CRISIS] (la app abre Ayuda; la etiqueta no se le muestra).
 
 FORMATO:
 - 4 a 7 oraciones. Cálido y claro.
@@ -93,7 +97,7 @@ Recuerda: eres educación y acompañamiento de bienestar, no atención de salud 
 
 "${content}"
 
-Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta, sin firmar (la app ya muestra tu nombre).`
+Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta (con [CRISIS] al inicio si hay riesgo), sin firmar (la app ya muestra tu nombre).`
 
   if (apiKey) {
     try {
@@ -121,13 +125,29 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta, 
       const data = await response.json()
       // La respuesta puede traer bloques de pensamiento antes del texto: se
       // unen todos los bloques de texto, no solo el primero.
-      const text = (Array.isArray(data.content) ? data.content : [])
+      const crudo = (Array.isArray(data.content) ? data.content : [])
         .filter(b => b && b.type === 'text' && typeof b.text === 'string')
         .map(b => b.text)
         .join('')
-        .trim()
+      // [CRISIS]: el modelo vio una señal de riesgo que se le escapó a
+      // isCrisis. La etiqueta nunca se muestra.
+      const marcaCrisis = /\[CRISIS\]/i.test(crudo)
+      const text = crudo.replace(/\[CRISIS\]/gi, '').replace(/[ \t]{2,}/g, ' ').trim()
       // Sin texto, rechazada o cortada a medias: la respuesta de respaldo.
       const usable = text && data.stop_reason !== 'refusal' && data.stop_reason !== 'max_tokens'
+
+      // Con la marca, lo mismo que el chequeo de antes del modelo: crisis
+      // (la app abre Ayuda). Si su texto no sirve o no nombra la Línea 106,
+      // va la respuesta fija de crisis.
+      if (marcaCrisis) {
+        return res.status(200).json({
+          crisis: true,
+          reply: {
+            pro: { name: GUIA_IA.name, title: GUIA_IA.title, verified: false, ai: true },
+            text: usable && /\b106\b/.test(text) ? text : CRISIS_TEXT,
+          },
+        })
+      }
 
       return res.status(200).json({
         reply: {
