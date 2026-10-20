@@ -3,10 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary'
-import { initAnalytics } from './lib/analytics'
 
-// Analítica de producto (no-op sin VITE_POSTHOG_KEY).
-initAnalytics()
+// La analítica (PostHog) no arranca aquí: App la inicia solo cuando la
+// usuaria dio la autorización de cuenta (src/lib/analytics.js).
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -5,7 +5,8 @@
 
    Tres autorizaciones:
      · edad   → «Tengo 18 años o más.» (obligatoria)
-     · cuenta → datos de cuenta y de uso, no sensibles (obligatoria)
+     · cuenta → datos de cuenta y de uso, no sensibles (obligatoria). Si
+                toca «No estoy de acuerdo» y cierra sesión, queda «no».
      · ia     → «Usar la IA de Ronda»: lo que le escribe a la IA (datos
                 sensibles). Opcional: sin ella no se abren Tu Ronda, la Guía
                 IA de la Comunidad ni Crea tu programa, y todo lo demás sigue.
@@ -18,10 +19,22 @@
      · en Supabase, una fila por respuesta en `autorizaciones` (solo se
        agregan, nunca se editan) y el estado actual en las columnas
        autorizacion_* de profiles (src/sql/consentimiento.sql). La fecha que
-       vale es la del servidor. Lo que no se pudo subir queda en `pendientes`
-       y se reintenta cada vez que abre la app.
+       vale como prueba es la del servidor; la del teléfono va aparte
+       (respondido_en), solo para ordenar respuestas de varios teléfonos.
    Nunca se guarda contenido, ánimo ni IP: solo qué respondió, a qué versión
-   del texto y dónde. */
+   del texto y dónde.
+
+   Varios teléfonos (la misma cuenta): el estado de profiles es el que vale,
+   y el servidor lo revisa antes de llamar a la IA (api/_auth.js).
+     · Cada respuesta de aquí queda `pendiente` hasta escribirse en profiles.
+       Lo que no se pudo subir se reintenta cada vez que abre la app.
+     · `nube` guarda la hora (del servidor) del último estado de la nube que
+       este teléfono ya conoce. Si al subir la nube cambió desde entonces,
+       otro teléfono respondió: gana la respuesta más reciente.
+     · Sin nada pendiente aquí, gana la nube: si la quitó en otro teléfono,
+       aquí se quita al abrir la app (o al volver a ella).
+     · profiles se escribe solo si nadie lo cambió entre leerlo y escribirlo
+       (se compara la hora): un teléfono atrasado no deshace un retiro. */
 import { supabase } from './supabase'
 import { load, save } from '../utils/helpers'
 
@@ -39,29 +52,49 @@ export const URL_AVISO = '/privacidad.html#aviso'
 // inscritas, al tocar una función de IA o desde Perfil.
 export const CANALES = ['registro', 'aviso-unico', 'al-usar', 'perfil']
 
+const TIPOS = ['edad', 'cuenta', 'ia']
+// Las que tienen hora del servidor en profiles (autorizacion_<tipo>_en).
+const TIPOS_CON_FECHA = ['cuenta', 'ia']
+
 // Qué despliegue vio (Vercel lo expone a Vite con el prefijo VITE_).
 const VERSION_APP = (import.meta.env.VITE_VERCEL_GIT_COMMIT_SHA || '').slice(0, 12) || null
 
-/* Id de cada fila: así reintentar una subida no la duplica. */
+/* Id de cada fila: así reintentar una subida no la duplica. Siempre hay uno
+   (sin crypto, uno al azar con Math.random: basta para no repetirse). */
 function nuevoId() {
+  let b
   try {
     if (crypto.randomUUID) return crypto.randomUUID()
-    const b = crypto.getRandomValues(new Uint8Array(16))
-    b[6] = (b[6] & 0x0f) | 0x40
-    b[8] = (b[8] & 0x3f) | 0x80
-    const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('')
-    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+    b = crypto.getRandomValues(new Uint8Array(16))
   } catch {
-    return null
+    b = Uint8Array.from({ length: 16 }, () => Math.floor(Math.random() * 256))
   }
+  b[6] = (b[6] & 0x0f) | 0x40
+  b[8] = (b[8] & 0x3f) | 0x80
+  const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
 }
 
 const vigente = (dato, tipo) => !!dato && typeof dato === 'object' && dato.version === versionDe(tipo)
+const respondida = (a, tipo) => vigente(a?.[tipo], tipo) && typeof a[tipo].valor === 'boolean'
 
-/* ── Lectura ── */
+// Horas: el servidor las da con microsegundos; se comparan en milisegundos.
+const ms = (iso) => {
+  const t = typeof iso === 'string' ? Date.parse(iso) : NaN
+  return Number.isNaN(t) ? null : t
+}
+const mismoInstante = (a, b) => (a ?? null) === (b ?? null) || (ms(a) !== null && ms(a) === ms(b))
+
+/* ── Lectura ──
+   Una fila guardada sin id (de antes) recibe uno: si no, nunca se subiría
+   ni se quitaría. */
 export function leerAutorizaciones() {
   const a = load(AUTORIZACIONES_KEY, null)
-  return a && typeof a === 'object' ? a : null
+  if (!a || typeof a !== 'object') return null
+  if (Array.isArray(a.pendientes) && a.pendientes.some(f => !f?.id)) {
+    return { ...a, pendientes: a.pendientes.filter(f => f && typeof f === 'object').map(f => (f.id ? f : { ...f, id: nuevoId() })) }
+  }
+  return a
 }
 
 export function guardarAutorizaciones(a) {
@@ -76,21 +109,23 @@ export const cuentaAutorizada = (a) =>
 export const iaAutorizada = (a) => vigente(a?.ia, 'ia') && a.ia.valor === true
 
 // ¿Ya respondió a la de la IA (sí o no)?
-export const iaRespondida = (a) => vigente(a?.ia, 'ia') && typeof a.ia.valor === 'boolean'
+export const iaRespondida = (a) => respondida(a, 'ia')
 
 /* Registra respuestas: { edad: true, cuenta: true, ia: false }. Devuelve el
-   registro nuevo (no muta el anterior) con una fila pendiente de subir por
-   cada respuesta. `en` es la hora de este teléfono, solo para mostrarla en
-   Perfil; la que vale como prueba la pone el servidor. */
+   registro nuevo (no muta el anterior): cada respuesta queda pendiente de
+   escribirse en profiles y con una fila pendiente de subir. `en` es la hora
+   de este teléfono; al escribirse en profiles se cambia por la del servidor. */
 export function registrar(previo, respuestas, canal) {
   const ahora = new Date().toISOString()
   const siguiente = { ...(previo || {}), politica: VERSION_POLITICA }
   const pendientes = Array.isArray(previo?.pendientes) ? [...previo.pendientes] : []
   for (const [tipo, valor] of Object.entries(respuestas)) {
-    if (typeof valor !== 'boolean') continue
-    siguiente[tipo] = { valor, version: versionDe(tipo), canal, en: ahora }
-    pendientes.push({ id: nuevoId(), tipo, valor, version_texto: versionDe(tipo), canal })
+    if (typeof valor !== 'boolean' || !TIPOS.includes(tipo)) continue
+    siguiente[tipo] = { valor, version: versionDe(tipo), canal, en: ahora, pendiente: true }
+    pendientes.push({ id: nuevoId(), tipo, valor, version_texto: versionDe(tipo), canal, en: ahora })
   }
+  // «Lo íntimo es tuyo» ya se respondió: lo que venía del registro se acaba.
+  if (typeof respuestas.ia === 'boolean') delete siguiente.canalIntimo
   siguiente.pendientes = pendientes
   return siguiente
 }
@@ -116,17 +151,21 @@ function desdeRegistro(metadatos) {
   return r
 }
 
-/* ── Nube: el estado guardado en profiles (otro teléfono) ── */
+/* ── Nube: el estado guardado en profiles ── */
 const COLUMNAS_NUBE = 'autorizacion_version, autorizacion_edad, autorizacion_cuenta, autorizacion_cuenta_en, autorizacion_ia, autorizacion_ia_en, autorizacion_canal'
+
+// Con tiempo límite: una consulta colgada no deja la app en "Cargando...".
+const conLimite = (consulta, ms_) => Promise.race([
+  consulta,
+  new Promise(resolve => setTimeout(() => resolve({ data: null, error: 'tiempo' }), ms_)),
+])
 
 // null si no hay Supabase, si no responde a tiempo o si las columnas aún no
 // existen (el SQL no se ha aplicado): entonces manda lo de este teléfono.
 export async function leerAutorizacionesNube(userId) {
   if (!supabase || !userId) return null
   try {
-    const consulta = supabase.from('profiles').select(COLUMNAS_NUBE).eq('id', userId).maybeSingle()
-    const corte = new Promise(resolve => setTimeout(() => resolve({ data: null, error: 'tiempo' }), 6000))
-    const { data, error } = await Promise.race([consulta, corte])
+    const { data, error } = await conLimite(supabase.from('profiles').select(COLUMNAS_NUBE).eq('id', userId).maybeSingle(), 6000)
     if (error || !data) return null
     return data
   } catch {
@@ -134,76 +173,177 @@ export async function leerAutorizacionesNube(userId) {
   }
 }
 
-/* Completa lo que falta en este teléfono con lo de la nube o, si no hay, con
-   lo que marcó al crear la cuenta. Nunca pisa una respuesta de aquí. Lo que
-   viene de la nube ya está guardado allá: no suma filas. Lo del registro sí
-   (es la primera vez que hay un id para guardarlo). */
+/* Une lo de este teléfono con la nube y, si nunca respondió, con lo que
+   marcó al crear la cuenta. Devuelve `previo` tal cual si no cambia nada.
+     · Una respuesta de aquí que aún no está en la nube (pendiente) no se
+       toca: la subida decide (gana la más reciente).
+     · Lo demás lo manda la nube: si allá cambió (otro teléfono), se adopta.
+       Lo que viene de la nube ya está guardado allá: no suma filas.
+     · Lo del registro sí suma filas (es la primera vez que hay un id para
+       guardarlo). Nunca si ya respondió «no» a la de cuenta. */
 export function adoptar(previo, { nube, metadatos }) {
-  if (cuentaAutorizada(previo)) {
-    if (iaRespondida(previo) || nube?.autorizacion_version !== VERSION_POLITICA || typeof nube?.autorizacion_ia !== 'boolean') return previo
-    return { ...previo, ia: { valor: nube.autorizacion_ia, version: versionDe('ia'), canal: nube.autorizacion_canal || null, en: nube.autorizacion_ia_en || null } }
-  }
-  if (nube?.autorizacion_version === VERSION_POLITICA && nube.autorizacion_edad === true && nube.autorizacion_cuenta === true) {
-    const canal = nube.autorizacion_canal || null
-    const en = nube.autorizacion_cuenta_en || null
-    const siguiente = {
-      ...(previo || {}),
-      politica: VERSION_POLITICA,
-      edad: { valor: true, version: versionDe('edad'), canal, en },
-      cuenta: { valor: true, version: versionDe('cuenta'), canal, en },
+  let siguiente = previo
+  const cambiar = (cambios) => { siguiente = { ...(siguiente || {}), ...cambios } }
+
+  if (nube && nube.autorizacion_version === VERSION_POLITICA) {
+    for (const tipo of TIPOS_CON_FECHA) {
+      const local = siguiente?.[tipo]
+      if (local?.pendiente && vigente(local, tipo)) continue
+      const valor = nube[`autorizacion_${tipo}`]
+      const en = nube[`autorizacion_${tipo}_en`] ?? null
+      if (!mismoInstante(siguiente?.nube?.[tipo], en)) cambiar({ nube: { ...(siguiente?.nube || {}), [tipo]: en } })
+      if (typeof valor !== 'boolean') continue
+      if (vigente(local, tipo) && local.valor === valor && mismoInstante(local.en, en)) continue
+      const canal = nube.autorizacion_canal || null
+      cambiar({ politica: VERSION_POLITICA, [tipo]: { valor, version: versionDe(tipo), canal, en } })
+      if (tipo === 'cuenta' && valor === true && nube.autorizacion_edad === true && !(siguiente.edad?.pendiente && vigente(siguiente.edad, 'edad'))) {
+        cambiar({ edad: { valor: true, version: versionDe('edad'), canal, en } })
+      }
     }
-    if (typeof nube.autorizacion_ia === 'boolean') {
-      siguiente.ia = { valor: nube.autorizacion_ia, version: versionDe('ia'), canal, en: nube.autorizacion_ia_en || null }
-    }
-    return siguiente
   }
-  const reg = desdeRegistro(metadatos)
-  if (reg) {
-    const siguiente = registrar(previo, { edad: true, cuenta: true }, 'registro')
-    if (typeof reg.fecha === 'string') {
-      siguiente.edad = { ...siguiente.edad, en: reg.fecha }
-      siguiente.cuenta = { ...siguiente.cuenta, en: reg.fecha }
+
+  if (!respondida(siguiente, 'cuenta') && typeof nube?.autorizacion_cuenta !== 'boolean') {
+    const reg = desdeRegistro(metadatos)
+    if (reg) {
+      const conRegistro = registrar(siguiente, { edad: true, cuenta: true }, 'registro')
+      if (typeof reg.fecha === 'string') {
+        conRegistro.edad = { ...conRegistro.edad, en: reg.fecha }
+        conRegistro.cuenta = { ...conRegistro.cuenta, en: reg.fecha }
+      }
+      // «Lo íntimo es tuyo», que sigue, es parte del registro.
+      if (!respondida(conRegistro, 'ia')) conRegistro.canalIntimo = 'registro'
+      siguiente = conRegistro
     }
-    return siguiente
   }
-  return previo
+  return siguiente
 }
+
+// ¿Queda algo por subir (filas o respuestas que aún no están en profiles)?
+export const hayQueSubir = (a) =>
+  !!a && ((Array.isArray(a.pendientes) && a.pendientes.length > 0) || TIPOS.some(t => a[t]?.pendiente && vigente(a[t], t)))
 
 /* ── Subida ──
-   Primero las filas (la prueba) y después el estado actual en profiles.
-   Devuelve los ids de las filas que quedaron en la nube ([] si algo falló:
-   se reintenta la próxima vez, y por el id no se duplican). */
-export async function subirAutorizaciones(userId, a) {
-  const pendientes = Array.isArray(a?.pendientes) ? a.pendientes.filter(f => f?.id) : []
-  if (!supabase || !userId || !pendientes.length) return []
-  try {
-    const filas = pendientes.map(f => ({
-      id: f.id, user_id: userId, tipo: f.tipo, valor: f.valor,
-      version_texto: f.version_texto, canal: f.canal, version_app: VERSION_APP,
-    }))
-    const { error } = await supabase.from('autorizaciones').upsert(filas, { onConflict: 'id', ignoreDuplicates: true })
-    if (error) throw error
+   Primero las filas (la prueba) y después, en profiles, solo las respuestas
+   pendientes. Devuelve qué pasó, para aplicarlo con trasSubir sobre el
+   estado de ese momento (mientras subía pudo responder otra vez):
+     { filas: ids ya en la nube (o descartados por inválidos),
+       escritos / ganaNube: { tipo: true }, nube: la fila de profiles,
+       completo: true si no quedó nada por subir } */
+const esErrorDeDatos = (e) => typeof e?.code === 'string' && /^2[23]/.test(e.code) // 22xxx y 23xxx: nunca va a pasar
 
-    const estado = {
-      autorizacion_version: a.politica || VERSION_POLITICA,
-      autorizacion_canal: pendientes[pendientes.length - 1].canal,
+export async function subirAutorizaciones(userId, a) {
+  const r = { filas: [], escritos: {}, ganaNube: {}, nube: null, completo: false }
+  if (!supabase || !userId || !a) return r
+  try {
+    // 1. Filas. Si el lote falla, una por una: una fila que el servidor nunca
+    // va a aceptar (rompe una regla del SQL) se descarta y no traba las demás.
+    const pendientes = (Array.isArray(a.pendientes) ? a.pendientes : []).filter(f => f?.id)
+    const aFila = (f) => ({
+      id: f.id, user_id: userId, tipo: f.tipo, valor: f.valor, version_texto: f.version_texto,
+      canal: f.canal, respondido_en: ms(f.en) !== null ? f.en : null, version_app: VERSION_APP,
+    })
+    if (pendientes.length) {
+      const { error } = await supabase.from('autorizaciones').upsert(pendientes.map(aFila), { onConflict: 'id', ignoreDuplicates: true })
+      if (!error) r.filas.push(...pendientes.map(f => f.id))
+      else {
+        for (const f of pendientes) {
+          const { error: e } = await supabase.from('autorizaciones').upsert([aFila(f)], { onConflict: 'id', ignoreDuplicates: true })
+          if (!e) r.filas.push(f.id)
+          else if (esErrorDeDatos(e)) { console.error('subirAutorizaciones: fila descartada', f.tipo, e); r.filas.push(f.id) }
+          else throw e
+        }
+      }
     }
-    if (vigente(a.edad, 'edad')) estado.autorizacion_edad = a.edad.valor
-    if (vigente(a.cuenta, 'cuenta')) estado.autorizacion_cuenta = a.cuenta.valor
-    if (vigente(a.ia, 'ia')) estado.autorizacion_ia = a.ia.valor
-    const { error: errorPerfil } = await supabase.from('profiles').update(estado).eq('id', userId)
-    if (errorPerfil) throw errorPerfil
-    return pendientes.map(f => f.id)
+    const filasListas = r.filas.length === pendientes.length
+
+    // 2. profiles: solo los tipos pendientes.
+    const tipos = TIPOS.filter(t => a[t]?.pendiente && vigente(a[t], t))
+    if (!tipos.length) { r.completo = filasListas; return r }
+
+    const { data: fila, error: errorLeer } = await conLimite(supabase.from('profiles').select(COLUMNAS_NUBE).eq('id', userId).maybeSingle(), 8000)
+    if (errorLeer) throw errorLeer
+
+    const estado = {}
+    const filtros = []
+    for (const t of tipos) {
+      if (t === 'edad') { estado.autorizacion_edad = a.edad.valor; continue }
+      const enNube = fila?.[`autorizacion_${t}_en`] ?? null
+      const otroTelefono = fila && !mismoInstante(enNube, a.nube?.[t])
+      if (otroTelefono && fila.autorizacion_version === VERSION_POLITICA && typeof fila[`autorizacion_${t}`] === 'boolean' &&
+        (ms(enNube) ?? 0) > (ms(a[t].en) ?? 0)) {
+        // Otro teléfono respondió después: gana la nube.
+        r.ganaNube[t] = true
+        continue
+      }
+      estado[`autorizacion_${t}`] = a[t].valor
+      filtros.push([`autorizacion_${t}_en`, enNube])
+    }
+    if (!Object.keys(estado).length) {
+      r.nube = fila
+      r.completo = filasListas
+      return r
+    }
+    const ultima = tipos.filter(t => estado[`autorizacion_${t}`] !== undefined)
+      .sort((x, y) => (ms(a[y].en) ?? 0) - (ms(a[x].en) ?? 0))[0]
+    estado.autorizacion_version = VERSION_POLITICA
+    estado.autorizacion_canal = a[ultima].canal
+
+    let escrita
+    if (!fila) {
+      // Cuenta sin fila en profiles (de antes del trigger de registro): se crea.
+      const { data, error } = await supabase.from('profiles').upsert({ id: userId, ...estado }, { onConflict: 'id' }).select(COLUMNAS_NUBE)
+      if (error) throw error
+      escrita = data?.[0]
+    } else {
+      // Solo si nadie la cambió desde que se leyó (la hora es la misma).
+      let q = supabase.from('profiles').update(estado).eq('id', userId)
+      for (const [col, val] of filtros) q = val == null ? q.is(col, null) : q.eq(col, val)
+      const { data, error } = await q.select(COLUMNAS_NUBE)
+      if (error) throw error
+      escrita = data?.[0]
+    }
+    // Sin fila devuelta: otro teléfono escribió en medio. Se reintenta luego.
+    if (!escrita) return r
+    r.nube = escrita
+    for (const t of tipos) if (estado[`autorizacion_${t}`] !== undefined) r.escritos[t] = true
+    r.completo = filasListas
+    return r
   } catch (e) {
     console.error('subirAutorizaciones:', e)
-    return []
+    return r
   }
 }
 
-export function quitarPendientes(a, ids) {
-  if (!a || !Array.isArray(a.pendientes) || !ids?.length) return a
-  const subidas = new Set(ids)
-  return { ...a, pendientes: a.pendientes.filter(f => !subidas.has(f.id)) }
+/* Aplica el resultado de una subida al estado actual. `enviado` es el
+   estado que se subió: si mientras tanto respondió otra vez, esa respuesta
+   nueva sigue pendiente. Devuelve `prev` tal cual si no cambia nada. */
+export function trasSubir(prev, r, enviado) {
+  if (!prev || !r) return prev
+  let sig = prev
+  const cambiar = (cambios) => { sig = { ...sig, ...cambios } }
+
+  if (r.filas.length && Array.isArray(prev.pendientes)) {
+    const listas = new Set(r.filas)
+    const quedan = prev.pendientes.filter(f => !listas.has(f.id))
+    if (quedan.length !== prev.pendientes.length) cambiar({ pendientes: quedan })
+  }
+
+  const nube = r.nube
+  if (nube) {
+    for (const t of TIPOS) {
+      if (!r.escritos[t] && !r.ganaNube[t]) continue
+      const igual = sig[t] && enviado?.[t] && sig[t].en === enviado[t].en && sig[t].valor === enviado[t].valor
+      const enNube = t === 'edad' ? null : (nube[`autorizacion_${t}_en`] ?? null)
+      if (igual && r.escritos[t]) {
+        const { pendiente: _, ...sinPendiente } = sig[t]
+        cambiar({ [t]: { ...sinPendiente, en: enNube || sig[t].en } })
+      } else if (igual && r.ganaNube[t]) {
+        cambiar({ [t]: { valor: nube[`autorizacion_${t}`], version: versionDe(t), canal: nube.autorizacion_canal || null, en: enNube } })
+      }
+      if (t !== 'edad') cambiar({ nube: { ...(sig.nube || {}), [t]: enNube } })
+    }
+  }
+  return sig
 }
 
 /* «Autorizada el 20 de octubre de 2026» */

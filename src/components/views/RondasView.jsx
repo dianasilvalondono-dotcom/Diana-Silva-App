@@ -469,7 +469,9 @@ export default function RondasView({ user, onIrAdentro }) {
     abridorRef.current = document.activeElement
     setAviso(null)
     setAbierto(plan)
-    track('plan_abierto', { sala: plan.sala, ciudad: plan.ciudad, ejemplo: !!plan.ejemplo })
+    // Sin la sala: unida a la cuenta, «Acompañamiento» diría algo de su salud
+    // (Ley 1581, art. 5). Lo mismo en reservar, liberar y reportar.
+    track('plan_abierto', { ciudad: plan.ciudad, ejemplo: !!plan.ejemplo })
   }
   const cerrar = useCallback(() => {
     setAbierto(null)
@@ -521,11 +523,11 @@ export default function RondasView({ user, onIrAdentro }) {
     if (res.ok) {
       setReservas(prev => [...new Set([...prev, plan.id])])
       if (!res.yaEstaba) ajustarRestantes(plan.id, n => (n == null ? null : n - 1))
-      track('plan_reservado', { sala: plan.sala, ciudad: plan.ciudad, ejemplo: false })
+      track('plan_reservado', { ciudad: plan.ciudad, ejemplo: false })
       setAviso(`Tu cupo en "${plan.titulo}" quedó apartado. Si ya no puedes ir, lo liberas aquí mismo.`)
     } else if (res.motivo === 'ejemplo') {
       // Un plan de ejemplo no se aparta ni queda marcado (rondas-19).
-      track('plan_reservado', { sala: plan.sala, ciudad: plan.ciudad, ejemplo: true })
+      track('plan_reservado', { ciudad: plan.ciudad, ejemplo: true })
       setAviso('Así se aparta un cupo. Este plan es de ejemplo, así que no quedó nada apartado. Cuando la curadora publique planes reales, los apartas aquí.')
     } else if (res.motivo === 'lleno') {
       ajustarRestantes(plan.id, () => 0)
@@ -543,7 +545,7 @@ export default function RondasView({ user, onIrAdentro }) {
     if (res.ok) {
       setReservas(prev => prev.filter(id => id !== plan.id))
       ajustarRestantes(plan.id, n => (n == null ? null : n + 1))
-      track('plan_liberado', { sala: plan.sala, ciudad: plan.ciudad })
+      track('plan_liberado', { ciudad: plan.ciudad })
       setAviso('Liberaste tu cupo. Queda libre para otra persona.')
     } else {
       setAviso('No pudimos liberar tu cupo. Revisa tu conexión e inténtalo de nuevo.')
@@ -565,7 +567,7 @@ export default function RondasView({ user, onIrAdentro }) {
         : 'No pudimos enviarlo. Revisa tu conexión e inténtalo de nuevo; tu mensaje sigue aquí.')
       return
     }
-    track('plan_reportado', { sala: reportando.sala })
+    track('plan_reportado')
     cerrarReporte()
     setAviso('Gracias. Tu mensaje le llega solo a la curadora y lo revisa en las siguientes 48 horas.')
   }

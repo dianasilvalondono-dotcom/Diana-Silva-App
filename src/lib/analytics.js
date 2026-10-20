@@ -7,6 +7,11 @@
 //     cuando hay key, así no engorda el bundle de quien no la tiene.
 //   • Los eventos que ocurren mientras PostHog aún carga se ENCOLAN, así no
 //     se pierde ni el primer app_opened (la señal base de retención).
+//   • Solo arranca con la autorización de cuenta (Decreto 1377, art. 5):
+//     App llama initAnalytics() cuando ella ya la dio. Antes de eso, todo lo
+//     que se mande aquí se descarta (ni se encola).
+//   • Sin grabación de sesiones: grabaría en pantalla el diario y el chat, y
+//     la política promete que PostHog nunca recibe lo que escribes.
 //
 // Para activarlo:
 //   1. Crea cuenta gratis en https://posthog.com (free: 1M eventos/mes).
@@ -40,6 +45,8 @@ export function initAnalytics() {
         capture_pageview: false,
         capture_pageleave: false,
         autocapture: false,
+        // Aunque alguien la prenda en el panel de PostHog, aquí queda apagada.
+        disable_session_recording: true,
       })
       ph = posthog
       // Desahogar lo que ocurrió mientras cargaba, en orden.

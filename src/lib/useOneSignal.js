@@ -196,10 +196,7 @@ export function useOneSignal() {
     try { await window.OneSignal.login(userId) } catch {}
   }, [])
 
-  const setEmail = useCallback(async (email) => {
-    if (!window.OneSignal || !email) return
-    try { await window.OneSignal.User.addEmail(email) } catch {}
-  }, [])
-
-  return { status, subscribe, unsubscribe, setExternalUserId, setEmail }
+  // Sin setEmail: OneSignal no recibe el correo (minimización, Decreto 1377,
+  // art. 4; textos-autorizacion-v1, P12).
+  return { status, subscribe, unsubscribe, setExternalUserId }
 }

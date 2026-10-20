@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { C } from '../constants/colors'
 import { FONT } from '../constants/tokens'
 import Button from './ui/Button'
@@ -64,24 +64,43 @@ export default function AuthScreen({
   const [mayorDeEdad, setMayorDeEdad] = useState(false)
   const [autorizaCuenta, setAutorizaCuenta] = useState(false)
   const [error, setError] = useState('')
+  // Qué campo causó el error ('nombre', 'edad', 'cuenta'), para marcar solo
+  // ese como inválido y llevarle el foco. null si el error no es de un campo.
+  const [campoInvalido, setCampoInvalido] = useState(null)
+  const errorRef = useRef(null)
   // Aviso que no es error: "te enviamos un correo…" (bienvenida-11).
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
 
   // Al volver a "Crear cuenta", las casillas empiezan sin marcar.
-  const cambiarModo = (m) => { setMode(m); setError(''); setNotice(''); setMayorDeEdad(false); setAutorizaCuenta(false) }
+  const cambiarModo = (m) => { setMode(m); setError(''); setCampoInvalido(null); setNotice(''); setMayorDeEdad(false); setAutorizaCuenta(false) }
+
+  // Un error siempre queda a la vista: en el celular, con Enter (o «Ir» del
+  // teclado) desde la contraseña, salía debajo del borde de la pantalla. Si
+  // es de un campo, el foco va a ese campo (en una casilla, el teclado del
+  // teléfono se cierra) y el mensaje queda centrado junto a él.
+  const mostrarError = (campo) => requestAnimationFrame(() => {
+    const id = { nombre: 'auth-nombre', edad: 'auth-edad', cuenta: 'auth-autorizo' }[campo]
+    if (id) document.getElementById(id)?.focus({ preventScroll: true })
+    errorRef.current?.scrollIntoView({ block: 'center' })
+  })
+  // Los errores que llegan del servidor (después de esperar).
+  useEffect(() => { if (error) mostrarError(null) }, [error])
+  // Los de un campo, también si es el mismo mensaje otra vez (Enter de nuevo).
+  const errorDeCampo = (campo, texto) => { setCampoInvalido(campo); setError(texto); setLoading(false); mostrarError(campo) }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setCampoInvalido(null)
     setNotice('')
     if (mode === 'nueva' && password !== password2) { setError('Las contraseñas no coinciden.'); return }
     setLoading(true)
     try {
       if (mode === 'signup') {
-        if (!name.trim()) { setError('Ingresa tu nombre'); setLoading(false); return }
-        if (!mayorDeEdad) { setError('Ronda es solo para mayores de 18 años.'); setLoading(false); return }
-        if (!autorizaCuenta) { setError('Para crear tu cuenta necesitamos tu autorización para tratar tus datos de cuenta.'); setLoading(false); return }
+        if (!name.trim()) { errorDeCampo('nombre', 'Ingresa tu nombre'); return }
+        if (!mayorDeEdad) { errorDeCampo('edad', 'Ronda es solo para mayores de 18 años.'); return }
+        if (!autorizaCuenta) { errorDeCampo('cuenta', 'Para crear tu cuenta necesitamos tu autorización para tratar tus datos de cuenta.'); return }
         const result = await onSignUp(email, password, name, autorizacionesParaRegistro())
         if (result.error) setError(mensajeAuth(result.error, 'signup'))
         else if (!result.data?.session) {
@@ -178,6 +197,8 @@ export default function AuthScreen({
               value={name} onChange={e => setName(e.target.value)}
               placeholder="Tu nombre" aria-label="Tu nombre"
               id="auth-nombre" name="name" autoComplete="name"
+              aria-invalid={campoInvalido === 'nombre' || undefined}
+              aria-describedby={campoInvalido === 'nombre' ? 'auth-error' : undefined}
               style={inputStyle}
             />
           )}
@@ -200,12 +221,14 @@ export default function AuthScreen({
           )}
           {mode === 'signup' && (
             <div style={{ margin: '4px 0 12px' }}>
-              <Casilla id="auth-edad" marcada={mayorDeEdad} invalida={!!error && !mayorDeEdad}
-                onCambiar={v => { setMayorDeEdad(v); setError('') }}>
+              <Casilla id="auth-edad" marcada={mayorDeEdad} invalida={campoInvalido === 'edad'}
+                describedBy={campoInvalido === 'edad' ? 'auth-error' : undefined}
+                onCambiar={v => { setMayorDeEdad(v); setError(''); setCampoInvalido(null) }}>
                 <strong>Tengo 18 años o más.</strong>
               </Casilla>
-              <Casilla id="auth-autorizo" marcada={autorizaCuenta} invalida={!!error && mayorDeEdad && !autorizaCuenta}
-                onCambiar={v => { setAutorizaCuenta(v); setError('') }}>
+              <Casilla id="auth-autorizo" marcada={autorizaCuenta} invalida={campoInvalido === 'cuenta'}
+                describedBy={campoInvalido === 'cuenta' ? 'auth-error' : undefined}
+                onCambiar={v => { setAutorizaCuenta(v); setError(''); setCampoInvalido(null) }}>
                 <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, lo que hago en Afuera y cómo uso la app) para crear mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
               </Casilla>
               <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.55, marginTop: 6 }}>
@@ -228,7 +251,7 @@ export default function AuthScreen({
           </>}
 
           {error && (
-            <div style={{
+            <div id="auth-error" ref={errorRef} role="alert" style={{
               fontSize: 14, color: C.coral, background: C.roseLight, padding: '10px 14px',
               borderRadius: 10, marginBottom: 12, fontWeight: 600,
             }}>

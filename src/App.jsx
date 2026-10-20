@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import './App.css'
 import { C, colorTexto } from './constants/colors'
 import { FONT, FONT_DISPLAY, SHADOW } from './constants/tokens'
@@ -23,7 +23,7 @@ runMigrationCleanDianaDefaults()
 limpiarDiasVacios()
 import { useAuth } from './lib/useAuth'
 import { apiFetch } from './lib/supabase'
-import { track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
+import { initAnalytics, track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
 import { useOneSignal } from './lib/useOneSignal'
 import { useSpeech } from './lib/useSpeech'
 import { useDialog } from './lib/useDialog'
@@ -32,7 +32,7 @@ import { PantallaAutorizacion, TarjetaIA, TusAutorizaciones, EnlacePolitica } fr
 import {
   leerAutorizaciones, guardarAutorizaciones, cuentaAutorizada as cuentaAutorizadaEn, iaAutorizada as iaAutorizadaEn,
   iaRespondida, registrar as registrarAutorizaciones, adoptar as adoptarAutorizaciones, leerAutorizacionesNube,
-  subirAutorizaciones, quitarPendientes,
+  subirAutorizaciones, trasSubir, hayQueSubir,
 } from './lib/autorizaciones'
 import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL } from './lib/database'
 import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
@@ -51,6 +51,19 @@ function enfocarDespues(id, { centrar = false } = {}) {
     if (!el) return
     el.focus({ preventScroll: true })
     if (centrar) el.scrollIntoView({ block: 'center' })
+  })
+}
+
+/* Cuando se va una pantalla completa (el aviso único, «Lo íntimo es tuyo»),
+   la que llega empieza arriba y el foco pasa a su título: si no, se queda en
+   <body> y quien usa teclado o lector de pantalla pierde su lugar. */
+function enfocarPantallaNueva() {
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    const titulo = document.querySelector('main h1') || document.querySelector('h1')
+    if (!titulo) return
+    if (!titulo.hasAttribute('tabindex')) titulo.setAttribute('tabindex', '-1')
+    titulo.focus({ preventScroll: true })
   })
 }
 
@@ -274,6 +287,9 @@ function puertaInicial() {
 function App() {
   // Auth
   const { user, loading: authLoading, isConfigured, signInWithEmail, signUp, signOut, resetPassword, updatePassword, recovering, clearRecovering } = useAuth()
+  // El id de la cuenta: los efectos dependen de él y no del objeto `user`,
+  // que cambia en cada carga y en cada renovación del token (perfil-2).
+  const userId = user?.id || null
 
   const [puerta] = useState(puertaInicial)
   const [view, setView] = useState(puerta.view)
@@ -293,7 +309,18 @@ function App() {
   // ─── Autorizaciones de datos (src/lib/autorizaciones.js) ───
   // Sin la de cuenta (y la de edad) sale el aviso único; sin responder lo
   // de la IA, «Lo íntimo es tuyo». Sin la de la IA, nada se envía a la IA.
-  const [autorizaciones, setAutorizaciones] = useState(leerAutorizaciones)
+  // Todo cambio pasa por cambiarAutorizaciones: así la cola de subidas
+  // (más abajo) siempre lee lo último, aunque React aún no haya pintado.
+  const [autorizaciones, setAutorizacionesEstado] = useState(leerAutorizaciones)
+  const autorizacionesRef = useRef(autorizaciones)
+  const cambiarAutorizaciones = useCallback((cambio) => {
+    const previo = autorizacionesRef.current
+    const siguiente = typeof cambio === 'function' ? cambio(previo) : cambio
+    if (siguiente === previo) return previo
+    autorizacionesRef.current = siguiente
+    setAutorizacionesEstado(siguiente)
+    return siguiente
+  }, [])
   useEffect(() => { guardarAutorizaciones(autorizaciones) }, [autorizaciones])
   const cuentaAutorizada = cuentaAutorizadaEn(autorizaciones)
   const iaOk = iaAutorizadaEn(autorizaciones)
@@ -304,11 +331,10 @@ function App() {
 
   // Premium status from Supabase (founding members + paid subscribers)
   const [premiumStatus, setPremiumStatus] = useState({ is_premium: false, premium_until: null, premium_source: null })
+  // De qué cuenta es premiumStatus (para la analítica: no manda el plan por defecto).
+  const [premiumDe, setPremiumDe] = useState(null)
   useEffect(() => {
-    if (!user) { setPremiumStatus({ is_premium: false, premium_until: null, premium_source: null }); return }
-    // Vincular analítica a la usuaria (base de la retención D1/D7/D30).
-    identifyUser(user.id)
-    track('app_opened')
+    if (!user) { setPremiumStatus({ is_premium: false, premium_until: null, premium_source: null }); setPremiumDe(null); return }
     let cancelled = false
     getUserProfile(user.id).then(profile => {
       if (cancelled || !profile) return
@@ -318,11 +344,7 @@ function App() {
         premium_source: profile.premium_source,
       }
       setPremiumStatus(status)
-      setUserProps({
-        is_premium: status.is_premium,
-        premium_source: status.premium_source || 'free',
-        is_founding_member: status.premium_source === 'founding_member',
-      })
+      setPremiumDe(user.id)
       // El perfil de la nube completa los campos vacíos de este dispositivo
       // (lo escrito aquí manda). Solo si los datos locales son de esta cuenta.
       if (guardadoEstaBloqueado() || duenaLocal() !== user.id) return
@@ -347,6 +369,31 @@ function App() {
   const isPremium = isAdmin || premiumStatus.is_premium
   const isFoundingMember = premiumStatus.premium_source === 'founding_member'
 
+  // ─── Analítica (PostHog): solo con la autorización de cuenta ───
+  // Antes de que la dé (el aviso único, o si toca «No estoy de acuerdo»),
+  // PostHog ni carga ni sabe quién es (Decreto 1377, art. 5). Con ella, se
+  // vincula a la usuaria (base de la retención D1/D7/D30) y app_opened sale
+  // una vez por cuenta y por sesión.
+  const appAbiertaDeRef = useRef(null)
+  useEffect(() => {
+    if (!cuentaAutorizada || (isConfigured && !userId)) return
+    initAnalytics()
+    if (!userId) return
+    identifyUser(userId)
+    if (appAbiertaDeRef.current !== userId) {
+      appAbiertaDeRef.current = userId
+      track('app_opened')
+    }
+  }, [cuentaAutorizada, isConfigured, userId])
+  useEffect(() => {
+    if (!cuentaAutorizada || !userId || premiumDe !== userId) return
+    setUserProps({
+      is_premium: premiumStatus.is_premium,
+      premium_source: premiumStatus.premium_source || 'free',
+      is_founding_member: premiumStatus.premium_source === 'founding_member',
+    })
+  }, [cuentaAutorizada, userId, premiumDe, premiumStatus])
+
   // ─── Analitica: paywall de pantalla (IA) — una vez por sesion ───
   const paywallSeenRef = useRef({})
   useEffect(() => {
@@ -365,15 +412,14 @@ function App() {
 
   // ─── Push notifications con OneSignal ───
   const oneSignal = useOneSignal()
-  const { status: osStatus, setExternalUserId: osSetExternalUserId, setEmail: osSetEmail } = oneSignal
+  const { status: osStatus, setExternalUserId: osSetExternalUserId } = oneSignal
   // Vincular el user.id de Supabase con la suscripción de OneSignal
-  // (permite mandar push targeted a usuarias específicas)
+  // (permite mandar push targeted a usuarias específicas). Solo con la
+  // autorización de cuenta, y sin el correo: para los recordatorios no hace
+  // falta, y escribirle por correo pediría una autorización aparte.
   useEffect(() => {
-    if (osStatus === 'subscribed' && user?.id) {
-      osSetExternalUserId(user.id)
-      if (user.email) osSetEmail(user.email)
-    }
-  }, [osStatus, user, osSetExternalUserId, osSetEmail])
+    if (osStatus === 'subscribed' && userId && cuentaAutorizada) osSetExternalUserId(userId)
+  }, [osStatus, userId, cuentaAutorizada, osSetExternalUserId])
 
   // ─── Modal genérico de la marca (reemplaza alert() feo del navegador) ───
   // { type: 'success'|'info'|'paywall'|'confirm', title, body, cta, onConfirm }
@@ -703,9 +749,8 @@ function App() {
   }, [breatheActive])
 
   // Sync localStorage → Supabase on first login + update profile name from auth
-  // Depende del id y del nombre de la cuenta, no del objeto `user`: ese
-  // cambia en cada carga y en cada renovación del token (perfil-2).
-  const userId = user?.id || null
+  // Depende del id y del nombre de la cuenta (userId, arriba), no del objeto
+  // `user`: ese cambia en cada carga y en cada renovación del token (perfil-2).
   const authName = user?.user_metadata?.name || user?.user_metadata?.full_name || ''
   useEffect(() => {
     if (userId && isConfigured) {
@@ -738,55 +783,109 @@ function App() {
     syncFromLocal(userId)
   }, [userId, isConfigured, cuentaAutorizada])
 
-  // ── Autorizaciones al entrar ──
-  // Lo que falta en este teléfono se completa con la nube (si respondió en
-  // otro) o con lo que marcó al crear la cuenta (metadatos). Mientras tanto,
-  // si falta algo, la app espera en "Cargando..." (revisandoAutorizaciones).
+  // ── Autorizaciones: nube y subidas, en una sola cola ──
+  // Leer la nube y subir lo pendiente van uno detrás de otro, siempre con lo
+  // último de este teléfono: una lectura vieja no pisa lo recién subido ni
+  // una subida vieja pisa lo recién leído (src/lib/autorizaciones.js).
   const registroAutorizaciones = user?.user_metadata?.autorizaciones
   const firmaRegistro = registroAutorizaciones && typeof registroAutorizaciones === 'object' ? JSON.stringify(registroAutorizaciones) : ''
+  const colaAutorizacionesRef = useRef(Promise.resolve())
+  const enCola = useCallback((paso) => {
+    const corrida = colaAutorizacionesRef.current.then(paso, paso)
+    colaAutorizacionesRef.current = corrida.catch(() => null)
+    return corrida
+  }, [])
+  // Sube lo pendiente. true si no quedó nada por subir.
+  const subirPendientes = useCallback(() => enCola(async () => {
+    const id = userId
+    if (!id || !isConfigured || datosDeOtraCuenta(id)) return false
+    const enviado = autorizacionesRef.current
+    if (!hayQueSubir(enviado)) return true
+    const resultado = await subirAutorizaciones(id, enviado)
+    if (datosDeOtraCuenta(id)) return false
+    cambiarAutorizaciones(prev => trasSubir(prev, resultado, enviado))
+    return resultado.completo && !resultado.ganaNube.ia
+  }), [enCola, userId, isConfigured, cambiarAutorizaciones])
+  // Lee la nube (si respondió o cambió algo en otro teléfono) y, si nunca
+  // respondió, adopta lo que marcó al crear la cuenta (metadatos).
+  const revisarNube = useCallback(() => enCola(async () => {
+    const id = userId
+    if (!id || !isConfigured || datosDeOtraCuenta(id)) return
+    const nube = await leerAutorizacionesNube(id)
+    if (datosDeOtraCuenta(id)) return
+    const metadatos = firmaRegistro ? { autorizaciones: JSON.parse(firmaRegistro) } : null
+    cambiarAutorizaciones(prev => adoptarAutorizaciones(prev, { nube, metadatos }))
+    setAutorizacionesDe(id)
+  }), [enCola, userId, isConfigured, firmaRegistro, cambiarAutorizaciones])
+  // Si el servidor dice que la IA no está autorizada (la quitó en otro
+  // teléfono): se sube lo de aquí y se vuelve a leer la nube. Si allá es
+  // «no», aquí también, y aparece la tarjeta de la IA.
+  const sincronizarAutorizaciones = useCallback(() => { subirPendientes(); return revisarNube() }, [subirPendientes, revisarNube])
+  const iaRechazadaEnServidor = async (resp) => {
+    if (resp?.status !== 403) return false
+    const datos = await resp.clone().json().catch(() => null)
+    if (datos?.autorizacion !== 'ia') return false
+    sincronizarAutorizaciones()
+    return true
+  }
+
+  // Al entrar: lo que falta o cambió se completa con la nube. Mientras tanto,
+  // si falta algo, la app espera en "Cargando..." (revisandoAutorizaciones).
+  // Y cada vez que vuelve a la app (la PWA queda abierta días): así un
+  // retiro hecho en otro teléfono llega aquí sin cerrar la app.
   useEffect(() => {
     if (!userId || !isConfigured || datosDeOtraCuenta(userId)) return
-    let cancelado = false
-    leerAutorizacionesNube(userId).then(nube => {
-      if (cancelado || datosDeOtraCuenta(userId)) return
-      const metadatos = firmaRegistro ? { autorizaciones: JSON.parse(firmaRegistro) } : null
-      setAutorizaciones(prev => adoptarAutorizaciones(prev, { nube, metadatos }))
-      setAutorizacionesDe(userId)
-    })
-    return () => { cancelado = true }
-  }, [userId, isConfigured, firmaRegistro])
+    revisarNube()
+    let ultima = Date.now()
+    const alVolver = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - ultima < 60000) return
+      ultima = Date.now()
+      revisarNube()
+    }
+    document.addEventListener('visibilitychange', alVolver)
+    return () => document.removeEventListener('visibilitychange', alVolver)
+  }, [userId, isConfigured, revisarNube])
 
   // Lo que no se ha subido (sin red, o antes de que existiera la tabla) se
   // sube en cuanto se puede. Cada fila lleva su id: reintentar no duplica.
-  const subiendoAutorizacionesRef = useRef(false)
   useEffect(() => {
-    if (!userId || !isConfigured || autorizacionesDe !== userId) return
-    if (!autorizaciones?.pendientes?.length || subiendoAutorizacionesRef.current) return
-    subiendoAutorizacionesRef.current = true
-    subirAutorizaciones(userId, autorizaciones).then(ids => {
-      subiendoAutorizacionesRef.current = false
-      if (ids.length && !datosDeOtraCuenta(userId)) setAutorizaciones(prev => quitarPendientes(prev, ids))
-    })
-  }, [userId, isConfigured, autorizacionesDe, autorizaciones])
+    if (!userId || !isConfigured || autorizacionesDe !== userId || !hayQueSubir(autorizaciones)) return
+    subirPendientes()
+  }, [userId, isConfigured, autorizacionesDe, autorizaciones, subirPendientes])
 
-  const responderAutorizacion = (respuestas, canal) => {
-    const siguiente = registrarAutorizaciones(autorizaciones, respuestas, canal)
-    setAutorizaciones(siguiente)
-    // Sin contenido: solo dónde respondió y si usa la IA.
-    track('autorizacion_respondida', { canal, ia: siguiente.ia?.valor === true })
+  // `analitica: false` cuando no hay autorización de cuenta (el rechazo).
+  const responderAutorizacion = (respuestas, canal, { analitica = true } = {}) => {
+    const siguiente = cambiarAutorizaciones(prev => registrarAutorizaciones(prev, respuestas, canal))
+    if (analitica && cuentaAutorizadaEn(siguiente)) {
+      // Con la autorización recién dada, PostHog ya puede arrancar (el efecto
+      // de la analítica lo haría después de pintar y este evento se perdería).
+      initAnalytics()
+      if (userId) identifyUser(userId)
+      // Sin contenido: solo dónde respondió y si usa la IA.
+      track('autorizacion_respondida', { canal, ia: siguiente.ia?.valor === true })
+    }
     return siguiente
   }
   // Perfil → Tus autorizaciones. true si quedó también en la nube; en este
   // teléfono queda siempre, y sin la autorización la IA se cierra ya.
   const cambiarAutorizacionIA = async (valor) => {
     if (!valor) stopSpeech()
-    const siguiente = responderAutorizacion({ ia: valor }, 'perfil')
+    responderAutorizacion({ ia: valor }, 'perfil')
     if (!isConfigured || !userId) return true
-    subiendoAutorizacionesRef.current = true
-    const ids = await subirAutorizaciones(userId, siguiente)
-    subiendoAutorizacionesRef.current = false
-    if (ids.length) setAutorizaciones(prev => quitarPendientes(prev, ids))
-    return ids.length > 0
+    return subirPendientes()
+  }
+  // Aviso único → «No estoy de acuerdo» → «Cerrar sesión»: queda la prueba
+  // del rechazo (cuenta = no) antes de salir. Sin red, queda pendiente en
+  // este teléfono y sube la próxima vez que entre (como máximo espera 6 s).
+  const rechazarYCerrarSesion = async () => {
+    // Un segundo intento (sin red no se pudo salir) no repite la fila.
+    if (!(autorizacionesRef.current?.cuenta?.valor === false && autorizacionesRef.current.cuenta.pendiente)) {
+      responderAutorizacion({ cuenta: false }, 'aviso-unico', { analitica: false })
+    }
+    if (isConfigured && userId) {
+      await Promise.race([subirPendientes(), new Promise(resolve => setTimeout(resolve, 6000))])
+    }
+    return signOut()
   }
 
   // ── Toolkit en la nube (toolkit-19) ──
@@ -1214,14 +1313,16 @@ function App() {
   const startProgram = (progId) => {
     if (activePrograms[progId]) return
     setActivePrograms(prev => prev[progId] ? prev : { ...prev, [progId]: { startDate: todayKey(), completedDays: [] } })
-    track('program_started', { program: progId })
+    // Sin el id de la ruta: unido a la cuenta, 'depresion', 'ansiedad' o
+    // 'dios' son datos de salud y de creencias (Ley 1581, art. 5).
+    track('program_started')
   }
   const completeProgDay = (progId, day) => {
     setActivePrograms(prev => {
       const prog = prev[progId] || { startDate: todayKey(), completedDays: [] }
       const wasDone = prog.completedDays.includes(day)
       const completed = wasDone ? prog.completedDays.filter(d => d !== day) : [...prog.completedDays, day]
-      if (!wasDone) track('program_day_completed', { program: progId, day, total_completed: completed.length })
+      if (!wasDone) track('program_day_completed', { day, total_completed: completed.length })
       return { ...prev, [progId]: { ...prog, completedDays: completed } }
     })
   }
@@ -1481,7 +1582,11 @@ function App() {
   const pideAutorizacion = (!isConfigured || !!user) && !revisandoAutorizaciones
     ? (!cuentaAutorizada ? 'aviso' : !iaRespondida(autorizaciones) ? 'intimo' : null)
     : null
-  const pantallaBase = !authLoading && !(isConfigured && !user) && !(isConfigured && recovering)
+  // "Cargando...": la sesión, los datos de otra cuenta que se apartan
+  // (perfil-1) o las autorizaciones que se leen de la nube.
+  const cuentaAjena = isConfigured && !!user && (guardadoEstaBloqueado() || (!!duenaLocal() && duenaLocal() !== user.id))
+  const pantallaCarga = authLoading || cuentaAjena || revisandoAutorizaciones
+  const pantallaBase = !pantallaCarga && !(isConfigured && !user) && !(isConfigured && recovering)
   const pantallaAutorizacion = pantallaBase && !!pideAutorizacion
   const pantallaPrincipal = pantallaBase && onboarded && !pideAutorizacion
   const panicRef = useRef(null)
@@ -1490,7 +1595,7 @@ function App() {
   const appModalRef = useRef(null)
   // Si lo que abrió la Ayuda ya no está (un check-in que se cerró, una
   // sección que se cambió), el foco vuelve al botón "Ayuda" del encabezado.
-  useDialog(panicRef, showPanic && (pantallaPrincipal || pantallaAutorizacion), cerrarAyuda,
+  useDialog(panicRef, showPanic && (pantallaPrincipal || pantallaAutorizacion || pantallaCarga), cerrarAyuda,
     (previo) => (previo && previo.isConnected && previo !== document.body ? previo : document.getElementById('boton-ayuda')))
   useDialog(morningRef, showMorningCheckin && pantallaPrincipal, posponerCheckin)
   useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
@@ -3038,7 +3143,9 @@ function App() {
         body: JSON.stringify({ content, cat }),
         signal: control.signal,
       }).then(async resp => {
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        // 403 de la IA sin autorizar (la quitó en otro teléfono): además del
+        // aviso de siempre, se revisan sus autorizaciones.
+        if (!resp.ok) { await iaRechazadaEnServidor(resp); throw new Error(`HTTP ${resp.status}`) }
         const data = await resp.json()
         if (data.error || !data.reply) throw new Error(data.error || 'Sin respuesta')
         return data
@@ -3540,7 +3647,7 @@ function App() {
         method: 'POST',
         body: JSON.stringify({ goal: aiGoal, context: aiContext }),
       })
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      if (!resp.ok) { await iaRechazadaEnServidor(resp); throw new Error(`HTTP ${resp.status}`) }
       const data = await resp.json().catch(() => null)
       // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
       if (data?.crisis) {
@@ -3649,7 +3756,7 @@ function App() {
           memory: memory,       // 🧠 Memoria persistente
         }),
       })
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      if (!resp.ok) { await iaRechazadaEnServidor(resp); throw new Error(`HTTP ${resp.status}`) }
       const data = await resp.json().catch(() => null)
       if (!data || data.error) throw new Error(data?.error || 'Respuesta vacía')
 
@@ -4560,25 +4667,373 @@ function App() {
     </>),
   ]
 
-  /* ── Auth loading ── */
-  // También mientras los datos de este dispositivo son de otra cuenta: no se
-  // muestra nada de ella mientras se apartan y la app se recarga (perfil-1).
-  const cuentaAjena = isConfigured && !!user && (guardadoEstaBloqueado() || (!!duenaLocal() && duenaLocal() !== user.id))
-  if (authLoading || cuentaAjena || revisandoAutorizaciones) {
-    return (
+  /* ── Panic Modal — Full Crisis Support ──
+     Va antes de "Cargando...": esa pantalla también abre Ayuda. */
+  const GROUND_STEPS = [
+    { icon: '👀', sense: 'VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#BFD5EB' },
+    { icon: '✋', sense: 'TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#E3E5D3' },
+    { icon: '👂', sense: 'ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#D6BFDD' },
+    { icon: '👃', sense: 'OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#BFD5EB' },
+    { icon: '👅', sense: 'SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#E3E5D3' },
+  ]
+
+  const DBT_SKILLS = [
+    { name: 'TIPP', icon: '🧊', desc: 'Temperatura · Ejercicio Intenso · Respiración Pautada · Relajación Muscular',
+      steps: ['Pon hielo o agua fría en tu cara 30 segundos', 'Haz ejercicio intenso 5-10 minutos (correr, saltar)', 'Inhala 4 segundos y exhala 8. Repite 5 veces.', 'Tensa y relaja cada grupo muscular de pies a cabeza'] },
+    { name: 'STOP', icon: '🛑', desc: 'Para · Toma distancia · Observa · Procede con conciencia',
+      steps: ['PARA: Congélate. No reacciones aún.', 'TOMA DISTANCIA: Da un paso atrás mentalmente.', 'OBSERVA: ¿Qué sientes en el cuerpo? ¿Qué piensas?', 'PROCEDE: Actúa con la mente sabia, no la emocional.'] },
+    { name: 'Acción Opuesta', icon: '🔄', desc: 'Haz lo contrario de lo que la emoción te pide',
+      steps: ['Identifica la emoción: ¿qué sientes exactamente?', 'Identifica el impulso: ¿qué te pide hacer esa emoción?', 'Haz lo OPUESTO con todo el cuerpo', 'Si quieres aislarte → llama a alguien. Si quieres gritar → habla suave.'] },
+    { name: 'Aceptación Radical', icon: '🙏', desc: 'Aceptar la realidad tal como es, sin luchar contra ella',
+      steps: ['Reconoce: "Esto es lo que está pasando ahora mismo."', 'Suelta la lucha: resistir el dolor crea más sufrimiento.', 'Respira y repite: "Puedo aceptar esto sin aprobarlo."', 'El dolor es inevitable. El sufrimiento es la resistencia al dolor.'] },
+  ]
+
+  const panicModal = showPanic && (
+    <div ref={panicRef} role="dialog" aria-modal="true" aria-label={panicOrigen === 'pausa' ? 'Pausa' : 'Ayuda'} style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: panicScreen === 'breathe'
+        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #141833, #141833)'
+          : breathePhase === 'hold' ? 'linear-gradient(180deg, #141833, #141833)'
+          : 'linear-gradient(180deg, #1A202C, #2D3748)')
+        : 'linear-gradient(180deg, #141833 0%, #592147 100%)',
+      zIndex: 1000, display: 'flex', flexDirection: 'column',
+      animation: 'fadeIn 0.3s ease',
+      overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain',
+    }}>
+      {/* Barra fija arriba: volver y cerrar siempre a la vista al bajar.
+         Respeta el notch / Dynamic Island del iPhone. */}
       <div style={{
-        maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        fontFamily: FONT,
+        position: 'sticky', top: 0, zIndex: 10, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: 'calc(max(env(safe-area-inset-top, 0px), 12px)) 16px 8px',
+        background: 'rgba(20,24,51,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
       }}>
-        <div style={{
-          width: 50, height: 50, borderRadius: '50%', border: '3px solid #726D2D',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+        {panicScreen !== 'home' ? (
+          // En la pausa, volver es salir: no lleva al menú de crisis.
+          <button onClick={panicOrigen === 'pausa' ? cerrarAyuda : () => { setPanicScreen('home'); setBreatheActive(false); setPanicDbtExpanded(null) }} aria-label="Volver" style={{
+            background: 'rgba(255,255,255,0.15)',
+            border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ color: 'white', fontSize: 20, lineHeight: 1 }}>←</span>
+          </button>
+        ) : <span />}
+        <button onClick={cerrarAyuda} aria-label={panicOrigen === 'pausa' ? 'Cerrar la pausa' : 'Cerrar la ayuda'} data-autofocus style={{
+          background: 'rgba(255,255,255,0.15)',
+          border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#726D2D' }} />
-        </div>
-        <div style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>Cargando...</div>
+          {UI_ICONS.close('white', 18)}
+        </button>
       </div>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '12px 24px 24px', maxWidth: 440, margin: '0 auto', width: '100%' }}>
+
+        {/* ── HOME: Main crisis menu ── */}
+        {panicScreen === 'home' && <>
+          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8, outline: 'none' }}>
+            {panicOrigen === 'crisis' ? 'No estás sola.' : 'Estás a salvo.'}
+          </div>
+          <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
+            {panicOrigen === 'crisis'
+              ? <>Si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
+              : 'Respira. Este momento va a pasar.'}
+          </div>
+          <div style={{ fontSize: 19, color: '#D6BFDD', textAlign: 'center', marginBottom: 32 }}>
+            Escoge lo que necesitas ahora mismo:
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+            {[
+              { id: 'breathe', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#BFD5EB' },
+              // El mismo nombre que en la ruta "Encontrar mi calma" (data.js), con el
+              // 5-4-3-2-1 que no se parte de renglón.
+              { id: 'ground', title: 'Tus sentidos: 5-\u20604-\u20603-\u20602-\u20601', sub: 'Vuelve al presente, aquí y ahora', color: '#E3E5D3' },
+              { id: 'dbt', title: 'Habilidades DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#D6BFDD' },
+              { id: 'accept', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#141833' },
+            ].map(opt => (
+              <button key={opt.id} onClick={() => {
+                setPanicScreen(opt.id)
+                if (opt.id === 'breathe') { setBreatheActive(true); setBreatheCount(0); setBreathePhase('inhale') }
+                if (opt.id === 'ground') { setGroundStep(0) }
+              }} style={{
+                display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+                background: 'rgba(255,255,255,0.08)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)',
+                cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+              }}>
+                <div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{opt.title}</div>
+                  <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 2 }}>{opt.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Go to community. No sale mientras falta el aviso o «Lo íntimo es
+              tuyo» (ni en "Cargando..."): cerraría Ayuda y la devolvería a
+              esa pantalla, sin llegar a la Comunidad. */}
+          {pantallaPrincipal && (
+          <button onClick={() => { setShowPanic(false); openModule('juntas', '', { silent: true }) }} style={{
+            marginTop: 24, width: '100%', padding: '14px 18px',
+            background: 'rgba(114,109,45,0.2)', borderRadius: 16,
+            border: '1px solid rgba(114,109,45,0.4)', cursor: 'pointer', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 19, fontWeight: 700, color: '#E3E5D3' }}>💬 Ir a la Comunidad</div>
+            <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 4 }}>
+              {/* Sin premium no se puede publicar, y sin la autorización de la
+                  IA la Guía IA no responde: no prometer que puede preguntar. */}
+              {isPremium && iaOk ? 'Pregunta lo que necesites. Te responde la Guía IA de Ronda.' : 'Lee cómo acompaña la Guía IA de Ronda. Es anónimo.'}
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. No reemplaza atención en crisis.</div>
+          </button>
+          )}
+        </>}
+
+        {/* ── BREATHE: 4-7-8 Guided Breathing ── */}
+        {panicScreen === 'breathe' && <>
+          {/* Al terminar, el cierre reemplaza las instrucciones: no queda
+             'Exhala — suelta todo' encima de 'Lo hiciste.' */}
+          {(breatheActive || breatheCount === 0) && <>
+            <div style={{
+              width: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
+              height: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
+              borderRadius: '50%',
+              background: breathePhase === 'inhale'
+                ? 'radial-gradient(circle, rgba(191,213,235,0.45), rgba(191,213,235,0.08))'
+                : breathePhase === 'hold'
+                ? 'radial-gradient(circle, rgba(145,148,110,0.6), rgba(145,148,110,0.1))'
+                : 'radial-gradient(circle, rgba(214,191,221,0.45), rgba(214,191,221,0.08))',
+              transition: 'all 1.5s ease-in-out',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 32,
+            }}>
+              <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 22, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.15em', outline: 'none' }}>
+                {breathePhase === 'inhale' ? 'Inhala' : breathePhase === 'hold' ? 'Sostén' : 'Exhala'}
+              </div>
+            </div>
+
+            <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
+              {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
+               breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
+               '8 segundos — suelta todo, deja ir'}
+            </div>
+            <div style={{ fontSize: 19, color: '#D6BFDD', marginBottom: 24 }}>
+              Ciclo {Math.min(breatheCount + 1, 5)} de 5
+            </div>
+          </>}
+
+          {!breatheActive && breatheCount > 0 && (
+            <div style={{ textAlign: 'center' }}>
+              <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8, outline: 'none' }}>Lo hiciste.</div>
+              <div style={{ fontSize: 20, color: '#E3E5D3', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
+              <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
+                padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
+                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Repetir</button>
+            </div>
+          )}
+        </>}
+
+        {/* ── GROUND: 5-4-3-2-1 Sensory Grounding ── */}
+        {panicScreen === 'ground' && <>
+          {groundStep < 5 ? (<>
+            <div aria-hidden="true" style={{ fontSize: 64, marginBottom: 16 }}>{GROUND_STEPS[groundStep].icon}</div>
+            <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 19, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, outline: 'none' }}>
+              {GROUND_STEPS[groundStep].sense}
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.4, marginBottom: 24 }}>
+              {GROUND_STEPS[groundStep].prompt}
+            </div>
+            <div style={{ fontSize: 20, color: '#E3E5D3', marginBottom: 32, textAlign: 'center' }}>
+              Tómate tu tiempo. No hay prisa.
+            </div>
+            <button onClick={() => setGroundStep(groundStep + 1)} style={{
+              padding: '14px 36px', borderRadius: 20,
+              background: 'rgba(255,255,255,0.15)', color: 'white',
+              fontSize: 20, fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              Listo → {groundStep < 4 ? 'Siguiente sentido' : 'Terminar'}
+            </button>
+          </>) : (<>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>💛</div>
+            <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 12, outline: 'none' }}>
+              Estás aquí. Estás presente.
+            </div>
+            {/* Abierta por una crisis, no se le dice que está a salvo (puede
+                contar que ya se hizo daño): el 123, como en el inicio. */}
+            <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+              {panicOrigen === 'crisis'
+                ? <>Acabas de reconectar con tus sentidos. No estás sola: si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
+                : 'Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.'}
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setGroundStep(0)} style={{
+                padding: '12px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
+                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Repetir</button>
+              <button onClick={() => setPanicScreen('home')} style={{
+                padding: '12px 28px', borderRadius: 20, background: C.orquidea,
+                border: 'none', color: C.navy, fontSize: 20,
+                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Volver</button>
+            </div>
+          </>)}
+        </>}
+
+        {/* ── DBT: menú de habilidades ── */}
+        {panicScreen === 'dbt' && <>
+          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 6, outline: 'none' }}>
+            Habilidades DBT
+          </div>
+          <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24 }}>
+            Herramientas de regulación emocional. Escoge la que necesitas.
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
+            {DBT_SKILLS.map((skill, idx) => (
+              <div key={skill.name}>
+                <button onClick={() => setPanicDbtExpanded(panicDbtExpanded === idx ? null : idx)}
+                  aria-expanded={panicDbtExpanded === idx} aria-controls={panicDbtExpanded === idx ? `dbt-skill-panel-${idx}` : undefined} style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+                  background: panicDbtExpanded === idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
+                  borderRadius: panicDbtExpanded === idx ? '16px 16px 0 0' : 16,
+                  border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', textAlign: 'left',
+                }}>
+                  <div aria-hidden="true" style={{ fontSize: 26 }}>{skill.icon}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{skill.name}</div>
+                    <div style={{ fontSize: 19, color: '#E3E5D3', marginTop: 2 }}>{skill.desc}</div>
+                  </div>
+                  <span aria-hidden="true" style={{ color: '#D6BFDD', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
+                </button>
+                {panicDbtExpanded === idx && (
+                  <div id={`dbt-skill-panel-${idx}`} role="region" aria-label={`Pasos de ${skill.name}`} style={{
+                    background: 'rgba(255,255,255,0.06)', borderRadius: '0 0 16px 16px',
+                    border: '1px solid rgba(255,255,255,0.12)', borderTop: 'none',
+                    padding: '14px 16px',
+                  }}>
+                    {skill.steps.map((step, si) => (
+                      <div key={si} style={{
+                        display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: si < skill.steps.length - 1 ? 12 : 0,
+                      }}>
+                        <div style={{
+                          minWidth: 24, height: 24, borderRadius: '50%', background: C.rose,
+                          color: 'white', fontSize: 20, fontWeight: 800,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
+                        }}>{si + 1}</div>
+                        <div style={{ fontSize: 20, color: '#E3E5D3', lineHeight: 1.5 }}>{step}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>}
+
+        {/* ── ACCEPT: Radical Acceptance guided ── */}
+        {panicScreen === 'accept' && <>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🙏</div>
+          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 12, outline: 'none' }}>
+            Aceptación Radical
+          </div>
+          <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
+            No significa que apruebes lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
+          </div>
+
+          {[
+            { num: 1, text: 'Reconoce lo que sientes. Ponle nombre. "Siento dolor. Siento miedo. Siento rabia." No lo juzgues.' },
+            { num: 2, text: 'Observa dónde lo sientes en tu cuerpo. Pecho apretado. Mandíbula tensa. Estómago cerrado. Solo observa.' },
+            { num: 3, text: 'Respira hacia ese lugar. Imagina que el aire llega exactamente ahí y suaviza.' },
+            { num: 4, text: 'Repite en silencio: "Esto es lo que está pasando. No tengo que luchar contra esto. Puedo estar aquí."' },
+            { num: 5, text: 'Suelta las manos. Abre las palmas hacia arriba. Relaja los hombros. Deja que la gravedad te sostenga.' },
+            { num: 6, text: 'Repite: "El dolor es parte de la vida. El sufrimiento es resistir ese dolor. Hoy elijo soltar la resistencia."' },
+          ].map(step => (
+            <div key={step.num} style={{
+              display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16, width: '100%',
+            }}>
+              <div style={{
+                minWidth: 28, height: 28, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #592147, #726D2D)',
+                color: 'white', fontSize: 19, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>{step.num}</div>
+              <div style={{ fontSize: 20, color: '#E3E5D3', lineHeight: 1.6 }}>{step.text}</div>
+            </div>
+          ))}
+
+          <div style={{
+            marginTop: 16, padding: 18, borderRadius: 16,
+            background: 'rgba(114,109,45,0.15)', border: '1px solid rgba(114,109,45,0.3)',
+            textAlign: 'center', width: '100%',
+          }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#E3E5D3', fontFamily: FONT, fontStyle: 'italic', lineHeight: 1.5 }}>
+              "No puedo controlar lo que pasa.<br/>Pero puedo elegir cómo respondo.<br/>Y hoy elijo la paz."
+            </div>
+          </div>
+        </>}
+
+      </div>
+
+      {/* Líneas de crisis: fijas abajo en todas las pantallas de la Ayuda */}
+      {panicOrigen !== 'pausa' && (
+        <div style={{
+          position: 'sticky', bottom: 0, zIndex: 10, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px 12px', flexWrap: 'wrap',
+          padding: '8px 16px calc(8px + env(safe-area-inset-bottom, 0px))',
+          background: 'rgba(20,24,51,0.92)', textAlign: 'center',
+        }}>
+          <span style={{ fontSize: 15, color: '#D6BFDD' }}>Si sientes que tu vida está en riesgo:</span>
+          <a href="tel:106" style={{
+            display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 18px', borderRadius: 22,
+            background: '#D6BFDD', color: '#141833', fontWeight: 700, fontSize: 17, textDecoration: 'none',
+          }}>
+            📞 Línea 106 — Atención en crisis
+          </a>
+          <a href="tel:123" style={{
+            display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 18px', borderRadius: 22,
+            background: 'white', color: '#141833', fontWeight: 700, fontSize: 17, textDecoration: 'none',
+          }}>
+            🚨 123 — Emergencias
+          </a>
+        </div>
+      )}
+    </div>
+  )
+
+  /* ── Auth loading ── (pantallaCarga, arriba)
+     También mientras los datos de este dispositivo son de otra cuenta (no se
+     muestra nada de ella mientras se apartan y la app se recarga, perfil-1)
+     y mientras se leen sus autorizaciones de la nube (hasta 6 s). Ayuda y
+     las líneas de crisis están a mano también aquí. */
+  if (pantallaCarga) {
+    return (
+      <>
+        <div inert={showPanic} style={{
+          maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          fontFamily: FONT, position: 'relative', padding: '0 16px',
+        }}>
+          <button id="boton-ayuda" type="button" onClick={() => abrirAyuda('cargando')} style={{
+            position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 10px)', right: 12,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '12px 10px', minHeight: 44,
+            color: C.morado, fontSize: 15, fontWeight: 700, letterSpacing: '0.04em', fontFamily: 'inherit',
+          }}>{BOTON_AYUDA}</button>
+          <div style={{
+            width: 50, height: 50, borderRadius: '50%', border: '3px solid #726D2D',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+          }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#726D2D' }} />
+          </div>
+          <div role="status" style={{ fontSize: 20, color: C.muted, fontWeight: 600 }}>Cargando...</div>
+          <p style={{ margin: '28px auto 0', maxWidth: 320, fontSize: 14, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
+            Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
+          </p>
+        </div>
+        {panicModal}
+      </>
     )
   }
 
@@ -4902,336 +5357,6 @@ function App() {
     </div>
   )
 
-  /* ── Panic Modal — Full Crisis Support ── */
-  const GROUND_STEPS = [
-    { icon: '👀', sense: 'VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#BFD5EB' },
-    { icon: '✋', sense: 'TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#E3E5D3' },
-    { icon: '👂', sense: 'ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#D6BFDD' },
-    { icon: '👃', sense: 'OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#BFD5EB' },
-    { icon: '👅', sense: 'SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#E3E5D3' },
-  ]
-
-  const DBT_SKILLS = [
-    { name: 'TIPP', icon: '🧊', desc: 'Temperatura · Ejercicio Intenso · Respiración Pautada · Relajación Muscular',
-      steps: ['Pon hielo o agua fría en tu cara 30 segundos', 'Haz ejercicio intenso 5-10 minutos (correr, saltar)', 'Inhala 4 segundos y exhala 8. Repite 5 veces.', 'Tensa y relaja cada grupo muscular de pies a cabeza'] },
-    { name: 'STOP', icon: '🛑', desc: 'Para · Toma distancia · Observa · Procede con conciencia',
-      steps: ['PARA: Congélate. No reacciones aún.', 'TOMA DISTANCIA: Da un paso atrás mentalmente.', 'OBSERVA: ¿Qué sientes en el cuerpo? ¿Qué piensas?', 'PROCEDE: Actúa con la mente sabia, no la emocional.'] },
-    { name: 'Acción Opuesta', icon: '🔄', desc: 'Haz lo contrario de lo que la emoción te pide',
-      steps: ['Identifica la emoción: ¿qué sientes exactamente?', 'Identifica el impulso: ¿qué te pide hacer esa emoción?', 'Haz lo OPUESTO con todo el cuerpo', 'Si quieres aislarte → llama a alguien. Si quieres gritar → habla suave.'] },
-    { name: 'Aceptación Radical', icon: '🙏', desc: 'Aceptar la realidad tal como es, sin luchar contra ella',
-      steps: ['Reconoce: "Esto es lo que está pasando ahora mismo."', 'Suelta la lucha: resistir el dolor crea más sufrimiento.', 'Respira y repite: "Puedo aceptar esto sin aprobarlo."', 'El dolor es inevitable. El sufrimiento es la resistencia al dolor.'] },
-  ]
-
-  const panicModal = showPanic && (
-    <div ref={panicRef} role="dialog" aria-modal="true" aria-label={panicOrigen === 'pausa' ? 'Pausa' : 'Ayuda'} style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: panicScreen === 'breathe'
-        ? (breathePhase === 'inhale' ? 'linear-gradient(180deg, #141833, #141833)'
-          : breathePhase === 'hold' ? 'linear-gradient(180deg, #141833, #141833)'
-          : 'linear-gradient(180deg, #1A202C, #2D3748)')
-        : 'linear-gradient(180deg, #141833 0%, #592147 100%)',
-      zIndex: 1000, display: 'flex', flexDirection: 'column',
-      animation: 'fadeIn 0.3s ease',
-      overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain',
-    }}>
-      {/* Barra fija arriba: volver y cerrar siempre a la vista al bajar.
-         Respeta el notch / Dynamic Island del iPhone. */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10, flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: 'calc(max(env(safe-area-inset-top, 0px), 12px)) 16px 8px',
-        background: 'rgba(20,24,51,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
-      }}>
-        {panicScreen !== 'home' ? (
-          // En la pausa, volver es salir: no lleva al menú de crisis.
-          <button onClick={panicOrigen === 'pausa' ? cerrarAyuda : () => { setPanicScreen('home'); setBreatheActive(false); setPanicDbtExpanded(null) }} aria-label="Volver" style={{
-            background: 'rgba(255,255,255,0.15)',
-            border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <span style={{ color: 'white', fontSize: 20, lineHeight: 1 }}>←</span>
-          </button>
-        ) : <span />}
-        <button onClick={cerrarAyuda} aria-label={panicOrigen === 'pausa' ? 'Cerrar la pausa' : 'Cerrar la ayuda'} data-autofocus style={{
-          background: 'rgba(255,255,255,0.15)',
-          border: 'none', borderRadius: '50%', width: 44, height: 44, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {UI_ICONS.close('white', 18)}
-        </button>
-      </div>
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '12px 24px 24px', maxWidth: 440, margin: '0 auto', width: '100%' }}>
-
-        {/* ── HOME: Main crisis menu ── */}
-        {panicScreen === 'home' && <>
-          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8, outline: 'none' }}>
-            {panicOrigen === 'crisis' ? 'No estás sola.' : 'Estás a salvo.'}
-          </div>
-          <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
-            {panicOrigen === 'crisis'
-              ? <>Si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
-              : 'Respira. Este momento va a pasar.'}
-          </div>
-          <div style={{ fontSize: 19, color: '#D6BFDD', textAlign: 'center', marginBottom: 32 }}>
-            Escoge lo que necesitas ahora mismo:
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-            {[
-              { id: 'breathe', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#BFD5EB' },
-              // El mismo nombre que en la ruta "Encontrar mi calma" (data.js), con el
-              // 5-4-3-2-1 que no se parte de renglón.
-              { id: 'ground', title: 'Tus sentidos: 5-\u20604-\u20603-\u20602-\u20601', sub: 'Vuelve al presente, aquí y ahora', color: '#E3E5D3' },
-              { id: 'dbt', title: 'Habilidades DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#D6BFDD' },
-              { id: 'accept', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#141833' },
-            ].map(opt => (
-              <button key={opt.id} onClick={() => {
-                setPanicScreen(opt.id)
-                if (opt.id === 'breathe') { setBreatheActive(true); setBreatheCount(0); setBreathePhase('inhale') }
-                if (opt.id === 'ground') { setGroundStep(0) }
-              }} style={{
-                display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-                background: 'rgba(255,255,255,0.08)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)',
-                cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
-              }}>
-                <div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{opt.title}</div>
-                  <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 2 }}>{opt.sub}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Go to community */}
-          <button onClick={() => { setShowPanic(false); openModule('juntas', '', { silent: true }) }} style={{
-            marginTop: 24, width: '100%', padding: '14px 18px',
-            background: 'rgba(114,109,45,0.2)', borderRadius: 16,
-            border: '1px solid rgba(114,109,45,0.4)', cursor: 'pointer', textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 19, fontWeight: 700, color: '#E3E5D3' }}>💬 Ir a la Comunidad</div>
-            <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 4 }}>
-              {/* Sin premium no se puede publicar: no prometer que puede preguntar. */}
-              {isPremium ? 'Pregunta lo que necesites. Te responde la Guía IA de Ronda.' : 'Lee cómo acompaña la Guía IA de Ronda. Es anónimo.'}
-            </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. No reemplaza atención en crisis.</div>
-          </button>
-        </>}
-
-        {/* ── BREATHE: 4-7-8 Guided Breathing ── */}
-        {panicScreen === 'breathe' && <>
-          {/* Al terminar, el cierre reemplaza las instrucciones: no queda
-             'Exhala — suelta todo' encima de 'Lo hiciste.' */}
-          {(breatheActive || breatheCount === 0) && <>
-            <div style={{
-              width: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
-              height: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
-              borderRadius: '50%',
-              background: breathePhase === 'inhale'
-                ? 'radial-gradient(circle, rgba(191,213,235,0.45), rgba(191,213,235,0.08))'
-                : breathePhase === 'hold'
-                ? 'radial-gradient(circle, rgba(145,148,110,0.6), rgba(145,148,110,0.1))'
-                : 'radial-gradient(circle, rgba(214,191,221,0.45), rgba(214,191,221,0.08))',
-              transition: 'all 1.5s ease-in-out',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 32,
-            }}>
-              <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 22, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.15em', outline: 'none' }}>
-                {breathePhase === 'inhale' ? 'Inhala' : breathePhase === 'hold' ? 'Sostén' : 'Exhala'}
-              </div>
-            </div>
-
-            <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
-              {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
-               breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
-               '8 segundos — suelta todo, deja ir'}
-            </div>
-            <div style={{ fontSize: 19, color: '#D6BFDD', marginBottom: 24 }}>
-              Ciclo {Math.min(breatheCount + 1, 5)} de 5
-            </div>
-          </>}
-
-          {!breatheActive && breatheCount > 0 && (
-            <div style={{ textAlign: 'center' }}>
-              <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8, outline: 'none' }}>Lo hiciste.</div>
-              <div style={{ fontSize: 20, color: '#E3E5D3', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
-              <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
-                padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
-                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Repetir</button>
-            </div>
-          )}
-        </>}
-
-        {/* ── GROUND: 5-4-3-2-1 Sensory Grounding ── */}
-        {panicScreen === 'ground' && <>
-          {groundStep < 5 ? (<>
-            <div aria-hidden="true" style={{ fontSize: 64, marginBottom: 16 }}>{GROUND_STEPS[groundStep].icon}</div>
-            <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 19, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, outline: 'none' }}>
-              {GROUND_STEPS[groundStep].sense}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.4, marginBottom: 24 }}>
-              {GROUND_STEPS[groundStep].prompt}
-            </div>
-            <div style={{ fontSize: 20, color: '#E3E5D3', marginBottom: 32, textAlign: 'center' }}>
-              Tómate tu tiempo. No hay prisa.
-            </div>
-            <button onClick={() => setGroundStep(groundStep + 1)} style={{
-              padding: '14px 36px', borderRadius: 20,
-              background: 'rgba(255,255,255,0.15)', color: 'white',
-              fontSize: 20, fontWeight: 700, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-            }}>
-              Listo → {groundStep < 4 ? 'Siguiente sentido' : 'Terminar'}
-            </button>
-          </>) : (<>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>💛</div>
-            <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 12, outline: 'none' }}>
-              Estás aquí. Estás presente.
-            </div>
-            {/* Abierta por una crisis, no se le dice que está a salvo (puede
-                contar que ya se hizo daño): el 123, como en el inicio. */}
-            <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
-              {panicOrigen === 'crisis'
-                ? <>Acabas de reconectar con tus sentidos. No estás sola: si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
-                : 'Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.'}
-            </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => setGroundStep(0)} style={{
-                padding: '12px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
-                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Repetir</button>
-              <button onClick={() => setPanicScreen('home')} style={{
-                padding: '12px 28px', borderRadius: 20, background: C.orquidea,
-                border: 'none', color: C.navy, fontSize: 20,
-                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Volver</button>
-            </div>
-          </>)}
-        </>}
-
-        {/* ── DBT: menú de habilidades ── */}
-        {panicScreen === 'dbt' && <>
-          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 6, outline: 'none' }}>
-            Habilidades DBT
-          </div>
-          <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24 }}>
-            Herramientas de regulación emocional. Escoge la que necesitas.
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
-            {DBT_SKILLS.map((skill, idx) => (
-              <div key={skill.name}>
-                <button onClick={() => setPanicDbtExpanded(panicDbtExpanded === idx ? null : idx)}
-                  aria-expanded={panicDbtExpanded === idx} aria-controls={panicDbtExpanded === idx ? `dbt-skill-panel-${idx}` : undefined} style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
-                  background: panicDbtExpanded === idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
-                  borderRadius: panicDbtExpanded === idx ? '16px 16px 0 0' : 16,
-                  border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', textAlign: 'left',
-                }}>
-                  <div aria-hidden="true" style={{ fontSize: 26 }}>{skill.icon}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{skill.name}</div>
-                    <div style={{ fontSize: 19, color: '#E3E5D3', marginTop: 2 }}>{skill.desc}</div>
-                  </div>
-                  <span aria-hidden="true" style={{ color: '#D6BFDD', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
-                </button>
-                {panicDbtExpanded === idx && (
-                  <div id={`dbt-skill-panel-${idx}`} role="region" aria-label={`Pasos de ${skill.name}`} style={{
-                    background: 'rgba(255,255,255,0.06)', borderRadius: '0 0 16px 16px',
-                    border: '1px solid rgba(255,255,255,0.12)', borderTop: 'none',
-                    padding: '14px 16px',
-                  }}>
-                    {skill.steps.map((step, si) => (
-                      <div key={si} style={{
-                        display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: si < skill.steps.length - 1 ? 12 : 0,
-                      }}>
-                        <div style={{
-                          minWidth: 24, height: 24, borderRadius: '50%', background: C.rose,
-                          color: 'white', fontSize: 20, fontWeight: 800,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 2,
-                        }}>{si + 1}</div>
-                        <div style={{ fontSize: 20, color: '#E3E5D3', lineHeight: 1.5 }}>{step}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </>}
-
-        {/* ── ACCEPT: Radical Acceptance guided ── */}
-        {panicScreen === 'accept' && <>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🙏</div>
-          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 12, outline: 'none' }}>
-            Aceptación Radical
-          </div>
-          <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
-            No significa que apruebes lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
-          </div>
-
-          {[
-            { num: 1, text: 'Reconoce lo que sientes. Ponle nombre. "Siento dolor. Siento miedo. Siento rabia." No lo juzgues.' },
-            { num: 2, text: 'Observa dónde lo sientes en tu cuerpo. Pecho apretado. Mandíbula tensa. Estómago cerrado. Solo observa.' },
-            { num: 3, text: 'Respira hacia ese lugar. Imagina que el aire llega exactamente ahí y suaviza.' },
-            { num: 4, text: 'Repite en silencio: "Esto es lo que está pasando. No tengo que luchar contra esto. Puedo estar aquí."' },
-            { num: 5, text: 'Suelta las manos. Abre las palmas hacia arriba. Relaja los hombros. Deja que la gravedad te sostenga.' },
-            { num: 6, text: 'Repite: "El dolor es parte de la vida. El sufrimiento es resistir ese dolor. Hoy elijo soltar la resistencia."' },
-          ].map(step => (
-            <div key={step.num} style={{
-              display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16, width: '100%',
-            }}>
-              <div style={{
-                minWidth: 28, height: 28, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #592147, #726D2D)',
-                color: 'white', fontSize: 19, fontWeight: 800,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>{step.num}</div>
-              <div style={{ fontSize: 20, color: '#E3E5D3', lineHeight: 1.6 }}>{step.text}</div>
-            </div>
-          ))}
-
-          <div style={{
-            marginTop: 16, padding: 18, borderRadius: 16,
-            background: 'rgba(114,109,45,0.15)', border: '1px solid rgba(114,109,45,0.3)',
-            textAlign: 'center', width: '100%',
-          }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#E3E5D3', fontFamily: FONT, fontStyle: 'italic', lineHeight: 1.5 }}>
-              "No puedo controlar lo que pasa.<br/>Pero puedo elegir cómo respondo.<br/>Y hoy elijo la paz."
-            </div>
-          </div>
-        </>}
-
-      </div>
-
-      {/* Líneas de crisis: fijas abajo en todas las pantallas de la Ayuda */}
-      {panicOrigen !== 'pausa' && (
-        <div style={{
-          position: 'sticky', bottom: 0, zIndex: 10, flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px 12px', flexWrap: 'wrap',
-          padding: '8px 16px calc(8px + env(safe-area-inset-bottom, 0px))',
-          background: 'rgba(20,24,51,0.92)', textAlign: 'center',
-        }}>
-          <span style={{ fontSize: 15, color: '#D6BFDD' }}>Si sientes que tu vida está en riesgo:</span>
-          <a href="tel:106" style={{
-            display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 18px', borderRadius: 22,
-            background: '#D6BFDD', color: '#141833', fontWeight: 700, fontSize: 17, textDecoration: 'none',
-          }}>
-            📞 Línea 106 — Atención en crisis
-          </a>
-          <a href="tel:123" style={{
-            display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 18px', borderRadius: 22,
-            background: 'white', color: '#141833', fontWeight: 700, fontSize: 17, textDecoration: 'none',
-          }}>
-            🚨 123 — Emergencias
-          </a>
-        </div>
-      )}
-    </div>
-  )
-
   /* ── Autorizaciones: el aviso único o «Lo íntimo es tuyo» ──
      Antes de la bienvenida y de todo lo demás, y sin cerrarse hasta que
      responda. Ayuda queda arriba y abre encima, como en toda la app. */
@@ -5243,8 +5368,13 @@ function App() {
           modo={pideAutorizacion}
           inerte={showPanic}
           onAyuda={() => abrirAyuda('autorizacion')}
-          onResponder={(respuestas) => responderAutorizacion(respuestas, pideAutorizacion === 'aviso' ? 'aviso-unico' : 'registro')}
-          onCerrarSesion={isConfigured && user ? signOut : null}
+          onResponder={(respuestas) => {
+            // «Lo íntimo es tuyo» es parte del registro solo si viene justo
+            // después de crear la cuenta; en otro ingreso es un aviso único.
+            responderAutorizacion(respuestas, pideAutorizacion === 'aviso' ? 'aviso-unico' : (autorizaciones?.canalIntimo === 'registro' ? 'registro' : 'aviso-unico'))
+            enfocarPantallaNueva()
+          }}
+          onCerrarSesion={isConfigured && user ? rechazarYCerrarSesion : null}
         />
         {panicModal}
       </>

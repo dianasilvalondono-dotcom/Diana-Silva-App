@@ -54,7 +54,7 @@ export function CasillaIA({ id, marcada, onCambiar, ref }) {
       </Casilla>
       <ul id={`${id}-detalle`} style={{ margin: '4px 0 8px', paddingLeft: 52, fontSize: 15, lineHeight: 1.55, color: C.muted, textAlign: 'left' }}>
         <li style={{ marginBottom: 6 }}>
-          Aplica a <strong>Tu Ronda</strong>, a la <strong>Guía IA de la Comunidad</strong> y a <strong>Crea tu programa</strong>. Para responderte, Tu Ronda también lee tu ánimo de los últimos 7 días, tu última entrada del diario y lo que recuerda de ti.
+          Aplica a <strong>Tu Ronda</strong>, a la <strong>Guía IA de la Comunidad</strong> y a <strong>Crea tu programa</strong>. Para responderte, Tu Ronda también lee tu nombre, tu ciudad, tu intención, tus hábitos de hoy, tu ánimo de los últimos 7 días, tu última entrada del diario, tu programa activo y lo que recuerda de ti.
         </li>
         <li style={{ marginBottom: 6 }}>
           Lo procesa <strong>Anthropic</strong>, en Estados Unidos, que no lo usa para entrenar sus modelos. Si tocas escuchar una respuesta, <strong>ElevenLabs</strong> (Estados Unidos) la lee en voz alta.
@@ -95,7 +95,9 @@ function MarcoAutorizacion({ onAyuda, inerte, children }) {
           </svg>
           <span style={{ fontSize: 28, fontWeight: 600, color: '#FFFFFF', fontFamily: FONT_DISPLAY, lineHeight: 1 }}>Ronda</span>
         </span>
-        <button type="button" onClick={onAyuda} style={{
+        {/* id: si Ayuda se abrió en "Cargando..." y al cerrarla ya está esta
+            pantalla, el foco vuelve aquí (useDialog en App). */}
+        <button id="boton-ayuda" type="button" onClick={onAyuda} style={{
           background: 'none', border: 'none', cursor: 'pointer', padding: '12px 10px', minHeight: 44,
           color: C.orquidea, fontSize: 15, fontWeight: 600, letterSpacing: '0.04em', fontFamily: 'inherit',
         }}>{BOTON_AYUDA}</button>
@@ -122,6 +124,8 @@ function MarcoAutorizacion({ onAyuda, inerte, children }) {
    responda. onResponder recibe { edad, cuenta, ia } o { ia }. */
 export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesion, inerte }) {
   const aviso = modo === 'aviso'
+  // «Cerrar sesión» primero guarda la prueba del rechazo (hasta 6 s).
+  const [saliendo, setSaliendo] = useState(false)
   const [edad, setEdad] = useState(false)
   const [cuenta, setCuenta] = useState(false)
   const [ia, setIa] = useState(false)
@@ -154,9 +158,16 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
           <button type="button" onClick={() => setDesacuerdo(false)} style={{ ...botonPrincipal(true), flex: 1, minWidth: 140 }}>Volver</button>
           {onCerrarSesion && (
-            <button type="button" onClick={onCerrarSesion} style={{
+            <button type="button" disabled={saliendo} onClick={async () => {
+              // Sin red, cerrar sesión puede fallar o tardar: el botón vuelve
+              // a estar activo para intentarlo otra vez (la prueba ya quedó
+              // guardada en este teléfono).
+              setSaliendo(true)
+              try { await Promise.race([onCerrarSesion(), new Promise(resolve => setTimeout(resolve, 12000))]) } finally { setSaliendo(false) }
+            }} style={{
               ...botonPrincipal(true), flex: 1, minWidth: 140, background: C.card, color: C.morado, border: `2px solid ${C.morado}`,
-            }}>Cerrar sesión</button>
+              cursor: saliendo ? 'wait' : 'pointer',
+            }}>{saliendo ? 'Cerrando sesión…' : 'Cerrar sesión'}</button>
           )}
         </div>
       </MarcoAutorizacion>
@@ -171,7 +182,7 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
 
       {aviso ? <>
         <p style={parrafo}>
-          Cuando te inscribiste no te pedimos tu autorización como manda la ley. Lo hacemos ahora, una sola vez. <strong>{NO_VENDE}</strong>
+          Publicamos nuestra Política de Tratamiento de Datos y te pedimos tu autorización expresa, una sola vez. <strong>{NO_VENDE}</strong>
         </p>
         <Casilla id="aviso-edad" marcada={edad} onCambiar={v => { setEdad(v); setError('') }} invalida={!!error && !edad}>
           <strong>Tengo 18 años o más.</strong>
@@ -236,6 +247,11 @@ export function TarjetaIA({ idBase, onAutorizar, onAhoraNo }) {
       }}>Para esto, la IA de Ronda tiene que leer lo que escribes</h2>
       <p style={parrafo}>Es opcional. Si no quieres, todo lo demás de Ronda sigue igual.</p>
       <CasillaIA id={`${idBase}-casilla`} marcada={ia} onCambiar={setIa} />
+      {/* Al pedir la autorización: quién es la responsable y sus derechos
+          (Ley 1581, art. 12, lit. c y d), igual que en «Lo íntimo es tuyo». */}
+      <p style={{ margin: '14px 0 0', fontSize: 15, lineHeight: 1.55, color: C.muted }}>
+        <em>{NO_VENDE} Lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
+      </p>
       <button type="button" disabled={!ia} onClick={onAutorizar} style={{ ...botonPrincipal(ia), marginTop: 16 }}>Seguir</button>
       <div style={{ textAlign: 'center', marginTop: 4 }}>
         <button type="button" onClick={onAhoraNo} style={botonTexto}>Ahora no</button>
