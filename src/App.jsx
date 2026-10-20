@@ -4097,21 +4097,22 @@ function App() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
             {DBT_SKILLS.map((skill, idx) => (
               <div key={skill.name}>
-                <button onClick={() => setPanicDbtExpanded(panicDbtExpanded === idx ? null : idx)} style={{
+                <button onClick={() => setPanicDbtExpanded(panicDbtExpanded === idx ? null : idx)}
+                  aria-expanded={panicDbtExpanded === idx} aria-controls={`dbt-skill-panel-${idx}`} style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
                   background: panicDbtExpanded === idx ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
                   borderRadius: panicDbtExpanded === idx ? '16px 16px 0 0' : 16,
                   border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', textAlign: 'left',
                 }}>
-                  <div style={{ fontSize: 26 }}>{skill.icon}</div>
+                  <div aria-hidden="true" style={{ fontSize: 26 }}>{skill.icon}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{skill.name}</div>
                     <div style={{ fontSize: 19, color: '#E3E5D3', marginTop: 2 }}>{skill.desc}</div>
                   </div>
-                  <span style={{ color: '#D6BFDD', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
+                  <span aria-hidden="true" style={{ color: '#D6BFDD', fontSize: 18 }}>{panicDbtExpanded === idx ? '▲' : '▼'}</span>
                 </button>
                 {panicDbtExpanded === idx && (
-                  <div style={{
+                  <div id={`dbt-skill-panel-${idx}`} role="region" aria-label={`Pasos de ${skill.name}`} style={{
                     background: 'rgba(255,255,255,0.06)', borderRadius: '0 0 16px 16px',
                     border: '1px solid rgba(255,255,255,0.12)', borderTop: 'none',
                     padding: '14px 16px',
