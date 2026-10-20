@@ -84,3 +84,23 @@ html {
   background: rgba(20,24,51, 0.2);
   color: #141833;
 }
+
+/* Fila de filtros de Afuera (rondas-17). En pantallas táctiles se desliza
+   de lado y sin barra gris (el filtro cortado en el borde dice que hay
+   más). Con ratón o en pantalla ancha no se puede deslizar con facilidad:
+   los filtros bajan de línea y todos se ven, sin barra de desplazamiento. */
+.fila-filtros {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fila-filtros::-webkit-scrollbar {
+  display: none;
+}
+@media (pointer: fine), (min-width: 768px) {
+  .fila-filtros {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}

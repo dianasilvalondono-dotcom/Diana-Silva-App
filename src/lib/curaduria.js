@@ -200,7 +200,7 @@ async function insertarReporte(fila, titulo) {
 
 /* { ok: true } solo si llegó a la curadora. */
 export async function enviarReporte(plan, texto, user) {
-  if (!supabase || !user) return { ok: false }
+  if (!supabase || !user) return { ok: false, motivo: 'sin-servicio' }
   const fila = plan.ejemplo
     ? { plan_id: null, texto: conTitulo(plan, texto), user_id: user.id }
     : { plan_id: plan.id, texto, user_id: user.id }

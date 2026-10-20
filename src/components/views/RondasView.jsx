@@ -229,7 +229,11 @@ function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, on
   const cerrarRef = useRef(null)
   const hojaRef = useRef(null)
   const reservarRef = useRef(null)
+  const avisoRef = useRef(null)
   const [confirmandoLiberar, setConfirmandoLiberar] = useState(false)
+  useEffect(() => {
+    if (aviso) avisoRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [aviso])
   useEffect(() => { cerrarRef.current?.focus() }, [])
   useTrampaFoco(hojaRef, true)
   const lleno = !reservado && sinCupos(plan)
@@ -305,11 +309,6 @@ function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, on
           <span><b style={{ fontWeight: 600 }}>Antes de ir:</b> 2 minutos para llegar tranquila.</span>
         </button>
 
-        {/* El aviso de la reserva va aquí, encima del botón, y no lo tapa (rondas-4). */}
-        <div role="status" aria-live="polite">
-          {aviso && <div style={{ marginTop: 18 }}><TarjetaAviso texto={aviso} onCerrar={cerrarAviso} /></div>}
-        </div>
-
         {/* aria-disabled y no disabled: el foco no se pierde al apartar (rondas-15). */}
         <button
           ref={reservarRef}
@@ -327,6 +326,12 @@ function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, on
             : ocupado ? 'Apartando…'
             : 'Apartar mi cupo'}
         </button>
+        {/* El aviso de la reserva va debajo del botón: no lo tapa (rondas-4) ni
+            lo empuja fuera de la vista mientras tiene el foco; al aparecer se
+            trae a la vista dentro de la hoja. */}
+        <div ref={avisoRef} role="status" aria-live="polite" style={{ scrollMarginBottom: 16 }}>
+          {aviso && <div style={{ marginTop: 12 }}><TarjetaAviso texto={aviso} onCerrar={cerrarAviso} /></div>}
+        </div>
         {/* "Ya no puedo ir": se puede liberar el cupo, con una pregunta antes (rondas-9). */}
         {reservado && !confirmandoLiberar && (
           <button onClick={() => setConfirmandoLiberar(true)} style={{
@@ -430,9 +435,17 @@ export default function RondasView({ user, onIrAdentro }) {
   const salaAcompanamiento = SALAS.find(s => s.id === 'acompanamiento')
   // El enlace del final lleva a los planes de la sala de acompañamiento de
   // esta ciudad (si no hay, la lista dice que la curaduría está en camino).
+  // Sube hasta la fila de salas (no al principio de la página: ahí lo primero
+  // sería el plan sugerido de otra sala) y el foco queda en "Acompañamiento".
   const verAcompanamiento = () => {
     setFiltro('acompanamiento')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => {
+      const nav = salasRef.current
+      if (!nav) return
+      const alto = document.querySelector('header')?.offsetHeight || 0
+      window.scrollTo({ top: nav.getBoundingClientRect().top + window.scrollY - alto - 12, behavior: 'smooth' })
+      nav.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true })
+    }, 0)
   }
 
   // El filtro activo siempre se ve en la barra, también al cambiar de
@@ -542,8 +555,11 @@ export default function RondasView({ user, onIrAdentro }) {
     const res = await enviarReporte(reportando, texto, user)
     setEnviando(false)
     if (!res.ok) {
-      // No se cierra ni se borra: puede reintentar (rondas-1).
-      setErrorReporte('No pudimos enviarlo. Revisa tu conexión e inténtalo de nuevo; tu mensaje sigue aquí.')
+      // No se cierra ni se borra: puede reintentar (rondas-1). Sin servicio
+      // (sin cuenta o sin servidor configurado) no es culpa de la conexión.
+      setErrorReporte(res.motivo === 'sin-servicio'
+        ? 'Ahora no podemos enviar mensajes a la curadora. Tu mensaje sigue aquí; inténtalo más tarde.'
+        : 'No pudimos enviarlo. Revisa tu conexión e inténtalo de nuevo; tu mensaje sigue aquí.')
       return
     }
     track('plan_reportado', { sala: reportando.sala })
@@ -575,7 +591,8 @@ export default function RondasView({ user, onIrAdentro }) {
 
       {!cargando && destacado && <PlanDestacado plan={destacado} reservado={reservas.includes(destacado.id)} onAbrir={abrir} />}
 
-      <nav ref={salasRef} aria-label="Salas" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+      {/* Desliza de lado en el celular; con ratón los filtros bajan de línea (index.css, rondas-17). */}
+      <nav ref={salasRef} aria-label="Salas" className="fila-filtros" style={{ paddingBottom: 2 }}>
         {filtros.map(f => {
           const activo = filtro === f.id
           return (
@@ -647,7 +664,14 @@ export default function RondasView({ user, onIrAdentro }) {
         width: 'calc(100% - 32px)', maxWidth: 440, zIndex: 9999,
         pointerEvents: aviso && !abierto ? 'auto' : 'none',
       }}>
-        {aviso && !abierto && <TarjetaAviso texto={aviso} onCerrar={() => setAviso(null)} />}
+        {aviso && !abierto && <TarjetaAviso texto={aviso} onCerrar={() => {
+          setAviso(null)
+          // El botón se va con el aviso: el foco vuelve a lo que abrió el plan.
+          setTimeout(() => {
+            const destino = abridorRef.current?.isConnected ? abridorRef.current : salasRef.current?.querySelector('[aria-pressed="true"]')
+            destino?.focus?.({ preventScroll: true })
+          }, 0)
+        }} />}
       </div>
 
       {/* ── Mensaje privado a la curadora ── Si no cabe (pantalla baja o
