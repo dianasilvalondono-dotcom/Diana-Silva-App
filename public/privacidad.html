@@ -3,11 +3,13 @@
   Política de Tratamiento de Datos Personales de Ronda · versión 1 (politica-v1).
   Fuente: ronda-hq/06-legal-y-datos/politica-tratamiento-datos-v1.md, partes A y B
   (la parte C, el contraste con la norma, no se publica).
-  ANTES DE PUBLICAR: reemplazar los 7 marcadores {{RESPONSABLE_NOMBRE}},
-  {{RESPONSABLE_DOCUMENTO}}, {{RESPONSABLE_DOMICILIO}}, {{RESPONSABLE_DIRECCION}},
-  {{RESPONSABLE_TELEFONO}}, {{CORREO_DATOS}} y {{FECHA_VIGENCIA}} (también
-  {{CORREO_DATOS}} en src/lib/autorizaciones.js), con la revisión del abogado
-  y el «sí» de Diana. Si cambian las palabras, cambia la versión.
+  ANTES DE PUBLICAR: reemplazar los 6 marcadores {{RESPONSABLE_NOMBRE}},
+  {{RESPONSABLE_DOMICILIO}}, {{RESPONSABLE_DIRECCION}}, {{RESPONSABLE_TELEFONO}},
+  {{CORREO_DATOS}} y {{FECHA_VIGENCIA}} con ronda-hq/06-legal-y-datos/datos-responsable.json
+  (también {{CORREO_DATOS}} en src/lib/autorizaciones.js; {{FECHA_VIGENCIA}} es
+  el día en que se publica), con la revisión del abogado y el «sí» de Diana.
+  La cédula no va: la norma no la exige (Decreto 1377, art. 13, num. 1).
+  Si cambian las palabras, cambia la versión.
 -->
 <html lang="es">
 <head>
@@ -173,7 +175,7 @@
 
     <section aria-labelledby="responsable">
       <h2 id="responsable">1. Quién es responsable de tus datos</h2>
-      <p>La responsable del tratamiento de tus datos es <strong>{{RESPONSABLE_NOMBRE}}</strong>, identificada con {{RESPONSABLE_DOCUMENTO}} y con domicilio en {{RESPONSABLE_DOMICILIO}}. Ella opera Ronda (rondahub.com).</p>
+      <p>La responsable del tratamiento de tus datos es <strong>{{RESPONSABLE_NOMBRE}}</strong>, con domicilio en {{RESPONSABLE_DOMICILIO}}. Ella opera Ronda (rondahub.com).</p>
       <ul class="datos-responsable">
         <li>Dirección: {{RESPONSABLE_DIRECCION}}</li>
         <li>Correo para temas de datos: {{CORREO_DATOS}}</li>
@@ -225,7 +227,7 @@
           <tr>
             <th scope="row">Hábitos, rutina, racha, programas que sigues y frases favoritas</th>
             <td data-col="Para qué lo usamos">Mostrarte tu día y tu avance</td>
-            <td data-col="Dónde queda">En tu teléfono, y en tu cuenta cuando se copian al entrar</td>
+            <td data-col="Dónde queda">En tu teléfono</td>
           </tr>
           <tr>
             <th scope="row">Afuera: los cupos que apartas, tus respuestas a «¿Te sentiste segura?», lo que reportas en «Algo no estuvo bien» y, si los respondes, tus gustos para Afuera</th>
@@ -238,14 +240,14 @@
             <td data-col="Dónde queda">PostHog (Estados Unidos)</td>
           </tr>
           <tr>
-            <th scope="row">Notificaciones: un código de tu cuenta, tu correo y el permiso de tu teléfono</th>
+            <th scope="row">Notificaciones: un código de tu cuenta y el permiso de tu teléfono</th>
             <td data-col="Para qué lo usamos">Mandarte recordatorios, solo si los activas</td>
             <td data-col="Dónde queda">OneSignal (Estados Unidos)</td>
           </tr>
           <tr>
             <th scope="row">Datos técnicos: dirección IP, tipo de teléfono y navegador, fecha y hora</th>
             <td data-col="Para qué lo usamos">Que la app funcione y protegerla de abusos</td>
-            <td data-col="Dónde queda">Registros de Vercel y Supabase (Estados Unidos)</td>
+            <td data-col="Dónde queda">Registros de Vercel y Supabase (Estados Unidos). Google Fonts recibe tu dirección IP y tu navegador (ver <a href="#compartimos">sección 6</a>)</td>
           </tr>
         </tbody>
       </table>
@@ -267,12 +269,12 @@
             <td data-col="Qué pasa con él">Se guardan <strong>solo en tu teléfono</strong>. Los ves y los borras en Perfil, en «Lo que sé de ti»</td>
           </tr>
           <tr>
-            <th scope="row">Lo que le escribes a la IA de Ronda: tus mensajes a <strong>Tu Ronda</strong>, tus publicaciones en la <strong>Comunidad</strong> (las lee la Guía IA de Ronda, que es una inteligencia artificial y no una persona) y tu meta en <strong>Crea tu programa</strong></th>
+            <th scope="row">Lo que le escribes a la IA de Ronda: tus mensajes a <strong>Tu Ronda</strong>, tus publicaciones en la <strong>Comunidad</strong> (las lee la Guía IA de Ronda, que es una inteligencia artificial y no una persona) y tu meta y lo que cuentas de ti en <strong>Crea tu programa</strong></th>
             <td data-col="Qué pasa con él"><strong>Solo con tu autorización.</strong> Se envía a Anthropic para que la IA te responda. Para responderte, Tu Ronda también lee tu nombre, tu ciudad, tu intención, tus hábitos de hoy, tu ánimo de los últimos 7 días, tu última entrada del diario, tu programa activo y lo que recuerda de ti. Si tocas escuchar una respuesta, el texto de esa respuesta se envía a ElevenLabs para leerla en voz alta</td>
           </tr>
           <tr>
             <th scope="row">Tus publicaciones en la Comunidad</th>
-            <td data-col="Qué pasa con él">Son anónimas para las demás usuarias. Hoy se guardan en tu teléfono. Si algún día se guardan en nuestros servidores, te lo diremos antes</td>
+            <td data-col="Qué pasa con él">Hoy solo las ves tú: se guardan en tu teléfono y no las ven otras usuarias. Si algún día se guardan en nuestros servidores o las pueden leer otras usuarias, te lo diremos antes</td>
           </tr>
         </tbody>
       </table>
@@ -312,13 +314,13 @@
           <tr>
             <th scope="row">Supabase</th>
             <td data-col="País">Estados Unidos</td>
-            <td data-col="Qué recibe">Tu cuenta, tu perfil, tu plan, tu toolkit, tus hábitos y lo que haces en Afuera</td>
+            <td data-col="Qué recibe">Tu cuenta, tu perfil, tu plan, tu toolkit, lo que haces en Afuera y el registro de tus autorizaciones</td>
             <td data-col="Para qué">Guardar tu cuenta y dejarte entrar</td>
           </tr>
           <tr>
             <th scope="row">Vercel</th>
             <td data-col="País">Estados Unidos</td>
-            <td data-col="Qué recibe">El tráfico de la app y, de paso, lo que le escribes a la IA</td>
+            <td data-col="Qué recibe">El tráfico de la app y, solo si autorizas la IA, lo que le escribes</td>
             <td data-col="Para qué">Alojar la app y conectarla con la IA</td>
           </tr>
           <tr>
@@ -336,7 +338,7 @@
           <tr>
             <th scope="row">OneSignal</th>
             <td data-col="País">Estados Unidos</td>
-            <td data-col="Qué recibe">Un código de tu cuenta, tu correo y el permiso de notificaciones de tu teléfono</td>
+            <td data-col="Qué recibe">Un código de tu cuenta y el permiso de notificaciones de tu teléfono</td>
             <td data-col="Para qué">Mandarte recordatorios, si los activas</td>
           </tr>
           <tr>
@@ -348,6 +350,7 @@
         </tbody>
       </table>
       <p>Enviarles tus datos es una <strong>transmisión internacional</strong>. Estados Unidos está en la lista de países con un nivel adecuado de protección de la Superintendencia de Industria y Comercio (SIC). Con cada proveedor tenemos un acuerdo que lo obliga a tratar tus datos solo para lo que le pedimos, a cuidarlos y a guardar confidencialidad.</p>
+      <p><strong>Tipos de letra.</strong> Para mostrar las letras de Ronda, tu navegador las descarga de <strong>Google Fonts</strong> (Google, Estados Unidos) al abrir la app o esta página. Google recibe tu dirección IP y el tipo de navegador, como con cualquier página que visitas. No le enviamos nada más: ni tu cuenta ni lo que escribes.</p>
       <p>Si una autoridad nos pide tus datos, solo los entregamos cuando la ley lo exige y la solicitud llega por un canal oficial.</p>
     </section>
 
@@ -394,7 +397,7 @@
       <ul>
         <li><strong>Tu cuenta y lo que guarda:</strong> mientras tengas tu cuenta. Si la borras, borramos todo en máximo 15 días hábiles. Solo conservamos lo que la ley nos obligue a guardar (por ejemplo, los registros de pago de Ronda+, cuando existan) y el registro de tus autorizaciones, sin nada de lo que escribiste, durante 3 años, para poder demostrar ante una autoridad que nos las diste.</li>
         <li><strong>Lo que está en tu teléfono:</strong> se queda ahí hasta que lo borres. Puedes borrar entradas del diario, lo que Tu Ronda recuerda de ti o todos los datos de la app desde los ajustes de tu navegador.</li>
-        <li><strong>Copias anteriores de tu diario:</strong> si antes de esta política se guardó en tu cuenta una copia de tu diario o de tu ánimo, la borramos de nuestros servidores. Si quieres esa copia antes, escríbenos a {{CORREO_DATOS}}.</li>
+        <li><strong>Copias anteriores:</strong> si antes de esta política se guardó en tu cuenta una copia de tu diario, tu ánimo, tus hábitos, tu racha, tus programas o tus frases favoritas, la borramos de nuestros servidores en los 30 días siguientes a la publicación de esta política. Si quieres la copia de tu diario antes, escríbenos a {{CORREO_DATOS}}.</li>
         <li><strong>Lo que procesa la IA:</strong> Ronda no guarda tus conversaciones en sus servidores. Anthropic y ElevenLabs las procesan para responderte y solo las conservan por el tiempo limitado que fijan sus condiciones de seguridad.</li>
         <li><strong>Registros técnicos:</strong> el tiempo que fijan nuestros proveedores para seguridad.</li>
         <li>La base de datos de Ronda está vigente mientras Ronda preste su servicio.</li>
@@ -436,10 +439,10 @@
     <section aria-labelledby="aviso" id="aviso-seccion">
       <div class="aviso">
         <h2 id="aviso">Aviso de privacidad de Ronda</h2>
-        <p><strong>Quién trata tus datos:</strong> {{RESPONSABLE_NOMBRE}} ({{RESPONSABLE_DOCUMENTO}}), {{RESPONSABLE_DIRECCION}}, {{RESPONSABLE_DOMICILIO}}. Correo: {{CORREO_DATOS}}. Teléfono: {{RESPONSABLE_TELEFONO}}.</p>
+        <p><strong>Quién trata tus datos:</strong> {{RESPONSABLE_NOMBRE}}, {{RESPONSABLE_DIRECCION}}, {{RESPONSABLE_DOMICILIO}}. Correo: {{CORREO_DATOS}}. Teléfono: {{RESPONSABLE_TELEFONO}}.</p>
         <p><strong>Para qué:</strong> crear tu cuenta y darte el servicio de Ronda (perfil, hábitos, programas, toolkit, Afuera y recordatorios si los activas), escribirte sobre tu cuenta, cuidar la seguridad de la app y mejorarla con datos de uso que no incluyen lo que escribes.</p>
         <p><strong>Datos sensibles:</strong> tu diario, tu ánimo y lo que le cuentas a la IA de Ronda son datos sensibles. <strong>Responder o autorizar es opcional, y Ronda funciona sin eso.</strong> Tu diario y tu ánimo se guardan solo en tu teléfono. La IA de Ronda solo lee lo que escribes si la autorizas.</p>
-        <p><strong>Ronda no vende tus datos ni los comparte con terceros para publicidad.</strong> Los guardan y procesan proveedores en Estados Unidos (Supabase, Vercel, Anthropic, ElevenLabs, OneSignal y PostHog), con acuerdos que los obligan a cuidarlos.</p>
+        <p><strong>Ronda no vende tus datos ni los comparte con terceros para publicidad.</strong> Los guardan y procesan proveedores en Estados Unidos (Supabase, Vercel, Anthropic, ElevenLabs, OneSignal y PostHog), con acuerdos que los obligan a cuidarlos. Para mostrar las letras de Ronda, tu navegador también se conecta a Google Fonts, que recibe tu dirección IP.</p>
         <p><strong>Tus derechos:</strong> conocer, actualizar, corregir y borrar tus datos, pedir prueba de tu autorización, quitarla, consultar sin costo y quejarte ante la SIC. Ejércelos en Perfil → Tus autorizaciones o en {{CORREO_DATOS}}.</p>
         <p><strong>La política completa</strong> está en <a href="#en-corto">Cómo cuidamos tus datos</a>. Si la cambiamos de forma importante, te avisamos antes en la app y por correo.</p>
       </div>
