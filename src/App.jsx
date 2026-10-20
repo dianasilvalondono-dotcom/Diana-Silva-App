@@ -1189,8 +1189,12 @@ function App() {
   // hasta que ella lo envíe o lo cierre (adentro-2).
   const isMorningTime = franjaActual === 'mañana' || !!morningIntention.trim()
   // El cierre de la noche va de las 7 p. m. a la medianoche: en la madrugada
-  // el día ya cambió y se gastaría el cierre de la noche siguiente.
-  const isNightTime = (franjaActual === 'noche' && currentHour >= 12) || !!nightReflection.trim() || nightMood !== null
+  // el día ya cambió y se gastaría el cierre de la noche siguiente. Pasada la
+  // medianoche, el de un día que la app todavía no cambió (diaApp: estaba
+  // abierto, pasarAlDiaNuevo lo espera) sigue en pantalla aunque no tenga
+  // nada escrito: marcar un hábito ahí no lo cierra solo ni deja ese día sin
+  // cerrar.
+  const isNightTime = (franjaActual === 'noche' && currentHour >= 12) || diaApp !== todayKey() || !!nightReflection.trim() || nightMood !== null
   // Un check-in sigue en curso aunque la Ayuda lo tape; se ve cuando no está.
   const checkinEnCurso = !checkinPospuesto && ((isMorningTime && !morningDone) || (isNightTime && !nightDone))
   const showMorningCheckin = isMorningTime && !morningDone && !checkinPospuesto && !showPanic
@@ -4099,6 +4103,10 @@ function App() {
     }
     // La app abre arriba, no donde quedó el scroll del último paso (bienvenida-4).
     window.scrollTo({ top: 0, behavior: 'instant' })
+    // Recién llegada no ha visto la app ni marcado nada: el check-in de la
+    // mañana o de la noche no le sale encima (ni con un resumen en cero). Como
+    // con "Ahora no", sale la próxima vez que abra Ronda.
+    setCheckinPospuesto(true)
     setOnboarded(true)
     save('ronda-onboarded', true)
     openModule('ahora')
@@ -4166,6 +4174,8 @@ function App() {
         aria-labelledby="onboard-nombre-titulo"
         autoComplete="given-name"
         autoFocus
+        // Enter pasa al paso siguiente, como "Siguiente".
+        onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); irAPasoOnboard(2) } }}
         maxLength={40}
         style={{
           width: '100%', maxWidth: 320, padding: '16px 20px', borderRadius: 16,
