@@ -285,5 +285,5 @@ export const SUGGESTED_HABITS = [
   { name: 'Estiramiento o yoga 10 min', dim: 'fisico' },
   { name: 'Aprender algo nuevo 15 min', dim: 'mental' },
   { name: 'Skincare mañana y noche', dim: 'fisico' },
-  { name: 'No celular 1 hora antes de dormir', dim: 'mental' },
+  { name: 'Celular guardado 1 hora antes de dormir', dim: 'mental' },
 ]

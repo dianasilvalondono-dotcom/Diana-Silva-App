@@ -7,8 +7,8 @@
    la IA (TarjetaIA: ahí llega también
    quien escribió algo y recibió el 403 de la IA). Lo que escribió puede ser
    una crisis dicha de una forma que isCrisis no reconoce, y sin respuesta
-   tampoco la ve el modelo. onAbrir abre Ayuda como ante una crisis ("No
-   estás sola." y el 123, no "Estás a salvo."). */
+   tampoco la ve el modelo. onAbrir abre Ayuda como ante una crisis ("Aquí
+   estamos contigo." y el 123, no "Estás a salvo."). */
 import { C } from '../../constants/colors'
 import { BOTON_AYUDA } from '../../utils/crisis'
 

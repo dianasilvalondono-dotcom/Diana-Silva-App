@@ -681,7 +681,7 @@ function App() {
   const [nightReflection, setNightReflection] = useState('')
   // null = todavía no eligió ánimo (no se registra uno que no escogió)
   const [nightMood, setNightMood] = useState(null)
-  // "Ahora no": oculta el check-in en esta sesión sin darlo por hecho.
+  // "Más tarde": oculta el check-in en esta sesión sin darlo por hecho.
   const [checkinPospuesto, setCheckinPospuesto] = useState(false)
 
   // Programs (paso a paso)
@@ -1034,7 +1034,7 @@ function App() {
     setHistorialPrevio(historial)
     setTotalesPrevios(totalesHabitosPorDia(historial, nuevo, habits.length))
     setCheckinPospuesto(false)
-    // Lo escrito en un check-in de ayer que ella cerró con "Ahora no" no
+    // Lo escrito en un check-in de ayer que ella cerró con "Más tarde" no
     // pasa al de hoy (con uno abierto, el día no cambia todavía).
     setMorningIntention('')
     setNightReflection('')
@@ -1219,7 +1219,7 @@ function App() {
         : motivo === 'network'
           ? 'Revisa tu conexión e inténtalo de nuevo.'
           : 'Inténtalo de nuevo en un momento. También puedes escribir tu reflexión.'
-    setAppModal({ type: 'info', title: 'No pudimos escucharte', body, cta: 'Listo' })
+    setAppModal({ type: 'info', title: 'Activa tu micrófono para dictar', body, cta: 'Listo' })
   }
 
   const toggleVoiceInput = () => {
@@ -3140,19 +3140,19 @@ function App() {
         text: 'Muchas mujeres lo han sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estoy contigo. 💛' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
       replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Los patrones de relación se forman temprano — el cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar.' }] },
+        text: 'Los patrones de relación se forman temprano — el cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. Lo que aprendiste se puede reaprender.' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
       replies: [{ pro: { name: 'Camila S.', title: 'Guía Ronda · Mentora de emprendimiento', verified: true },
-        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA.' }] },
+        text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. Empieza con lo que tienes: lo importante es que EXISTA.' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
       replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
         text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, no solo se pierde a la persona, también la versión de ti que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
       replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
-        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
+        text: 'El duelo va en olas y tiene su propio ritmo. Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
       replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
-        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
+        text: 'Lo que sientes es válido y es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
   ]
 
   // Los posts sembrados se muestran como EJEMPLOS y sus respuestas se atribuyen
@@ -3353,7 +3353,7 @@ function App() {
           Tú eres anónima. Te acompaña la Guía IA de Ronda, al instante.
         </div>
         <div style={{ fontSize: 12, color: C.subtle, marginTop: 6, lineHeight: 1.4, fontStyle: 'italic' }}>
-          Contenido educativo de bienestar. No reemplaza atención profesional en salud mental.
+          Contenido educativo de bienestar. Para tu salud mental, cuenta también con una profesional.
         </div>
       </div>
 
@@ -3566,8 +3566,8 @@ function App() {
               <div style={{ fontSize: 17, color: C.text, lineHeight: 1.5 }}>
                 {/* Si el dispositivo no dejó guardar, no se dice que quedó guardada. */}
                 {seGuardo('ronda-board')
-                  ? 'La Guía IA no pudo responder ahora. Tu publicación quedó guardada.'
-                  : 'La Guía IA no pudo responder ahora, y este dispositivo no dejó guardar tu publicación.'}
+                  ? 'La Guía IA tuvo un problema para responder. Tu publicación quedó guardada.'
+                  : 'La Guía IA tuvo un problema para responder. Este dispositivo también tuvo un problema para guardar tu publicación: la ves aquí mientras tengas Ronda abierta.'}
               </div>
               {/* Sin respuesta tampoco hay segunda capa (el modelo) que vea una
                   crisis dicha de otra forma: Ayuda y las líneas quedan a la
@@ -4620,7 +4620,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' })
     // Recién llegada no ha visto la app ni marcado nada: el check-in de la
     // mañana o de la noche no le sale encima (ni con un resumen en cero). Como
-    // con "Ahora no", sale la próxima vez que abra Ronda.
+    // con "Más tarde", sale la próxima vez que abra Ronda.
     setCheckinPospuesto(true)
     setOnboarded(true)
     save('ronda-onboarded', true)
@@ -4847,7 +4847,7 @@ function App() {
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
           <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8, outline: 'none' }}>
-            {panicOrigen === 'crisis' ? 'No estás sola.' : 'Estás a salvo.'}
+            {panicOrigen === 'crisis' ? 'Aquí estamos contigo.' : 'Estás a salvo.'}
           </div>
           <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
             {panicOrigen === 'crisis'
@@ -4899,7 +4899,7 @@ function App() {
                   IA la Guía IA no responde: no prometer que puede preguntar. */}
               {isPremium && iaOk ? 'Pregunta lo que necesites. Te responde la Guía IA de Ronda.' : 'Lee cómo acompaña la Guía IA de Ronda. Es anónimo.'}
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. No reemplaza atención en crisis.</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. En una crisis, llama a la Línea 106.</div>
           </button>
           )}
         </>}
@@ -4979,7 +4979,7 @@ function App() {
                 contar que ya se hizo daño): el 123, como en el inicio. */}
             <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               {panicOrigen === 'crisis'
-                ? <>Acabas de reconectar con tus sentidos. No estás sola: si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
+                ? <>Acabas de reconectar con tus sentidos. Aquí estamos contigo: si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
                 : 'Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.'}
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -5264,7 +5264,7 @@ function App() {
     WebkitOverflowScrolling: 'touch',
   }
 
-  /* Arriba de cada check-in: la Ayuda siempre a mano y "Ahora no" para
+  /* Arriba de cada check-in: la Ayuda siempre a mano y "Más tarde" para
      cerrarlo sin darlo por hecho. */
   const botonCheckinSecundario = {
     minHeight: 44, padding: '0 10px', background: 'none', border: 'none', cursor: 'pointer',
@@ -5280,7 +5280,7 @@ function App() {
         Ayuda
       </button>
       <button type="button" onClick={posponerCheckin} style={{ ...botonCheckinSecundario, color: C.muted }}>
-        Ahora no
+        Más tarde
       </button>
     </div>
   )
@@ -5575,7 +5575,7 @@ function App() {
         {view === 'perfil' && perfilView}
 
         <p style={{ margin: '32px 0 0', fontSize: 12, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
-          Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional. Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
+          Ronda ofrece herramientas de bienestar y contenido educativo. Para atención médica o psicológica, acude a una profesional. Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
         </p>
         <p style={{ margin: '4px 0 0', fontSize: 13, textAlign: 'center' }}>
           <EnlacePolitica style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 4px', fontWeight: 600 }}>Cómo cuidamos tus datos</EnlacePolitica>
@@ -5630,7 +5630,7 @@ function App() {
 
             {/* La salida a Ayuda y a las líneas, también en el aviso de pago
                 (el de la Comunidad, donde ella ya escribió algo). Si la pide
-                desde aquí, Ayuda abre como ante una crisis: "No estás sola." y
+                desde aquí, Ayuda abre como ante una crisis: "Aquí estamos contigo." y
                 el 123, no "Estás a salvo.". */}
             {appModal.ayuda && (
               <SalidaAyuda style={{ marginTop: -8, marginBottom: 20 }}
@@ -5672,7 +5672,7 @@ function App() {
                 width: '100%', minHeight: 44, marginTop: 8, background: 'none', border: 'none',
                 color: C.muted, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                Ahora no
+                Más tarde
               </button>
             )}
             {appModal.type === 'confirm' && (
