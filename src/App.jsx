@@ -3390,6 +3390,18 @@ function App() {
     }, 0)
   }
 
+  // "Crea tu programa": tras un error, los botones para reintentar; tras
+  // guardar, la confirmación. En el celular quedaban bajo el borde del
+  // contenedor y había que desplazarse para verlos.
+  const aiAccionesRef = useRef(null)
+  const aiGuardadoRef = useRef(null)
+  useEffect(() => {
+    if (aiError && aiStep === 1) aiAccionesRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [aiError, aiStep])
+  useEffect(() => {
+    if (aiSaved) aiGuardadoRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [aiSaved])
+
   // La conversación baja al final solo cuando llega un mensaje, aparece o se
   // va el "escribiendo…" o se abre el chat. Escuchar o escribir no mueven la lectura.
   const chatRef = useRef(null)
@@ -3614,8 +3626,8 @@ function App() {
               <textarea value={aiContext} onChange={e => setAiContext(e.target.value)}
                 placeholder="Opcional: cuéntame un poco más..." rows={3}
                 style={{ padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none', resize: 'none', lineHeight: 1.6 }} />
-              {aiError && <div style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
-              <div style={{ display: 'flex', gap: 10 }}>
+              {aiError && <div role="alert" style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
+              <div ref={aiAccionesRef} style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>← Atrás</button>
                 <button onClick={generateAiProgram} style={{ flex: 2, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Crear mi programa</button>
               </div>
@@ -3655,7 +3667,7 @@ function App() {
                   <button onClick={saveAiProgram} style={{ flex: 2, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${C.gold}, ${C.tealDark})`, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Guardar y empezar</button>
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: 16, background: `${C.teal}10`, borderRadius: 14 }}>
+                <div ref={aiGuardadoRef} role="status" style={{ textAlign: 'center', padding: 16, background: `${C.teal}10`, borderRadius: 14 }}>
                   <div style={{ fontSize: 19, fontWeight: 700, color: C.teal }}>¡Ruta guardada!</div>
                   <div style={{ fontSize: 18, color: C.muted, marginTop: 4 }}>Ya está en Rutas, dentro de Adentro.</div>
                   <button onClick={resetAiAgent} style={{ marginTop: 10, padding: '8px 20px', borderRadius: 12, border: 'none', background: C.rose, color: 'white', fontSize: 18, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Crear otro</button>
