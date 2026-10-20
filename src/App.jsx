@@ -3420,6 +3420,8 @@ function App() {
         return [...prev, ...added]
       })
     }
+    // La app abre arriba, no donde quedó el scroll del último paso (bienvenida-4).
+    window.scrollTo({ top: 0, behavior: 'instant' })
     setOnboarded(true)
     save('ronda-onboarded', true)
     openModule('ahora')
@@ -3436,6 +3438,14 @@ function App() {
       if (prev.length >= 3) return prev
       return [...prev, h]
     })
+  }
+
+  // Cada paso empieza arriba: el scroll de la lista de hábitos no se
+  // arrastra al paso siguiente (bienvenida-4). 'instant' porque el html
+  // tiene scroll-behavior: smooth.
+  const irAPasoOnboard = (paso) => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    setOnboardStep(paso)
   }
 
   const onboardStepShell = (key, children) => (
@@ -3456,9 +3466,9 @@ function App() {
         Creces tú, crecemos todas
       </div>
       <div style={{ width: 60, height: 2, background: C.gold, marginBottom: 32, borderRadius: 2 }} />
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.4, marginBottom: 12 }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.4, margin: '0 0 12px' }}>
         Tu compañera en cada etapa
-      </div>
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
         Vamos a empezar por lo tuyo. Dos preguntas y estás lista.
       </div>
@@ -3466,9 +3476,9 @@ function App() {
 
     /* Paso 1 — Su nombre. La app le habla por su nombre desde el primer día. */
     onboardStepShell(1, <>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10 }}>
+      <h1 id="onboard-nombre-titulo" style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px' }}>
         ¿Cómo te llamas?
-      </div>
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300, lineHeight: 1.6 }}>
         Para llamarte por tu nombre. Puedes cambiarlo después en tu perfil.
       </div>
@@ -3476,6 +3486,8 @@ function App() {
         value={onboardName}
         onChange={e => setOnboardName(e.target.value)}
         placeholder="Tu nombre"
+        aria-labelledby="onboard-nombre-titulo"
+        autoComplete="given-name"
         autoFocus
         maxLength={40}
         style={{
@@ -3491,15 +3503,15 @@ function App() {
       </div>
     </>),
 
-    /* Paso 2 — Un primer hábito. Que salga del onboarding habiendo HECHO algo. */
+    /* Paso 2 — Sus primeros hábitos (hasta 3). Que salga del onboarding habiendo HECHO algo. */
     onboardStepShell(2, <>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10, maxWidth: '100%', overflowWrap: 'anywhere' }}>
-        {onboardName.trim() ? `${onboardName.trim()}, elige tu primer hábito` : 'Elige tu primer hábito'}
-      </div>
+      <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px', maxWidth: '100%', overflowWrap: 'anywhere' }}>
+        {onboardName.trim() ? `${onboardName.trim()}, elige tus primeros hábitos` : 'Elige tus primeros hábitos'}
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 8, maxWidth: 320, lineHeight: 1.6 }}>
-        Empieza con uno. Puedes sumar más cuando quieras.
+        Hasta tres para empezar. Puedes sumar más cuando quieras.
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: onboardHabits.length ? C.teal : C.subtle, marginBottom: 20 }}>
+      <div aria-live="polite" style={{ fontSize: 14, fontWeight: 700, color: onboardHabits.length ? C.teal : C.subtle, marginBottom: 20 }}>
         {onboardHabits.length} de 3
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', width: '100%', maxWidth: 360 }}>
@@ -3512,6 +3524,7 @@ function App() {
               key={h.name}
               onClick={() => toggleOnboardHabit(h)}
               disabled={full}
+              aria-pressed={isOn}
               style={{
                 padding: '10px 16px', borderRadius: 22, cursor: full ? 'default' : 'pointer',
                 border: `2px solid ${isOn ? dim.color : C.border}`,
@@ -3534,9 +3547,9 @@ function App() {
       <div style={{ width: 56, height: 56, borderRadius: '50%', border: `3px solid ${C.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
         <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.gold }} />
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px' }}>
         Empecemos por Adentro
-      </div>
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 26, maxWidth: 310, lineHeight: 1.6 }}>
         Es tu pantalla del día: tus hábitos, tu rutina, tu diario y tus rutas.
       </div>
@@ -3561,15 +3574,8 @@ function App() {
       <div style={{ fontSize: 14, color: C.subtle, marginTop: 20, maxWidth: 300, lineHeight: 1.6 }}>
         Afuera y Juntas te esperan abajo.
       </div>
-      <button onClick={finishOnboarding} style={{
-        padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 330, marginTop: 22,
-        background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
-        color: 'white', fontSize: 18, fontWeight: 800, border: 'none',
-        cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
-        boxShadow: '0 4px 16px rgba(20,24,51,0.35)',
-      }}>
-        Comenzar mi Ronda
-      </button>
+      {/* "Comenzar mi Ronda" va en la barra de abajo, junto a Atrás: así
+          siempre se ve y nada se le encima (bienvenida-2, bienvenida-7). */}
     </>),
   ]
 
@@ -3623,12 +3629,22 @@ function App() {
 
   /* ── Onboarding screen ── */
   if (!onboarded) {
+    const ultimoPaso = onboardStep === onboardSlides.length - 1
     return (
       <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: FONT }}>
         {onboardSlides[onboardStep]}
 
-        {/* Dots + Navigation */}
-        <div style={{ position: 'fixed', bottom: 40, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        {/* Dots + Navigation. Barra de ancho completo con fondo propio: lo que
+            pasa por debajo queda tapado en vez de encimarse con los puntos y
+            los botones, y ningún toque se pierde en algo que sí se ve
+            (bienvenida-1, bienvenida-2). El padding inferior de
+            onboardStepShell deja subir con scroll todo el contenido. */}
+        <div style={{
+          position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 10,
+          maxWidth: 600, margin: '0 auto', padding: '16px 16px 40px',
+          background: C.cream,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+        }}>
           {/* Dots */}
           <div role="img" aria-label={`Paso ${onboardStep + 1} de ${onboardSlides.length}`} style={{ display: 'flex', gap: 8 }}>
             {onboardSlides.map((_, i) => (
@@ -3640,29 +3656,30 @@ function App() {
             ))}
           </div>
 
-          {/* Buttons */}
-          {onboardStep < onboardSlides.length - 1 && (
-            <div style={{ display: 'flex', gap: 16 }}>
-              {onboardStep > 0 && (
-                <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
-                  padding: '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
-                  background: 'transparent', color: C.muted, fontSize: 19, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  Atrás
-                </button>
-              )}
-              <button onClick={() => setOnboardStep(onboardStep + 1)} style={{
-                padding: '12px 32px', borderRadius: 25, border: 'none',
-                background: `${C.teal}`,
-                color: 'white', fontSize: 19, fontWeight: 800,
-                cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 4px 12px rgba(20,24,51,0.3)',
+          {/* Buttons. En el último paso Siguiente pasa a ser "Comenzar mi
+              Ronda" y Atrás se queda, para corregir el nombre o los hábitos
+              antes de crearlos (bienvenida-7). Ahí los botones van más
+              compactos para caber lado a lado en un teléfono de 360px. */}
+          <div style={{ display: 'flex', gap: 16, maxWidth: '100%' }}>
+            {onboardStep > 0 && (
+              <button onClick={() => irAPasoOnboard(onboardStep - 1)} style={{
+                padding: ultimoPaso ? '12px 18px' : '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
+                background: C.card, color: C.muted, fontSize: 19, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
               }}>
-                Siguiente
+                Atrás
               </button>
-            </div>
-          )}
+            )}
+            <button onClick={ultimoPaso ? finishOnboarding : () => irAPasoOnboard(onboardStep + 1)} style={{
+              padding: ultimoPaso ? '12px 22px' : '12px 32px', borderRadius: 25, border: 'none',
+              background: ultimoPaso ? `linear-gradient(135deg, ${C.teal}, ${C.tealDark})` : `${C.teal}`,
+              color: 'white', fontSize: ultimoPaso ? 18 : 19, fontWeight: 800,
+              cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: '0 4px 12px rgba(20,24,51,0.3)',
+            }}>
+              {ultimoPaso ? 'Comenzar mi Ronda' : 'Siguiente'}
+            </button>
+          </div>
         </div>
       </div>
     )

@@ -166,19 +166,26 @@ export default function AuthScreen({
           {mode === 'signup' && (
             <input
               value={name} onChange={e => setName(e.target.value)}
-              placeholder="Tu nombre" style={inputStyle}
+              placeholder="Tu nombre" aria-label="Tu nombre"
+              id="auth-nombre" name="name" autoComplete="name"
+              style={inputStyle}
             />
           )}
           {mode !== 'nueva' && (
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="Email" style={inputStyle} required
+              placeholder="Email" aria-label="Email"
+              id="auth-email" name="email" autoComplete="email" inputMode="email"
+              style={inputStyle} required
             />
           )}
           {mode !== 'reset' && mode !== 'nueva' && (
             <input
               type="password" value={password} onChange={e => setPassword(e.target.value)}
-              placeholder="Contraseña" style={inputStyle} required minLength={6}
+              placeholder="Contraseña" aria-label="Contraseña"
+              id="auth-contrasena" name="password"
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+              style={inputStyle} required minLength={6}
             />
           )}
           {mode === 'nueva' && <>
