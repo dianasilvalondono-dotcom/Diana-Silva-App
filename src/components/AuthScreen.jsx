@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { C } from '../constants/colors'
 import { FONT } from '../constants/tokens'
 import Button from './ui/Button'
+import { Casilla, EnlacePolitica } from './Autorizaciones'
+import { autorizacionesParaRegistro, URL_AVISO } from '../lib/autorizaciones'
 
 /* Supabase responde en inglés ("Invalid login credentials"…). A la usuaria
    nunca le llega ese texto: se traduce por el código del error y, si no
@@ -56,12 +58,18 @@ export default function AuthScreen({
   const [password, setPassword] = useState('')
   const [password2, setPassword2] = useState('')
   const [name, setName] = useState('')
+  // Al crear la cuenta: las dos casillas obligatorias, sin marcar
+  // (textos-autorizacion-v1, a). Lo íntimo (la IA) se pregunta aparte,
+  // después, en «Lo íntimo es tuyo».
+  const [mayorDeEdad, setMayorDeEdad] = useState(false)
+  const [autorizaCuenta, setAutorizaCuenta] = useState(false)
   const [error, setError] = useState('')
   // Aviso que no es error: "te enviamos un correo…" (bienvenida-11).
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const cambiarModo = (m) => { setMode(m); setError(''); setNotice('') }
+  // Al volver a "Crear cuenta", las casillas empiezan sin marcar.
+  const cambiarModo = (m) => { setMode(m); setError(''); setNotice(''); setMayorDeEdad(false); setAutorizaCuenta(false) }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -72,7 +80,9 @@ export default function AuthScreen({
     try {
       if (mode === 'signup') {
         if (!name.trim()) { setError('Ingresa tu nombre'); setLoading(false); return }
-        const result = await onSignUp(email, password, name)
+        if (!mayorDeEdad) { setError('Ronda es solo para mayores de 18 años.'); setLoading(false); return }
+        if (!autorizaCuenta) { setError('Para crear tu cuenta necesitamos tu autorización para tratar tus datos de cuenta.'); setLoading(false); return }
+        const result = await onSignUp(email, password, name, autorizacionesParaRegistro())
         if (result.error) setError(mensajeAuth(result.error, 'signup'))
         else if (!result.data?.session) {
           // Sin sesión: Supabase pide confirmar el correo. Si identities
@@ -188,6 +198,22 @@ export default function AuthScreen({
               style={inputStyle} required minLength={6}
             />
           )}
+          {mode === 'signup' && (
+            <div style={{ margin: '4px 0 12px' }}>
+              <Casilla id="auth-edad" marcada={mayorDeEdad} invalida={!!error && !mayorDeEdad}
+                onCambiar={v => { setMayorDeEdad(v); setError('') }}>
+                <strong>Tengo 18 años o más.</strong>
+              </Casilla>
+              <Casilla id="auth-autorizo" marcada={autorizaCuenta} invalida={!!error && mayorDeEdad && !autorizaCuenta}
+                onCambiar={v => { setAutorizaCuenta(v); setError('') }}>
+                <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, lo que hago en Afuera y cómo uso la app) para crear mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
+              </Casilla>
+              <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.55, marginTop: 6 }}>
+                <em>Ronda no vende tus datos ni los comparte con terceros para publicidad. Lo íntimo te lo preguntamos aparte y es opcional.</em>{' '}
+                <EnlacePolitica href={URL_AVISO}>Aviso de privacidad</EnlacePolitica>
+              </div>
+            </div>
+          )}
           {mode === 'nueva' && <>
             <input
               type="password" value={password} onChange={e => setPassword(e.target.value)}
@@ -219,8 +245,15 @@ export default function AuthScreen({
             </div>
           )}
 
+          {/* Al crear la cuenta, el botón se ve activo solo con las dos
+              casillas marcadas. No se apaga del todo: si lo toca (o envía con
+              Enter) sin ellas, el mensaje dice qué falta. */}
           <Button type="submit" variant="primary" size="lg" loading={loading}
-            style={{ width: '100%', marginBottom: 16 }}>
+            aria-disabled={(mode === 'signup' && !(mayorDeEdad && autorizaCuenta)) || undefined}
+            style={{
+              width: '100%', marginBottom: 16,
+              ...(mode === 'signup' && !(mayorDeEdad && autorizaCuenta) ? { background: C.border, color: C.muted, boxShadow: 'none' } : {}),
+            }}>
             {BOTON[mode]}
           </Button>
         </form>

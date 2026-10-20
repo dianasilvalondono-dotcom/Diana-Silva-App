@@ -28,6 +28,12 @@ import { useOneSignal } from './lib/useOneSignal'
 import { useSpeech } from './lib/useSpeech'
 import { useDialog } from './lib/useDialog'
 import AuthScreen from './components/AuthScreen'
+import { PantallaAutorizacion, TarjetaIA, TusAutorizaciones, EnlacePolitica } from './components/Autorizaciones'
+import {
+  leerAutorizaciones, guardarAutorizaciones, cuentaAutorizada as cuentaAutorizadaEn, iaAutorizada as iaAutorizadaEn,
+  iaRespondida, registrar as registrarAutorizaciones, adoptar as adoptarAutorizaciones, leerAutorizacionesNube,
+  subirAutorizaciones, quitarPendientes,
+} from './lib/autorizaciones'
 import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL } from './lib/database'
 import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
 import { esAdmin, rondaPlusVigente } from './utils/plan'
@@ -244,6 +250,10 @@ function juntarTexto(a, b) {
   return /\s$/.test(a) ? a + b : `${a} ${b}`
 }
 
+/* ¿Lo de este teléfono es de otra cuenta? Sin almacenamiento no hay dueña
+   guardada: entonces no es de otra (ver asegurarDuenaLocal). */
+const datosDeOtraCuenta = (id) => guardadoEstaBloqueado() || (!!duenaLocal() && duenaLocal() !== id)
+
 /* ═══════════════════════════════════════════ */
 /*                   APP                       */
 /* ═══════════════════════════════════════════ */
@@ -279,6 +289,18 @@ function App() {
   // Admin check — Diana sees everything, others see paywall
   // (La misma regla del servidor: src/utils/plan.js.)
   const isAdmin = !!user && esAdmin(user.email)
+
+  // ─── Autorizaciones de datos (src/lib/autorizaciones.js) ───
+  // Sin la de cuenta (y la de edad) sale el aviso único; sin responder lo
+  // de la IA, «Lo íntimo es tuyo». Sin la de la IA, nada se envía a la IA.
+  const [autorizaciones, setAutorizaciones] = useState(leerAutorizaciones)
+  useEffect(() => { guardarAutorizaciones(autorizaciones) }, [autorizaciones])
+  const cuentaAutorizada = cuentaAutorizadaEn(autorizaciones)
+  const iaOk = iaAutorizadaEn(autorizaciones)
+  // De qué cuenta ya se revisó la nube (otro teléfono) y el registro.
+  const [autorizacionesDe, setAutorizacionesDe] = useState(null)
+  // En la Comunidad, la tarjeta que pide la autorización de la IA.
+  const [pidiendoIA, setPidiendoIA] = useState(false)
 
   // Premium status from Supabase (founding members + paid subscribers)
   const [premiumStatus, setPremiumStatus] = useState({ is_premium: false, premium_until: null, premium_source: null })
@@ -697,7 +719,6 @@ function App() {
         signOut()
         return
       }
-      syncFromLocal(userId)
       if (authName) {
         // El nombre de la cuenta solo llena un perfil sin nombre: el que ella
         // escribe en la bienvenida o en su perfil manda (perfil-2).
@@ -709,6 +730,64 @@ function App() {
       }
     }
   }, [userId, authName, isConfigured, signOut])
+
+  // La migración a la nube, solo con la autorización de cuenta (y nunca el
+  // diario: ver syncFromLocal).
+  useEffect(() => {
+    if (!userId || !isConfigured || !cuentaAutorizada || datosDeOtraCuenta(userId)) return
+    syncFromLocal(userId)
+  }, [userId, isConfigured, cuentaAutorizada])
+
+  // ── Autorizaciones al entrar ──
+  // Lo que falta en este teléfono se completa con la nube (si respondió en
+  // otro) o con lo que marcó al crear la cuenta (metadatos). Mientras tanto,
+  // si falta algo, la app espera en "Cargando..." (revisandoAutorizaciones).
+  const registroAutorizaciones = user?.user_metadata?.autorizaciones
+  const firmaRegistro = registroAutorizaciones && typeof registroAutorizaciones === 'object' ? JSON.stringify(registroAutorizaciones) : ''
+  useEffect(() => {
+    if (!userId || !isConfigured || datosDeOtraCuenta(userId)) return
+    let cancelado = false
+    leerAutorizacionesNube(userId).then(nube => {
+      if (cancelado || datosDeOtraCuenta(userId)) return
+      const metadatos = firmaRegistro ? { autorizaciones: JSON.parse(firmaRegistro) } : null
+      setAutorizaciones(prev => adoptarAutorizaciones(prev, { nube, metadatos }))
+      setAutorizacionesDe(userId)
+    })
+    return () => { cancelado = true }
+  }, [userId, isConfigured, firmaRegistro])
+
+  // Lo que no se ha subido (sin red, o antes de que existiera la tabla) se
+  // sube en cuanto se puede. Cada fila lleva su id: reintentar no duplica.
+  const subiendoAutorizacionesRef = useRef(false)
+  useEffect(() => {
+    if (!userId || !isConfigured || autorizacionesDe !== userId) return
+    if (!autorizaciones?.pendientes?.length || subiendoAutorizacionesRef.current) return
+    subiendoAutorizacionesRef.current = true
+    subirAutorizaciones(userId, autorizaciones).then(ids => {
+      subiendoAutorizacionesRef.current = false
+      if (ids.length && !datosDeOtraCuenta(userId)) setAutorizaciones(prev => quitarPendientes(prev, ids))
+    })
+  }, [userId, isConfigured, autorizacionesDe, autorizaciones])
+
+  const responderAutorizacion = (respuestas, canal) => {
+    const siguiente = registrarAutorizaciones(autorizaciones, respuestas, canal)
+    setAutorizaciones(siguiente)
+    // Sin contenido: solo dónde respondió y si usa la IA.
+    track('autorizacion_respondida', { canal, ia: siguiente.ia?.valor === true })
+    return siguiente
+  }
+  // Perfil → Tus autorizaciones. true si quedó también en la nube; en este
+  // teléfono queda siempre, y sin la autorización la IA se cierra ya.
+  const cambiarAutorizacionIA = async (valor) => {
+    if (!valor) stopSpeech()
+    const siguiente = responderAutorizacion({ ia: valor }, 'perfil')
+    if (!isConfigured || !userId) return true
+    subiendoAutorizacionesRef.current = true
+    const ids = await subirAutorizaciones(userId, siguiente)
+    subiendoAutorizacionesRef.current = false
+    if (ids.length) setAutorizaciones(prev => quitarPendientes(prev, ids))
+    return ids.length > 0
+  }
 
   // ── Toolkit en la nube (toolkit-19) ──
   // Al entrar se trae el de la nube y se une con el local. Solo después de
@@ -734,7 +813,7 @@ function App() {
     return () => { cancelado = true }
   }, [userId, isConfigured])
   useEffect(() => {
-    if (!userId || !isConfigured || toolkitDe !== userId) return
+    if (!userId || !isConfigured || toolkitDe !== userId || !cuentaAutorizada) return
     const lista = toolkitItems
     const t = setTimeout(() => {
       if (!toolkitHidratadoRef.current || guardadoEstaBloqueado() || duenaLocal() !== userId) return
@@ -746,7 +825,7 @@ function App() {
         .then(ok => { if (ok) toolkitNubeRef.current = firma })
     }, 1500)
     return () => clearTimeout(t)
-  }, [toolkitItems, userId, isConfigured, toolkitDe])
+  }, [toolkitItems, userId, isConfigured, toolkitDe, cuentaAutorizada])
 
   // Stats
   const dimStats = useMemo(() => {
@@ -1359,6 +1438,7 @@ function App() {
     setSubTab(sub)
     limpiarTelon()
     setFoundingToast(null)
+    setPidiendoIA(false)
     track('module_viewed', { module: destino, sub: sub || null })
   }
   // Cambia de subpestaña dentro de la misma sección.
@@ -1368,6 +1448,7 @@ function App() {
     setSubTab(id)
     limpiarTelon()
     setFoundingToast(null)
+    setPidiendoIA(false)
   }
 
   const abrirAyuda = (desde = 'encabezado') => {
@@ -1390,14 +1471,23 @@ function App() {
   /* ── Diálogos: foco adentro, Tab atrapado, Escape cierra y el foco vuelve.
      Mientras hay uno abierto, el encabezado, el contenido y el menú quedan
      inertes (ni el teclado ni el lector de pantalla llegan ahí). ── */
-  const pantallaPrincipal = !authLoading && !(isConfigured && !user) && !(isConfigured && recovering) && onboarded
+  // Antes de cualquier otra pantalla (también de la bienvenida): el aviso
+  // único si falta la autorización de cuenta, o «Lo íntimo es tuyo» si falta
+  // responder lo de la IA. Si falta algo y la nube aún no responde, se espera.
+  const revisandoAutorizaciones = isConfigured && !!user && (!cuentaAutorizada || !iaRespondida(autorizaciones)) && autorizacionesDe !== user.id
+  const pideAutorizacion = (!isConfigured || !!user) && !revisandoAutorizaciones
+    ? (!cuentaAutorizada ? 'aviso' : !iaRespondida(autorizaciones) ? 'intimo' : null)
+    : null
+  const pantallaBase = !authLoading && !(isConfigured && !user) && !(isConfigured && recovering)
+  const pantallaAutorizacion = pantallaBase && !!pideAutorizacion
+  const pantallaPrincipal = pantallaBase && onboarded && !pideAutorizacion
   const panicRef = useRef(null)
   const morningRef = useRef(null)
   const nightRef = useRef(null)
   const appModalRef = useRef(null)
   // Si lo que abrió la Ayuda ya no está (un check-in que se cerró, una
   // sección que se cambió), el foco vuelve al botón "Ayuda" del encabezado.
-  useDialog(panicRef, showPanic && pantallaPrincipal, cerrarAyuda,
+  useDialog(panicRef, showPanic && (pantallaPrincipal || pantallaAutorizacion), cerrarAyuda,
     (previo) => (previo && previo.isConnected && previo !== document.body ? previo : document.getElementById('boton-ayuda')))
   useDialog(morningRef, showMorningCheckin && pantallaPrincipal, posponerCheckin)
   useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
@@ -1609,7 +1699,9 @@ function App() {
     }
     irASubTab(id)
     // Después de navegar: irASubTab quita el aviso de la pantalla anterior.
-    if (id === 'ai' && isPremium) showFoundingPerk('chat', 'Tu Ronda · IA personal')
+    // Sin la autorización de la IA se ve la tarjeta, no el chat: el aviso
+    // de fundadora espera a que lo pueda ver.
+    if (id === 'ai' && isPremium && iaOk) showFoundingPerk('chat', 'Tu Ronda · IA personal')
     track('module_viewed', { module: 'ahora', sub: id })
   }
 
@@ -1693,7 +1785,7 @@ function App() {
 
       <nav aria-label="Tus herramientas" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
         {ACCESOS.map(a => (
-          <button key={a.id} onClick={() => abrirAcceso(a.id)} style={{
+          <button key={a.id} data-acceso={a.id} onClick={() => abrirAcceso(a.id)} style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 4px',
             background: C.card, border: '1px solid rgba(20,24,51,0.08)', borderRadius: 16,
             cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: C.navy,
@@ -2922,6 +3014,14 @@ function App() {
       return
     }
 
+    // Sin la autorización de la IA no se envía nada: la publicación queda
+    // como estaba y arriba aparece la tarjeta que la pide.
+    if (!iaOk) {
+      actualizar({ awaitingGuia: false })
+      pedirIAComunidad()
+      return
+    }
+
     actualizar({ awaitingGuia: true, guiaFallo: false })
     // Pausa breve (se siente considerada), en paralelo con la petición: la
     // respuesta se guarda en cuanto termina, sin un setTimeout suelto después.
@@ -2955,6 +3055,13 @@ function App() {
     }
   }
 
+  // La tarjeta de la autorización de la IA, en la misma pantalla, donde
+  // va el botón para escribir (textos-autorizacion-v1, c).
+  const pedirIAComunidad = () => {
+    setPidiendoIA(true)
+    requestAnimationFrame(() => document.getElementById('ia-comunidad')?.scrollIntoView({ block: 'nearest' }))
+  }
+
   const avisoPagoComunidad = () => {
     track('paywall_viewed', { feature: 'comunidad_escribir', price: PLAN_PRECIO })
     setAppModal({
@@ -2977,6 +3084,13 @@ function App() {
     if (!isPremium) {
       if (isCrisis(boardNewText)) abrirAyuda('crisis_comunidad')
       else avisoPagoComunidad()
+      return
+    }
+    // Lo mismo sin la autorización de la IA (la Guía IA lee lo que publica):
+    // la crisis abre Ayuda aquí mismo; si no, la tarjeta. Lo escrito se queda.
+    if (!iaOk) {
+      if (isCrisis(boardNewText)) abrirAyuda('crisis_comunidad')
+      else pedirIAComunidad()
       return
     }
     showFoundingPerk('board', 'Comunidad y Guía IA de Ronda')
@@ -3076,9 +3190,22 @@ function App() {
         ))}
       </div>
 
-      {/* New post button */}
-      {!boardShowForm ? (
-        <button id="board-nueva" onClick={() => { setBoardShowForm(true); enfocarDespues('board-texto', { centrar: true }) }} style={{
+      {/* New post button. Con Ronda+ y sin la autorización de la IA, en su
+          lugar va la tarjeta que la pide (la Guía IA lee lo que publica). */}
+      {pidiendoIA ? (
+        <TarjetaIA idBase="ia-comunidad"
+          onAutorizar={() => {
+            responderAutorizacion({ ia: true }, 'al-usar')
+            setPidiendoIA(false)
+            setBoardShowForm(true)
+            enfocarDespues('board-texto', { centrar: true })
+          }}
+          onAhoraNo={() => { setPidiendoIA(false); enfocarDespues(boardShowForm ? 'board-texto' : 'board-nueva') }} />
+      ) : !boardShowForm ? (
+        <button id="board-nueva" onClick={() => {
+          if (isPremium && !iaOk) { pedirIAComunidad(); return }
+          setBoardShowForm(true); enfocarDespues('board-texto', { centrar: true })
+        }} style={{
           padding: '14px 18px', borderRadius: 16, border: `2px dashed ${C.roseLight}`,
           background: C.card, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
         }}>
@@ -3399,6 +3526,8 @@ function App() {
       abrirAyuda('crisis_programa')
       return
     }
+    // Sin la autorización de la IA no se envía nada (Pregúntale muestra la tarjeta).
+    if (!iaOk) return
     setAiCrisis(false)
     setAiStep(3)
     setAiError('')
@@ -3446,7 +3575,8 @@ function App() {
 
   const sendChatMessage = async () => {
     const msg = chatInput.trim()
-    if (!msg || chatLoading) return
+    // Sin la autorización de la IA no se envía nada (Pregúntale muestra la tarjeta).
+    if (!msg || chatLoading || !iaOk) return
     const userMsg = { role: 'user', text: msg }
     setChatMessages(prev => [...prev, userMsg])
     setChatInput('')
@@ -3594,7 +3724,7 @@ function App() {
   // La conversación baja al final solo cuando llega un mensaje, aparece o se
   // va el "escribiendo…" o se abre el chat. Escuchar o escribir no mueven la lectura.
   const chatRef = useRef(null)
-  const chatAbierto = view === 'ahora' && subTab === 'ai' && isPremium && chatMode === 'chat'
+  const chatAbierto = view === 'ahora' && subTab === 'ai' && isPremium && iaOk && chatMode === 'chat'
   // Con solo el saludo, se ve desde su primera línea (con el aviso de
   // fundadora abierto el espacio no alcanza para todo el saludo).
   useEffect(() => {
@@ -4149,6 +4279,9 @@ function App() {
         </div>
       </div>
 
+      {/* Tus datos y privacidad: autorizaciones, política y a quién escribir */}
+      <TusAutorizaciones autorizaciones={autorizaciones} onCambiarIA={cambiarAutorizacionIA} />
+
       {/* Lo que Ronda sabe de ti (memoria de Tu Ronda) */}
       {(memory.facts?.length > 0 || memory.patterns?.length > 0 || memory.summary) && (
         <div style={{ background: C.card, borderRadius: 18, padding: 22, border: `1px solid ${C.border}` }}>
@@ -4427,7 +4560,7 @@ function App() {
   // También mientras los datos de este dispositivo son de otra cuenta: no se
   // muestra nada de ella mientras se apartan y la app se recarga (perfil-1).
   const cuentaAjena = isConfigured && !!user && (guardadoEstaBloqueado() || (!!duenaLocal() && duenaLocal() !== user.id))
-  if (authLoading || cuentaAjena) {
+  if (authLoading || cuentaAjena || revisandoAutorizaciones) {
     return (
       <div style={{
         maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
@@ -4471,8 +4604,8 @@ function App() {
     )
   }
 
-  /* ── Onboarding screen ── */
-  if (!onboarded) {
+  /* ── Onboarding screen ── (después de las autorizaciones, más abajo) */
+  if (!onboarded && !pideAutorizacion) {
     const ultimoPaso = onboardStep === onboardSlides.length - 1
     return (
       <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: FONT }}>
@@ -5095,6 +5228,25 @@ function App() {
     </div>
   )
 
+  /* ── Autorizaciones: el aviso único o «Lo íntimo es tuyo» ──
+     Antes de la bienvenida y de todo lo demás, y sin cerrarse hasta que
+     responda. Ayuda queda arriba y abre encima, como en toda la app. */
+  if (pideAutorizacion) {
+    return (
+      <>
+        <PantallaAutorizacion
+          key={pideAutorizacion}
+          modo={pideAutorizacion}
+          inerte={showPanic}
+          onAyuda={() => abrirAyuda('autorizacion')}
+          onResponder={(respuestas) => responderAutorizacion(respuestas, pideAutorizacion === 'aviso' ? 'aviso-unico' : 'registro')}
+          onCerrarSesion={isConfigured && user ? signOut : null}
+        />
+        {panicModal}
+      </>
+    )
+  }
+
   /* ── Render: telón morado arriba, hoja clara redondeada con el contenido ── */
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.morado, fontFamily: FONT }}>
@@ -5120,7 +5272,18 @@ function App() {
           {subTab === 'diario' && diarioView}
           {subTab === 'toolkit' && toolkitView}
           {subTab === 'programas' && programasView}
-          {subTab === 'ai' && (isPremium ? aiAgentView : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
+          {subTab === 'ai' && (isPremium ? (iaOk ? aiAgentView : (
+            <TarjetaIA idBase="ia-tu-ronda"
+              onAutorizar={() => {
+                responderAutorizacion({ ia: true }, 'al-usar')
+                // La tarjeta se va: el foco pasa al modo activo de Tu Ronda.
+                requestAnimationFrame(() => document.querySelector('[aria-label="Modo de Tu Ronda"] [aria-pressed="true"]')?.focus({ preventScroll: true }))
+              }}
+              onAhoraNo={() => {
+                irASubTab('')
+                requestAnimationFrame(() => document.querySelector('[data-acceso="ai"]')?.focus({ preventScroll: true }))
+              }} />
+          )) : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
         </>}
 
         {view === 'juntas' && <>
@@ -5150,6 +5313,9 @@ function App() {
 
         <p style={{ margin: '32px 0 0', fontSize: 12, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
           Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional. Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
+        </p>
+        <p style={{ margin: '8px 0 0', fontSize: 13, textAlign: 'center' }}>
+          <EnlacePolitica style={{ display: 'inline-block', padding: '8px 0', fontWeight: 600 }}>Cómo cuidamos tus datos</EnlacePolitica>
         </p>
       </main>
       {panicModal}

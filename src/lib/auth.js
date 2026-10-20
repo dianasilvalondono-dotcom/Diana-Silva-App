@@ -15,13 +15,16 @@ export async function signInWithEmail(email, password) {
   return { data, error }
 }
 
-export async function signUp(email, password, name) {
+// extra: más metadatos de la cuenta. Hoy, lo que marcó en las casillas del
+// registro (autorizacionesParaRegistro, src/lib/autorizaciones.js): todavía
+// no hay id para guardarlo en otra parte y se adopta al entrar.
+export async function signUp(email, password, name, extra = {}) {
   if (!supabase) return { error: 'Supabase not configured' }
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     // El enlace del correo de confirmación vuelve a la app (bienvenida-11).
-    options: { data: { name }, emailRedirectTo: window.location.origin },
+    options: { data: { ...extra, name }, emailRedirectTo: window.location.origin },
   })
   return { data, error }
 }

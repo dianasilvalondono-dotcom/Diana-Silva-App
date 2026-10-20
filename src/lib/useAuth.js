@@ -36,7 +36,7 @@ export function useAuth() {
     isConfigured: !!supabase,
     signInWithGoogle,
     signInWithEmail: (email, pw) => signInWithEmail(email, pw),
-    signUp: (email, pw, name) => authSignUp(email, pw, name),
+    signUp: (email, pw, name, extra) => authSignUp(email, pw, name, extra),
     signOut: authSignOut,
     resetPassword,
     updatePassword,
