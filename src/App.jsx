@@ -28,7 +28,7 @@ import { useSpeech } from './lib/useSpeech'
 import { useDialog } from './lib/useDialog'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile } from './lib/database'
-import { isCrisis, CRISIS_TEXT } from './utils/crisis'
+import { isCrisis, CRISIS_TEXT, BOTON_AYUDA } from './utils/crisis'
 
 // Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
 const BOARD_MAX = 2000
@@ -1052,7 +1052,7 @@ function App() {
           <button onClick={() => abrirAyuda('encabezado')} style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: '12px 10px',
             color: C.orquidea, fontSize: 15, fontWeight: 600, letterSpacing: '0.04em', fontFamily: 'inherit',
-          }}>Ayuda</button>
+          }}>{BOTON_AYUDA}</button>
           <button onClick={() => openModule('perfil')} aria-label="Mi perfil" style={{
             width: 44, height: 44, border: 'none', background: 'none', padding: 0, cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -2711,7 +2711,7 @@ function App() {
                     marginTop: 8, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
                     background: C.lavanda, color: 'white',
                     fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
-                  }}>Activar herramientas SOS</button>
+                  }}>Abrir {BOTON_AYUDA}</button>
                 )}
               </div>
             </div>

@@ -10,7 +10,7 @@
 
 // Patrones y respuesta de crisis: compartidos con la app (la app también
 // detecta crisis antes de llamar aquí, para abrir Ayuda aunque esto falle).
-import { isCrisis, CRISIS_TEXT } from '../src/utils/crisis.js'
+import { isCrisis, CRISIS_TEXT, BOTON_AYUDA } from '../src/utils/crisis.js'
 
 const GUIA_IA = { name: 'Emilia', title: 'Guía IA de Ronda' }
 
@@ -66,7 +66,7 @@ NUNCA:
 
 SI APARECE ALGO GRAVE (ideación suicida, autolesión, abuso, violencia, peligro):
 - No intentes resolverlo tú. Valida con calma, sin amplificar el pánico.
-- Dirige a ayuda real YA: el botón "¿Necesitas apoyo?" de la app y la Línea 106 (Colombia). Si hay peligro inmediato, el 123.
+- Dirige a ayuda real YA: el botón "${BOTON_AYUDA}" (arriba a la derecha de la app) y la Línea 106 (Colombia). Si hay peligro inmediato, el 123.
 
 FORMATO:
 - 4 a 7 oraciones. Cálido y claro.
