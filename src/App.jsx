@@ -2085,16 +2085,16 @@ function App() {
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
       replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Muchas lo hemos sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estamos. 💛' }] },
+        text: 'Muchas mujeres lo han sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estoy contigo. 💛' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
       replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, perdemos no solo a la persona sino a la versión de nosotras que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
+        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, no solo se pierde a la persona, también la versión de ti que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
       replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
         text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
       replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Los patrones de relación se forman temprano — nuestro cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar.' }] },
+        text: 'Los patrones de relación se forman temprano — el cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar.' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
       replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
         text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
@@ -2180,12 +2180,12 @@ function App() {
       setAppModal({
         type: 'paywall',
         title: 'Escribir en la comunidad es premium',
-        body: `Publica preguntas anónimas y recibe respuestas de nuestras Guías Ronda verificadas. Disponible con ${PLAN_PAGO}.`,
+        body: `Publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda. Disponible con ${PLAN_PAGO}.`,
         cta: 'Ver planes',
       })
       return
     }
-    showFoundingPerk('board', 'Comunidad y Guías Ronda')
+    showFoundingPerk('board', 'Comunidad y Guía IA de Ronda')
     const createdAt = Date.now()
     const newPost = {
       id: `u${createdAt}`,
@@ -2477,7 +2477,7 @@ function App() {
           Estamos armando un directorio de profesionales verificadas para ti.
         </div>
         <div style={{ fontSize: 15, color: C.teal, fontWeight: 600, marginTop: 16 }}>
-          Mientras tanto, pregunta lo que quieras en la Comunidad — nuestras Guías Ronda te responden.
+          Mientras tanto, pregunta lo que quieras en la Comunidad — te responde la Guía IA de Ronda.
         </div>
       </div>
 
@@ -3802,7 +3802,10 @@ function App() {
             border: '1px solid rgba(114,109,45,0.4)', cursor: 'pointer', textAlign: 'center',
           }}>
             <div style={{ fontSize: 19, fontWeight: 700, color: '#E3E5D3' }}>💬 Ir a la Comunidad</div>
-            <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 4 }}>Pregunta lo que necesites. Guías Ronda verificadas te acompañan.</div>
+            <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 4 }}>
+              {/* Sin premium no se puede publicar: no prometer que puede preguntar. */}
+              {isPremium ? 'Pregunta lo que necesites. Te responde la Guía IA de Ronda.' : 'Lee cómo acompaña la Guía IA de Ronda. Es anónimo.'}
+            </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4, fontStyle: 'italic' }}>Contenido educativo. No reemplaza atención en crisis.</div>
           </button>
         </>}
