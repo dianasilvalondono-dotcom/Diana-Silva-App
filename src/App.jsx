@@ -4142,7 +4142,7 @@ function App() {
             Aceptación Radical
           </div>
           <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
-            No significa que apruebas lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
+            No significa que apruebes lo que pasa.<br/>Significa que dejas de luchar contra la realidad.
           </div>
 
           {[
