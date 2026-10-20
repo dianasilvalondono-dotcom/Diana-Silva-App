@@ -20,6 +20,13 @@ const GUIA_IA = { name: 'Emilia', title: 'Guía IA de Ronda' }
 // misma identidad de IA.
 const FALLBACK_TEXT = 'Lo que estás sintiendo tiene todo el sentido, y muchas mujeres lo viven sin atreverse a decirlo. Reconocerlo y escribirlo aquí ya es un paso. Una cosa pequeña que ayuda es ponerle nombre a lo que sientes en el cuerpo (¿pecho apretado? ¿estómago cerrado?) y respirar profundo hacia ese lugar — tu sistema nervioso necesita sentirse acompañado para soltar. Si esto sigue por más de dos semanas o se intensifica, busca acompañamiento con un profesional de salud mental. Aquí estoy contigo 💛'
 
+// Cuando el modelo rechaza responder (sin la marca [CRISIS]): en la Comunidad
+// un rechazo suele venir de un texto de alto riesgo. Ni el texto de respaldo
+// (que da una herramienta y habla de "dos semanas") ni un error, sino la
+// salida a Ayuda y a las líneas, y la respuesta va marcada crisis (la app abre
+// Ayuda), como en Tu Ronda (RESPUESTA_RECHAZO en api/agent.js).
+const RECHAZO_TEXT = `Esta vez no logré responderte, y no quiero dejarte sin nada. Si esto pesa ahora mismo, toca "${BOTON_AYUDA}", arriba a la derecha de la app, para herramientas inmediatas, o llama a la Línea 106 (salud mental, gratuita y confidencial en Colombia). Si estás en peligro inmediato, llama al 123. Aquí estoy contigo 💛`
+
 // Categorías del Board (las mismas de BOARD_CATS en src/App.jsx, sin 'todas').
 const CATEGORIAS = ['ansiedad', 'relaciones', 'autoestima', 'maternidad', 'duelo', 'emprendimiento', 'general']
 // Largo máximo de una publicación (el mismo BOARD_MAX de src/App.jsx).
@@ -133,8 +140,9 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta (
       // isCrisis. La etiqueta nunca se muestra.
       const marcaCrisis = /\[CRISIS\]/i.test(crudo)
       const text = crudo.replace(/\[CRISIS\]/gi, '').replace(/[ \t]{2,}/g, ' ').trim()
-      // Sin texto, rechazada o cortada a medias: la respuesta de respaldo.
-      const usable = text && data.stop_reason !== 'refusal' && data.stop_reason !== 'max_tokens'
+      const rechazada = data.stop_reason === 'refusal'
+      // Sin texto, rechazada o cortada a medias: no se muestra lo del modelo.
+      const usable = text && !rechazada && data.stop_reason !== 'max_tokens'
 
       // Con la marca, lo mismo que el chequeo de antes del modelo: crisis
       // (la app abre Ayuda). Si su texto no sirve o no nombra la Línea 106,
@@ -145,6 +153,18 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta (
           reply: {
             pro: { name: GUIA_IA.name, title: GUIA_IA.title, verified: false, ai: true },
             text: usable && /\b106\b/.test(text) ? text : CRISIS_TEXT,
+          },
+        })
+      }
+
+      // Rechazada sin la marca (con texto o sin él): la salida a Ayuda, la
+      // Línea 106 y el 123, marcada crisis. Nunca el texto de respaldo.
+      if (rechazada) {
+        return res.status(200).json({
+          crisis: true,
+          reply: {
+            pro: { name: GUIA_IA.name, title: GUIA_IA.title, verified: false, ai: true },
+            text: RECHAZO_TEXT,
           },
         })
       }
