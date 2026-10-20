@@ -9,6 +9,16 @@ const MAX_TURNO = 4000
 // las del Board (BOARD_CATS en src/App.jsx y api/guia.js, sin 'todas').
 const CATEGORIAS_COMUNIDAD = ['ansiedad', 'relaciones', 'autoestima', 'maternidad', 'duelo', 'emprendimiento', 'general']
 
+// Cuando el modelo rechaza responder (sin la marca [CRISIS]): ni la respuesta
+// por palabras clave (que puede ser alegre o sugerir un programa) ni un
+// error, sino la salida a Ayuda y a las líneas, con el botón de Ayuda.
+const RESPUESTA_RECHAZO = {
+  reply: `Esta vez no logré responderte, y no quiero dejarte sin nada. Si esto pesa ahora mismo, toca "${BOTON_AYUDA}" para herramientas inmediatas o llama a la Línea 106 (gratuita y confidencial). Si estás en peligro inmediato, llama al 123. Y si quieres, cuéntame un poco más.`,
+  connect: null,
+  sos: true,
+  memoryUpdate: null,
+}
+
 /* El historial que manda la app, listo para la Messages API: solo turnos de
    'user' o 'assistant' con texto, los consecutivos del mismo rol unidos y sin
    turnos de la asistente al inicio (el primer mensaje tiene que ser de la
@@ -174,16 +184,18 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
         .map(b => b.text)
         .join('')
         .trim()
-      // Sin texto o rechazada: la respuesta de respaldo, nunca un error.
-      if (!rawText || data.stop_reason === 'refusal') {
-        return res.status(200).json(respuestaDeRespaldo(message))
-      }
       // Cortada por el tope de tokens: lo que venga como JSON quedó a medias.
       const cortada = data.stop_reason === 'max_tokens'
+      const rechazada = data.stop_reason === 'refusal'
       // [CRISIS]: el modelo vio una señal de riesgo que se le escapó a
       // isCrisis. Se busca en todo el texto, también si quedó después del
-      // bloque de memoria.
+      // bloque de memoria, y antes de mirar si rechazó: con la marca, la
+      // respuesta es la de crisis aunque el modelo haya rechazado.
       const marcaCrisis = /\[CRISIS\]/i.test(rawText)
+      // Rechazada sin la marca: la salida a Ayuda, nunca un error.
+      if (rechazada && !marcaCrisis) return res.status(200).json(RESPUESTA_RECHAZO)
+      // Sin texto: la respuesta de respaldo, nunca un error.
+      if (!rawText) return res.status(200).json(respuestaDeRespaldo(message))
 
       // ── Separate reply from memory block ──
       let replyText = rawText
@@ -241,10 +253,10 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
 
       // Con la marca de crisis, lo mismo que el chequeo de antes del modelo:
       // sos y crisis (la app abre Ayuda), sin programa, sin Comunidad y sin
-      // memoria. Si su texto no nombra la Línea 106 o quedó cortado, va la
-      // respuesta fija de crisis.
+      // memoria. Si su texto no nombra la Línea 106, quedó cortado o el modelo
+      // rechazó, va la respuesta fija de crisis.
       if (marcaCrisis) {
-        const texto = !cortada && /\b106\b/.test(reply) ? reply : CRISIS_TEXT_CHAT
+        const texto = !cortada && !rechazada && /\b106\b/.test(reply) ? reply : CRISIS_TEXT_CHAT
         return res.status(200).json({ reply: texto, sos: true, crisis: true, connect: null, memoryUpdate: null })
       }
 
