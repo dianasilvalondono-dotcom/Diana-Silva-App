@@ -16,6 +16,7 @@ import { load, save } from '../../utils/helpers'
 import { getPlanes, getReservas, getReservasLocales, reservarCupo, liberarCupo, enviarReporte } from '../../lib/curaduria'
 import { track } from '../../lib/analytics'
 import LineaCrisis from '../ui/LineaCrisis'
+import { EnlacePolitica } from '../Autorizaciones'
 
 const salaLabel = (id) => SALAS.find(s => s.id === id)?.label || id
 
@@ -132,7 +133,7 @@ function Etiquetas({ plan }) {
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       <span style={pillStyle('rosaFuerte')}>{ACCESO[plan.acceso]}</span>
-      <span style={pillStyle('verde')}>✓ Anfitriona verificada · nivel {plan.verificacion}</span>
+      <span style={pillStyle('verde')}>✓ Organizadora verificada · nivel {plan.verificacion}</span>
       {plan.modalidad === 'en-linea' && <span style={pillStyle('agua')}>{MODALIDAD['en-linea']}</span>}
       {plan.ejemplo && (
         <span style={{ ...pillStyle('agua'), background: 'transparent', border: `1px solid ${C.border}`, color: C.muted }}>Ejemplo</span>
@@ -370,7 +371,7 @@ function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, on
           display: 'block', margin: '10px auto 0', padding: 12, background: 'none', border: 'none',
           cursor: 'pointer', fontSize: 15, fontWeight: 500, color: C.morado, fontFamily: 'inherit',
         }}>
-          Contarle algo a la curadora
+          Cuéntanos algo sobre este plan
         </button>
       </section>
     </div>
@@ -529,7 +530,7 @@ export default function RondasView({ user, onIrAdentro }) {
     } else if (res.motivo === 'ejemplo') {
       // Un plan de ejemplo no se aparta ni queda marcado (rondas-19).
       track('plan_reservado', { ciudad: plan.ciudad, ejemplo: true })
-      setAviso('Así se aparta un cupo. Este plan es de ejemplo, así que no quedó nada apartado. Cuando la curadora publique planes reales, los apartas aquí.')
+      setAviso('Así se aparta un cupo. Este es un plan de ejemplo: cuando el equipo de Ronda publique planes reales, los apartas aquí.')
     } else if (res.motivo === 'lleno') {
       ajustarRestantes(plan.id, () => 0)
       setAviso('Este plan ya no tiene cupos.')
@@ -564,13 +565,13 @@ export default function RondasView({ user, onIrAdentro }) {
       // No se cierra ni se borra: puede reintentar (rondas-1). Sin servicio
       // (sin cuenta o sin servidor configurado) no es culpa de la conexión.
       setErrorReporte(res.motivo === 'sin-servicio'
-        ? 'Ahora no podemos enviar mensajes a la curadora. Tu mensaje sigue aquí; inténtalo más tarde.'
-        : 'No pudimos enviarlo. Revisa tu conexión e inténtalo de nuevo; tu mensaje sigue aquí.')
+        ? 'El envío de mensajes está en pausa en este momento. Tu mensaje sigue aquí; inténtalo más tarde.'
+        : 'Algo falló al enviarlo. Revisa tu conexión e inténtalo de nuevo; tu mensaje sigue aquí.')
       return
     }
     track('plan_reportado')
     cerrarReporte()
-    setAviso('Gracias. Tu mensaje le llega solo a la curadora y lo revisa en las siguientes 48 horas.')
+    setAviso('Gracias. Tu mensaje le llega solo a la persona de Ronda que revisa los planes, y lo lee en las siguientes 48 horas.')
   }
 
   // El plan sugerido es el de la ciudad y no cambia con el filtro; debajo de
@@ -632,7 +633,7 @@ export default function RondasView({ user, onIrAdentro }) {
 
       {!cargando && data.ejemplo && (
         <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.5 }}>
-          Vista de ejemplo: así se verán los planes cuando la curadora publique los primeros en {ciudadLabel}.
+          Vista de ejemplo: así se verán los planes cuando el equipo de Ronda publique los primeros en {ciudadLabel}.
         </div>
       )}
 
@@ -643,7 +644,7 @@ export default function RondasView({ user, onIrAdentro }) {
       }}>
         <span>
           <span style={{ display: 'block', fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 600 }}>{salaAcompanamiento.label}</span>
-          <span style={{ fontSize: 14, color: C.muted }}>Ver los planes de esta sala en {ciudadLabel}</span>
+          <span style={{ fontSize: 14, color: C.muted }}>Ver los planes de {salaAcompanamiento.label} en {ciudadLabel}</span>
         </span>
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke={C.morado} strokeWidth="1.8" strokeLinecap="round" /></svg>
       </button>
@@ -681,20 +682,24 @@ export default function RondasView({ user, onIrAdentro }) {
       </div>
 
       {/* ── Mensaje privado a la curadora ── Si no cabe (pantalla baja o
-          teclado abierto) se desplaza en vez de cortarse (rondas-13). */}
+          teclado abierto) se desplaza en vez de cortarse (rondas-13).
+          Lo que cuenta puede ser algo de su salud o de su intimidad (dato
+          sensible, Ley 1581, art. 5): antes de «Enviar» lee para qué se usa
+          y que contarlo es opcional; al enviarlo, lo autoriza (política,
+          sección 3.2; textos-autorizacion-v1.md, sección h). */}
       {reportando && (
         <div onClick={cancelarReporte} style={{
           position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(20,24,51,0.45)',
           display: 'flex', padding: 20, overflowY: 'auto', overscrollBehavior: 'contain',
         }}>
-          <div ref={dialogoRef} role="dialog" aria-modal="true" aria-label="Contarle algo a la curadora" onClick={e => e.stopPropagation()} style={{
+          <div ref={dialogoRef} role="dialog" aria-modal="true" aria-label="Cuéntanos algo sobre este plan" onClick={e => e.stopPropagation()} style={{
             background: C.hoja, borderRadius: 24, padding: 24, width: '100%', maxWidth: 420, margin: 'auto',
           }}>
             <div style={{ fontFamily: FONT_DISPLAY, fontSize: 26, fontWeight: 600, color: C.navy }}>
-              Contarle algo a la curadora
+              Cuéntanos algo sobre este plan
             </div>
             <div style={{ fontSize: 15, color: C.muted, marginTop: 6, lineHeight: 1.45 }}>
-              Sobre: {reportando.titulo}. Esto lo lee solo la curadora.
+              Sobre: {reportando.titulo}. Lo lee solo la persona de Ronda que revisa los planes, para cuidarte a ti y a las demás. Contarnos algo de tu salud o de tu intimidad es opcional. Si lo cuentas, al tocar «Enviar» autorizas que lo usemos solo para atender este caso, como explica la <EnlacePolitica />.
             </div>
             <label htmlFor="mensaje-curadora" style={{ display: 'block', ...eyebrow(C.oliva), fontSize: 11, marginTop: 16 }}>
               Tu mensaje
@@ -735,7 +740,7 @@ export default function RondasView({ user, onIrAdentro }) {
                 background: reporteVacio ? C.border : C.morado,
                 color: reporteVacio ? C.subtle : '#FFFFFF', fontSize: 15, fontWeight: 600,
                 fontFamily: 'inherit', cursor: reporteVacio || enviando ? 'default' : 'pointer',
-              }}>{enviando ? 'Enviando…' : 'Enviar a la curadora'}</button>
+              }}>{enviando ? 'Enviando…' : 'Enviar'}</button>
             </div>
           </div>
         </div>

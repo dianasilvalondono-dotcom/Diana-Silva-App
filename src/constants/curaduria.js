@@ -135,7 +135,7 @@ export const PLANES_EJEMPLO = [
     titulo: 'Círculo de conversación para recién llegadas', cuando: 'Martes, 6:30 p. m.', anfitriona: 'Natalia',
     acceso: 'solo-mujeres', verificacion: 2, cupos: 8,
     cedula: {
-      porque: 'Ocho mujeres, una pregunta por encuentro y nadie tiene que dar consejos.',
+      porque: 'Ocho mujeres, una pregunta por encuentro y cada una comparte desde su propia experiencia.',
       paraQuien: 'Para la que está atravesando un cambio y quiere compañía con criterio.',
       comoLlegas: 'Ocho cupos. Natalia te escribe antes para saludarte.',
     },
