@@ -3,6 +3,8 @@
 // Sin ELEVENLABS_API_KEY la funcion responde 503 y el cliente simplemente
 // no muestra el boton de audio: la app sigue funcionando en texto.
 
+import { exigirSesion } from './_auth.js'
+
 const MAX_CHARS = 1200
 
 // Voz cacheada entre invocaciones tibias para no resolverla en cada request.
@@ -54,6 +56,9 @@ function sanitizeForSpeech(text) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).
+  if (!(await exigirSesion(req, res))) return
 
   const { text, tone } = req.body
   if (!text) return res.status(400).json({ error: 'Text is required' })

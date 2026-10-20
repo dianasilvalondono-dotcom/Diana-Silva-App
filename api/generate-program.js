@@ -1,7 +1,12 @@
+import { exigirSesion } from './_auth.js'
+
 // Los mensajes de error son internos (la app muestra su propio texto fijo),
 // pero van en español por si alguien los lee en los registros.
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' })
+
+  // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).
+  if (!(await exigirSesion(req, res))) return
 
   const { goal, context } = req.body || {}
   if (typeof goal !== 'string' || !goal.trim()) return res.status(400).json({ error: 'Falta la meta' })

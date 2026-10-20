@@ -22,6 +22,7 @@ runMigrationCleanDianaDefaults()
 // Borra las claves diarias vacías que dejaban las versiones anteriores.
 limpiarDiasVacios()
 import { useAuth } from './lib/useAuth'
+import { apiHeaders } from './lib/supabase'
 import { track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
 import { useOneSignal } from './lib/useOneSignal'
 import { useSpeech } from './lib/useSpeech'
@@ -2797,9 +2798,10 @@ function App() {
     const control = new AbortController()
     const corte = setTimeout(() => control.abort(), 20000)
     try {
+      const headers = await apiHeaders()
       const pedir = fetch('/api/guia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ content, cat }),
         signal: control.signal,
       }).then(async resp => {
@@ -3229,7 +3231,7 @@ function App() {
     try {
       const resp = await fetch('/api/generate-program', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await apiHeaders(),
         body: JSON.stringify({ goal: aiGoal, context: aiContext }),
       })
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
@@ -3326,7 +3328,7 @@ function App() {
     try {
       const resp = await fetch('/api/agent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await apiHeaders(),
         body: JSON.stringify({
           message: msg,
           context: ctx,

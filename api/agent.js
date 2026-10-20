@@ -1,5 +1,6 @@
 // Patrones y respuesta de crisis: los mismos de la Guía IA y de la app.
 import { normalize, isCrisis, CRISIS_TEXT_CHAT, BOTON_AYUDA } from '../src/utils/crisis.js'
+import { exigirSesion } from './_auth.js'
 
 // Largo máximo de cada turno del historial que se le pasa al modelo.
 const MAX_TURNO = 4000
@@ -29,6 +30,9 @@ function normalizarHistorial(history) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).
+  if (!(await exigirSesion(req, res))) return
 
   const { message, context, history, memory } = req.body || {}
   if (typeof message !== 'string' || !message.trim()) return res.status(400).json({ error: 'Message is required' })
