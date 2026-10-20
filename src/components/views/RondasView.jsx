@@ -141,17 +141,20 @@ function Etiquetas({ plan }) {
   )
 }
 
-/* ── Selector de ciudad (compacto) ── */
+/* ── Selector de ciudad (compacto) ──
+   Botones de elegir (aria-pressed), como los filtros de sala: no son
+   pestañas, porque no hay un panel por ciudad sino la misma página con
+   otros planes. */
 function SelectorCiudad({ ciudad, onChange }) {
   return (
-    <div role="tablist" aria-label="Ciudad" style={{
+    <div role="group" aria-label="Ciudad" style={{
       display: 'inline-flex', padding: 3, borderRadius: 14, background: C.card,
       border: `1px solid ${C.border}`,
     }}>
       {CIUDADES.map(c => {
         const active = ciudad === c.id
         return (
-          <button key={c.id} role="tab" aria-selected={active} onClick={() => onChange(c.id)} style={{
+          <button key={c.id} type="button" aria-pressed={active} onClick={() => onChange(c.id)} style={{
             minHeight: 40, padding: '0 16px', borderRadius: 11, border: 'none', cursor: 'pointer',
             background: active ? C.morado : 'transparent', color: active ? '#FFFFFF' : C.muted,
             fontSize: 15, fontWeight: 600, fontFamily: 'inherit',

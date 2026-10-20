@@ -58,15 +58,31 @@ function Bar({ value, color = C.rose, height = 6 }) {
 
 /* ── Sub-tab navigation (pill style) ──
    A nivel de módulo: si se declarara dentro de App, cada render crearía un
-   componente nuevo y React desmontaría los botones (el foco se iría a <body>). */
+   componente nuevo y React desmontaría los botones (el foco se iría a <body>).
+   Patrón de pestañas: solo la elegida entra con Tab; las flechas, Inicio y
+   Fin cambian de pestaña. Cada pestaña apunta al panel `${idBase}-panel`,
+   que pone quien la usa (role="tabpanel"). */
 const TAB_COLORS = [C.teal, C.coral, C.lavanda, C.gold, C.rose, C.mint]
-function SubTabs({ tabs, active, onChange, accentColor }) {
+function SubTabs({ tabs, active, onChange, accentColor, label, idBase }) {
+  const alTeclear = (e) => {
+    const i = tabs.findIndex(t => t.id === active)
+    const destino = e.key === 'ArrowRight' ? (i + 1) % tabs.length
+      : e.key === 'ArrowLeft' ? (i - 1 + tabs.length) % tabs.length
+      : e.key === 'Home' ? 0
+      : e.key === 'End' ? tabs.length - 1
+      : null
+    if (destino === null) return
+    e.preventDefault()
+    onChange(tabs[destino].id)
+    e.currentTarget.querySelectorAll('[role="tab"]')[destino]?.focus()
+  }
   return (
-    <div role="tablist" style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+    <div role="tablist" aria-label={label} onKeyDown={alTeclear} style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
       {tabs.map((t, i) => {
         const color = accentColor || TAB_COLORS[i % TAB_COLORS.length]
         return (
-        <button key={t.id} type="button" role="tab" aria-selected={active === t.id} onClick={() => onChange(t.id)} style={{
+        <button key={t.id} type="button" role="tab" id={`${idBase}-tab-${t.id}`} aria-controls={`${idBase}-panel`}
+          aria-selected={active === t.id} tabIndex={active === t.id ? 0 : -1} onClick={() => onChange(t.id)} style={{
           padding: '8px 18px', borderRadius: 20, border: active === t.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
           background: active === t.id ? color : C.card,
           color: active === t.id ? 'white' : C.text,
@@ -5030,9 +5046,13 @@ function App() {
             ]}
             active={subTab || 'board'}
             onChange={irASubTab}
+            label="Juntas"
+            idBase="juntas"
           />
-          {(subTab || 'board') === 'board' && boardView}
-          {subTab === 'directorio' && directorioView}
+          <div role="tabpanel" id="juntas-panel" aria-labelledby={`juntas-tab-${subTab || 'board'}`}>
+            {(subTab || 'board') === 'board' && boardView}
+            {subTab === 'directorio' && directorioView}
+          </div>
         </>}
 
         {view === 'perfil' && perfilView}
