@@ -91,6 +91,13 @@ const PONER_FIN = '\\b(poner|ponerle|pongo|pondre|pondria|puse|dar|darle|doy|dar
 // "Me quiero…", "me voy a…": la intención, en sus formas más comunes.
 const ME_QUIERO = '\\bme (quiero|quise|queria|voy a|iba a|quisiera|dan ganas de|provoca|gustaria|pienso)'
 
+// "Me mato" o "me suicido" en presente cuando dice la intención: "mejor me
+// mato", "juro que me mato", "si me deja me mato", "me mato y ya". "Me mato"
+// a secas no: sin tildes es "me mató" ("ese examen me mató", "me mató el
+// tráfico"), y tampoco "me mato por mis hijos" ni "si me caigo me mato".
+const NO_ES_ME_MATO = `${NO_ES_ESFUERZO}(?! (el|la|los|las|un|una|ese|esa|eso|por (mis|mi|ti|ellos|ellas|ella|el|ustedes))\\b)`
+const ME_MATO = `(\\b(mejor|yo|juro que|(un|algun|cualquier) dia( de estos)?|ahora si|esta noche|manana|hoy mismo|ya mismo|de una vez)|\\bsi (?!(me )?(caigo|resbalo|tropiezo)\\b)(\\w+ ){0,4}\\w+) me (mato|suicido)\\b${NO_ES_ME_MATO}|\\bme (mato|suicido) (y ya|y se acaba|de una vez|esta noche|manana|hoy mismo|si (no|me|te|se|lo|la|le|el|ella|mi|manana))\\b`
+
 // Tirarse, lanzarse, botarse, saltar o brincar (con "me" o sin él, en
 // presente, pasado, futuro y condicional): "me voy a tirar", "voy a
 // tirarme", "me lancé", "saltaré", "quiero brincar". "Salto" no entra: "un
@@ -136,6 +143,7 @@ export const CRISIS_PATTERNS = [
   new RegExp(`\\b(ya no quiero seguir|no quiero seguir mas)\\b${NO_ES_ALGO}`),
   /\bque (se acabe|se termine) todo\b/, /\bque todo (se acabe|se termine)\b/,
   new RegExp(`\\bmejor (me muero|me muera|morirme)\\b${NO_ES_RISA}`), /\bmejor (estar|estaria) muert[ao]/,
+  new RegExp(ME_MATO),
   /\bno me importa(ria)? (si me muero|si muero|morir(me)?)\b/,
   /\bno (le )?(veo|encuentro|tiene|hay) (ningun )?sentido (a |de |en )?(la |mi )?(vida|vivir|seguir)\b/,
   /\b(mi|la) vida no tiene (ningun )?sentido\b/, /\bya nada tiene sentido\b/,
