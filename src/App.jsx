@@ -1528,13 +1528,14 @@ function App() {
           </div>
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
             {Object.entries(DIMS).map(([key, d]) => (
-              <button key={key} onClick={() => setNewHabitDim(key)} style={{
+              <button key={key} type="button" aria-pressed={newHabitDim === key} onClick={() => setNewHabitDim(key)} style={{
                 padding: '5px 12px', borderRadius: 20, border: `2px solid ${d.color}`,
                 background: newHabitDim === key ? d.color : 'transparent',
                 color: newHabitDim === key ? 'white' : d.color,
                 fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''} {d.label}
+                {/* Elegida, el ícono va en blanco: en su color no se vería sobre el fondo */}
+                {ICONS[d.icon] ? ICONS[d.icon](newHabitDim === key ? '#FFFFFF' : d.color, 16) : ''} {d.label}
               </button>
             ))}
           </div>
