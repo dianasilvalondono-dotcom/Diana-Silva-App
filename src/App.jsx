@@ -3420,6 +3420,8 @@ function App() {
         return [...prev, ...added]
       })
     }
+    // La app abre arriba, no donde quedó el scroll del último paso (bienvenida-4).
+    window.scrollTo({ top: 0, behavior: 'instant' })
     setOnboarded(true)
     save('ronda-onboarded', true)
     openModule('ahora')
@@ -3436,6 +3438,14 @@ function App() {
       if (prev.length >= 3) return prev
       return [...prev, h]
     })
+  }
+
+  // Cada paso empieza arriba: el scroll de la lista de hábitos no se
+  // arrastra al paso siguiente (bienvenida-4). 'instant' porque el html
+  // tiene scroll-behavior: smooth.
+  const irAPasoOnboard = (paso) => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    setOnboardStep(paso)
   }
 
   const onboardStepShell = (key, children) => (
@@ -3649,7 +3659,7 @@ function App() {
               compactos para caber lado a lado en un teléfono de 360px. */}
           <div style={{ display: 'flex', gap: 16, maxWidth: '100%' }}>
             {onboardStep > 0 && (
-              <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
+              <button onClick={() => irAPasoOnboard(onboardStep - 1)} style={{
                 padding: ultimoPaso ? '12px 18px' : '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
                 background: C.card, color: C.muted, fontSize: 19, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
@@ -3657,7 +3667,7 @@ function App() {
                 Atrás
               </button>
             )}
-            <button onClick={ultimoPaso ? finishOnboarding : () => setOnboardStep(onboardStep + 1)} style={{
+            <button onClick={ultimoPaso ? finishOnboarding : () => irAPasoOnboard(onboardStep + 1)} style={{
               padding: ultimoPaso ? '12px 22px' : '12px 32px', borderRadius: 25, border: 'none',
               background: ultimoPaso ? `linear-gradient(135deg, ${C.teal}, ${C.tealDark})` : `${C.teal}`,
               color: 'white', fontSize: ultimoPaso ? 18 : 19, fontWeight: 800,
