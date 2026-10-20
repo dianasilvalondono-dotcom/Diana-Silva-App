@@ -14,6 +14,7 @@ import { FONT_DISPLAY } from '../../constants/tokens'
 import { CIUDADES, SALAS, ACCESO, MODALIDAD } from '../../constants/curaduria'
 import { getPlanes, getReservasLocales, reservarCupo, enviarReporte } from '../../lib/curaduria'
 import { track } from '../../lib/analytics'
+import LineaCrisis from '../ui/LineaCrisis'
 
 const salaLabel = (id) => SALAS.find(s => s.id === id)?.label || id
 
@@ -429,8 +430,10 @@ export default function RondasView({ user, onIrAdentro }) {
                 fontFamily: 'inherit', fontSize: 16, resize: 'vertical',
               }}
             />
+            {/* Un incidente en un plan presencial: primero emergencias (123,
+                nacional) y después la línea de apoyo emocional. */}
             <div style={{ fontSize: 14, color: C.muted, marginTop: 8, lineHeight: 1.4 }}>
-              Si estás en riesgo en este momento, llama a la Línea 106.
+              Si estás en peligro en este momento, llama al <LineaCrisis numero="123">123</LineaCrisis>. Para apoyo emocional, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>.
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
               <button onClick={() => setReportando(null)} style={{

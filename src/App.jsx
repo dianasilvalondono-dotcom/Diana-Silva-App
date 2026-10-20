@@ -4,6 +4,7 @@ import { C, colorTexto } from './constants/colors'
 import { FONT, FONT_DISPLAY, SHADOW } from './constants/tokens'
 import { ICONS, MOOD_ICONS, UI_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
+import LineaCrisis from './components/ui/LineaCrisis'
 import HistoriaView from './components/views/HistoriaView'
 import DiarioView from './components/views/DiarioView'
 import RondasView from './components/views/RondasView'
@@ -4092,7 +4093,7 @@ function App() {
         {view === 'perfil' && perfilView}
 
         <p style={{ margin: '32px 0 0', fontSize: 12, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
-          Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional. Si estás en crisis, llama a la Línea 106.
+          Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional. Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
         </p>
       </main>
       {panicModal}
