@@ -872,6 +872,16 @@ export const CRISIS_PATTERNS = [
   /\b(pensando en|pienso|voy a|quiero|ganas de|estoy a punto de|capaz de|me dan ganas de|tentada a|tentado a|a punto de) (hacer|cometer) (una )?(locura|estupidez|tonteria|barbaridad|burrada|loquera)\b(?=$| (y (ya|nadie|no)|de verdad|en serio|ya|hoy|esta noche|pronto|conmigo|contra mi|porque ya no|si no|que ya)\b)/,
   /\b(no quiero|ya no quiero|no puedo|ya no puedo|no aguanto|no soporto|no quiero seguir|ya no quiero seguir) (seguir )?(vivir|viviendo) (mas |asi )?con (este|esta|tanto|tanta|el|la|mi) (dolor|tristeza|sufrimiento|depresion|vacio|angustia|desesperacion|soledad|culpa|pena|peso|carga|tormento|infierno|desesperanza)\b(?! (de|en) (la |el |mi )?(espalda|cabeza|muela|muelas|rodilla|rodillas|cuello|estomago|barriga|garganta|oido|pies|pie|hombro|cadera|columna|pierna|piernas|brazo|articulaciones|huesos|ovarios|vientre|pecho|cintura|mano|manos|cara|ojos?)\b| (fisico|cronico)\b)/,
   /\b(acabar|terminar|acabo|termino|acabare|terminare|acabaria|terminaria) con todo lo que (siento|soy|me queda|fui|me duele|me atormenta|tengo (adentro|dentro))\b(?! (de|del|en|que hacer|pendiente|por hacer)\b)/,
+  // Golpearse a sí misma, la última vez que escribe, no ver salida y no
+  // querer sentir nada: "me di golpes en la cara yo misma", "esta es la última
+  // vez que escribo aquí", "no veo ninguna salida", "ya no quiero sentir nada
+  // nunca más". No activan "me di golpes de pecho", "es la última vez que
+  // hablo con él", "no encuentro salida al parqueadero", "no hay otra salida,
+  // toca pagar" ni "no quiero sentir nada por él".
+  /\bme (di|doy|daba|he dado|estoy dando|sigo dando) (golpes|punos|punetazos|cachetadas|bofetadas|cabezazos|correazos)\b(?! de pecho\b)(?=.{0,40}\b(yo misma|yo mismo|a mi misma|a mi mismo|contra la pared|contra las paredes|contra el piso|hasta (sangrar|que)|porque me odio|para castigarme|a proposito)\b)/,
+  /\b(esta es|es|sera) la ultima vez que (les |los |las )?(escribo|hablo|me leen|me ven|me van a (leer|ver)|publico|saben de mi)( (aqui|aca|con ustedes|en este mundo))?(?=$| (y|perdon|perdonen|perdonenme|adios|los quiero|las quiero|gracias|nunca|para siempre|ya)\b)/,
+  /\bno ((veo|encuentro|tengo|le veo|le encuentro) (ninguna |otra )?|hay ninguna )salida\b(?! (de|del|al|a|para|en|por|que|mas que|sino|distinta|aparte|diferente|facil)\b)/,
+  /\b(ya no|no) quiero (volver a )?sentir nada( nunca mas| mas| nunca)?(?=$| (nunca|mas|ya|de verdad|en serio|por favor|y)\b)/,
 ]
 
 // Cuántas cláusulas seguidas se leen también juntas: una pausa dentro de la
