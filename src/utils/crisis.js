@@ -181,6 +181,15 @@ export const CRISIS_PATTERNS = [
   /\bno (le )?(veo|encuentro|tiene|hay) (ningun )?sentido (a |de |en )?(la |mi )?(vida|vivir|seguir)\b/,
   /\b(mi|la) vida no tiene (ningun )?sentido\b/, /\bya nada tiene sentido\b/,
   /\bcarta de despedida\b/,
+  // Despedidas y legado: "les dejo todo a mis hijos", "esta es mi despedida",
+  // "cuando lean esto ya no voy a estar", "perdónenme por lo que voy a hacer".
+  // No activan "esta es mi despedida de soltera", "les dejo todo listo a mis
+  // hijos" ni "cuiden a mis hijos cuando yo no esté en casa".
+  /\b(les|le) dejo todo a (mis|mi) (hijos|hijas|hijo|hija|hermanos?|hermanas?|mama|papa|familia|esposo|pareja|sobrinos?|sobrinas?)\b(?! (mientras|hasta|para (el|la|que (lo|la) (cuiden|cuide|organicen))|cuando (viaje|salga|vuelva))\b)/,
+  /\besta es mi (carta de )?despedida\b(?! (de|del) (soltera|soltero|trabajo|la oficina|la empresa|grupo|este grupo|colegio|la universidad|la ciudad|pais|instagram|las redes|redes|whatsapp|facebook|tiktok|la comunidad)\b)/,
+  /\bcuando (ustedes )?lean esto ya no (voy a estar|estare|existo|estoy|voy a existir)\b/,
+  /\bperdon(enme|en|ame|eme|a)? por lo que voy a hacer\b/,
+  /\bcuiden a mis hijos (cuando|si) (yo )?(ya )?no (este|estoy)\b(?! (en (casa|la casa)|aqui|de viaje|trabajando|disponible)\b)/,
   // Los métodos: tirarse de un lugar alto o a un vehículo, pastillas o
   // veneno, colgarse, un tiro. "Colgarse con los pagos" es atrasarse.
   new RegExp(`${TIRARME} ${LUGAR_ALTO}`),
