@@ -1,0 +1,455 @@
+<!doctype html>
+<!--
+  Política de Tratamiento de Datos Personales de Ronda · versión 1 (politica-v1).
+  Fuente: ronda-hq/06-legal-y-datos/politica-tratamiento-datos-v1.md, partes A y B
+  (la parte C, el contraste con la norma, no se publica).
+  ANTES DE PUBLICAR: reemplazar los 7 marcadores {{RESPONSABLE_NOMBRE}},
+  {{RESPONSABLE_DOCUMENTO}}, {{RESPONSABLE_DOMICILIO}}, {{RESPONSABLE_DIRECCION}},
+  {{RESPONSABLE_TELEFONO}}, {{CORREO_DATOS}} y {{FECHA_VIGENCIA}} (también
+  {{CORREO_DATOS}} en src/lib/autorizaciones.js), con la revisión del abogado
+  y el «sí» de Diana. Si cambian las palabras, cambia la versión.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#592147">
+  <meta name="description" content="Cómo cuida Ronda tus datos: qué tratamos, para qué, con quién y cómo ejercer tus derechos. Ronda no vende tus datos.">
+  <title>Cómo cuidamos tus datos · Ronda</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --morado: #592147;
+      --morado-oscuro: #3E1631;
+      --orquidea: #D6BFDD;
+      --orquidea-clara: #F3EAF5;
+      --oliva: #726D2D;
+      --oliva-oscura: #4F4B1E;
+      --sage-clara: #E3E5D3;
+      --agua: #BFD5EB;
+      --hoja: #EEF3F9;
+      --navy: #141833;
+      --muted: #4A4E66;
+      --borde: #DCE3EC;
+      --blanco: #FFFFFF;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-padding-top: 16px; }
+    body {
+      margin: 0;
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--navy);
+      background: var(--morado);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--morado); font-weight: 600; text-underline-offset: 2px; }
+    a:focus-visible { outline: 3px solid var(--morado); outline-offset: 2px; box-shadow: 0 0 0 2px var(--blanco); }
+    .telon {
+      max-width: 760px; margin: 0 auto;
+      padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 26px;
+      color: var(--blanco);
+    }
+    .marca { display: inline-flex; align-items: center; gap: 9px; color: var(--blanco); text-decoration: none; min-height: 44px; }
+    .marca span { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 600; line-height: 1; }
+    .eyebrow { margin: 18px 0 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--orquidea); }
+    h1 {
+      margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600;
+      font-size: clamp(34px, 9vw, 48px); line-height: 1.02;
+    }
+    .version { margin: 12px 0 0; font-size: 15px; color: var(--orquidea); }
+    .hoja {
+      max-width: 760px; margin: 0 auto; background: var(--hoja);
+      border-radius: 24px 24px 0 0; padding: 28px 16px 64px;
+    }
+    @media (min-width: 640px) { .hoja { padding: 36px 32px 72px; } }
+    .indice {
+      background: var(--blanco); border-radius: 16px; padding: 16px 18px; margin: 0 0 28px;
+      border: 1px solid var(--borde);
+    }
+    .indice h2 { margin: 0 0 8px; font-family: 'Jost', sans-serif; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--oliva); }
+    .indice ol { margin: 0; padding-left: 22px; columns: 1; }
+    @media (min-width: 640px) { .indice ol { columns: 2; column-gap: 28px; } }
+    .indice li { padding: 3px 0; break-inside: avoid; }
+    .indice a { display: inline-block; padding: 4px 0; font-weight: 500; }
+    section { margin: 0 0 34px; }
+    h2 {
+      margin: 0 0 12px; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600;
+      font-size: 30px; line-height: 1.15; color: var(--navy);
+    }
+    h3 { margin: 22px 0 10px; font-size: 19px; font-weight: 700; line-height: 1.35; }
+    p { margin: 0 0 14px; }
+    ul, ol { margin: 0 0 14px; padding-left: 24px; }
+    li { margin-bottom: 6px; }
+    .corto {
+      background: var(--blanco); border-radius: 18px; padding: 20px 20px 8px 40px;
+      border-left: 4px solid var(--morado); box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .corto li::marker { color: var(--morado); }
+    .datos-responsable { list-style: none; padding: 0; }
+    .datos-responsable li { padding: 2px 0; }
+    /* Tablas: en el celular cada fila es una tarjeta, con el nombre de la columna arriba de cada dato. */
+    .tabla { width: 100%; border-collapse: collapse; margin: 6px 0 16px; font-size: 16px; line-height: 1.55; }
+    .tabla caption { text-align: left; font-weight: 700; padding-bottom: 8px; }
+    .tabla th, .tabla td { text-align: left; vertical-align: top; padding: 12px 14px; }
+    .tabla thead th { background: var(--morado); color: var(--blanco); font-size: 14px; font-weight: 600; letter-spacing: 0.02em; }
+    .tabla thead th:first-child { border-top-left-radius: 12px; }
+    .tabla thead th:last-child { border-top-right-radius: 12px; }
+    .tabla tbody tr { background: var(--blanco); border-bottom: 1px solid var(--borde); }
+    .tabla tbody th { font-weight: 700; }
+    @media (max-width: 639px) {
+      .tabla thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      .tabla, .tabla tbody, .tabla tr, .tabla th, .tabla td { display: block; width: 100%; }
+      .tabla tbody tr { border-radius: 14px; margin: 0 0 12px; border: 1px solid var(--borde); padding: 6px 0; }
+      .tabla tbody th, .tabla tbody td { padding: 6px 16px; }
+      .tabla tbody th { font-size: 17px; padding-top: 10px; }
+      .tabla td::before {
+        content: attr(data-col); display: block; font-size: 12px; font-weight: 600;
+        letter-spacing: 0.08em; text-transform: uppercase; color: var(--oliva);
+      }
+    }
+    .nota { background: var(--orquidea-clara); border-radius: 14px; padding: 14px 16px; border: 1px solid var(--orquidea); }
+    .aviso {
+      background: var(--blanco); border-radius: 18px; padding: 22px 20px 10px;
+      border: 1px solid var(--orquidea); box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .pie { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--borde); font-size: 15px; color: var(--muted); }
+    .volver {
+      display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 14px;
+      background: var(--morado); color: var(--blanco); text-decoration: none; font-weight: 700; margin-top: 8px;
+    }
+    .crisis { font-size: 14px; color: var(--muted); font-style: italic; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <header class="telon">
+    <a class="marca" href="/" aria-label="Ronda: ir a la app">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9.5" fill="none" stroke="#D6BFDD" stroke-width="2"/>
+        <circle cx="12" cy="12" r="3.5" fill="#BFD5EB"/>
+      </svg>
+      <span>Ronda</span>
+    </a>
+    <p class="eyebrow">Política de Tratamiento de Datos Personales</p>
+    <h1>Cómo cuidamos tus datos</h1>
+    <p class="version">Política de Tratamiento de Datos Personales de Ronda · versión 1 · vigente desde {{FECHA_VIGENCIA}}</p>
+  </header>
+
+  <main class="hoja">
+    <section aria-labelledby="en-corto">
+      <h2 id="en-corto">En corto</h2>
+      <ul class="corto">
+        <li><strong>Ronda no vende tus datos ni los comparte con terceros para publicidad.</strong></li>
+        <li>Tu diario, tu ánimo y lo que le cuentas a la inteligencia artificial (IA) de Ronda son <strong>datos sensibles</strong>. Darnos esos datos es <strong>opcional</strong>. Ayuda, los programas de 7 días, tus hábitos, tu rutina y tu diario funcionan sin eso.</li>
+        <li><strong>Tu diario, tus check-ins y lo que Tu Ronda recuerda de ti se guardan solo en tu teléfono.</strong> No los subimos a nuestros servidores.</li>
+        <li>La IA de Ronda solo lee lo que le escribes si nos das tu autorización. No usamos lo que escribes para publicidad ni para entrenar modelos de IA.</li>
+        <li>Puedes ver, corregir y borrar tus datos, y quitar tus autorizaciones, cuando quieras: en Perfil, en <strong>Tus autorizaciones</strong>, o escribiendo a {{CORREO_DATOS}}.</li>
+      </ul>
+    </section>
+
+    <nav class="indice" aria-labelledby="indice-titulo">
+      <h2 id="indice-titulo">Contenido</h2>
+      <ol>
+        <li><a href="#responsable">Quién es responsable de tus datos</a></li>
+        <li><a href="#palabras">Cinco palabras que vas a leer</a></li>
+        <li><a href="#que-datos">Qué datos tratamos y para qué</a></li>
+        <li><a href="#sensibles">Tus datos sensibles: lo que tienes que saber</a></li>
+        <li><a href="#nunca">Lo que nunca hacemos</a></li>
+        <li><a href="#compartimos">Con quién compartimos tus datos</a></li>
+        <li><a href="#derechos">Tus derechos</a></li>
+        <li><a href="#ejercer">Cómo ejercer tus derechos</a></li>
+        <li><a href="#tiempo">Cuánto tiempo guardamos tus datos</a></li>
+        <li><a href="#proteccion">Cómo protegemos tus datos</a></li>
+        <li><a href="#menores">Menores de edad</a></li>
+        <li><a href="#anfitrionas">Si eres anfitriona en Afuera</a></li>
+        <li><a href="#cambios">Cambios a esta política</a></li>
+        <li><a href="#vigencia">Vigencia y normas</a></li>
+      </ol>
+      <p style="margin: 10px 0 0;"><a href="#aviso">Aviso de privacidad (versión corta)</a></p>
+    </nav>
+
+    <section aria-labelledby="responsable">
+      <h2 id="responsable">1. Quién es responsable de tus datos</h2>
+      <p>La responsable del tratamiento de tus datos es <strong>{{RESPONSABLE_NOMBRE}}</strong>, identificada con {{RESPONSABLE_DOCUMENTO}} y con domicilio en {{RESPONSABLE_DOMICILIO}}. Ella opera Ronda (rondahub.com).</p>
+      <ul class="datos-responsable">
+        <li>Dirección: {{RESPONSABLE_DIRECCION}}</li>
+        <li>Correo para temas de datos: {{CORREO_DATOS}}</li>
+        <li>Teléfono: {{RESPONSABLE_TELEFONO}}</li>
+      </ul>
+      <p>En esta política, «Ronda» y «nosotras» quieren decir la responsable.</p>
+    </section>
+
+    <section aria-labelledby="palabras">
+      <h2 id="palabras">2. Cinco palabras que vas a leer</h2>
+      <ul>
+        <li><strong>Dato personal:</strong> cualquier dato que diga quién eres o algo sobre ti.</li>
+        <li><strong>Dato sensible:</strong> un dato sobre tu intimidad cuyo mal uso podría causarte discriminación, como los de salud, emociones, vida sexual, creencias o datos biométricos. Tienen una protección especial.</li>
+        <li><strong>Tratamiento:</strong> todo lo que se hace con un dato: recogerlo, guardarlo, usarlo, enviarlo o borrarlo.</li>
+        <li><strong>Encargado:</strong> una empresa que trata datos por cuenta nuestra y siguiendo nuestras instrucciones, como el servicio donde se guarda tu cuenta.</li>
+        <li><strong>Autorización:</strong> tu permiso previo, expreso e informado para que tratemos tus datos.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="que-datos">
+      <h2 id="que-datos">3. Qué datos tratamos y para qué</h2>
+
+      <h3 id="con-cuenta">3.1 Con tu autorización para tener cuenta (datos que no son sensibles)</h3>
+      <table class="tabla" aria-labelledby="con-cuenta">
+        <thead>
+          <tr><th scope="col">Qué dato</th><th scope="col">Para qué lo usamos</th><th scope="col">Dónde queda</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Nombre, correo y contraseña</th>
+            <td data-col="Para qué lo usamos">Crear tu cuenta, dejarte entrar y ayudarte a recuperar la contraseña. Escribirte sobre tu cuenta y sobre cambios en esta política. La contraseña se guarda cifrada y nadie puede leerla</td>
+            <td data-col="Dónde queda">En tu cuenta (Supabase, Estados Unidos)</td>
+          </tr>
+          <tr>
+            <th scope="row">Tu perfil: nombre, ciudad, bio, intención y emoji</th>
+            <td data-col="Para qué lo usamos">Mostrarte tu perfil y saludarte por tu nombre. Te recomendamos no escribir ahí datos de salud</td>
+            <td data-col="Dónde queda">En tu cuenta</td>
+          </tr>
+          <tr>
+            <th scope="row">Tu plan: si tienes Ronda+ o eres fundadora, y hasta cuándo</th>
+            <td data-col="Para qué lo usamos">Saber qué funciones tienes</td>
+            <td data-col="Dónde queda">En tu cuenta</td>
+          </tr>
+          <tr>
+            <th scope="row">Tu toolkit (los recursos que guardas)</th>
+            <td data-col="Para qué lo usamos">Que lo tengas en cualquier teléfono</td>
+            <td data-col="Dónde queda">En tu cuenta</td>
+          </tr>
+          <tr>
+            <th scope="row">Hábitos, rutina, racha, programas que sigues y frases favoritas</th>
+            <td data-col="Para qué lo usamos">Mostrarte tu día y tu avance</td>
+            <td data-col="Dónde queda">En tu teléfono, y en tu cuenta cuando se copian al entrar</td>
+          </tr>
+          <tr>
+            <th scope="row">Afuera: los cupos que apartas, tus respuestas a «¿Te sentiste segura?», lo que reportas en «Algo no estuvo bien» y, si los respondes, tus gustos para Afuera</th>
+            <td data-col="Para qué lo usamos">Organizar los cupos, cuidar tu seguridad en los planes y mostrarte primero los que van contigo. La curadora de Ronda lee tus reportes para actuar. La anfitriona no ve tu cuenta ni tu perfil. Si un plan necesita lista de asistentes, te lo decimos antes de que apartes</td>
+            <td data-col="Dónde queda">En tu cuenta</td>
+          </tr>
+          <tr>
+            <th scope="row">Uso de la app: qué pantallas abres y qué botones tocas, unido a un código de tu cuenta</th>
+            <td data-col="Para qué lo usamos">Entender qué funciona y mejorar Ronda. Nunca incluye lo que escribes, tu ánimo ni si usaste Ayuda</td>
+            <td data-col="Dónde queda">PostHog (Estados Unidos)</td>
+          </tr>
+          <tr>
+            <th scope="row">Notificaciones: un código de tu cuenta, tu correo y el permiso de tu teléfono</th>
+            <td data-col="Para qué lo usamos">Mandarte recordatorios, solo si los activas</td>
+            <td data-col="Dónde queda">OneSignal (Estados Unidos)</td>
+          </tr>
+          <tr>
+            <th scope="row">Datos técnicos: dirección IP, tipo de teléfono y navegador, fecha y hora</th>
+            <td data-col="Para qué lo usamos">Que la app funcione y protegerla de abusos</td>
+            <td data-col="Dónde queda">Registros de Vercel y Supabase (Estados Unidos)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>También hacemos <strong>totales anónimos de grupos de 10 o más mujeres</strong> (por ejemplo, cuántas terminan un programa) para entender cómo va Ronda. Si llegas a Ronda por una organización aliada, como una empresa o una caja de compensación, esa organización solo recibe esos totales. Nunca sabe quién eres ni qué escribes.</p>
+      <p>Si algún día queremos escribirte con novedades de Ronda, te pediremos una autorización aparte.</p>
+
+      <h3 id="solo-si-quieres">3.2 Datos sensibles: solo si tú quieres</h3>
+      <table class="tabla" aria-labelledby="solo-si-quieres">
+        <thead>
+          <tr><th scope="col">Qué dato</th><th scope="col">Qué pasa con él</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Tu diario, tus check-ins de la mañana y de la noche, y tu ánimo</th>
+            <td data-col="Qué pasa con él">Se guardan <strong>solo en tu teléfono</strong>. Si cambias de teléfono o borras la app, se pierden. Si antes se guardó una copia en tu cuenta, la borramos (ver <a href="#tiempo">sección 9</a>)</td>
+          </tr>
+          <tr>
+            <th scope="row">Lo que Tu Ronda recuerda de ti y tu conversación con ella</th>
+            <td data-col="Qué pasa con él">Se guardan <strong>solo en tu teléfono</strong>. Los ves y los borras en Perfil, en «Lo que sé de ti»</td>
+          </tr>
+          <tr>
+            <th scope="row">Lo que le escribes a la IA de Ronda: tus mensajes a <strong>Tu Ronda</strong>, tus publicaciones en la <strong>Comunidad</strong> (las lee la Guía IA de Ronda, que es una inteligencia artificial y no una persona) y tu meta en <strong>Crea tu programa</strong></th>
+            <td data-col="Qué pasa con él"><strong>Solo con tu autorización.</strong> Se envía a Anthropic para que la IA te responda. Para responderte, Tu Ronda también lee tu nombre, tu ciudad, tu intención, tus hábitos de hoy, tu ánimo de los últimos 7 días, tu última entrada del diario, tu programa activo y lo que recuerda de ti. Si tocas escuchar una respuesta, el texto de esa respuesta se envía a ElevenLabs para leerla en voz alta</td>
+          </tr>
+          <tr>
+            <th scope="row">Tus publicaciones en la Comunidad</th>
+            <td data-col="Qué pasa con él">Son anónimas para las demás usuarias. Hoy se guardan en tu teléfono. Si algún día se guardan en nuestros servidores, te lo diremos antes</td>
+          </tr>
+        </tbody>
+      </table>
+      <p><strong>Diario por voz.</strong> Si dictas tu diario con el micrófono, tu navegador (Chrome, Safari u otro) convierte tu voz en texto con su propio servicio. Ronda no recibe ni guarda el audio, solo el texto que queda en tu teléfono.</p>
+    </section>
+
+    <section aria-labelledby="sensibles">
+      <h2 id="sensibles">4. Tus datos sensibles: lo que tienes que saber</h2>
+      <ul>
+        <li><strong>No estás obligada a darnos datos sensibles</strong> ni a autorizar que los tratemos.</li>
+        <li>Te pedimos una sola autorización para datos sensibles: <strong>«Usar la IA de Ronda»</strong>. Te la pedimos aparte, con la casilla sin marcar, y te decimos antes qué datos son sensibles y para qué los usamos.</li>
+        <li><strong>No condicionamos tu cuenta ni Ronda a esa autorización.</strong> Sin ella siguen funcionando Ayuda, los programas de 7 días, tus hábitos y tu rutina, tu diario y tus check-ins en tu teléfono, tu toolkit, leer la Comunidad y Afuera. Solo se quedan cerradas las tres funciones que consisten en que una IA lea lo que escribes: Tu Ronda, escribir en la Comunidad (con la respuesta de la Guía IA) y Crea tu programa.</li>
+        <li><strong>Si lo que escribes muestra que puedes estar en peligro,</strong> Ronda te muestra las líneas de ayuda. Esa revisión es automática, se hace en tu teléfono o en nuestro servidor y ninguna persona lee tu mensaje.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="nunca">
+      <h2 id="nunca">5. Lo que nunca hacemos</h2>
+      <ul>
+        <li>No vendemos tus datos.</li>
+        <li>No compartimos tus datos con terceros para publicidad, ni ponemos en Ronda rastreadores de redes sociales o de anuncios.</li>
+        <li>No usamos lo que escribes para publicidad ni para entrenar modelos de IA, ni dejamos que nuestros proveedores lo hagan.</li>
+        <li>No le damos a tu empresa, tu caja de compensación ni tu universidad nada que diga quién eres. Solo reciben totales de grupos de 10 o más.</li>
+        <li>Nadie del equipo de Ronda lee tu diario ni tus conversaciones con la IA.</li>
+        <li>No te pedimos tu dirección ni usamos tu ubicación.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="compartimos">
+      <h2 id="compartimos">6. Con quién compartimos tus datos</h2>
+      <p>Solo con los proveedores que necesitamos para que Ronda funcione. Actúan como <strong>encargados</strong>: tratan tus datos por cuenta nuestra, siguiendo nuestras instrucciones, y no pueden usarlos para nada más.</p>
+      <table class="tabla" aria-labelledby="compartimos">
+        <thead>
+          <tr><th scope="col">Proveedor</th><th scope="col">País</th><th scope="col">Qué recibe</th><th scope="col">Para qué</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Supabase</th>
+            <td data-col="País">Estados Unidos</td>
+            <td data-col="Qué recibe">Tu cuenta, tu perfil, tu plan, tu toolkit, tus hábitos y lo que haces en Afuera</td>
+            <td data-col="Para qué">Guardar tu cuenta y dejarte entrar</td>
+          </tr>
+          <tr>
+            <th scope="row">Vercel</th>
+            <td data-col="País">Estados Unidos</td>
+            <td data-col="Qué recibe">El tráfico de la app y, de paso, lo que le escribes a la IA</td>
+            <td data-col="Para qué">Alojar la app y conectarla con la IA</td>
+          </tr>
+          <tr>
+            <th scope="row">Anthropic</th>
+            <td data-col="País">Estados Unidos</td>
+            <td data-col="Qué recibe">Solo con tu autorización: lo que le escribes a la IA de Ronda y el contexto descrito en la sección 3.2</td>
+            <td data-col="Para qué">Que la IA te responda. Sus condiciones no le permiten entrenar sus modelos con lo que le enviamos</td>
+          </tr>
+          <tr>
+            <th scope="row">ElevenLabs</th>
+            <td data-col="País">Estados Unidos</td>
+            <td data-col="Qué recibe">Solo con tu autorización y si tocas escuchar: el texto de la respuesta de Tu Ronda</td>
+            <td data-col="Para qué">Leer la respuesta en voz alta</td>
+          </tr>
+          <tr>
+            <th scope="row">OneSignal</th>
+            <td data-col="País">Estados Unidos</td>
+            <td data-col="Qué recibe">Un código de tu cuenta, tu correo y el permiso de notificaciones de tu teléfono</td>
+            <td data-col="Para qué">Mandarte recordatorios, si los activas</td>
+          </tr>
+          <tr>
+            <th scope="row">PostHog</th>
+            <td data-col="País">Estados Unidos</td>
+            <td data-col="Qué recibe">Qué pantallas abres y qué botones tocas, con un código de tu cuenta</td>
+            <td data-col="Para qué">Mejorar Ronda</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Enviarles tus datos es una <strong>transmisión internacional</strong>. Estados Unidos está en la lista de países con un nivel adecuado de protección de la Superintendencia de Industria y Comercio (SIC). Con cada proveedor tenemos un acuerdo que lo obliga a tratar tus datos solo para lo que le pedimos, a cuidarlos y a guardar confidencialidad.</p>
+      <p>Si una autoridad nos pide tus datos, solo los entregamos cuando la ley lo exige y la solicitud llega por un canal oficial.</p>
+    </section>
+
+    <section aria-labelledby="derechos">
+      <h2 id="derechos">7. Tus derechos</h2>
+      <p>Como titular de tus datos tienes derecho a:</p>
+      <ol>
+        <li><strong>Conocer, actualizar y corregir</strong> tus datos.</li>
+        <li><strong>Pedir prueba</strong> de las autorizaciones que nos diste.</li>
+        <li><strong>Saber cómo usamos</strong> tus datos, si nos lo preguntas.</li>
+        <li><strong>Quitar tu autorización y pedir que borremos</strong> tus datos, salvo que la ley o un contrato vigente nos obligue a conservar alguno (por ejemplo, el registro de un pago).</li>
+        <li><strong>Consultar tus datos sin costo</strong>, al menos una vez al mes y cada vez que cambiemos esta política de forma importante.</li>
+        <li><strong>Presentar una queja ante la SIC</strong> (<a href="https://www.sic.gov.co" target="_blank" rel="noopener noreferrer">www.sic.gov.co</a>), después de haber hecho tu consulta o tu reclamo con nosotras.</li>
+      </ol>
+      <p>Pueden ejercer estos derechos tú, tus herederas o herederos, o quien te represente con un poder.</p>
+    </section>
+
+    <section aria-labelledby="ejercer">
+      <h2 id="ejercer">8. Cómo ejercer tus derechos</h2>
+      <p>El área que atiende tus consultas y reclamos es <strong>Atención de datos personales de Ronda</strong>, a cargo de {{RESPONSABLE_NOMBRE}}.<br>
+      Escríbenos a <strong>{{CORREO_DATOS}}</strong>, preferiblemente desde el correo de tu cuenta, o envía una carta a {{RESPONSABLE_DIRECCION}}. También puedes llamar al {{RESPONSABLE_TELEFONO}}.</p>
+      <p>En la app, en Perfil → <strong>Tus autorizaciones</strong>, puedes quitar la autorización de la IA en un toque, y en «Lo que sé de ti» puedes borrar lo que Tu Ronda recuerda de ti.</p>
+
+      <h3>Consultas (qué datos tuyos tenemos, cómo los usamos, copia de tu autorización)</h3>
+      <ul>
+        <li>Te respondemos en <strong>máximo 10 días hábiles</strong> desde que recibimos tu mensaje.</li>
+        <li>Si no alcanzamos, antes de que se cumpla ese plazo te contamos por qué y en qué fecha te respondemos. Esa fecha no puede pasar de <strong>5 días hábiles más</strong>.</li>
+      </ul>
+
+      <h3>Reclamos (corregir, actualizar o borrar datos, quitar una autorización, o si crees que no cumplimos esta política o la ley)</h3>
+      <ul>
+        <li>Escríbenos con tu nombre, el correo de tu cuenta, qué pides y por qué. Si quieres, adjunta documentos.</li>
+        <li>Si falta algo, te lo pedimos dentro de los <strong>5 días</strong> siguientes. Si pasan <strong>2 meses</strong> sin que nos lo envíes, entendemos que desististe del reclamo.</li>
+        <li>Si el reclamo no es para nosotras, se lo pasamos a quien corresponda en <strong>máximo 2 días hábiles</strong> y te avisamos.</li>
+        <li>En <strong>máximo 2 días hábiles</strong> después de recibir tu reclamo completo, marcamos tus datos como «reclamo en trámite» hasta resolverlo.</li>
+        <li>Te respondemos en <strong>máximo 15 días hábiles</strong> desde el día siguiente a que lo recibimos. Si no alcanzamos, antes de que se cumpla ese plazo te contamos por qué y en qué fecha te respondemos. Esa fecha no puede pasar de <strong>8 días hábiles más</strong>.</li>
+      </ul>
+      <p>Para protegerte, te respondemos al correo de tu cuenta o te pedimos confirmar que eres tú. <strong>Nunca te pedimos tu contraseña.</strong></p>
+      <p class="nota"><strong>Borrar tu cuenta:</strong> escríbenos a {{CORREO_DATOS}} desde el correo de tu cuenta. La borramos, con todo lo que guarda, en máximo 15 días hábiles.</p>
+    </section>
+
+    <section aria-labelledby="tiempo">
+      <h2 id="tiempo">9. Cuánto tiempo guardamos tus datos</h2>
+      <ul>
+        <li><strong>Tu cuenta y lo que guarda:</strong> mientras tengas tu cuenta. Si la borras, borramos todo en máximo 15 días hábiles. Solo conservamos lo que la ley nos obligue a guardar (por ejemplo, los registros de pago de Ronda+, cuando existan) y el registro de tus autorizaciones, sin nada de lo que escribiste, durante 3 años, para poder demostrar ante una autoridad que nos las diste.</li>
+        <li><strong>Lo que está en tu teléfono:</strong> se queda ahí hasta que lo borres. Puedes borrar entradas del diario, lo que Tu Ronda recuerda de ti o todos los datos de la app desde los ajustes de tu navegador.</li>
+        <li><strong>Copias anteriores de tu diario:</strong> si antes de esta política se guardó en tu cuenta una copia de tu diario o de tu ánimo, la borramos de nuestros servidores. Si quieres esa copia antes, escríbenos a {{CORREO_DATOS}}.</li>
+        <li><strong>Lo que procesa la IA:</strong> Ronda no guarda tus conversaciones en sus servidores. Anthropic y ElevenLabs las procesan para responderte y solo las conservan por el tiempo limitado que fijan sus condiciones de seguridad.</li>
+        <li><strong>Registros técnicos:</strong> el tiempo que fijan nuestros proveedores para seguridad.</li>
+        <li>La base de datos de Ronda está vigente mientras Ronda preste su servicio.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="proteccion">
+      <h2 id="proteccion">10. Cómo protegemos tus datos</h2>
+      <ul>
+        <li>Todo viaja cifrado entre tu teléfono y nuestros servidores.</li>
+        <li>Las reglas de la base de datos hacen que cada cuenta solo pueda ver lo suyo.</li>
+        <li>Las contraseñas se guardan cifradas.</li>
+        <li>Muy pocas personas tienen acceso a los sistemas, y solo para mantenerlos.</li>
+        <li>Para saber cómo va Ronda solo miramos totales de grupos de 10 o más mujeres.</li>
+        <li>Si ocurre un incidente que ponga en riesgo tus datos, te avisamos y lo reportamos a la SIC.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="menores">
+      <h2 id="menores">11. Menores de edad</h2>
+      <p>Ronda es solo para <strong>mayores de 18 años</strong>. Si nos enteramos de que una menor creó una cuenta, dejamos de tratar sus datos y los borramos. Si en lo que escribió hay señales de riesgo, le mostramos las líneas de ayuda.</p>
+    </section>
+
+    <section aria-labelledby="anfitrionas">
+      <h2 id="anfitrionas">12. Si eres anfitriona en Afuera</h2>
+      <p>Si organizas planes en Afuera, tratamos tu nombre, tu documento, tu dirección, tu teléfono y los soportes de tu verificación para confirmar quién eres, cuidar a las asistentes y cumplir la ley de protección al consumidor. Solo los ve la curadora de Ronda. Al registrarte firmas una autorización aparte, y esta política aplica a tus datos.</p>
+    </section>
+
+    <section aria-labelledby="cambios">
+      <h2 id="cambios">13. Cambios a esta política</h2>
+      <p>Si cambiamos algo importante, como quién es responsable de tus datos (por ejemplo, cuando Ronda se constituya como sociedad) o para qué los usamos, <strong>te avisamos antes</strong>, en la app y por correo. Si el cambio es sobre para qué usamos tus datos, te pedimos una autorización nueva. Guardamos cada versión de esta política con su fecha.</p>
+    </section>
+
+    <section aria-labelledby="vigencia">
+      <h2 id="vigencia">14. Vigencia y normas</h2>
+      <p>Esta política rige desde el <strong>{{FECHA_VIGENCIA}}</strong>. Se basa en la Ley 1581 de 2012 y en el Decreto 1377 de 2013, compilado en el Decreto 1074 de 2015.</p>
+    </section>
+
+    <section aria-labelledby="aviso" id="aviso-seccion">
+      <div class="aviso">
+        <h2 id="aviso">Aviso de privacidad de Ronda</h2>
+        <p><strong>Quién trata tus datos:</strong> {{RESPONSABLE_NOMBRE}} ({{RESPONSABLE_DOCUMENTO}}), {{RESPONSABLE_DIRECCION}}, {{RESPONSABLE_DOMICILIO}}. Correo: {{CORREO_DATOS}}. Teléfono: {{RESPONSABLE_TELEFONO}}.</p>
+        <p><strong>Para qué:</strong> crear tu cuenta y darte el servicio de Ronda (perfil, hábitos, programas, toolkit, Afuera y recordatorios si los activas), escribirte sobre tu cuenta, cuidar la seguridad de la app y mejorarla con datos de uso que no incluyen lo que escribes.</p>
+        <p><strong>Datos sensibles:</strong> tu diario, tu ánimo y lo que le cuentas a la IA de Ronda son datos sensibles. <strong>Responder o autorizar es opcional, y Ronda funciona sin eso.</strong> Tu diario y tu ánimo se guardan solo en tu teléfono. La IA de Ronda solo lee lo que escribes si la autorizas.</p>
+        <p><strong>Ronda no vende tus datos ni los comparte con terceros para publicidad.</strong> Los guardan y procesan proveedores en Estados Unidos (Supabase, Vercel, Anthropic, ElevenLabs, OneSignal y PostHog), con acuerdos que los obligan a cuidarlos.</p>
+        <p><strong>Tus derechos:</strong> conocer, actualizar, corregir y borrar tus datos, pedir prueba de tu autorización, quitarla, consultar sin costo y quejarte ante la SIC. Ejércelos en Perfil → Tus autorizaciones o en {{CORREO_DATOS}}.</p>
+        <p><strong>La política completa</strong> está en <a href="#en-corto">Cómo cuidamos tus datos</a>. Si la cambiamos de forma importante, te avisamos antes en la app y por correo.</p>
+      </div>
+    </section>
+
+    <footer class="pie">
+      <p>Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional.</p>
+      <a class="volver" href="/">Volver a Ronda</a>
+      <p class="crisis">Si estás en crisis, llama a la <a href="tel:106">Línea 106</a>, o al <a href="tel:123">123</a> si estás en peligro inmediato.</p>
+    </footer>
+  </main>
+</body>
+</html>
