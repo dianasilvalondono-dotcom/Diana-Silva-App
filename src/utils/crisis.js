@@ -110,6 +110,9 @@ const SITIO_ALTO = '(puentes?|edificio|ventana|balcon|terraza|techo|azotea|preci
 // "Al piso" o "a la cama" no; "del quinto piso" o "del piso 10", sí.
 const LUGAR_ALTO = `(de|del|desde|por|al|a|hacia|contra|frente a|frente al|debajo de|debajo del|bajo|a las (llantas|ruedas) de|a las (llantas|ruedas) del) ((el|la|los|las|un|una|este|esta|ese|esa|mi|lo alto de|lo alto del|lo mas alto de|lo mas alto del) )?(vacio|${SITIO_ALTO}|metro|tren|transmilenio|carros?|bus|buses|buseta|camion|tractomula|rio|vias?|carrilera|rieles|carretera|autopista)\\b`
 
+// Las pastillas, también por el nombre de los medicamentos más comunes.
+const PASTILLAS = '(pastillas|pepas|pildoras|medicinas|medicamentos|tabletas|capsulas|pastas|acetaminofen|paracetamol|dolex|ibuprofeno|naproxeno|diclofenaco|aspirinas?|tramadol|clonazepam|rivotril|alprazolam|lorazepam|diazepam|zolpidem|sertralinas?|fluoxetinas?|escitalopram|trazodona|quetiapina|amitriptilina)'
+
 // Señales de crisis de alto riesgo.
 export const CRISIS_PATTERNS = [
   /\bsu(i[cs]|c)id/, /\bquitar(me|se)? la vida\b/, new RegExp(`matarme\\b${NO_ES_ESFUERZO}`), new RegExp(`me quiero morir${NO_ES_RISA}`),
@@ -179,8 +182,13 @@ export const CRISIS_PATTERNS = [
   new RegExp(`(\\bdejarme|\\bme (\\w+ ){0,2}dej(ar|o|e|are|aria)) caer ${LUGAR_ALTO}`),
   new RegExp(`(${ME_QUIERO} atravesar|\\batravesarme|\\bme atravieso) (en|a|frente a|delante de) (la |el |un |una |los )?(autopista|via|carretera|calle|avenida|carros?|bus|buses|camion|tractomula|tren|metro|transmilenio)\\b`),
   /\bojala (?!(\w+ ){0,2}no )(\w+ ){1,3}me (atropelle|atropellen|pise|pisen|mate|maten)\b/,
-  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todas (las|mis)|un frasco de|un tarro de|una caja de|un monton de|un punado de|muchas|varias cajas de) (pastillas|pepas|pildoras|medicinas|medicamentos|tabletas|capsulas|pastas)\b/,
-  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (el |la |un |una )?(veneno|raticida|matarratas|cloro|varsol|insecticida)\b/,
+  new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todas (las|mis)|un frasco de|un tarro de|una caja de|un monton de|un punado de|muchas|varias cajas de|una caja entera de|un frasco entero de|(\\d+|dos|tres|cuatro|cinco|varios) (cajas|frascos|tarros|blisters) de) ${PASTILLAS}\\b`),
+  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago|beber(me)?|bebo|bebi|bebere) (el |la |un |una )?(veneno|raticida|matarratas|cloro|varsol|insecticida)\b/,
+  // Los preparativos: juntar pastillas, comprar el veneno. No activan
+  // "estoy guardando las pastillas en el botiquín" ni "compré veneno para las
+  // cucarachas".
+  new RegExp(`\\b(juntando|guardando|acumulando|ahorrando|recogiendo|junte|guarde|acumule|junto|guardo|acumulo) (mis |muchas |varias |todas (las |mis )?)?${PASTILLAS}\\b(?! (en|dentro|bajo|lejos|fuera|arriba|del|de la|de los|de mi|de mis|para (el|la|los|las|mi|mis|que no))\\b)`),
+  /\b(compre|consegui) (el |un )?veneno\b(?! (contra|para (las |los |el |la |mis |mi )?(ratas|ratones|cucarachas|hormigas|plagas|moscas|zancudos|pulgas|garrapatas|maleza|jardin|finca|matas|plantas)))/,
   /\bsobredosis\b/,
   /\bahorcarme\b/, new RegExp(`(${ME_QUIERO} colgar|\\bcolgarme)\\b(?! (con|en)\\b)`),
   /(\bdarme|\bpegarme|\bme (\w+ ){0,2}(dar|pegar|pego|doy|di|pegue)) un (tiro|balazo|disparo)\b/, /\bvolarme (la cabeza|los sesos)\b/,
@@ -212,11 +220,12 @@ export const CRISIS_PATTERNS = [
   new RegExp(`\\bme (cortare|cortaria)\\b${NO_ES_PELO}`),
   /\b(envenenarme|dispararme)\b/, new RegExp(`${ME_QUIERO} disparar\\b`),
   /\bdejarme (atropellar|pisar)\b/,
-  // Pastillas: diez o más, "todo el frasco", "me las voy a tomar todas".
-  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) ([1-9]\d+|diez|quince|veinte|treinta|cuarenta|cincuenta|cien|demasiadas|toda la caja de|todo el frasco de|el frasco de) (pastillas|pepas|pildoras|medicinas|medicamentos|tabletas|capsulas|pastas)\b/,
-  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todo el (frasco|tarro|blister)|toda la caja|el (frasco|tarro) (entero|completo))\b/,
+  // Pastillas: diez o más (también "como 20", "unas 20", "más de 10"), "todo
+  // el frasco", "el blíster completo", "me las voy a tomar todas".
+  new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (como |unas |unos |mas de |casi |al menos |cerca de |hasta )?([1-9]\\d+|diez|quince|veinte|treinta|cuarenta|cincuenta|cien|demasiadas|toda la caja de|todo el frasco de|el frasco de) ${PASTILLAS}\\b`),
+  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todo el (frasco|tarro|blister)|toda la caja|el (frasco|tarro|blister) (entero|completo)|la caja (entera|completa))\b/,
   /\bme las (\w+ ){0,2}(tomar|tome|tomo|tragar|trague|trago) todas\b/,
-  /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (las|mis) (pastillas|pepas|pildoras|medicinas|medicamentos|tabletas|capsulas|pastas) todas\b(?! (las|los)\b)/,
+  new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (las|mis) ${PASTILLAS} todas\\b(?! (las|los)\\b)`),
   // Sin ganas de vivir: "estoy cansada de vivir", "perdí las ganas de vivir",
   // "para qué seguir viviendo", "no quiero seguir con vida".
   new RegExp(`\\b(cansada|cansado|harta|harto|agotada|agotado|aburrida|aburrido) de (vivir|estar viva|estar vivo|existir|la vida)\\b${NO_ES_VIVIR_CON}`),
