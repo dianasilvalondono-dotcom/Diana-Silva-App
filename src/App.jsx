@@ -2011,7 +2011,7 @@ function App() {
                 setAppModal({
                   type: 'success',
                   title: `¡Activaste "${prog.title}"!`,
-                  body: 'Mañana te llega la primera práctica del Día 1. Tu camino de 21 días empieza ahora. 💛',
+                  body: 'Tu Día 1 ya está listo en Mis rutas activas. Un paso al día, durante 21 días. 💛',
                   cta: 'Empezar mi camino',
                 })
               }} style={{
