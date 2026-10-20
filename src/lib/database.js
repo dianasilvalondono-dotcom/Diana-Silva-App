@@ -30,50 +30,12 @@ export async function getUserProfile(userId) {
   } catch (e) { console.error('getUserProfile:', e); return null }
 }
 
-/* ── Habits ── */
-export async function saveHabits(userId, habits) {
-  if (!supabase) return null
-  try {
-    // Delete existing and re-insert
-    await supabase.from('habits').delete().eq('user_id', userId)
-    const rows = habits.map(h => ({ id: h.id.toString(), user_id: userId, name: h.name, dim: h.dim }))
-    if (rows.length > 0) {
-      const { error } = await supabase.from('habits').insert(rows)
-      if (error) throw error
-    }
-    return true
-  } catch (e) { console.error('saveHabits:', e); return null }
-}
-
-export async function getHabits(userId) {
-  if (!supabase) return null
-  try {
-    const { data, error } = await supabase.from('habits').select('*').eq('user_id', userId)
-    if (error) throw error
-    return data?.map(h => ({ id: h.id, name: h.name, dim: h.dim })) || []
-  } catch (e) { console.error('getHabits:', e); return null }
-}
-
-/* ── Daily Checks ── */
-export async function saveChecked(userId, date, checked) {
-  if (!supabase) return null
-  try {
-    const { error } = await supabase
-      .from('habit_checks')
-      .upsert({ user_id: userId, date, checked_data: checked, updated_at: new Date().toISOString() }, { onConflict: 'user_id,date' })
-    if (error) throw error
-    return true
-  } catch (e) { console.error('saveChecked:', e); return null }
-}
-
-export async function getChecked(userId, date) {
-  if (!supabase) return null
-  try {
-    const { data, error } = await supabase.from('habit_checks').select('checked_data').eq('user_id', userId).eq('date', date).single()
-    if (error && error.code !== 'PGRST116') throw error
-    return data?.checked_data || {}
-  } catch (e) { console.error('getChecked:', e); return null }
-}
+/* ── Hábitos, check-ins de hábitos, rutas, frases favoritas y racha ──
+   Viven solo en el teléfono: nada en la app los vuelve a leer de la nube,
+   así que tampoco se suben (Decreto 1377, art. 4: solo lo que se usa). La
+   copia que subió la migración de antes se borra del servidor a los 30 días
+   de publicar la política (src/sql/consentimiento.sql). `active_programs`
+   guardaba rutas como 'depresion' o 'dios': datos de salud y de creencias. */
 
 /* ── Diario ──
    El diario, los check-ins y el ánimo son datos sensibles y se quedan solo
@@ -106,77 +68,6 @@ export async function getToolkitItems(userId) {
   } catch (e) { console.error('getToolkitItems:', e); return null }
 }
 
-/* ── Programs ── */
-export async function saveActivePrograms(userId, programs) {
-  if (!supabase) return null
-  try {
-    await supabase.from('active_programs').delete().eq('user_id', userId)
-    const rows = Object.entries(programs).map(([progId, data]) => ({
-      user_id: userId, program_id: progId, start_date: data.startDate, completed_days: data.completedDays || [],
-    }))
-    if (rows.length > 0) {
-      const { error } = await supabase.from('active_programs').insert(rows)
-      if (error) throw error
-    }
-    return true
-  } catch (e) { console.error('saveActivePrograms:', e); return null }
-}
-
-export async function getActivePrograms(userId) {
-  if (!supabase) return null
-  try {
-    const { data, error } = await supabase.from('active_programs').select('*').eq('user_id', userId)
-    if (error) throw error
-    const programs = {}
-    data?.forEach(p => { programs[p.program_id] = { startDate: p.start_date, completedDays: p.completed_days || [] } })
-    return programs
-  } catch (e) { console.error('getActivePrograms:', e); return null }
-}
-
-/* ── Fav Quotes ── */
-export async function saveFavQuotes(userId, favs) {
-  if (!supabase) return null
-  try {
-    await supabase.from('fav_quotes').delete().eq('user_id', userId)
-    const rows = favs.map(idx => ({ user_id: userId, quote_index: idx }))
-    if (rows.length > 0) {
-      const { error } = await supabase.from('fav_quotes').insert(rows)
-      if (error) throw error
-    }
-    return true
-  } catch (e) { console.error('saveFavQuotes:', e); return null }
-}
-
-export async function getFavQuotes(userId) {
-  if (!supabase) return null
-  try {
-    const { data, error } = await supabase.from('fav_quotes').select('quote_index').eq('user_id', userId)
-    if (error) throw error
-    return data?.map(d => d.quote_index) || []
-  } catch (e) { console.error('getFavQuotes:', e); return null }
-}
-
-/* ── Streaks ── */
-export async function saveStreaks(userId, streaks) {
-  if (!supabase) return null
-  try {
-    const { error } = await supabase
-      .from('streaks')
-      .upsert({ user_id: userId, streak_data: streaks, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
-    if (error) throw error
-    return true
-  } catch (e) { console.error('saveStreaks:', e); return null }
-}
-
-export async function getStreaks(userId) {
-  if (!supabase) return null
-  try {
-    const { data, error } = await supabase.from('streaks').select('streak_data').eq('user_id', userId).single()
-    if (error && error.code !== 'PGRST116') throw error
-    return data?.streak_data || {}
-  } catch (e) { console.error('getStreaks:', e); return null }
-}
-
 /* ── Sync localStorage → Supabase (migración inicial, una vez por usuaria) ──
    La marca es por usuaria y por sección ('ronda-migrated-<id>'): una sección
    queda hecha solo si su guardado salió bien, así lo que falló se reintenta
@@ -184,9 +75,10 @@ export async function getStreaks(userId) {
    ('ronda-migrated', del dispositivo) no vuelve a subir nada.
    El toolkit no va aquí: se sincroniza siempre desde App (se trae de la nube
    y se une con lo local antes de guardar).
-   El diario ('diana-journal') tampoco: no sale del teléfono (ver arriba).
-   Quien tenía pendiente solo el diario queda con la migración terminada. */
-const SECCIONES_MIGRACION = ['profile', 'habits', 'favs', 'streaks', 'programs']
+   Solo sube el perfil. El diario ('diana-journal'), los hábitos, las rutas,
+   las frases favoritas y la racha no salen del teléfono (ver arriba). Quien
+   tenía pendiente alguna de esas secciones queda con la migración terminada. */
+const SECCIONES_MIGRACION = ['profile']
 
 export async function syncFromLocal(userId) {
   if (!supabase || !userId) return false
@@ -213,27 +105,6 @@ export async function syncFromLocal(userId) {
         if (typeof local[k] === 'string' && local[k].trim()) campos[k] = local[k]
       }
       if (!Object.keys(campos).length || await saveUserProfile(userId, campos)) marcar('profile')
-    }
-
-    if (!hecho.habits) {
-      const habits = load('diana-habits', null)
-      if (!Array.isArray(habits) || await saveHabits(userId, habits)) marcar('habits')
-    }
-
-    if (!hecho.favs) {
-      const favs = load('diana-fav-quotes', [])
-      if (!Array.isArray(favs) || !favs.length || await saveFavQuotes(userId, favs)) marcar('favs')
-    }
-
-    if (!hecho.streaks) {
-      const streaks = load('diana-streaks', {})
-      if (!streaks || !Object.keys(streaks).length || await saveStreaks(userId, streaks)) marcar('streaks')
-    }
-
-    // Programas: la app los guarda en 'ronda-programs' ('diana-programs' es la clave vieja).
-    if (!hecho.programs) {
-      const programs = load('ronda-programs', null) ?? load('diana-programs', {})
-      if (!programs || !Object.keys(programs).length || await saveActivePrograms(userId, programs)) marcar('programs')
     }
 
     if (SECCIONES_MIGRACION.every(sec => hecho[sec])) {
