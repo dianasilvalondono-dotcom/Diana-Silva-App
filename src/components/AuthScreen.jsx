@@ -17,21 +17,21 @@ const MENSAJES_AUTH = {
   email_exists: 'Ese correo ya tiene una cuenta. Inicia sesión.',
   weak_password: 'Esa contraseña es muy fácil de adivinar. Prueba con una más larga, con letras y números.',
   same_password: 'La contraseña nueva tiene que ser distinta de la anterior.',
-  email_address_invalid: 'Revisa tu email: parece que no está bien escrito.',
-  validation_failed: 'Revisa tu email: parece que no está bien escrito.',
+  email_address_invalid: 'Revisa tu email: parece que tiene un error de escritura.',
+  validation_failed: 'Revisa tu email: parece que tiene un error de escritura.',
   over_email_send_rate_limit: 'Hiciste muchos intentos seguidos. Espera unos minutos y vuelve a intentarlo.',
   over_request_rate_limit: 'Hiciste muchos intentos seguidos. Espera unos minutos y vuelve a intentarlo.',
-  signup_disabled: 'El registro no está disponible en este momento.',
-  email_provider_disabled: 'El registro no está disponible en este momento.',
-  session_not_found: 'El enlace ya no sirve. Pide uno nuevo desde "¿Olvidaste tu contraseña?".',
-  session_expired: 'El enlace ya no sirve. Pide uno nuevo desde "¿Olvidaste tu contraseña?".',
+  signup_disabled: 'El registro está en pausa en este momento. Inténtalo más tarde.',
+  email_provider_disabled: 'El registro está en pausa en este momento. Inténtalo más tarde.',
+  session_not_found: 'Ese enlace ya venció. Pide uno nuevo desde «¿Olvidaste tu contraseña?».',
+  session_expired: 'Ese enlace ya venció. Pide uno nuevo desde «¿Olvidaste tu contraseña?».',
 }
-const SIN_CONEXION = 'No pudimos conectarnos. Revisa tu internet e inténtalo de nuevo.'
+const SIN_CONEXION = 'Parece que se cayó la conexión. Revisa tu internet e inténtalo de nuevo.'
 const MENSAJE_POR_DEFECTO = {
-  login: 'No pudimos iniciar sesión. Revisa tu email y tu contraseña.',
-  signup: 'No pudimos crear tu cuenta. Inténtalo de nuevo.',
-  reset: 'No pudimos enviar el correo. Inténtalo de nuevo.',
-  nueva: 'No pudimos guardar tu contraseña. Inténtalo de nuevo.',
+  login: 'Revisa tu email y tu contraseña e inténtalo de nuevo.',
+  signup: 'Algo falló al crear tu cuenta. Inténtalo de nuevo.',
+  reset: 'Algo falló al enviar el correo. Inténtalo de nuevo.',
+  nueva: 'Algo falló al guardar tu contraseña. Inténtalo de nuevo.',
 }
 
 function mensajeAuth(error, mode) {
@@ -100,13 +100,13 @@ export default function AuthScreen({
     setError('')
     setCampoInvalido(null)
     setNotice('')
-    if (mode === 'nueva' && password !== password2) { setError('Las contraseñas no coinciden.'); return }
+    if (mode === 'nueva' && password !== password2) { setError('Las dos contraseñas tienen que ser iguales.'); return }
     setLoading(true)
     try {
       if (mode === 'signup') {
         if (!name.trim()) { errorDeCampo('nombre', 'Ingresa tu nombre'); return }
-        if (!mayorDeEdad) { errorDeCampo('edad', 'Ronda es solo para mayores de 18 años.'); return }
-        if (!autorizaCuenta) { errorDeCampo('cuenta', 'Para crear tu cuenta necesitamos tu autorización para tratar tus datos de cuenta.'); return }
+        if (!mayorDeEdad) { errorDeCampo('edad', 'Ronda es solo para mayores de 18 años. Si tienes 18 o más, marca la casilla «Tengo 18 años o más».'); return }
+        if (!autorizaCuenta) { errorDeCampo('cuenta', 'Para crear tu cuenta necesitamos que autorices el tratamiento de tus datos de cuenta: marca la segunda casilla.'); return }
         const result = await onSignUp(email, password, name, autorizacionesParaRegistro())
         if (result.error) setError(mensajeAuth(result.error, 'signup'))
         else if (!result.data?.session) {
@@ -304,7 +304,7 @@ export default function AuthScreen({
           {(mode === 'login' || mode === 'signup') && (
             <Button variant="ghost" size="sm"
               onClick={() => cambiarModo(mode === 'login' ? 'signup' : 'login')}>
-              {mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+              {mode === 'login' ? '¿Eres nueva? Crea tu cuenta' : '¿Ya tienes cuenta? Inicia sesión'}
             </Button>
           )}
           {mode === 'reset' && (
@@ -314,7 +314,7 @@ export default function AuthScreen({
           )}
           {mode === 'nueva' && onCancel && (
             <Button variant="ghost" size="sm" onClick={onCancel}>
-              Ahora no
+              Más tarde
             </Button>
           )}
         </div>

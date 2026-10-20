@@ -6,7 +6,7 @@
    Tres autorizaciones:
      · edad   → «Tengo 18 años o más.» (obligatoria)
      · cuenta → datos de cuenta y de uso, no sensibles (obligatoria). Si
-                toca «Prefiero salir» y cierra sesión, queda «no».
+                toca «Rechazar la autorización» y cierra sesión, queda «no».
      · ia     → «Usar la IA de Ronda»: lo que le escribe a la IA (datos
                 sensibles). Opcional: sin ella no se abren Tu Ronda, la Guía
                 IA de la Comunidad ni Crea tu programa, y todo lo demás sigue.
@@ -520,7 +520,7 @@ export function crearCola(limiteMs = 30000) {
   }
 }
 
-/* «Autorizada el 20 de octubre de 2026» */
+/* «Diste esta autorización el 20 de octubre de 2026» */
 export function fechaAutorizacion(iso) {
   if (!iso) return ''
   const d = new Date(iso)

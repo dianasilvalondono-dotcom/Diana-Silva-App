@@ -42,7 +42,7 @@ import { ultimaEntradaDiario } from './utils/diario'
 
 /* Antes de pagar Ronda+: lo que usa la IA pide su propia autorización
    (textos-autorizacion-v1; Ley 1581, art. 6). Va en el paywall y en el plan. */
-const NOTA_IA_PLUS = 'Tu Ronda, escribir en la Comunidad y Crea tu programa usan la IA de Ronda. Para usarlas te pedimos una autorización aparte, que das o quitas cuando quieras en Perfil → Tus autorizaciones.'
+const NOTA_IA_PLUS = 'Tu Ronda, escribir en la Comunidad y Crea tu programa usan la IA de Ronda. Para estas tres funciones te pedimos una autorización aparte, que das o quitas cuando quieras en Perfil → Tus autorizaciones.'
 
 // Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
 const BOARD_MAX = 2000
@@ -359,7 +359,7 @@ function App() {
   const isFoundingMember = premiumStatus.premium_source === 'founding_member'
 
   // ─── Analítica (PostHog): solo con la autorización de cuenta ───
-  // Antes de que la dé (el aviso único, o si toca «Prefiero salir»),
+  // Antes de que la dé (el aviso único, o si toca «Rechazar la autorización»),
   // PostHog ni carga ni sabe quién es (Decreto 1377, art. 5). Con ella, se
   // vincula a la usuaria (base de la retención D1/D7/D30) y app_opened sale
   // una vez por cuenta y por sesión. Si lo de este teléfono es de otra cuenta

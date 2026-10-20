@@ -167,7 +167,7 @@ revoke insert, update on public.streaks from anon, authenticated;
 --   union all select 'streaks', count(distinct user_id), count(*) from public.streaks;
 -- Cuántas respondieron, por canal y si usan la IA (solo totales):
 --   select canal, tipo, valor, count(distinct user_id) from public.autorizaciones group by 1, 2, 3 order by 1, 2, 3;
--- Quiénes tocaron «Prefiero salir» y cerraron sesión (su estado de
+-- Quiénes tocaron «Rechazar la autorización» y cerraron sesión (su estado de
 -- cuenta es «no»; la fila de la prueba queda en autorizaciones): sus
 -- cuentas se borran en máximo 15 días hábiles (pregunta 3 de
 -- checklist-abogado.md). Da el id y la fecha, sin nada de lo que escribieron:

@@ -8,7 +8,8 @@
      · TusAutorizaciones → (e) la tarjeta de Perfil
    Las reglas de qué se guarda y dónde viven en src/lib/autorizaciones.js.
    Todo texto va en positivo (pedido de Diana): sin «no», «nunca», «sin»,
-   «ni»… El rechazo del aviso existe igual, con otro nombre: «Prefiero salir». */
+   «ni»… El rechazo del aviso existe igual, y su botón lo nombra:
+   «Rechazar la autorización». */
 import { useEffect, useRef, useState } from 'react'
 import { C } from '../constants/colors'
 import { FONT, FONT_DISPLAY, SHADOW } from '../constants/tokens'
@@ -19,8 +20,9 @@ import {
   CORREO_DATOS, URL_POLITICA, iaAutorizada, fechaAutorizacion,
 } from '../lib/autorizaciones'
 
-// La promesa de Diana: Ronda no vende tus datos ni los usa para publicidad.
-export const PROMESA = 'Nuestra promesa: tus datos son tuyos. Venderlos o usarlos para publicidad queda por fuera de nuestro trato contigo.'
+// La promesa de Diana: para qué usamos los datos y que nunca se venden ni
+// se usan para anuncios de otras marcas (la promoción de Ronda+ es de Ronda).
+export const PROMESA = 'Nuestra promesa: tus datos son tuyos. Los usamos solo para darte Ronda, mejorarla y cumplir la ley, y tenemos prohibido venderlos o usarlos para anuncios de otras marcas.'
 
 // Con el encabezado fijo arriba (124 px) y el menú fijo abajo: lo que se trae
 // a la vista queda entre los dos.
@@ -70,7 +72,7 @@ export function CasillaIA({ id, marcada, onCambiar, ref }) {
           Lo procesa <strong>Anthropic</strong>, en Estados Unidos, y sus condiciones le prohíben usarlo para entrenar sus modelos. Si tocas escuchar una respuesta, <strong>ElevenLabs</strong> (Estados Unidos) la lee en voz alta.
         </li>
         <li>
-          Esas tres funciones se abren solo si lo marcas. Ayuda, los programas de 7 días, tus hábitos, tu diario y los planes de tu ciudad funcionan igual, decidas lo que decidas.
+          Esas tres funciones se abren solo si marcas esta casilla. Ayuda, los programas de 7 días, tus hábitos, tu diario y los planes de tu ciudad funcionan igual, decidas lo que decidas.
         </li>
       </ul>
     </div>
@@ -159,7 +161,7 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
   const edadRef = useRef(null)
   const cuentaRef = useRef(null)
 
-  // El lector de pantalla empieza por el título (y al ir y volver de «Prefiero salir»).
+  // El lector de pantalla empieza por el título (y al ir y volver de «Rechazar la autorización»).
   useEffect(() => { tituloRef.current?.focus({ preventScroll: true }) }, [desacuerdo])
 
   // Como en «Crear cuenta»: el foco y la vista van a la casilla que falta
@@ -178,8 +180,8 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
   const obligatoriasListas = !aviso || (edad && cuenta)
   const seguir = () => {
     if (aviso) {
-      if (!edad) { marcarFalta('edad', `Ronda es solo para mayores de 18 años. Si tienes menos de 18, escríbenos a ${CORREO_DATOS} y borramos tu cuenta.`); return }
-      if (!cuenta) { marcarFalta('cuenta', 'Para mantener tu cuenta necesitamos tu autorización para tratar tus datos de cuenta.'); return }
+      if (!edad) { marcarFalta('edad', `Ronda es solo para mayores de 18 años. Si tienes 18 o más, marca la casilla «Tengo 18 años o más». Si tienes menos de 18, escríbenos a ${CORREO_DATOS} y borramos tu cuenta.`); return }
+      if (!cuenta) { marcarFalta('cuenta', 'Para mantener tu cuenta necesitamos que autorices el tratamiento de tus datos de cuenta: marca la segunda casilla.'); return }
       onResponder({ edad: true, cuenta: true, ia })
     } else {
       onResponder({ ia })
@@ -269,7 +271,7 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
       </button>
       {aviso && (
         <div style={{ textAlign: 'center', marginTop: 6 }}>
-          <button type="button" onClick={() => { limpiarError(); setDesacuerdo(true) }} style={botonTexto}>Prefiero salir</button>
+          <button type="button" onClick={() => { limpiarError(); setDesacuerdo(true) }} style={botonTexto}>Rechazar la autorización</button>
         </div>
       )}
     </MarcoAutorizacion>
@@ -354,8 +356,8 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
     const estado = await onCambiarIA(valor)
     setGuardando(false)
     cerrarPaso()
-    if (estado === 'otro-telefono') setMensaje('En otro dispositivo quitaste esta autorización. Si quieres activarla aquí, toca el interruptor otra vez.')
-    else if (estado !== 'listo') setMensaje('Quedó guardado en este teléfono. Revisa tu conexión: en cuanto vuelva, lo guardamos también en tu cuenta.')
+    if (estado === 'otro-telefono') setMensaje('En otro teléfono quitaste esta autorización. Si quieres darla otra vez, toca el interruptor.')
+    else if (estado !== 'listo') setMensaje('Tu cambio quedó guardado en este teléfono. Revisa tu conexión: en cuanto vuelva, lo guardamos también en tu cuenta.')
     else if (valor) setMensaje('Listo. Diste tu autorización para usar la IA de Ronda.')
     else setMensaje('Listo. Desde ahora la IA de Ronda deja de recibir lo que escribes.')
   }
@@ -392,7 +394,7 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
               color: iaOk ? 'white' : C.muted, fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
               display: 'flex', alignItems: 'center', justifyContent: iaOk ? 'flex-start' : 'flex-end', gap: 6,
             }}>
-            {iaOk ? 'Activa' : 'Apagada'}
+            {iaOk ? 'Encendida' : 'Apagada'}
             <span aria-hidden="true" style={{
               width: 26, height: 26, borderRadius: '50%', background: iaOk ? 'white' : C.contorno,
               order: iaOk ? 1 : -1,
@@ -400,7 +402,7 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
           </button>
         </div>
         <div id="perfil-ia-detalle" style={detalle}>
-          Tu Ronda, la Guía IA de la Comunidad y Crea tu programa. <em>{iaOk ? (fechaIA ? `Autorizada el ${fechaIA}.` : 'Autorizada.') : 'La activas cuando quieras.'}</em>
+          Para Tu Ronda, la Guía IA de la Comunidad y Crea tu programa. <em>{iaOk ? (fechaIA ? `Diste esta autorización el ${fechaIA}.` : 'Ya diste esta autorización.') : 'La activas cuando quieras.'}</em>
         </div>
 
         {paso === 'quitar' && (
@@ -409,11 +411,11 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
               ¿Quitamos esta autorización?
             </div>
             <div style={{ ...detalle, color: C.text }}>
-              Desde ya se cierran Tu Ronda, la Guía IA y Crea tu programa. Las vuelves a abrir cuando quieras, dando otra vez tu autorización. Lo que Tu Ronda recuerda de ti sigue en este teléfono, y lo puedes borrar en «Lo que sé de ti».
+              Al quitarla, se cierran de inmediato Tu Ronda, la Guía IA y Crea tu programa. Las vuelves a abrir cuando quieras, dando otra vez tu autorización. Lo que Tu Ronda recuerda de ti sigue en este teléfono, y lo puedes borrar en «Lo que sé de ti».
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-              <button type="button" onClick={cerrarPaso} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120, padding: '12px 8px', background: C.card, color: C.morado, border: `2px solid ${C.morado}` }}>Dejarla así</button>
-              <button type="button" onClick={() => cambiar(false)} disabled={guardando} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120, padding: '12px 8px' }}>Sí, quitar</button>
+              <button type="button" onClick={cerrarPaso} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120, padding: '12px 8px', background: C.card, color: C.morado, border: `2px solid ${C.morado}` }}>Mantenerla</button>
+              <button type="button" onClick={() => cambiar(false)} disabled={guardando} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120, padding: '12px 8px' }}>Sí, quitarla</button>
             </div>
           </div>
         )}
@@ -435,7 +437,7 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
       <div style={fila}>
         <div style={nombre}>Datos de tu cuenta</div>
         <div style={detalle}>
-          <em>{fechaCuenta ? `Autorizada el ${fechaCuenta}.` : 'Autorizada.'}</em> Es necesaria para tener cuenta. Si quieres retirarla, pídenos que borremos tu cuenta.
+          <em>{fechaCuenta ? `Diste esta autorización el ${fechaCuenta}.` : 'Ya diste esta autorización.'}</em> Es necesaria para tener cuenta. Si quieres retirarla, pídenos que borremos tu cuenta.
         </div>
       </div>
 
