@@ -2578,7 +2578,7 @@ function App() {
           Únete como Guía Ronda verificada y acompaña a mujeres en su camino.
         </div>
         <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
-          Escríbenos → hola@rondahub.com
+          Escríbenos → <a href="mailto:hola@rondahub.com" style={{ color: 'inherit', textDecoration: 'underline', display: 'inline-block', padding: '10px 0' }}>hola@rondahub.com</a>
         </div>
       </div>
     </div>
@@ -2632,9 +2632,9 @@ function App() {
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           Estamos buscando Guías Ronda verificadas. Escríbenos.
         </div>
-        <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
+        <a href="mailto:hola@rondahub.com" style={{ display: 'inline-block', padding: '10px 0', fontSize: 19, fontWeight: 700, color: C.rose, textDecoration: 'underline' }}>
           hola@rondahub.com
-        </div>
+        </a>
       </div>
     </div>
   )
