@@ -3501,13 +3501,13 @@ function App() {
       </div>
     </>),
 
-    /* Paso 2 — Un primer hábito. Que salga del onboarding habiendo HECHO algo. */
+    /* Paso 2 — Sus primeros hábitos (hasta 3). Que salga del onboarding habiendo HECHO algo. */
     onboardStepShell(2, <>
       <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10, maxWidth: '100%', overflowWrap: 'anywhere' }}>
-        {onboardName.trim() ? `${onboardName.trim()}, elige tu primer hábito` : 'Elige tu primer hábito'}
+        {onboardName.trim() ? `${onboardName.trim()}, elige tus primeros hábitos` : 'Elige tus primeros hábitos'}
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 8, maxWidth: 320, lineHeight: 1.6 }}>
-        Empieza con uno. Puedes sumar más cuando quieras.
+        Hasta tres para empezar. Puedes sumar más cuando quieras.
       </div>
       <div style={{ fontSize: 14, fontWeight: 700, color: onboardHabits.length ? C.teal : C.subtle, marginBottom: 20 }}>
         {onboardHabits.length} de 3
