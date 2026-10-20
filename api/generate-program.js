@@ -1,8 +1,10 @@
+// Los mensajes de error son internos (la app muestra su propio texto fijo),
+// pero van en español por si alguien los lee en los registros.
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' })
 
-  const { goal, context } = req.body
-  if (!goal) return res.status(400).json({ error: 'Goal is required' })
+  const { goal, context } = req.body || {}
+  if (typeof goal !== 'string' || !goal.trim()) return res.status(400).json({ error: 'Falta la meta' })
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 
@@ -54,17 +56,17 @@ IMPORTANTE: Responde SOLO con el JSON. Sin texto antes ni después. Sin emojis.`
 
       if (!response.ok) {
         const err = await response.text()
-        return res.status(500).json({ error: 'AI API error', details: err })
+        return res.status(500).json({ error: 'Error del servicio de IA', details: err })
       }
 
       const data = await response.json()
       const text = data.content[0].text
       const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) return res.status(500).json({ error: 'Invalid AI response' })
+      if (!jsonMatch) return res.status(500).json({ error: 'Respuesta de la IA no válida' })
       const program = JSON.parse(jsonMatch[0])
       return res.status(200).json({ program })
     } catch (err) {
-      return res.status(500).json({ error: 'Server error', details: err.message })
+      return res.status(500).json({ error: 'Error del servidor', details: err.message })
     }
   }
 

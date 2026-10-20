@@ -281,7 +281,7 @@ function App() {
   // AI Agent state
   const [aiGoal, setAiGoal] = useState('')
   const [aiContext, setAiContext] = useState('')
-  const [aiStep, setAiStep] = useState(0) // 0=intro, 1=goal, 2=context, 3=generating, 4=result
+  const [aiStep, setAiStep] = useState(0) // 0=meta, 1=contexto (y error), 3=creando, 4=resultado
   const [aiProgram, setAiProgram] = useState(null)
   const [aiError, setAiError] = useState('')
   const [aiSaved, setAiSaved] = useState(false)
@@ -295,8 +295,9 @@ function App() {
   const [chatLoading, setChatLoading] = useState(false)
   const [chatMode, setChatMode] = useState('chat') // 'chat' or 'create'
   // Voz de Tu Ronda. Si /api/speak no está configurado, available queda en false
-  // y el botón no se muestra.
-  const { speak, speakingId, loadingId: speechLoadingId, available: voiceAvailable } = useSpeech()
+  // y el botón no se muestra. Si falla, errorId marca el mensaje por un momento.
+  // El hook vive en App (no se desmonta): al salir del chat se llama stopSpeech.
+  const { speak, stop: stopSpeech, speakingId, loadingId: speechLoadingId, errorId: speechErrorId, available: voiceAvailable } = useSpeech()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   // Día al que pertenecen los estados diarios (hábitos, rutina, check-ins,
@@ -917,6 +918,8 @@ function App() {
   }
   const openModule = (id, sub = '') => {
     const destino = id === 'crecer' ? 'ahora' : id
+    // Al salir del chat, la voz de Tu Ronda se calla.
+    stopSpeech()
     setView(destino)
     setSubTab(sub)
     limpiarTelon()
@@ -924,6 +927,7 @@ function App() {
   }
   // Cambia de subpestaña dentro de la misma sección.
   const irASubTab = (id) => {
+    stopSpeech()
     setSubTab(id)
     limpiarTelon()
   }
@@ -1029,7 +1033,7 @@ function App() {
     if (view === 'juntas') return <div style={estiloTelon}>Tu gente</div>
     if (view === 'perfil') return <div style={estiloTelon}>Tu perfil</div>
     if (view === 'ahora' && subTab) return (
-      <button onClick={() => setSubTab('')} style={{ ...estiloTelon, ...botonTelon, gap: 6 }}>
+      <button onClick={() => { stopSpeech(); setSubTab('') }} style={{ ...estiloTelon, ...botonTelon, gap: 6 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         Volver a Adentro
       </button>
@@ -2514,13 +2518,19 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ goal: aiGoal, context: aiContext }),
       })
-      const data = await resp.json()
-      if (data.error) throw new Error(data.error)
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const data = await resp.json().catch(() => null)
+      if (!data || data.error || !Array.isArray(data.program?.days) || !data.program.days.length) {
+        throw new Error(data?.error || 'Sin programa')
+      }
       setAiProgram(data.program)
       setAiStep(4)
     } catch (err) {
-      setAiError(err.message || 'Error generando tu programa')
-      setAiStep(2)
+      // El detalle técnico queda en la consola; a la usuaria, un texto claro.
+      console.error('generate-program', err)
+      setAiError('No pude crear tu programa ahora. Inténtalo de nuevo en un momento.')
+      // Vuelve al paso de contexto: conserva la meta y deja reintentar.
+      setAiStep(1)
     }
   }
 
@@ -2668,7 +2678,7 @@ function App() {
       {/* Mode toggle */}
       <div role="group" aria-label="Modo de Tu Ronda" style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
         {[{ id: 'chat', label: 'Habla conmigo' }, { id: 'create', label: 'Crea tu programa' }].map(m => (
-          <button key={m.id} type="button" aria-pressed={chatMode === m.id} onClick={() => setChatMode(m.id)} style={{
+          <button key={m.id} type="button" aria-pressed={chatMode === m.id} onClick={() => { if (m.id !== 'chat') stopSpeech(); setChatMode(m.id) }} style={{
             flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
             background: chatMode === m.id ? C.teal : 'transparent',
             color: chatMode === m.id ? 'white' : C.muted,
@@ -2704,7 +2714,7 @@ function App() {
                 {msg.role === 'assistant' && voiceAvailable && msg.text && !msg.isProgram && (
                   <button
                     onClick={() => speak(msg.text, { id: i, tone: msg.sos ? 'sos' : 'chat' })}
-                    aria-label={speakingId === i ? 'Silenciar' : 'Escuchar esta respuesta'}
+                    aria-label={speechErrorId === i ? 'No pude reproducir la voz ahora. Toca para intentar de nuevo' : speakingId === i ? 'Silenciar' : 'Escuchar esta respuesta'}
                     style={{
                       marginTop: 10, padding: '5px 12px 5px 6px', borderRadius: 20,
                       border: `1px solid ${C.roseLight}`, cursor: 'pointer',
@@ -2726,7 +2736,7 @@ function App() {
                         background: C.rose,
                       }} />
                     </div>
-                    {speechLoadingId === i ? 'Un momento…' : speakingId === i ? 'Silenciar' : 'Escuchar'}
+                    {speechErrorId === i ? 'No pude reproducir la voz ahora' : speechLoadingId === i ? 'Un momento…' : speakingId === i ? 'Silenciar' : 'Escuchar'}
                   </button>
                 )}
                 {/* Action buttons: Connect with professional / SOS */}
