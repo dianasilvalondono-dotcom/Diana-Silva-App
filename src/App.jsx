@@ -924,10 +924,21 @@ function App() {
 
   const addToolkitItem = () => {
     if (!newToolName.trim()) return
+    // El link se guarda ya listo para abrir; si no es una dirección web,
+    // se avisa junto al campo y no se guarda (toolkit-1, toolkit-4).
+    const url = urlDelRecurso(newToolUrl)
+    if (url === null) {
+      setLinkRecursoInvalido(true)
+      // Al centro de la pantalla: arriba quedaría tapado por la barra fija.
+      const campo = document.getElementById('recurso-link')
+      campo?.focus({ preventScroll: true })
+      campo?.scrollIntoView({ block: 'center' })
+      return
+    }
     const item = {
       id: Date.now(),
       name: newToolName.trim(),
-      url: newToolUrl.trim(),
+      url,
       cat: newToolCat,
       note: newToolNote.trim(),
       added: todayKey(),
@@ -939,6 +950,25 @@ function App() {
     cerrarFormRecurso()
   }
 
+  /* Link de un recurso listo para abrir: '' si no hay link y null si el
+     texto no es una dirección web. Acepta 'Https://' (la mayúscula que pone
+     el teclado del celular) y agrega https:// cuando falta, también a
+     dominios como 'httpster.net'. Sirve para lo ya guardado: no hay que
+     migrar nada (toolkit-1, toolkit-4). */
+  const urlDelRecurso = (texto) => {
+    const limpio = typeof texto === 'string' ? texto.trim() : ''
+    if (!limpio) return ''
+    if (/\s/.test(limpio)) return null
+    try {
+      const u = new URL(/^https?:\/\//i.test(limpio) ? limpio : `https://${limpio}`)
+      if (!/^https?:$/.test(u.protocol) || !u.hostname.includes('.') || u.username || u.password) return null
+      return u.href
+    } catch { return null }
+  }
+
+  // Aviso del link que no se pudo guardar; se borra al corregirlo.
+  const [linkRecursoInvalido, setLinkRecursoInvalido] = useState(false)
+
   // Guardar y Cancelar dejan el formulario vacío, con la categoría por
   // defecto: no queda un borrador escondido (toolkit-7).
   const cerrarFormRecurso = () => {
@@ -946,6 +976,7 @@ function App() {
     setNewToolUrl('')
     setNewToolNote('')
     setNewToolCat('podcast')
+    setLinkRecursoInvalido(false)
     setShowAddTool(false)
   }
 
@@ -2098,11 +2129,17 @@ function App() {
           />
 
           <label htmlFor="recurso-link" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Link</label>
-          <input id="recurso-link" value={newToolUrl} onChange={e => setNewToolUrl(e.target.value)} placeholder="Ej: https://spotify.com/..."
-            inputMode="url" autoCapitalize="off"
+          <input id="recurso-link" value={newToolUrl} onChange={e => { setNewToolUrl(e.target.value); setLinkRecursoInvalido(false) }} placeholder="Ej: https://spotify.com/..."
+            inputMode="url" autoCapitalize="off" autoCorrect="off" spellCheck={false}
+            aria-invalid={linkRecursoInvalido} aria-describedby={linkRecursoInvalido ? 'recurso-link-error' : undefined}
             onKeyDown={guardarRecursoConEnter}
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${linkRecursoInvalido ? C.coral : C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
+          {linkRecursoInvalido && (
+            <div id="recurso-link-error" role="alert" style={{ fontSize: 17, color: C.coral, fontWeight: 600, marginTop: -4, marginBottom: 10 }}>
+              Revisa el link: debe verse como ejemplo.com o https://ejemplo.com
+            </div>
+          )}
 
           <label htmlFor="recurso-nota" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nota (opcional)</label>
           <input id="recurso-nota" value={newToolNote} onChange={e => setNewToolNote(e.target.value)}
@@ -2165,6 +2202,9 @@ function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filteredTools.map(item => {
             const cat = TOOLKIT_CATS.find(c => c.id === item.cat) || TOOLKIT_CATS[TOOLKIT_CATS.length - 1]
+            // También corrige links ya guardados ('Https://…', 'httpster.net');
+            // si el texto no es una dirección web no se ofrece un enlace roto.
+            const link = urlDelRecurso(item.url)
             return (
               <div key={item.id} style={{
                 background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
@@ -2178,11 +2218,17 @@ function App() {
                     <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.textColor || cat.color, fontWeight: 700 }}>
                       {cat.label}
                     </span>
-                    {item.url && (
-                      <a href={item.url.startsWith('http') ? item.url : `https://${item.url}`} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: 19, color: C.rose, fontWeight: 700, textDecoration: 'none' }}
+                    {link && (
+                      // Nombre que dice qué abre y área táctil de 36 px; los
+                      // márgenes negativos dejan el diseño igual (toolkit-14).
+                      <a href={link} target="_blank" rel="noopener noreferrer"
+                        aria-label={`Abrir ${item.name} (se abre en otra pestaña)`}
+                        style={{
+                          fontSize: 19, color: C.rose, fontWeight: 700, textDecoration: 'none',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.3em', minHeight: 36, padding: '4px 6px', margin: '-4px -6px',
+                        }}
                         onClick={e => e.stopPropagation()}>
-                        Abrir →
+                        Abrir <span aria-hidden="true">→</span>
                       </a>
                     )}
                   </div>
