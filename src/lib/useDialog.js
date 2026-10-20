@@ -6,6 +6,10 @@ import { useEffect, useRef } from 'react'
    - Tab y Shift+Tab no salen del diálogo;
    - Escape llama a onCerrar;
    - al cerrarse, el foco vuelve a donde estaba (el botón que lo abrió).
+     focoAlCerrar(previo), si se pasa, puede elegir otro destino (por
+     ejemplo cuando el botón que lo abrió ya no existe porque se borró lo
+     que tenía al lado): devuelve el elemento a enfocar, o null para no
+     mover el foco.
    Con varios diálogos abiertos, solo el de encima (el último) atiende el
    teclado. */
 
@@ -16,9 +20,10 @@ const ENFOCABLES = [
 
 const abiertos = []
 
-export function useDialog(ref, abierto, onCerrar) {
+export function useDialog(ref, abierto, onCerrar, focoAlCerrar) {
   const cerrarRef = useRef(onCerrar)
-  useEffect(() => { cerrarRef.current = onCerrar })
+  const focoRef = useRef(focoAlCerrar)
+  useEffect(() => { cerrarRef.current = onCerrar; focoRef.current = focoAlCerrar })
 
   useEffect(() => {
     if (!abierto) return
@@ -66,7 +71,16 @@ export function useDialog(ref, abierto, onCerrar) {
       window.removeEventListener('keydown', alTeclear, true)
       const i = abiertos.indexOf(yo)
       if (i !== -1) abiertos.splice(i, 1)
-      if (previo && previo.isConnected && typeof previo.focus === 'function') previo.focus({ preventScroll: true })
+      const destino = focoRef.current ? focoRef.current(previo) : previo
+      if (!destino || !destino.isConnected || typeof destino.focus !== 'function') return
+      destino.focus({ preventScroll: true })
+      // Un destino distinto del que lo abrió puede estar fuera de la vista
+      // (o bajo el encabezado fijo): se trae al centro.
+      if (destino !== previo) {
+        const r = destino.getBoundingClientRect()
+        const arriba = document.querySelector('header')?.getBoundingClientRect().bottom || 0
+        if (r.top < arriba || r.bottom > window.innerHeight - 80) destino.scrollIntoView({ block: 'center' })
+      }
     }
   }, [abierto, ref])
 }

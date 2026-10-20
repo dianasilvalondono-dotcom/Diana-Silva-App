@@ -295,6 +295,10 @@ function App() {
   // 'confirm' pide un sí antes de borrar: el CTA ejecuta onConfirm; "Cancelar",
   // Escape o tocar el fondo lo cierran sin hacer nada.
   const [appModal, setAppModal] = useState(null)
+  // A dónde va el foco al cerrar el modal, si no debe volver al botón que lo
+  // abrió (porque ese botón se borró con lo confirmado, o porque quedó lejos
+  // de lo que se ve). Se fija al confirmar o al abrir; se usa una vez.
+  const focoTrasModalRef = useRef(null)
   // Si el navegador no deja guardar (memoria llena o almacenamiento
   // bloqueado), save() avisa una sola vez con este evento (salud-global-2).
   // Va antes de los efectos que guardan para escuchar desde el primero.
@@ -970,7 +974,11 @@ function App() {
       ? `Perderás tu avance: ${hechos} de ${prog.days.length} días.`
       : 'Puedes volver a empezarla cuando quieras.',
     cta: 'Dejar la ruta',
-    onConfirm: () => quitProgram(prog.id),
+    onConfirm: () => {
+      quitProgram(prog.id)
+      // La X se va con la tarjeta: el foco pasa a "Empezar" de esa ruta.
+      focoTrasModalRef.current = () => document.querySelector(`[data-empezar-ruta="${prog.id}"]`) || document.getElementById('rutas-titulo')
+    },
   })
   const addSuggestedHabit = (habit, e) => {
     if (tieneHabito(habit.name)) return
@@ -1167,20 +1175,18 @@ function App() {
   const morningRef = useRef(null)
   const nightRef = useRef(null)
   const appModalRef = useRef(null)
-  useDialog(panicRef, showPanic && pantallaPrincipal, cerrarAyuda)
+  // Si lo que abrió la Ayuda ya no está (un check-in que se cerró, una
+  // sección que se cambió), el foco vuelve al botón "Ayuda" del encabezado.
+  useDialog(panicRef, showPanic && pantallaPrincipal, cerrarAyuda,
+    (previo) => (previo && previo.isConnected && previo !== document.body ? previo : document.getElementById('boton-ayuda')))
   useDialog(morningRef, showMorningCheckin && pantallaPrincipal, posponerCheckin)
   useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
-  useDialog(appModalRef, !!appModal && pantallaPrincipal, () => setAppModal(null))
+  useDialog(appModalRef, !!appModal && pantallaPrincipal, () => setAppModal(null), (previo) => {
+    const elegir = focoTrasModalRef.current
+    focoTrasModalRef.current = null
+    return (elegir && elegir()) || previo
+  })
   const fondoInerte = showPanic || showMorningCheckin || showNightCheckin || !!appModal
-  // Aviso de miembro fundadora: se cierra solo a los 8 s de estar a la vista.
-  // Cada aviso tiene su propio temporizador: se cancela al cerrarlo con la X,
-  // al llegar otro aviso o al desmontar. Mientras hay un diálogo abierto
-  // (modal, Ayuda o check-in) el aviso espera sin mostrarse y el reloj no corre.
-  useEffect(() => {
-    if (!foundingToast || fondoInerte) return
-    const t = setTimeout(() => setFoundingToast(null), 8000)
-    return () => clearTimeout(t)
-  }, [foundingToast, fondoInerte])
   // Cada pantalla de la Ayuda empieza arriba (el contenedor que hace scroll se reutiliza).
   useEffect(() => { if (panicRef.current) panicRef.current.scrollTop = 0 }, [panicScreen, showPanic])
   // Con la Ayuda abierta, la página de atrás no se mueve.
@@ -1270,7 +1276,7 @@ function App() {
           {isAdmin && <span style={{ fontSize: 10, background: C.orquidea, color: C.morado, padding: '2px 7px', borderRadius: 6, fontWeight: 700, letterSpacing: '0.06em' }}>CURADORA</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <button onClick={() => abrirAyuda('encabezado')} style={{
+          <button id="boton-ayuda" onClick={() => abrirAyuda('encabezado')} style={{
             background: 'none', border: 'none', cursor: 'pointer', padding: '12px 10px',
             color: C.orquidea, fontSize: 15, fontWeight: 600, letterSpacing: '0.04em', fontFamily: 'inherit',
           }}>{BOTON_AYUDA}</button>
@@ -1969,7 +1975,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ background: C.morado, borderRadius: 20, padding: 22, color: 'white' }}>
-        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Rutas</div>
+        <div id="rutas-titulo" tabIndex={-1} style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT, outline: 'none' }}>Rutas</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para crecer y brillar</div>
         <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>Una práctica al día. Tu transformación.</div>
       </div>
@@ -1992,7 +1998,7 @@ function App() {
                 <div key={progId} id={`ruta-activa-${progId}`} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <div>
-                      <div data-titulo-ruta tabIndex={-1} style={{ fontSize: 19, fontWeight: 800, color: C.text, outline: 'none' }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : <span aria-hidden="true" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: prog.color, verticalAlign: 'middle' }} />} {prog.title}</div>
+                      <div data-titulo-ruta tabIndex={-1} style={{ fontSize: 19, fontWeight: 800, color: C.text, outline: 'none' }}>{ICONS[prog.id] ? <>{ICONS[prog.id](prog.color, 24)} </> : null}{prog.title}</div>
                       <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
                     </div>
                     <button type="button" aria-label={`Dejar la ruta ${prog.title}`} onClick={() => pedirDejarRuta(prog, completedCount)} style={{
@@ -2020,7 +2026,8 @@ function App() {
                             width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                           }}>
                             <span aria-hidden="true" style={{
-                              width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
+                              // Borde con 3:1 sobre la fila: el salvia pasa a oliva (colorTexto).
+                              width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : colorTexto(prog.color)}`,
                               background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
                               color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
                             }}>
@@ -2098,7 +2105,7 @@ function App() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
-                <button aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
+                <button data-empezar-ruta={prog.id} aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
@@ -2134,7 +2141,7 @@ function App() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
-                <button aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
+                <button data-empezar-ruta={prog.id} aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
@@ -2145,6 +2152,34 @@ function App() {
           ))}
         </div>
       </div>
+
+      {/* Rutas creadas con Tu Ronda que no están en curso (las que se dejaron):
+          siguen guardadas y se pueden volver a empezar. */}
+      {customPrograms.some(p => !activePrograms[p.id] && p.days?.length) && (
+        <div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+            Creadas con Tu Ronda
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {customPrograms.filter(p => !activePrograms[p.id] && p.days?.length).map(prog => (
+              <div key={prog.id} style={{
+                background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                border: `1px solid ${C.border}`,
+              }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
+                {prog.desc && <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>}
+                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · creada para ti</div>
+                <button data-empezar-ruta={prog.id} aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
+                  marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
+                  background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  Empezar <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Programa Premium 21 días */}
       <div>
