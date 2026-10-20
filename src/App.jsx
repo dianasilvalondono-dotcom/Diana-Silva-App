@@ -1547,7 +1547,7 @@ function App() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ background: C.morado, borderRadius: 20, padding: 22, color: 'white' }}>
-        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Programas</div>
+        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Rutas</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para crecer y brillar</div>
         <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
       </div>
@@ -1556,7 +1556,7 @@ function App() {
       {Object.keys(activePrograms).some(id => todosLosProgramas.some(p => p.id === id && p.days?.length)) && (
         <div>
           <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-            Mis programas activos
+            Mis rutas activas
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {Object.entries(activePrograms).map(([progId, progress]) => {
@@ -1613,7 +1613,7 @@ function App() {
                   {pct === 100 && (
                     <div style={{ textAlign: 'center', marginTop: 14, padding: 16, background: `${prog.color}10`, borderRadius: 14 }}>
                       <div style={{ fontSize: 28, marginBottom: 6, color: C.teal }}>●</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: prog.color }}>¡Completaste el programa!</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: prog.color }}>¡Completaste la ruta!</div>
                       <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Eres increíble. Cada paso cuenta.</div>
                     </div>
                   )}
@@ -1630,7 +1630,7 @@ function App() {
           Crece a tu ritmo
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
-          Estos programas son para ti, estés donde estés. Un paso a la vez.
+          Estas rutas son para ti, estés donde estés. Un paso a la vez.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {PROGRAMAS.filter(p => !activePrograms[p.id] && ['ejercicio','dios','mama','disciplina','amor_propio'].includes(p.id)).map(prog => (
@@ -1666,7 +1666,7 @@ function App() {
           Cuando necesites apoyo
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
-          Si estás pasando por algo difícil, estos programas te acompañan paso a paso.
+          Si estás pasando por algo difícil, estas rutas te acompañan paso a paso.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {PROGRAMAS.filter(p => !activePrograms[p.id] && ['tusa','depresion','ansiedad','empezar','autoestima'].includes(p.id)).map(prog => (
@@ -1699,7 +1699,7 @@ function App() {
       {/* Programa Premium 21 días */}
       <div>
         <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-          Programas de transformación
+          Rutas de transformación
         </div>
         {PROGRAMAS_PREMIUM.map(prog => (
           <div key={prog.id} style={{
@@ -1751,8 +1751,8 @@ function App() {
                   track('paywall_viewed', { feature: 'programa_21_dias', price: PLAN_PRECIO })
                   setAppModal({
                     type: 'paywall',
-                    title: `Este programa es parte de ${PLAN_PAGO}`,
-                    body: `Los programas de 21 días están incluidos en ${PLAN_PAGO}. Te acompañan paso a paso con neurociencia y micro-acciones diarias.`,
+                    title: `Esta ruta es parte de ${PLAN_PAGO}`,
+                    body: `Las rutas de 21 días están incluidas en ${PLAN_PAGO}. Te acompañan paso a paso con neurociencia y micro-acciones diarias.`,
                     cta: 'Ver planes',
                   })
                   return
@@ -1760,14 +1760,14 @@ function App() {
                 if (activePrograms[prog.id]) {
                   setAppModal({
                     type: 'info',
-                    title: 'Ya estás en este programa',
+                    title: 'Ya estás en esta ruta',
                     body: `Sigues "${prog.title}". Continúa con tu día de hoy.`,
                     cta: 'Listo',
                   })
                   return
                 }
                 startProgram(prog.id)
-                showFoundingPerk('p21', 'Programas de 21 días')
+                showFoundingPerk('p21', 'Rutas de 21 días')
                 setAppModal({
                   type: 'success',
                   title: `¡Activaste "${prog.title}"!`,
@@ -1780,7 +1780,7 @@ function App() {
                 color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(114,109,45,0.35)', letterSpacing: '0.02em',
               }}>
-                {isPremium ? 'Empezar este programa' : `Desbloquear con ${PLAN_PAGO}`}
+                {isPremium ? 'Empezar esta ruta' : `Desbloquear con ${PLAN_PAGO}`}
               </button>
             </div>
           </div>
@@ -2697,8 +2697,8 @@ function App() {
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: 16, background: `${C.teal}10`, borderRadius: 14 }}>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: C.teal }}>¡Programa guardado!</div>
-                  <div style={{ fontSize: 18, color: C.muted, marginTop: 4 }}>Ve a Programas para empezarlo.</div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: C.teal }}>¡Ruta guardada!</div>
+                  <div style={{ fontSize: 18, color: C.muted, marginTop: 4 }}>Ya está en Rutas, dentro de Adentro.</div>
                   <button onClick={resetAiAgent} style={{ marginTop: 10, padding: '8px 20px', borderRadius: 12, border: 'none', background: C.rose, color: 'white', fontSize: 18, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Crear otro</button>
                 </div>
               )}
@@ -3070,9 +3070,9 @@ function App() {
   )
 
   /* ── Onboarding ──
-     Progresivo: un módulo a la vez. Estos 4 pasos solo la dejan lista para
-     "Ahora". "Crecer" y "Juntas" se presentan solos cuando ella llega, vía
-     MODULE_INTROS. */
+     Estos 4 pasos la dejan lista para Adentro, y al terminar la app abre
+     ahí (lo que promete el último paso). Afuera y Juntas quedan en el menú,
+     sin presentaciones aparte. */
   const finishOnboarding = () => {
     if (onboardName.trim()) {
       setProfile(prev => ({ ...prev, name: onboardName.trim() }))
@@ -3089,6 +3089,7 @@ function App() {
     }
     setOnboarded(true)
     save('ronda-onboarded', true)
+    openModule('ahora')
     track('onboarding_completed', {
       added_name: !!onboardName.trim(),
       habits_chosen: onboardHabits.length,
@@ -3194,23 +3195,24 @@ function App() {
       </div>
     </>),
 
-    /* Paso 3 — Un solo módulo: Ahora. Crecer y Juntas se presentan solos
-       cuando ella llegue (MODULE_INTROS). */
+    /* Paso 3 — Adentro, donde aterriza al terminar. Afuera y Juntas
+       quedan en el menú de abajo. */
     onboardStepShell(3, <>
       <div style={{ width: 56, height: 56, borderRadius: '50%', border: `3px solid ${C.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
         <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.gold }} />
       </div>
       <div style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10 }}>
-        Empecemos por Ahora
+        Empecemos por Adentro
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 26, maxWidth: 310, lineHeight: 1.6 }}>
-        Es tu pantalla del día: tus hábitos, tu rutina, tu diario y tu toolkit.
+        Es tu pantalla del día: tus hábitos, tu rutina, tu diario y tus rutas.
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 330 }}>
         {[
           { title: 'Tus hábitos', desc: 'Márcalos cada día y mira tu racha crecer.', color: C.gold },
           { title: 'Tu rutina', desc: 'Mañana, mediodía y noche, a tu medida.', color: C.teal },
           { title: 'Tu diario', desc: 'Escribe cómo te fue. Solo tú lo lees.', color: C.rose },
+          { title: 'Tus rutas', desc: 'Caminos de 7 días, un minuto al día.', color: C.mint },
         ].map((item, i) => (
           <div key={i} style={{ background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: SHADOW.sm, textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+item.color }}>
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: item.color+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -3224,7 +3226,7 @@ function App() {
         ))}
       </div>
       <div style={{ fontSize: 14, color: C.subtle, marginTop: 20, maxWidth: 300, lineHeight: 1.6 }}>
-        Crecer y Juntas te esperan abajo. Te los presento cuando llegues.
+        Afuera y Juntas te esperan abajo.
       </div>
       <button onClick={finishOnboarding} style={{
         padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 330, marginTop: 22,
