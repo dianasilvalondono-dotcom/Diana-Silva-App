@@ -3285,7 +3285,7 @@ function App() {
           Próximamente
         </div>
         <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.6, maxWidth: 320, margin: '0 auto' }}>
-          Estamos armando un directorio de profesionales verificadas para ti.
+          Estamos armando un directorio de profesionales. Todavía no está disponible.
         </div>
         <div style={{ fontSize: 15, color: C.teal, fontWeight: 600, marginTop: 16 }}>
           {/* Sin Ronda+ no se puede publicar: no prometer que puede preguntar. */}

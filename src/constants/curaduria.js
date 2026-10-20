@@ -25,7 +25,7 @@ export const SALAS = [
   { id: 'taller', label: 'Taller', desc: 'Crear con las manos' },
   { id: 'movimiento', label: 'Movimiento', desc: 'Caminar, bailar, entrenar' },
   { id: 'ciudad', label: 'Ciudad', desc: 'Galerías, aperturas y recorridos' },
-  { id: 'acompanamiento', label: 'Acompañamiento', desc: 'Profesionales verificadas' },
+  { id: 'acompanamiento', label: 'Acompañamiento', desc: 'Planes para sentirte acompañada' },
 ]
 
 /* Modalidad del plan: en persona o en línea (por voz, en grupo pequeño). */
