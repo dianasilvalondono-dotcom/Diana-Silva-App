@@ -297,6 +297,18 @@ export const CRISIS_PATTERNS = [
   /\bme (amenaza|amenazo|amenazan|amenazaron|amenazaba) (de muerte|con (matarme|pegarme|hacerme dano|quitarme (a )?mis hijos|llevarse (a )?mis hijos|publicar|un cuchillo|un arma|una pistola|matarse|suicidarse))\b/,
   /\b(miedo|terror|panico) (de|a) mi (esposo|marido|pareja|novio|ex|papa|padrastro|exesposo|expareja)\b/,
   /\bme (toca|toco|tocan|tocaron|tocaba|manosea|manoseo|manosearon) (\w+ ){0,3}sin (mi )?(permiso|consentimiento|querer)\b/, /\bme (manosea|manoseo|manosearon|manoseaba)\b/,
+  // Violencia sexual contada sin "me violaron" ni "abusaron de mí": "fui
+  // violada", "sufrí una violación", "mi padrastro me toca", "me tocaba
+  // cuando era niña", "me drogaron", "me forzó". No activan "fui violada en
+  // mis derechos", "sufrí una violación de datos", "mi papá me toca llevarlo
+  // al médico" ("me toca" es "tengo que") ni "me forzó a estudiar".
+  /\b(fui|he sido|habia sido) (violada|violado|abusada|abusado)( sexualmente)?\b(?! en (mis|los) derechos\b)/,
+  /\b(sufri|me hicieron|vivi|tuve) (una )?(violacion|agresion sexual)\b(?! (de|a) (los |mis |mi |la )?(datos|privacidad|derechos|ley|contrato|normas?|seguridad|transito)\b)/,
+  /\b(padrastro|tio|primo|abuelo|papa|padre|hermano|hermanastro|cunado|suegro|vecino|profesor|profe|jefe|entrenador) (\w+ )?me (toca|tocaba|toco|tocan|tocaban)\b(?! (\w+ )?\w+(ar|er|ir)(lo|la|los|las|le|les|me|te|se|nos)?\b| (la|el|una|un) (guitarra|piano|cancion|musica|puerta|timbre|turno|tema|bateria|violin|tambor)\b| (a mi )?turno\b)/,
+  /\bme (tocaba|tocaban) cuando (yo )?(era|estaba) (nina|nino|pequena|pequeno|chiquita|chiquito|menor|adolescente)\b/,
+  /\bme (drogaron|dieron burundanga|echaron burundanga|echaron algo en (la|el|mi) (bebida|trago|vaso))\b/,
+  /\bme (forzo|forzaron|forzaba)\b(?! (a \w+(ar|er|ir)|la (puerta|cerradura|chapa|entrada|ventana)|el (carro|candado))\b)/,
+  /\bme (\w+ )?(obliga|obligo|obligaba|fuerza|forzo) a hacerlo (aunque|cuando|si) (\w+ ){0,3}no\b/,
 ]
 
 export function isCrisis(content) {
