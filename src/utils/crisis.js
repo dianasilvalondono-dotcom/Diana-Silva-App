@@ -14,10 +14,15 @@ export function normalize(s) {
 // uñas, el fleco… ("me quiero cortar el pelo").
 const NO_ES_PELO = '(?!( (el|la|los|las|mi|mis|un|una))? (pelo|cabello|unas|fleco|flequillo|pollina|capul|cerquillo|puntas|barba|melena)\\b)'
 
+// Lo que viene después de "morir(me)" cuando es una exageración y no una
+// crisis: "me quiero morir de (la) risa", "quiero morirme de la vergüenza".
+// Solo esas dos: "morirme de tristeza" o "de dolor" sí activan ayuda.
+const NO_ES_RISA = '(?!(me)? de (la )?(risa|verguenza)\\b)'
+
 // Señales de crisis de alto riesgo.
 export const CRISIS_PATTERNS = [
-  /\bsuicid/, /quitarme la vida/, /acabar con mi vida/, /matarme/, /me quiero morir/,
-  /quiero morir/, /no quiero (vivir|seguir viviendo|seguir aca|seguir aqui)/,
+  /\bsuicid/, /quitarme la vida/, /acabar con mi vida/, /matarme/, new RegExp(`me quiero morir${NO_ES_RISA}`),
+  new RegExp(`quiero morir${NO_ES_RISA}`), /no quiero (vivir|seguir viviendo|seguir aca|seguir aqui)/,
   /mejor no estar/, /acabar con todo/, /hacerme dano/, /lastimarme/, new RegExp(`cortarme\\b${NO_ES_PELO}`),
   /\bautolesion/, /me estoy cortando/,
   /me viol/, /abuso sexual/, /me esta pegando/, /me pega/, /me golpea/, /me maltrata/,
@@ -32,7 +37,7 @@ export const CRISIS_PATTERNS = [
   /cortar(me)? (las|mis) venas/,
   /ganas de (morir|morirme|matarme|suicidarme|no despertar)/,
   /\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|ojala|deseo) (estar |estuviera |estuviese )?muert[ao]s?\b/,
-  /\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|deseo) morirme\b(?! de)/,
+  new RegExp(`\\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|deseo) morirme\\b${NO_ES_RISA}`),
   /\bojala (me muera|no despertar|no despierte|no amanecer)/,
   /\bme (hago|estoy haciendo|sigo haciendo) dano\b/, /\bme lastimo\b/,
   /no vale la pena (vivir|seguir)/, /estarian mejor sin mi/,
