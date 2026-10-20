@@ -84,14 +84,26 @@ export default function AuthScreen({
   // Un error siempre queda a la vista: en el celular, con Enter (o «Ir» del
   // teclado) desde la contraseña, salía debajo del borde de la pantalla. Si
   // es de un campo, el foco va a ese campo (en una casilla, el teclado del
-  // teléfono se cierra) y el mensaje queda centrado junto a él.
+  // teléfono se cierra) y, si caben juntos, el campo y el mensaje quedan los
+  // dos a la vista: el mensaje dice «marca la casilla…» y la casilla queda
+  // arriba de él, no por encima del borde. Si no caben, el mensaje centrado.
   const mostrarError = (campo) => requestAnimationFrame(() => {
     const id = { nombre: 'auth-nombre', edad: 'auth-edad', cuenta: 'auth-autorizo' }[campo]
-    if (id) document.getElementById(id)?.focus({ preventScroll: true })
-    errorRef.current?.scrollIntoView({ block: 'center' })
+    const el = id ? document.getElementById(id) : null
+    el?.focus({ preventScroll: true })
+    const err = errorRef.current
+    if (!err) return
+    const alto = window.visualViewport?.height ?? window.innerHeight
+    const c = el?.getBoundingClientRect()
+    const e = err.getBoundingClientRect()
+    if (c && c.top >= 0 && e.bottom <= alto) return
+    if (c && e.bottom - c.top + 32 <= alto) window.scrollBy({ top: c.top - 16 })
+    else err.scrollIntoView({ block: 'center' })
   })
-  // Los errores que llegan del servidor (después de esperar).
-  useEffect(() => { if (error) mostrarError(null) }, [error])
+  // Los errores que llegan del servidor (después de esperar). Los de un
+  // campo ya los acomodó errorDeCampo: centrar aquí el mensaje dejaría la
+  // casilla por encima del borde.
+  useEffect(() => { if (error && !campoInvalido) mostrarError(null) }, [error, campoInvalido])
   // Los de un campo, también si es el mismo mensaje otra vez (Enter de nuevo).
   const errorDeCampo = (campo, texto) => { setCampoInvalido(campo); setError(texto); setLoading(false); mostrarError(campo) }
 
