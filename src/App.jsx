@@ -2429,6 +2429,23 @@ function App() {
         </div>
       )}
 
+      {/* Categoría sin publicaciones: se dice, no se deja la lista en blanco (juntas-14) */}
+      {filteredBoardPosts.length === 0 && (
+        <div style={{
+          textAlign: 'center', padding: 24, background: C.card, borderRadius: 16,
+          border: `1.5px dashed ${C.border}`,
+        }}>
+          <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.5 }}>
+            Aún no hay publicaciones en {(BOARD_CATS.find(c => c.id === boardFilter) || {}).label}. Puedes escribir la primera aquí arriba.
+          </div>
+          <button type="button" onClick={() => setBoardFilter('todas')} style={{
+            marginTop: 12, minHeight: 44, padding: '0 20px', borderRadius: 12,
+            border: `1px solid ${C.border}`, background: 'none', color: C.rose,
+            fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          }}>Ver todas</button>
+        </div>
+      )}
+
       {/* Posts */}
       {filteredBoardPosts.map(post => (
         <div key={post.id} style={{
@@ -2450,6 +2467,7 @@ function App() {
             <span style={{
               padding: '3px 10px', borderRadius: 10, fontSize: 19, fontWeight: 600,
               background: `${C.rose}15`, color: C.roseDark,
+              display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
             }}>
               {ICONS['cat_'+post.cat] ? ICONS['cat_'+post.cat]((BOARD_CATS.find(c => c.id === post.cat) || {}).color, 14) : null}
               {(BOARD_CATS.find(c => c.id === post.cat) || {}).label}
@@ -2458,7 +2476,7 @@ function App() {
 
           {/* Etiqueta de ejemplo (contenido sembrado, no comunidad real) */}
           {post.example && (
-            <Badge variant="example" style={{ marginBottom: 10 }}>Ejemplo · así funciona el Board</Badge>
+            <Badge variant="example" style={{ marginBottom: 10 }}>Ejemplo · así funciona la Comunidad</Badge>
           )}
 
           {/* Post content */}
@@ -2487,7 +2505,7 @@ function App() {
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
               <div style={{
-                width: 28, height: 28, borderRadius: '50%', background: C.teal,
+                width: 28, height: 28, borderRadius: '50%', background: C.teal, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'white', fontSize: 14, fontWeight: 700,
               }}>{UI_ICONS.check('white', 16)}</div>
@@ -2525,7 +2543,7 @@ function App() {
               {/* Professional header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{
-                  width: 36, height: 36, borderRadius: '50%',
+                  width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
                   background: `${C.teal}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'white', fontSize: 20, fontWeight: 700,
