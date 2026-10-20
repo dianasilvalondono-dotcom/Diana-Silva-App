@@ -2347,9 +2347,9 @@ function App() {
       </div>
 
       {/* Category filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+      <div role="group" aria-label="Filtrar por categoría" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {BOARD_CATS.map(cat => (
-          <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
+          <button key={cat.id} type="button" aria-pressed={boardFilter === cat.id} onClick={() => setBoardFilter(cat.id)} style={{
             padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: boardFilter === cat.id ? cat.color : C.card,
             color: boardFilter === cat.id ? 'white' : C.text,
@@ -2378,9 +2378,9 @@ function App() {
             🔒 Publicación anónima
           </div>
           {/* Category selector */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          <div role="group" aria-label="Categoría de tu publicación" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
             {BOARD_CATS.filter(c => c.id !== 'todas').map(cat => (
-              <button key={cat.id} onClick={() => setBoardNewCat(cat.id)} style={{
+              <button key={cat.id} type="button" aria-pressed={boardNewCat === cat.id} onClick={() => setBoardNewCat(cat.id)} style={{
                 padding: '4px 10px', borderRadius: 12, border: boardNewCat === cat.id ? 'none' : `1px solid ${C.border}`, cursor: 'pointer',
                 background: boardNewCat === cat.id ? cat.color : C.card,
                 color: boardNewCat === cat.id ? 'white' : C.muted,
@@ -2398,6 +2398,7 @@ function App() {
             placeholder="Escribe lo que sientes, lo que te preocupa, lo que necesitas saber. Este es tu espacio seguro."
             rows={4}
             maxLength={BOARD_MAX}
+            aria-label="Tu publicación anónima"
             aria-describedby="board-contador board-aviso"
             style={{
               width: '100%', border: `1px solid ${C.border}`, borderRadius: 12, padding: 14,
@@ -2417,11 +2418,13 @@ function App() {
               flex: 1, padding: '10px 16px', borderRadius: 12, border: `1px solid ${C.border}`,
               background: 'none', color: C.muted, fontSize: 20, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
             }}>Cancelar</button>
-            <button onClick={addBoardPost} style={{
+            {/* Vacío: deshabilitado de verdad y con texto legible (juntas-19) */}
+            <button type="button" onClick={addBoardPost} disabled={!boardNewText.trim()} style={{
               flex: 1, padding: '10px 16px', borderRadius: 12, border: 'none',
-              background: boardNewText.trim() ? C.rose : C.border, color: 'white',
-              fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}>Publicar </button>
+              background: boardNewText.trim() ? C.rose : C.border,
+              color: boardNewText.trim() ? 'white' : C.muted,
+              fontSize: 20, fontWeight: 700, cursor: boardNewText.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+            }}>Publicar</button>
           </div>
         </div>
       )}
