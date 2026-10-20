@@ -13,7 +13,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -589,11 +589,12 @@ function App() {
   }
 
   const addRoutineItem = () => {
-    if (!newRoutineTask.trim() || !newRoutineTime.trim()) return
-    const newItem = { id: Date.now(), time: newRoutineTime, task: newRoutineTask, emoji: newRoutineEmoji }
-    if (newRoutineSection === 'morning') setMorning(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
-    else if (newRoutineSection === 'midday') setMidday(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
-    else setNight(prev => [...prev, newItem].sort((a, b) => a.time.localeCompare(b.time)))
+    if (!newRoutineTask.trim() || !horaValida(newRoutineTime)) return
+    const newItem = { id: Date.now(), time: horaHHMM(newRoutineTime), task: newRoutineTask, emoji: newRoutineEmoji }
+    const updater = prev => ordenarPorHora([...prev, newItem])
+    if (newRoutineSection === 'morning') setMorning(updater)
+    else if (newRoutineSection === 'midday') setMidday(updater)
+    else setNight(updater)
     setNewRoutineTask(''); setNewRoutineTime(''); setNewRoutineEmoji('✨')
   }
 
@@ -613,7 +614,8 @@ function App() {
   const saveRoutineItemEdit = () => {
     if (!editingRoutineItem) return
     const { sectionKey, id, time, task, emoji } = editingRoutineItem
-    const updater = prev => prev.map(i => i.id === id ? { ...i, time, task, emoji } : i)
+    if (!horaValida(time)) return
+    const updater = prev => ordenarPorHora(prev.map(i => i.id === id ? { ...i, time: horaHHMM(time), task, emoji } : i))
     if (sectionKey === 'morning') setMorning(updater)
     else if (sectionKey === 'midday') setMidday(updater)
     else setNight(updater)
@@ -1086,14 +1088,14 @@ function App() {
 
   /* ── ADENTRO: tu momento, tu ruta, para llevar y tus herramientas ── */
   const momentoDelDia = franjaDelDia()
+  // La próxima actividad por hora (de las tres secciones), sin las ya hechas hoy.
   const siguienteRutina = (() => {
     const now = new Date()
     const nowMin = now.getHours() * 60 + now.getMinutes()
-    return [...morning, ...midday, ...night].find(item => {
-      if (!item.time) return false
-      const [h, m] = item.time.split(':').map(Number)
-      return h * 60 + m > nowMin
-    }) || null
+    return ordenarPorHora([...morning, ...midday, ...night].filter(item => {
+      const min = horaAMinutos(item.time)
+      return Number.isFinite(min) && min > nowMin && !routineChecked[item.id]
+    }))[0] || null
   })()
   // La primera ruta SIN terminar, con su primer día sin marcar. Si todas
   // están terminadas, la última terminada marcada como completada.
@@ -1135,7 +1137,7 @@ function App() {
 
       <article style={{ background: C.agua, borderRadius: 20, padding: 20 }}>
         <div style={{ ...eyebrowAdentro, color: C.navy }}>
-          {siguienteRutina ? `Tu rutina · ${siguienteRutina.time}` : `Pausa de la ${momentoDelDia}`}
+          {siguienteRutina ? `Tu rutina · ${horaHHMM(siguienteRutina.time)}` : `Pausa de la ${momentoDelDia}`}
         </div>
         <p style={{ margin: '10px 0 16px', fontFamily: FONT_DISPLAY, fontStyle: 'italic', fontSize: 24, lineHeight: 1.25, color: C.navy }}>
           {siguienteRutina ? siguienteRutina.task : 'Suelta los hombros, respira lento y vuelve a lo tuyo.'}
@@ -1405,7 +1407,7 @@ function App() {
         {emoji} {title}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {items.map(item => (
+        {ordenarPorHora(items).map(item => (
           editingRoutineItem && editingRoutineItem.id === item.id ? (
             /* Inline edit mode */
             <div key={item.id} style={{
@@ -1413,10 +1415,10 @@ function App() {
               boxShadow: '0 2px 8px rgba(20,24,51,0.15)', border: `2px solid ${C.rose}`,
             }}>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                <input value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
-                  style={{ width: 70, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', fontWeight: 700, color: C.gold }} />
+                <input type="time" aria-label="Hora" value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
+                  style={{ flexShrink: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', fontWeight: 700, color: C.gold, boxSizing: 'border-box' }} />
                 <input value={editingRoutineItem.task} onChange={e => setEditingRoutineItem(prev => ({...prev, task: e.target.value}))}
-                  style={{ flex: 1, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
+                  style={{ flex: 1, minWidth: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
                   onKeyDown={e => e.key === 'Enter' && saveRoutineItemEdit()} />
               </div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -1429,7 +1431,7 @@ function App() {
                 ))}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveRoutineItemEdit} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                <button onClick={saveRoutineItemEdit} disabled={!horaValida(editingRoutineItem.time)} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: horaValida(editingRoutineItem.time) ? C.rose : C.border, color: horaValida(editingRoutineItem.time) ? 'white' : C.subtle, fontSize: 19, fontWeight: 700, cursor: horaValida(editingRoutineItem.time) ? 'pointer' : 'default', fontFamily: 'inherit' }}>
                   ✓ Guardar
                 </button>
                 <button onClick={() => setEditingRoutineItem(null)} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
@@ -1457,15 +1459,15 @@ function App() {
                 }}>
                   {routineChecked[item.id] && UI_ICONS.check('white', 14)}
                 </span>
-                <span style={{ width: 44, height: 44, borderRadius: '50%', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontSize: 20, fontWeight: 700, color: color }}>{item.time}</span>
+                <span style={{ minWidth: 44, height: 44, padding: '0 10px', borderRadius: 22, boxSizing: 'border-box', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: color, whiteSpace: 'nowrap', lineHeight: 1 }}>{horaHHMM(item.time) || item.time}</span>
                 </span>
                 <span style={{ fontSize: 19, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
                   {item.task}
                 </span>
               </button>
               {editingRoutine && <>
-                <button type="button" aria-label={`Editar ${item.task}`} onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: item.time, task: item.task, emoji: item.emoji })} style={{
+                <button type="button" aria-label={`Editar ${item.task}`} onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: horaHHMM(item.time), task: item.task, emoji: item.emoji })} style={{
                   background: 'none', border: 'none', color: C.gold, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
                   minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}><span aria-hidden="true">✎</span></button>
@@ -1548,10 +1550,10 @@ function App() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-            <input value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)} placeholder="Hora (ej: 7:30)"
-              style={{ width: 80, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }} />
+            <input type="time" aria-label="Hora" value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)}
+              style={{ flexShrink: 0, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', boxSizing: 'border-box' }} />
             <input value={newRoutineTask} onChange={e => setNewRoutineTask(e.target.value)} placeholder="¿Qué quieres hacer?"
-              style={{ flex: 1, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
+              style={{ flex: 1, minWidth: 0, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
               onKeyDown={e => e.key === 'Enter' && addRoutineItem()} />
           </div>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -1563,11 +1565,11 @@ function App() {
               }}>{e}</button>
             ))}
           </div>
-          <button onClick={addRoutineItem} disabled={!newRoutineTask.trim() || !newRoutineTime.trim()} style={{
+          <button onClick={addRoutineItem} disabled={!newRoutineTask.trim() || !horaValida(newRoutineTime)} style={{
             width: '100%', padding: 10, borderRadius: 12, border: 'none', fontSize: 20, fontWeight: 700,
-            fontFamily: 'inherit', cursor: newRoutineTask.trim() && newRoutineTime.trim() ? 'pointer' : 'default',
-            background: newRoutineTask.trim() && newRoutineTime.trim() ? C.rose : C.border,
-            color: newRoutineTask.trim() && newRoutineTime.trim() ? 'white' : C.subtle,
+            fontFamily: 'inherit', cursor: newRoutineTask.trim() && horaValida(newRoutineTime) ? 'pointer' : 'default',
+            background: newRoutineTask.trim() && horaValida(newRoutineTime) ? C.rose : C.border,
+            color: newRoutineTask.trim() && horaValida(newRoutineTime) ? 'white' : C.subtle,
           }}>Agregar</button>
         </div>
       )}

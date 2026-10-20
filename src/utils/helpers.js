@@ -39,6 +39,28 @@ export const saveDay = (key, val) => {
   } catch { /* sin almacenamiento: no se guarda */ }
 }
 
+/* Horas de la rutina ('H:MM' o 'HH:MM', 24 h). */
+const HORA_RE = /^([01]?\d|2[0-3]):([0-5]\d)$/
+/* Minutos desde la medianoche. Las horas que no se pueden leer (texto libre
+   viejo como '9:45 pm') dan Infinity, así quedan al final al ordenar. */
+export const horaAMinutos = (t) => {
+  const m = HORA_RE.exec(String(t ?? '').trim())
+  return m ? Number(m[1]) * 60 + Number(m[2]) : Infinity
+}
+export const horaValida = (t) => Number.isFinite(horaAMinutos(t))
+/* 'H:MM' → 'HH:MM', el formato del selector de hora. Si no es válida, ''. */
+export const horaHHMM = (t) => {
+  const min = horaAMinutos(t)
+  return Number.isFinite(min) ? `${pad2(Math.floor(min / 60))}:${pad2(min % 60)}` : ''
+}
+/* Copia de la lista ordenada por hora (no por texto: '7:30' va antes que
+   '10:00'). Las horas inválidas quedan al final, en el orden que tenían. */
+export const ordenarPorHora = (lista) => [...lista].sort((a, b) => {
+  const ma = horaAMinutos(a.time), mb = horaAMinutos(b.time)
+  if (ma === mb) return 0
+  return ma < mb ? -1 : 1
+})
+
 /* Historial de hábitos guardado: { 'AAAA-MM-DD': { [id]: true } } a partir de
    las claves diana-checked-<día>. Las claves dañadas se saltan. */
 export function leerHistorialHabitos() {
