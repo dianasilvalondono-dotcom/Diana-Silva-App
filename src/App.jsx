@@ -278,13 +278,17 @@ function App() {
       // El perfil de la nube completa los campos vacíos de este dispositivo
       // (lo escrito aquí manda). Solo si los datos locales son de esta cuenta.
       if (guardadoEstaBloqueado() || duenaLocal() !== user.id) return
+      // Un nombre igual al de la cuenta lo puso la app, no ella: si en la
+      // nube hay otro (lo eligió en otro dispositivo), ese manda (perfil-2).
+      const nombreCuenta = user.user_metadata?.name || user.user_metadata?.full_name || ''
       setProfile(prev => {
         const next = { ...prev }
         let cambio = false
         for (const k of CAMPOS_PERFIL) {
           const remoto = typeof profile[k] === 'string' ? profile[k] : ''
           const local = typeof prev[k] === 'string' ? prev[k] : ''
-          if (remoto.trim() && !local.trim()) { next[k] = remoto; cambio = true }
+          const localDeLaCuenta = k === 'name' && !!nombreCuenta && local === nombreCuenta
+          if (remoto.trim() && remoto !== local && (!local.trim() || localDeLaCuenta)) { next[k] = remoto; cambio = true }
         }
         return cambio ? next : prev
       })
@@ -589,31 +593,39 @@ function App() {
   }, [breatheActive])
 
   // Sync localStorage → Supabase on first login + update profile name from auth
+  // Depende del id y del nombre de la cuenta, no del objeto `user`: ese
+  // cambia en cada carga y en cada renovación del token (perfil-2).
+  const userId = user?.id || null
+  const authName = user?.user_metadata?.name || user?.user_metadata?.full_name || ''
   useEffect(() => {
-    if (user && isConfigured) {
+    if (userId && isConfigured) {
       // Antes que nada: ¿los datos de este dispositivo son de esta cuenta?
       // Si eran de otra, se apartaron y la app se recarga limpia; si no hubo
       // espacio para apartarlos, esta sesión se cierra sin ver nada (perfil-1).
-      const duena = asegurarDuenaLocal(user.id)
+      const duena = asegurarDuenaLocal(userId)
       if (duena === 'recargar') { window.location.reload(); return }
       if (duena === 'sin-espacio') {
         console.error('Datos de otra cuenta en este dispositivo y sin espacio para apartarlos: se cierra la sesión.')
         signOut()
         return
       }
-      syncFromLocal(user.id)
-      const authName = user.user_metadata?.name || user.user_metadata?.full_name
+      syncFromLocal(userId)
       if (authName) {
-        setProfile(prev => (prev.name === authName ? prev : { ...prev, name: authName }))
+        // El nombre de la cuenta solo llena un perfil sin nombre: el que ella
+        // escribe en la bienvenida o en su perfil manda (perfil-2).
+        setProfile(prev => (prev.name?.trim() ? prev : { ...prev, name: authName }))
+        // "¿Cómo te llamas?" llega con el nombre que ya tiene (el de su
+        // perfil o, si no hay, el de la cuenta) y lo puede cambiar (bienvenida-13).
+        const nombrePerfil = load('diana-profile', {})?.name?.trim()
+        setOnboardName(prev => prev || nombrePerfil || authName)
       }
     }
-  }, [user, isConfigured, signOut])
+  }, [userId, authName, isConfigured, signOut])
 
   // ── Toolkit en la nube (toolkit-19) ──
   // Al entrar se trae el de la nube y se une con el local. Solo después de
   // eso se guardan los cambios (con pausa): saveToolkitItems borra y vuelve a
   // escribir todo, así que nunca se llama con lo local antes de unirlo.
-  const userId = user?.id || null
   const [toolkitDe, setToolkitDe] = useState(null) // cuenta cuyo toolkit ya se trajo
   const toolkitNubeRef = useRef(null)              // huella de lo que tiene la nube
   const toolkitSubidaRef = useRef(Promise.resolve())
