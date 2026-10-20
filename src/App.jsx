@@ -2457,14 +2457,75 @@ function App() {
     toolkitCount: toolkitItems.length,
   }
 
+  // "Editar perfil" trabaja sobre un borrador: "Guardar" lo guarda y
+  // "Cancelar" lo descarta. Antes cada letra se guardaba al escribirla y los
+  // dos botones hacían lo mismo (perfil-14).
+  const [perfilBorrador, setPerfilBorrador] = useState(null)
   const updateProfile = (field, value) => {
-    setProfile(prev => ({ ...prev, [field]: value }))
+    setPerfilBorrador(prev => ({ ...(prev || profile), [field]: value }))
   }
-  // Al cerrar la edición del perfil (Guardar o Cerrar edición) se guarda
-  // también en la cuenta, para verlo en otros dispositivos (perfil-3).
-  const guardarPerfilEnLaNube = () => {
-    if (user && isConfigured && duenaLocal() === user.id) saveUserProfile(user.id, profile)
+  // Al guardar la edición del perfil se guarda también en la cuenta, para
+  // verlo en otros dispositivos (perfil-3).
+  const guardarPerfilEnLaNube = (datos = profile) => {
+    if (user && isConfigured && duenaLocal() === user.id) saveUserProfile(user.id, datos)
   }
+  const abrirEdicionPerfil = () => {
+    setPerfilBorrador({ name: profile.name || '', city: profile.city || '', bio: profile.bio || '', intention: profile.intention || '' })
+    setEditingProfile(true)
+  }
+  const cancelarEdicionPerfil = () => {
+    setPerfilBorrador(null)
+    setEditingProfile(false)
+  }
+  // Mismo largo máximo del nombre que en la bienvenida (perfil-15).
+  const NOMBRE_MAX = 40
+  // Al guardar se quitan los espacios de los bordes: un nombre de solo
+  // espacios queda vacío y vuelven "Tu nombre" y los saludos sin nombre (perfil-13).
+  const guardarPerfil = () => {
+    const b = perfilBorrador || profile
+    const limpio = {
+      name: Array.from((b.name || '').trim()).slice(0, NOMBRE_MAX).join('').trim(),
+      city: (b.city || '').trim(),
+      bio: (b.bio || '').trim(),
+      intention: (b.intention || '').trim(),
+    }
+    setProfile(prev => ({ ...prev, ...limpio }))
+    guardarPerfilEnLaNube({ ...profile, ...limpio })
+    setPerfilBorrador(null)
+    setEditingProfile(false)
+  }
+  // Lo que muestra la tarjeta: sin espacios en los bordes (perfil-13) y con
+  // la primera letra visible o el emoji entero como inicial, no medio emoji (perfil-12).
+  const nombrePerfil = (profile.name || '').trim()
+  const inicialPerfil = (() => {
+    if (!nombrePerfil) return 'R'
+    try {
+      return new Intl.Segmenter('es', { granularity: 'grapheme' }).segment(nombrePerfil)[Symbol.iterator]().next().value.segment.toUpperCase()
+    } catch {
+      return Array.from(nombrePerfil)[0].toUpperCase()
+    }
+  })()
+
+  // Notificaciones: mientras se activan la tarjeta sigue a la vista (perfil-4)
+  // y el aviso dice por qué no se activaron, sin culpar siempre al navegador (perfil-29).
+  const activandoPush = oneSignal.status === 'loading' || oneSignal.status === 'subscribing'
+  const AVISOS_PUSH = {
+    denied: { title: 'Notificaciones bloqueadas', body: 'Tu navegador bloqueó las notificaciones de Ronda. Para activarlas, ve a la configuración del sitio en tu navegador.' },
+    dismissed: { title: 'Aún no están activas', body: 'Cuando quieras recibirlas, toca "Activar notificaciones" otra vez y acepta el permiso que te pide el navegador.' },
+    unsupported: { title: 'No se pudo activar', body: 'Este navegador no permite notificaciones. Si estás en iPhone, instala Ronda en tu pantalla de inicio primero (botón Compartir → Agregar a pantalla de inicio) y actívalas desde ahí.' },
+    error: { title: 'No se pudo activar', body: 'No pudimos conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo en un momento.' },
+  }
+
+  // Miembro fundadora: el texto del acceso sigue su vigencia real (is_premium
+  // ya la incluye), no solo que haya una fecha guardada (perfil-10).
+  const fundadoraFecha = premiumStatus.premium_source === 'founding_member' && premiumStatus.premium_until
+    ? new Date(premiumStatus.premium_until) : null
+  const fundadoraFechaTexto = fundadoraFecha
+    ? fundadoraFecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+  const fundadoraAcceso = !fundadoraFecha ? ''
+    : premiumStatus.is_premium ? `Tienes acceso completo incluido hasta el ${fundadoraFechaTexto}.`
+      : fundadoraFecha <= new Date() ? `Tu acceso completo incluido terminó el ${fundadoraFechaTexto}.`
+        : 'Tu acceso completo incluido ya no está activo.'
 
   /* ── Board categories ── */
   const BOARD_CATS = [
@@ -3414,17 +3475,17 @@ function App() {
       {/* Avatar & Name card */}
       <div style={{ background: `${C.teal}`, borderRadius: 18, padding: 24, color: 'white', textAlign: 'center' }}>
         <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, fontFamily: FONT, border: '2px solid rgba(255,255,255,0.5)' }}>
-          {(profile.name || 'R').charAt(0).toUpperCase()}
+          {inicialPerfil}
         </div>
-        <div style={{ fontSize: 24, fontWeight: 700, fontFamily: FONT }}>{profile.name || 'Tu nombre'}</div>
-        {profile.city && <div style={{ fontSize: 20, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
-        {profile.bio && <div style={{ fontSize: 20, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
-        <button onClick={() => { if (editingProfile) guardarPerfilEnLaNube(); setEditingProfile(!editingProfile) }} style={{
+        <div style={{ fontSize: 24, fontWeight: 700, fontFamily: FONT }}>{nombrePerfil || 'Tu nombre'}</div>
+        {profile.city?.trim() && <div style={{ fontSize: 20, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
+        {profile.bio?.trim() && <div style={{ fontSize: 20, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio.trim()}"</div>}
+        <button onClick={editingProfile ? cancelarEdicionPerfil : abrirEdicionPerfil} style={{
           marginTop: 14, padding: '8px 20px', borderRadius: 20, border: '2px solid rgba(255,255,255,0.5)',
           background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 19, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          {editingProfile ? 'Cerrar edición' : 'Editar perfil'}
+          {editingProfile ? 'Cancelar' : 'Editar perfil'}
         </button>
       </div>
 
@@ -3434,26 +3495,26 @@ function App() {
           <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 14 }}>Editar perfil</div>
 
           <label htmlFor="perfil-nombre" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</label>
-          <input id="perfil-nombre" value={profile.name} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?"
+          <input id="perfil-nombre" value={(perfilBorrador || profile).name || ''} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?" maxLength={NOMBRE_MAX}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box' }}
           />
 
           <label htmlFor="perfil-ciudad" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Ciudad</label>
-          <input id="perfil-ciudad" value={profile.city} onChange={e => updateProfile('city', e.target.value)} placeholder="¿De dónde eres?"
+          <input id="perfil-ciudad" value={(perfilBorrador || profile).city || ''} onChange={e => updateProfile('city', e.target.value)} placeholder="¿De dónde eres?" maxLength={60}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box' }}
           />
 
           <label htmlFor="perfil-bio" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Bio</label>
-          <textarea id="perfil-bio" value={profile.bio} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..."
+          <textarea id="perfil-bio" value={(perfilBorrador || profile).bio || ''} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..." maxLength={160}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
           <label htmlFor="perfil-intencion" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Mi intención</label>
-          <textarea id="perfil-intencion" value={profile.intention} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?"
+          <textarea id="perfil-intencion" value={(perfilBorrador || profile).intention || ''} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?" maxLength={200}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 8, boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
-          <button onClick={() => { guardarPerfilEnLaNube(); setEditingProfile(false) }} style={{
+          <button onClick={guardarPerfil} style={{
             width: '100%', padding: 12, borderRadius: 12, border: 'none',
             background: C.teal, color: 'white',
             fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
@@ -3464,7 +3525,7 @@ function App() {
       )}
 
       {/* Intention card */}
-      {profile.intention && !editingProfile && (
+      {profile.intention?.trim() && !editingProfile && (
         <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: SHADOW.sm, borderLeft: `4px solid ${C.gold}` }}>
           <div style={{ fontSize: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.gold, marginBottom: 6 }}>Mi intención</div>
           <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6 }}>{profile.intention}</div>
@@ -3472,7 +3533,7 @@ function App() {
       )}
 
       {/* Notificaciones — OneSignal */}
-      {(oneSignal.status === 'idle' || oneSignal.status === 'error') && (
+      {(oneSignal.status === 'idle' || oneSignal.status === 'error' || activandoPush) && (
         <div style={{
           background: `linear-gradient(135deg, ${C.cream}, #E3E5D3)`,
           borderRadius: 16, padding: 18,
@@ -3494,27 +3555,22 @@ function App() {
               </div>
             </div>
           </div>
-          <button onClick={async () => {
-            const ok = await oneSignal.subscribe()
-            if (!ok) {
-              setAppModal({
-                type: 'info',
-                title: 'No se pudo activar',
-                body: 'Tu navegador bloqueó las notificaciones. Si estás en iPhone, instala Ronda en tu pantalla de inicio primero (botón Compartir → Agregar a pantalla de inicio).',
-                cta: 'Entendido',
-              })
-            }
+          <button disabled={activandoPush} aria-busy={activandoPush} onClick={async () => {
+            if (activandoPush) return
+            const resultado = await oneSignal.subscribe()
+            const aviso = AVISOS_PUSH[resultado]
+            if (aviso) setAppModal({ type: 'info', ...aviso, cta: 'Entendido' })
           }} style={{
             width: '100%', padding: '12px 16px', borderRadius: 12, border: 'none',
             background: C.teal, color: 'white', fontSize: 16, fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'inherit',
+            cursor: activandoPush ? 'default' : 'pointer', opacity: activandoPush ? 0.7 : 1, fontFamily: 'inherit',
           }}>
-            Activar notificaciones
+            {activandoPush ? 'Activando…' : 'Activar notificaciones'}
           </button>
         </div>
       )}
 
-      {oneSignal.status === 'subscribed' && (
+      {(oneSignal.status === 'subscribed' || oneSignal.status === 'pausing') && (
         <div style={{
           background: `${C.teal}10`,
           borderRadius: 16, padding: 14,
@@ -3531,11 +3587,15 @@ function App() {
             <div style={{ fontSize: 15, fontWeight: 700, color: C.teal }}>Notificaciones activas</div>
             <div style={{ fontSize: 13, color: C.muted }}>Tu Ronda te puede acompañar.</div>
           </div>
-          <button onClick={() => oneSignal.unsubscribe()} style={{
+          <button disabled={oneSignal.status === 'pausing'} aria-busy={oneSignal.status === 'pausing'} onClick={async () => {
+            if (oneSignal.status === 'pausing') return
+            const pausadas = await oneSignal.unsubscribe()
+            if (!pausadas) setAppModal({ type: 'info', title: 'No se pudo pausar', body: AVISOS_PUSH.error.body, cta: 'Entendido' })
+          }} style={{
             background: 'transparent', border: `1px solid ${C.border}`,
             borderRadius: 10, padding: '6px 10px', fontSize: 13,
-            color: C.muted, cursor: 'pointer', fontFamily: 'inherit',
-          }}>Pausar</button>
+            color: C.muted, cursor: oneSignal.status === 'pausing' ? 'default' : 'pointer', fontFamily: 'inherit',
+          }}>{oneSignal.status === 'pausing' ? 'Pausando…' : 'Pausar'}</button>
         </div>
       )}
 
@@ -3577,7 +3637,7 @@ function App() {
         </div>
 
         {/* Badge especial founding member */}
-        {premiumStatus.premium_source === 'founding_member' && premiumStatus.premium_until && (
+        {fundadoraFecha && (
           <div style={{
             background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
             borderRadius: 14, padding: '14px 16px', marginBottom: 14,
@@ -3590,7 +3650,7 @@ function App() {
               Eres parte de las primeras 50 mujeres
             </div>
             <div style={{ fontSize: 14, opacity: 0.95, lineHeight: 1.4 }}>
-              Tienes acceso completo incluido hasta el {new Date(premiumStatus.premium_until).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}.
+              {fundadoraAcceso}
             </div>
           </div>
         )}
