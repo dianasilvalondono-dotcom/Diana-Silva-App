@@ -1245,7 +1245,11 @@ function App() {
   ]
   const abrirAcceso = (id) => {
     if (id === 'ai') {
-      resetAiAgent(); setChatMode('chat')
+      // Un programa que se está creando, o creado y sin guardar, no se pierde
+      // al salir y volver: Pregúntale abre ahí. Lo demás empieza de cero.
+      const programaPendiente = aiStep === 3 || (aiStep === 4 && aiProgram && !aiSaved)
+      if (!programaPendiente) resetAiAgent()
+      setChatMode(programaPendiente ? 'create' : 'chat')
       chatSesionContadaRef.current = false
       if (isPremium) showFoundingPerk('chat', 'Tu Ronda · IA personal')
     }
@@ -2744,9 +2748,11 @@ function App() {
       // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
       if (data.crisis) abrirAyuda('crisis_chat')
 
-      // If AI returned a program, save it for the create flow
-      if (data.program) {
+      // If AI returned a program, save it for the create flow: queda en el
+      // paso del resultado, listo para verlo y guardarlo en "Crea tu programa".
+      if (Array.isArray(data.program?.days) && data.program.days.length) {
         setAiProgram(data.program)
+        setAiStep(4); setAiSaved(false); setAiError('')
         setChatMessages(prev => [...prev, { role: 'assistant', text: '¡Te armé un programa! Cambia a "Crea tu programa" arriba para verlo y guardarlo.', isProgram: true, local: true }])
       }
 
