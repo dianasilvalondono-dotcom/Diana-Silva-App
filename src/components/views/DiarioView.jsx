@@ -64,7 +64,7 @@ export default function DiarioView({
           ))}
         </div>
         <div style={{ position: 'relative' }}>
-          <textarea ref={cuadroRef} value={journalText} onChange={e => { setJournalText(e.target.value); setGuardada(false) }}
+          <textarea id="diario-texto" ref={cuadroRef} value={journalText} onChange={e => { setJournalText(e.target.value); setGuardada(false) }}
             aria-label="Tu reflexión del día"
             placeholder={isListening ? 'Escuchando... habla y tu voz se convierte en texto' : 'Escribe o habla tu reflexión del día...'}
             style={{

@@ -965,7 +965,11 @@ function App() {
     title: '¿Borrar esta entrada de tu diario?',
     body: 'Después no la podrás recuperar.',
     cta: 'Borrar entrada',
-    onConfirm: () => removeJournalEntry(entry),
+    onConfirm: () => {
+      // El botón de borrar se va con la entrada: el foco vuelve al cuadro del diario.
+      focoTrasModalRef.current = () => document.getElementById('diario-texto')
+      removeJournalEntry(entry)
+    },
   })
 
   // Voice journaling — Web Speech API
@@ -1118,7 +1122,11 @@ function App() {
         ? `Llevas una racha de ${racha} ${racha === 1 ? 'día' : 'días'}. Si lo eliminas, la racha se pierde.`
         : 'Puedes volver a agregarlo cuando quieras.',
       cta: 'Eliminar',
-      onConfirm: () => removeHabit(h.id),
+      onConfirm: () => {
+        // El botón de eliminar se va con el hábito: el foco pasa a "+ Agregar hábito".
+        focoTrasModalRef.current = () => document.getElementById('habito-agregar')
+        removeHabit(h.id)
+      },
     })
   }
 
