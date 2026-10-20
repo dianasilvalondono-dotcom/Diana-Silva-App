@@ -1830,13 +1830,17 @@ function App() {
               boxShadow: '0 2px 8px rgba(20,24,51,0.15)', border: `2px solid ${C.rose}`,
             }}>
               {/* Como en "+ Agregar a mi rutina": si junto al selector de hora
-                  (~150 px en el celular) la tarea no se lee, baja de línea. */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                  (~150 px en el celular) la tarea no se lee, baja de línea.
+                  Es un textarea que crece con el texto: una tarea larga se lee
+                  entera en varios renglones, como en la lista. Enter guarda. */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <input type="time" aria-label="Hora" value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
                   style={{ flexShrink: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', fontWeight: 700, color: C.gold, boxSizing: 'border-box' }} />
-                <input value={editingRoutineItem.task} onChange={e => setEditingRoutineItem(prev => ({...prev, task: e.target.value}))}
-                  style={{ flex: '1 1 200px', minWidth: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
-                  onKeyDown={e => e.key === 'Enter' && saveRoutineItemEdit()} />
+                <textarea aria-label="Qué quieres hacer" rows={1} value={editingRoutineItem.task}
+                  onChange={e => setEditingRoutineItem(prev => ({...prev, task: e.target.value.replace(/\n/g, ' ')}))}
+                  ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight + 2}px` } }}
+                  style={{ flex: '1 1 200px', minWidth: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', lineHeight: 1.3, resize: 'none', overflow: 'hidden', boxSizing: 'border-box', display: 'block' }}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveRoutineItemEdit() } }} />
               </div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
                 {ROUTINE_EMOJIS.map(e => (
@@ -1984,7 +1988,12 @@ function App() {
           <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>
             Aún no tienes pasos. Agrega lo que quieres hacer en la mañana, al mediodía y en la noche.
           </div>
-          <button onClick={() => setEditingRoutine(true)} style={{
+          <button onClick={() => {
+            setEditingRoutine(true)
+            // El botón se va con la invitación: el foco pasa al campo del
+            // formulario para agregar (no se pierde en <body>).
+            requestAnimationFrame(() => document.getElementById('rutina-tarea-nueva')?.focus())
+          }} style={{
             background: C.rose, color: 'white', border: 'none', borderRadius: 20, padding: '10px 18px',
             fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
           }}>
@@ -2013,7 +2022,7 @@ function App() {
               <input type="time" value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)}
                 style={{ padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', boxSizing: 'border-box', color: C.text }} />
             </label>
-            <input value={newRoutineTask} onChange={e => setNewRoutineTask(e.target.value)} placeholder="¿Qué quieres hacer?"
+            <input id="rutina-tarea-nueva" value={newRoutineTask} onChange={e => setNewRoutineTask(e.target.value)} placeholder="¿Qué quieres hacer?"
               aria-label="Qué quieres hacer"
               style={{ flex: '1 1 200px', minWidth: 0, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', boxSizing: 'border-box' }}
               onKeyDown={e => e.key === 'Enter' && addRoutineItem()} />
