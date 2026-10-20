@@ -11,7 +11,7 @@ import { TEMPORADA } from './constants/curaduria'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
-  AVATARS,
+  AVATARS, PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
 import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
@@ -121,7 +121,7 @@ function Paywall({ feature, price, desc, onCta }) {
         fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         boxShadow: '0 4px 16px rgba(114,109,45,0.3)',
       }}>
-        Desbloquear Ronda Premium
+        Desbloquear {PLAN_PAGO}
       </button>
       <div style={{ fontSize: 19, color: C.subtle, marginTop: 12 }}>
         Próximamente · Te avisamos cuando esté disponible
@@ -230,7 +230,7 @@ function App() {
   useEffect(() => {
     if (view === 'ahora' && subTab === 'ai' && !isPremium && !paywallSeenRef.current.ai) {
       paywallSeenRef.current.ai = true
-      track('paywall_viewed', { feature: 'tu_ronda_ia', price: '$9.99/mes' })
+      track('paywall_viewed', { feature: 'tu_ronda_ia', price: PLAN_PRECIO })
     }
   }, [view, subTab, isPremium])
 
@@ -1707,7 +1707,7 @@ function App() {
             border: `2px solid ${C.gold}40`, boxShadow: '0 4px 16px rgba(114,109,45,0.15)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ background: C.gold, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: 19, fontWeight: 800, letterSpacing: '0.05em' }}>PREMIUM</div>
+              <div style={{ background: C.gold, color: 'white', padding: '3px 10px', borderRadius: 20, fontSize: 19, fontWeight: 800, letterSpacing: '0.05em' }}>{PLAN_PAGO}</div>
               <div style={{ fontSize: 20, color: C.gold, fontWeight: 700 }}>{prog.duration}</div>
             </div>
             <div style={{ fontSize: 19, fontWeight: 800, color: C.text, fontFamily: FONT, marginBottom: 6 }}>{prog.title}</div>
@@ -1742,17 +1742,17 @@ function App() {
             <div style={{ textAlign: 'center' }}>
               {!isPremium && (
                 <>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>Solo Premium</div>
-                  <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Disponible con Ronda+ · $9.99/mes</div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{PLAN_PRECIO}</div>
+                  <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Incluido en {PLAN_PAGO}</div>
                 </>
               )}
               <button onClick={() => {
                 if (!isPremium) {
-                  track('paywall_viewed', { feature: 'programa_21_dias', price: '$9.99/mes' })
+                  track('paywall_viewed', { feature: 'programa_21_dias', price: PLAN_PRECIO })
                   setAppModal({
                     type: 'paywall',
-                    title: 'Los programas de 21 días son premium',
-                    body: 'Estos programas profundos están disponibles con Ronda+. Te acompañan paso a paso con neurociencia y micro-acciones diarias.',
+                    title: `Este programa es parte de ${PLAN_PAGO}`,
+                    body: `Los programas de 21 días están incluidos en ${PLAN_PAGO}. Te acompañan paso a paso con neurociencia y micro-acciones diarias.`,
                     cta: 'Ver planes',
                   })
                   return
@@ -1780,7 +1780,7 @@ function App() {
                 color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(114,109,45,0.35)', letterSpacing: '0.02em',
               }}>
-                {isPremium ? 'Empezar este programa' : 'Solo Premium'}
+                {isPremium ? 'Empezar este programa' : `Desbloquear con ${PLAN_PAGO}`}
               </button>
             </div>
           </div>
@@ -2006,11 +2006,11 @@ function App() {
   const addBoardPost = async () => {
     if (!boardNewText.trim()) return
     if (!isPremium) {
-      track('paywall_viewed', { feature: 'comunidad_escribir', price: '$9.99/mes' })
+      track('paywall_viewed', { feature: 'comunidad_escribir', price: PLAN_PRECIO })
       setAppModal({
         type: 'paywall',
         title: 'Escribir en la comunidad es premium',
-        body: 'Publica preguntas anónimas y recibe respuestas de nuestras Guías Ronda verificadas. Disponible con Ronda+.',
+        body: `Publica preguntas anónimas y recibe respuestas de nuestras Guías Ronda verificadas. Disponible con ${PLAN_PAGO}.`,
         cta: 'Ver planes',
       })
       return
@@ -2898,7 +2898,7 @@ function App() {
             color: 'white',
           }}>
             <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
-              💛 Founding Member
+              💛 Miembro fundadora
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
               Eres parte de las primeras 50 mujeres
@@ -2912,7 +2912,7 @@ function App() {
         {!isPremium && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { name: 'Ronda Plus', price: '$9.99/mes', features: 'Tu Ronda (IA), programas 21 días, 5 respuestas profesionales/mes', color: C.teal },
+              { name: PLAN_PAGO, price: PLAN_PRECIO, features: 'Tu Ronda (IA), programas 21 días, 5 respuestas profesionales/mes', color: C.teal },
               { name: 'Ronda Pro', price: 'Próximamente', features: 'El siguiente nivel de Ronda, en camino.', color: C.gold },
             ].map((plan, i) => (
               <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 14, border: `2px solid ${plan.color}30` }}>
@@ -3861,7 +3861,7 @@ function App() {
           {subTab === 'diario' && diarioView}
           {subTab === 'toolkit' && toolkitView}
           {subTab === 'programas' && programasView}
-          {subTab === 'ai' && (isPremium ? (() => { showFoundingPerk('chat', 'Tu Ronda · IA personal'); return aiAgentView })() : <Paywall feature="Tu Ronda — IA personal" price="$9.99/mes" desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: 'Estamos finalizando el sistema de pago para Ronda Premium. Te avisaremos cuando esté listo. 💛', cta: 'Entendido' })} />)}
+          {subTab === 'ai' && (isPremium ? (() => { showFoundingPerk('chat', 'Tu Ronda · IA personal'); return aiAgentView })() : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
         </>}
 
         {view === 'juntas' && <>
@@ -3980,7 +3980,7 @@ function App() {
             <div style={{ fontSize: 26, lineHeight: 1, marginTop: 2 }}>💛</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
-                Founding Member
+                Miembro fundadora
               </div>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
                 {foundingToast.feature} es una función premium.

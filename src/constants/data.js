@@ -244,6 +244,12 @@ export const PROGRAMAS = [
   },
 ]
 
+/* ── Plan de pago ──
+   Un solo nombre y un solo precio para toda la app (PRODUCT.md: "Ronda+",
+   $9.99/mes). El nivel base se llama "Freemium", nunca "gratis". */
+export const PLAN_PAGO = 'Ronda+'
+export const PLAN_PRECIO = '$9.99/mes'
+
 /* ── Programas Premium (21 días) ── */
 export const PROGRAMAS_PREMIUM = [
   {
