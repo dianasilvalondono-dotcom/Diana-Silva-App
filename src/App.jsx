@@ -1335,7 +1335,9 @@ function App() {
   }
 
   const abrirAyuda = (desde = 'encabezado') => {
-    setPanicOrigen('ayuda')
+    // Abierta por una señal de crisis (crisis_chat, crisis_comunidad,
+    // crisis_programa): sin "Estás a salvo." y con el 123 en el primer texto.
+    setPanicOrigen(String(desde).startsWith('crisis') ? 'crisis' : 'ayuda')
     setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicDbtExpanded(null)
     track('sos_opened', { origen: desde })
   }
@@ -4779,10 +4781,12 @@ function App() {
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
           <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8, outline: 'none' }}>
-            Estás a salvo.
+            {panicOrigen === 'crisis' ? 'No estás sola.' : 'Estás a salvo.'}
           </div>
           <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
-            Respira. Este momento va a pasar.
+            {panicOrigen === 'crisis'
+              ? <>Si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
+              : 'Respira. Este momento va a pasar.'}
           </div>
           <div style={{ fontSize: 19, color: '#D6BFDD', textAlign: 'center', marginBottom: 32 }}>
             Escoge lo que necesitas ahora mismo:
@@ -5013,8 +5017,8 @@ function App() {
 
       </div>
 
-      {/* Línea de crisis: fija abajo en todas las pantallas de la Ayuda */}
-      {panicOrigen === 'ayuda' && (
+      {/* Líneas de crisis: fijas abajo en todas las pantallas de la Ayuda */}
+      {panicOrigen !== 'pausa' && (
         <div style={{
           position: 'sticky', bottom: 0, zIndex: 10, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px 12px', flexWrap: 'wrap',
@@ -5027,6 +5031,12 @@ function App() {
             background: '#D6BFDD', color: '#141833', fontWeight: 700, fontSize: 17, textDecoration: 'none',
           }}>
             📞 Línea 106 — Atención en crisis
+          </a>
+          <a href="tel:123" style={{
+            display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 18px', borderRadius: 22,
+            background: 'white', color: '#141833', fontWeight: 700, fontSize: 17, textDecoration: 'none',
+          }}>
+            🚨 123 — Emergencias
           </a>
         </div>
       )}
