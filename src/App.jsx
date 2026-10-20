@@ -708,8 +708,9 @@ function App() {
   }
 
   const addRoutineItem = () => {
-    if (!newRoutineTask.trim() || !horaValida(newRoutineTime)) return
-    const newItem = { id: Date.now(), time: horaHHMM(newRoutineTime), task: newRoutineTask, emoji: newRoutineEmoji }
+    const task = newRoutineTask.trim()
+    if (!task || !horaValida(newRoutineTime)) return
+    const newItem = { id: Date.now(), time: horaHHMM(newRoutineTime), task, emoji: newRoutineEmoji }
     const updater = prev => ordenarPorHora([...prev, newItem])
     if (newRoutineSection === 'morning') setMorning(updater)
     else if (newRoutineSection === 'midday') setMidday(updater)
@@ -732,20 +733,36 @@ function App() {
 
   const saveRoutineItemEdit = () => {
     if (!editingRoutineItem) return
-    const { sectionKey, id, time, task, emoji } = editingRoutineItem
-    if (!horaValida(time)) return
-    const updater = prev => ordenarPorHora(prev.map(i => i.id === id ? { ...i, time: horaHHMM(time), task, emoji } : i))
-    if (sectionKey === 'morning') setMorning(updater)
-    else if (sectionKey === 'midday') setMidday(updater)
-    else setNight(updater)
+    const { sectionKey, originalSection = sectionKey, id, time, emoji } = editingRoutineItem
+    const task = (editingRoutineItem.task || '').trim()
+    if (!task || !horaValida(time)) return
+    const setterDe = (section) => section === 'morning' ? setMorning : section === 'midday' ? setMidday : setNight
+    const cambios = { time: horaHHMM(time), task, emoji }
+    if (setterDe(sectionKey) === setterDe(originalSection)) {
+      setterDe(sectionKey)(prev => ordenarPorHora(prev.map(i => i.id === id ? { ...i, ...cambios } : i)))
+    } else {
+      // Cambió de sección: se mueve con el mismo id, así la marca de hoy se conserva.
+      const original = { morning, midday, night }[originalSection]?.find(i => i.id === id) || { id }
+      setterDe(originalSection)(prev => prev.filter(i => i.id !== id))
+      setterDe(sectionKey)(prev => ordenarPorHora([...prev.filter(i => i.id !== id), { ...original, ...cambios }]))
+    }
     setEditingRoutineItem(null)
   }
 
   const addTomorrowTask = () => {
-    if (!newTomorrowTask.trim()) return
-    setTomorrowTasks(prev => [...prev, { id: Date.now(), task: newTomorrowTask, done: false }])
+    const task = newTomorrowTask.trim()
+    if (!task) return
+    setTomorrowTasks(prev => [...prev, { id: Date.now(), task, done: false }])
     setNewTomorrowTask('')
   }
+  const removeTomorrowTask = (id) => setTomorrowTasks(prev => prev.filter(t => t.id !== id))
+  const pedirQuitarTareaManana = (t) => setAppModal({
+    type: 'confirm',
+    title: `¿Quitar "${String(t.task ?? '').trim()}" de tus tareas para mañana?`,
+    body: 'Puedes volver a escribirla cuando quieras.',
+    cta: 'Quitar',
+    onConfirm: () => removeTomorrowTask(t.id),
+  })
 
   // Marca o desmarca una tarea en una lista de tareas (para mañana o para hoy).
   const toggleTaskIn = (setList) => (id) => {
@@ -755,8 +772,9 @@ function App() {
   const togglePlannedTask = toggleTaskIn(setPlannedToday)
 
   const addJournalEntry = () => {
-    if (!journalText.trim()) return
-    const entry = { id: Date.now(), date: todayKey(), text: journalText, mood: journalMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) }
+    const text = journalText.trim()
+    if (!text) return
+    const entry = { id: Date.now(), date: todayKey(), text, mood: journalMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) }
     setEntries([entry, ...entries])
     // Primero se apaga el dictado: si no, el reconocedor vuelve a escribir
     // en el cuadro el texto que se acaba de guardar.
@@ -766,6 +784,15 @@ function App() {
     // Sin el texto del diario: solo la senal, nunca el contenido.
     track('journal_created', { mood: journalMood })
   }
+  // Por id; una entrada sin id (dato viejo o dañado) se quita solo a ella misma.
+  const removeJournalEntry = (entry) => setEntries(prev => prev.filter(e => entry.id != null ? e.id !== entry.id : e !== entry))
+  const pedirBorrarEntrada = (entry) => setAppModal({
+    type: 'confirm',
+    title: '¿Borrar esta entrada de tu diario?',
+    body: 'Después no la podrás recuperar.',
+    cta: 'Borrar entrada',
+    onConfirm: () => removeJournalEntry(entry),
+  })
 
   // Voice journaling — Web Speech API
   // Apaga el dictado de verdad: suelta los handlers (para que nada más
@@ -1610,7 +1637,7 @@ function App() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {ordenarPorHora(items).map(item => (
-          editingRoutineItem && editingRoutineItem.id === item.id ? (
+          editingRoutine && editingRoutineItem && editingRoutineItem.id === item.id ? (
             /* Inline edit mode */
             <div key={item.id} style={{
               background: C.card, borderRadius: 12, padding: 14,
@@ -1632,8 +1659,9 @@ function App() {
                   }}>{e}</button>
                 ))}
               </div>
+              {renderSectionPicker(editingRoutineItem.sectionKey, k => setEditingRoutineItem(prev => ({ ...prev, sectionKey: k })))}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={saveRoutineItemEdit} disabled={!horaValida(editingRoutineItem.time)} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: horaValida(editingRoutineItem.time) ? C.rose : C.border, color: horaValida(editingRoutineItem.time) ? 'white' : C.subtle, fontSize: 19, fontWeight: 700, cursor: horaValida(editingRoutineItem.time) ? 'pointer' : 'default', fontFamily: 'inherit' }}>
+                <button onClick={saveRoutineItemEdit} disabled={!edicionValida(editingRoutineItem)} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: edicionValida(editingRoutineItem) ? C.rose : C.border, color: edicionValida(editingRoutineItem) ? 'white' : C.subtle, fontSize: 19, fontWeight: 700, cursor: edicionValida(editingRoutineItem) ? 'pointer' : 'default', fontFamily: 'inherit' }}>
                   ✓ Guardar
                 </button>
                 <button onClick={() => setEditingRoutineItem(null)} style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
@@ -1669,7 +1697,7 @@ function App() {
                 </span>
               </button>
               {editingRoutine && <>
-                <button type="button" aria-label={`Editar ${item.task}`} onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: horaHHMM(item.time), task: item.task, emoji: item.emoji })} style={{
+                <button type="button" aria-label={`Editar ${item.task}`} onClick={() => setEditingRoutineItem({ sectionKey, originalSection: sectionKey, id: item.id, time: horaHHMM(item.time), task: item.task, emoji: item.emoji })} style={{
                   background: 'none', border: 'none', color: C.gold, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
                   minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}><span aria-hidden="true">✎</span></button>
@@ -1687,22 +1715,49 @@ function App() {
 
   const ROUTINE_EMOJIS = []
 
+  // Las tres secciones de la rutina. Los mismos nombres van en los títulos
+  // y en los selectores de agregar y de editar.
+  const ROUTINE_SECTIONS = [{ k: 'morning', l: 'Mañana' }, { k: 'midday', l: 'Mediodía' }, { k: 'night', l: 'Noche' }]
+  const renderSectionPicker = (value, onPick) => (
+    <div role="group" aria-label="Sección de la rutina" style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+      {ROUTINE_SECTIONS.map(s => (
+        <button key={s.k} type="button" aria-pressed={value === s.k} onClick={() => onPick(s.k)} style={{
+          padding: '6px 12px', borderRadius: 20, fontSize: 19, fontWeight: 700, cursor: 'pointer',
+          fontFamily: 'inherit', border: `1.5px solid ${C.rose}`,
+          background: value === s.k ? C.rose : 'transparent',
+          color: value === s.k ? 'white' : C.rose,
+        }}>{s.l}</button>
+      ))}
+    </div>
+  )
+  // Un paso editado se puede guardar si tiene hora válida y texto.
+  const edicionValida = (it) => horaValida(it.time) && !!(it.task || '').trim()
+
   // Lista de tareas del ritual de noche (para mañana o planeadas para hoy).
-  const renderTaskList = (tasks, onToggle) => (
+  // Con onRemove, cada tarea lleva su × para quitarla.
+  const renderTaskList = (tasks, onToggle, onRemove) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {tasks.map(t => (
-        <button type="button" role="checkbox" aria-checked={!!t.done} key={t.id} onClick={() => onToggle(t.id)} style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: C.cream,
-          borderRadius: 10, cursor: 'pointer', border: 'none', margin: 0, width: '100%', textAlign: 'left',
-          fontFamily: 'inherit', color: 'inherit',
-        }}>
-          <span aria-hidden="true" style={{
-            width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.contorno}`,
-            background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontSize: 20, flexShrink: 0,
-          }}>{t.done && UI_ICONS.check('white', 13)}</span>
-          <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none', flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t.task}</span>
-        </button>
+        <div key={t.id} style={{ display: 'flex', alignItems: 'center', background: C.cream, borderRadius: 10 }}>
+          <button type="button" role="checkbox" aria-checked={!!t.done} onClick={() => onToggle(t.id)} style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: onRemove ? '8px 0 8px 12px' : '8px 12px', background: 'none',
+            borderRadius: 10, cursor: 'pointer', border: 'none', margin: 0, flex: 1, minWidth: 0, textAlign: 'left',
+            fontFamily: 'inherit', color: 'inherit',
+          }}>
+            <span aria-hidden="true" style={{
+              width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.contorno}`,
+              background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontSize: 20, flexShrink: 0,
+            }}>{t.done && UI_ICONS.check('white', 13)}</span>
+            <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none', flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t.task}</span>
+          </button>
+          {onRemove && (
+            <button type="button" aria-label={`Quitar ${t.task}`} onClick={() => onRemove(t)} style={{
+              background: 'none', border: 'none', color: C.coral, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
+              minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            }}><span aria-hidden="true">×</span></button>
+          )}
+        </div>
       ))}
     </div>
   )
@@ -1722,7 +1777,8 @@ function App() {
 
       {/* Edit toggle */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button onClick={() => setEditingRoutine(!editingRoutine)} style={{
+        {/* Salir (o entrar) del modo edición descarta cualquier edición en curso */}
+        <button onClick={() => { setEditingRoutine(!editingRoutine); setEditingRoutineItem(null) }} style={{
           background: editingRoutine ? C.rose : 'transparent', color: editingRoutine ? 'white' : C.rose,
           border: `1.5px solid ${C.rose}`, borderRadius: 20, padding: '6px 16px',
           fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
@@ -1731,26 +1787,35 @@ function App() {
         </button>
       </div>
 
-      {renderRoutineSection('Mañana', '', morning, C.rose, 'morning')}
-      <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Afirmaciones del día', '', midday, C.gold, 'midday')}
-      <div style={{ height: 1, background: C.border }} />
-      {renderRoutineSection('Noche', '', night, C.roseDark, 'night')}
+      {/* Rutina vacía (usuaria nueva): invitación a armarla en vez de tres títulos sueltos */}
+      {morning.length + midday.length + night.length === 0 && !editingRoutine ? (
+        <div style={{ background: C.card, borderRadius: 14, padding: 20, textAlign: 'center', boxShadow: SHADOW.sm }}>
+          <div style={{ fontSize: 19, fontWeight: 700, color: C.text, marginBottom: 6, fontFamily: FONT }}>
+            Arma tu rutina
+          </div>
+          <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>
+            Aún no tienes pasos. Agrega lo que quieres hacer en la mañana, al mediodía y en la noche.
+          </div>
+          <button onClick={() => setEditingRoutine(true)} style={{
+            background: C.rose, color: 'white', border: 'none', borderRadius: 20, padding: '10px 18px',
+            fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            Agregar mi primer paso
+          </button>
+        </div>
+      ) : <>
+        {renderRoutineSection('Mañana', '', morning, C.rose, 'morning')}
+        <div style={{ height: 1, background: C.border }} />
+        {renderRoutineSection('Mediodía', '', midday, C.gold, 'midday')}
+        <div style={{ height: 1, background: C.border }} />
+        {renderRoutineSection('Noche', '', night, C.roseDark, 'night')}
+      </>}
 
       {/* Add new routine item */}
       {editingRoutine && (
         <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 19, fontWeight: 800, color: C.text, marginBottom: 12 }}>+ Agregar a mi rutina</div>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-            {[{k:'morning',l:'Mañana'},{k:'midday',l:'Día'},{k:'night',l:'Noche'}].map(s => (
-              <button key={s.k} onClick={() => setNewRoutineSection(s.k)} style={{
-                padding: '6px 14px', borderRadius: 20, fontSize: 19, fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'inherit', border: `1.5px solid ${C.rose}`,
-                background: newRoutineSection === s.k ? C.rose : 'transparent',
-                color: newRoutineSection === s.k ? 'white' : C.rose,
-              }}>{s.l}</button>
-            ))}
-          </div>
+          {renderSectionPicker(newRoutineSection, setNewRoutineSection)}
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
             <input type="time" aria-label="Hora" value={newRoutineTime} onChange={e => setNewRoutineTime(e.target.value)}
               style={{ flexShrink: 0, padding: '8px 10px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', boxSizing: 'border-box' }} />
@@ -1787,8 +1852,10 @@ function App() {
 
         {/* What I accomplished today */}
         {(() => {
-          const todayDone = Object.entries(routineChecked).filter(([, v]) => v).length
-          const todayTotal = morning.length + midday.length + night.length
+          // Solo cuentan los pasos que siguen en la rutina (no los ya quitados).
+          const pasos = [...morning, ...midday, ...night]
+          const todayDone = pasos.filter(i => routineChecked[i.id]).length
+          const todayTotal = pasos.length
           return todayDone > 0 && (
             <div style={{ background: `${C.greenDone}15`, borderRadius: 12, padding: 12, marginBottom: 14 }}>
               <div style={{ fontSize: 20, fontWeight: 700, color: C.greenDone }}>
@@ -1801,12 +1868,12 @@ function App() {
 
         {/* Tomorrow tasks */}
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
-        <div style={{ marginBottom: 12 }}>{renderTaskList(tomorrowTasks, toggleTomorrowTask)}</div>
+        <div style={{ marginBottom: 12 }}>{renderTaskList(tomorrowTasks, toggleTomorrowTask, pedirQuitarTareaManana)}</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
             style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
             onKeyDown={e => e.key === 'Enter' && addTomorrowTask()} />
-          <button onClick={addTomorrowTask} disabled={!newTomorrowTask.trim()} style={{
+          <button onClick={addTomorrowTask} disabled={!newTomorrowTask.trim()} aria-label="Agregar tarea para mañana" style={{
             padding: '8px 16px', borderRadius: 10, border: 'none', background: newTomorrowTask.trim() ? C.gold : C.border,
             color: newTomorrowTask.trim() ? 'white' : C.subtle, fontSize: 20, fontWeight: 700, cursor: newTomorrowTask.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
           }}>+</button>
@@ -1825,6 +1892,7 @@ function App() {
       isListening={isListening}
       toggleVoiceInput={toggleVoiceInput}
       addJournalEntry={addJournalEntry}
+      pedirBorrarEntrada={pedirBorrarEntrada}
       entries={entries}
       activePrograms={activePrograms}
       startProgram={startProgram}
