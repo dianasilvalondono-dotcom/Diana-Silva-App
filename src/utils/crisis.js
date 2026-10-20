@@ -106,6 +106,11 @@ const TIRARME = '(\\bme (\\w+ ){0,2}(tir|lanz|lanc|bot|avent|arroj|ech|salt)(ar|
 // Un lugar alto: "el puente", "la terraza", "el quinto piso", "el piso 10",
 // "el 5to piso". "El piso" a secas no.
 const SITIO_ALTO = '(puentes?|edificio|ventana|balcon|terraza|techo|azotea|precipicio|abismo|barranco|risco|acantilado|penasco|viaducto|mirador|torre|(\\d+(to|vo|mo|ro|er|do|no|o)?|primer|segundo|tercer|cuarto|quinto|sexto|septimo|octavo|noveno|decimo|ultimo) piso|piso \\d+)'
+// Lo que va antes de "me ahorca" o "me aprieta el cuello" cuando no es una
+// persona: "esta camisa me ahorca", "el brasier nuevo me ahorca", "las deudas
+// me ahorcan".
+const NO_ES_ROPA = '(?<!\\b(camisa|blusa|corbata|brasier|ropa|vestido|jean|pantalon|bufanda|collar|cuello|deuda|deudas|cuentas|arriendo|hipoteca|tarjeta|trabajo|estres|calor)( \\w+)? )'
+
 // Desde dónde o hacia dónde: un lugar alto, el vacío, un vehículo, la vía.
 // "Al piso" o "a la cama" no; "del quinto piso" o "del piso 10", sí.
 const LUGAR_ALTO = `(de|del|desde|por|al|a|hacia|contra|frente a|frente al|debajo de|debajo del|bajo|a las (llantas|ruedas) de|a las (llantas|ruedas) del) ((el|la|los|las|un|una|este|esta|ese|esa|mi|lo alto de|lo alto del|lo mas alto de|lo mas alto del) )?(vacio|${SITIO_ALTO}|metro|tren|transmilenio|carros?|bus|buses|buseta|camion|tractomula|rio|vias?|carrilera|rieles|carretera|autopista)\\b`
@@ -264,6 +269,23 @@ export const CRISIS_PATTERNS = [
   new RegExp(`\\bme (golpeo|golpearon|golpeaba|golpeaban|golpean)\\b${NO_ES_NOTICIA}`),
   /\bme (ahorco|ahorcaron|estrangula|estrangulo|estrangularon|cachetea|cacheteo|cachetearon|abofeteo|violaron|encerro|encerraron)\b/,
   /\bme (tiene|tienen|tenia|tenian) encerrada\b/,
+  // Más formas de violencia física: empujar, patear, la cachetada, levantar
+  // la mano, el cuello, "me ahorca" en presente, "me encierra con llave", un
+  // cuchillo en el cuello. No activan "me empujó a estudiar", "el bebé me
+  // patea", "me dio una cachetada de realidad", "el gym me dio una paliza" ni
+  // "el brasier me ahorca".
+  /(?<!\blo que )\bme (empujo|empujaron|empuja|empujaba|empujan|empujaban)\b(?! (a \w+(ar|er|ir)(me|la|lo)?|jugando|sin querer|mucho|bastante|para (que|ser|seguir|crecer)|hacia (adelante|arriba|el|la|mis|mi))\b)/,
+  /(?<!\bbeb\w* (\w+ )?)\bme (patea|pateo|patearon|pateaba|pateaban)\b(?! ((la|mi) (barriga|panza|pancita|vejiga|costillas?)|jugando)\b)/,
+  /\bme (casca|casco|cascan|cascaron|cascaba|zarandea|zarandeo|jalonea|jaloneo|jaloneaba)\b/,
+  /(?<!\b(vida|gym|gimnasio|entreno|entrenamiento|partido|examen|parcial|rutina|clase|semana|equipo) )\bme (dio|da|daba|dieron|daban|pego|pegaba) (una |un |unas |unos )?(cachetadas?|bofetadas?|palizas?|golpizas?|punos?|punetazos?|patadas?|golpes|trompadas?)\b(?! (de (realidad|calor|suerte|nostalgia|ahogado)|en el (partido|juego|torneo))\b)/,
+  /\bme (levanto|levanta|levantaba|levantaron|ha levantado|volvio a levantar) la mano\b(?! (para (saludar|despedir)|en (clase|la clase|la reunion)))/,
+  new RegExp(`${NO_ES_ROPA}\\bme (agarro|agarra|agarraba|agarraron|apreto|apretaba|apretaron|cogio|cogia) (\\w+ )?(del|el|por el) cuello\\b`),
+  new RegExp(`${NO_ES_ROPA}\\bme (ahorca|ahorcaba|ahorcan|ahorcaban|intento ahorcar|quiso ahorcar)\\b`),
+  /\bme (rompio|rompieron|partio|partieron|fracturo|revento|reventaron) (la|el|los) (nariz|boca|labio|cara|costillas?|ceja|dientes?|brazo|mandibula|ojo)\b/,
+  /\bme (encierra|encierran|encerraba) (con llave|en (el|la|su|mi))\b(?!.{0,30}\b(tristeza|ansiedad|miedo|depresion|pereza|nostalgia)\b)/,
+  /\bme (puso|pusieron|pone|ponia) (un|el|una|su) (cuchillo|arma|pistola|revolver|machete|navaja|tijeras) (en|contra|sobre)\b/,
+  /\b(golpes|moretones|morados) (de|que me (dio|dejo|deja)) (mi )?(esposo|marido|pareja|novio|ex|exesposo|expareja|exnovio|papa|padrastro)\b/,
+  /\b(esposo|marido|pareja|novio|ex|expareja|exesposo|exnovio|papa|padre|padrastro|mama|madre|madrastra|suegra|suegro) (\w+ ){0,2}me (quemo|quemaba|quemaron) con\b/,
   /\bme (\w+ )?(obliga|obligo|obligan|obligaron|obligaba|fuerza|forza|forzo|forzaron) a (tener (sexo|relaciones)|acostarme|desnudarme)\b/,
   /\bme (amenaza|amenazo|amenazan|amenazaron|amenazaba) (de muerte|con (matarme|pegarme|hacerme dano|quitarme (a )?mis hijos|llevarse (a )?mis hijos|publicar|un cuchillo|un arma|una pistola|matarse|suicidarse))\b/,
   /\b(miedo|terror|panico) (de|a) mi (esposo|marido|pareja|novio|ex|papa|padrastro|exesposo|expareja)\b/,
