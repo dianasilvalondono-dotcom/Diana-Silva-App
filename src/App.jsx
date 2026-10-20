@@ -857,12 +857,40 @@ function App() {
     setIsListening(true)
   }
 
+  // Hábitos: el aviso del formulario (nombre repetido), el último hábito creado
+  // (se muestra y se resalta un momento) y los sugeridos recién agregados, que
+  // se quedan un momento en la lista como "Agregado": así el segundo toque de
+  // un doble toque cae en esa misma fila y no agrega el sugerido de abajo.
+  const [avisoHabito, setAvisoHabito] = useState('')
+  const [habitoNuevo, setHabitoNuevo] = useState(null)
+  const [sugeridosAgregados, setSugeridosAgregados] = useState([])
+  // "Meditar 5 minutos" y "meditar 5 minutos " son el mismo hábito.
+  const nombreHabito = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase()
+  const tieneHabito = (name) => habits.some(h => nombreHabito(h.name) === nombreHabito(name))
+  const sugeridoVisible = (sh) => !tieneHabito(sh.name) || sugeridosAgregados.includes(sh.name)
+  useEffect(() => {
+    if (!habitoNuevo) return
+    document.querySelector(`[data-habito="${habitoNuevo.id}"]`)?.scrollIntoView({ block: 'center' })
+    const t = setTimeout(() => setHabitoNuevo(null), 2500)
+    return () => clearTimeout(t)
+  }, [habitoNuevo])
+
   const addHabit = () => {
-    if (!newHabitName.trim()) return
+    const name = newHabitName.trim()
+    if (!name) return
+    const repetido = habits.find(h => nombreHabito(h.name) === nombreHabito(name))
+    if (repetido) {
+      setAvisoHabito(DIMS[repetido.dim]
+        ? `Ya tienes "${repetido.name}" en ${DIMS[repetido.dim].label}.`
+        : `Ya tienes "${repetido.name}".`)
+      return
+    }
     const id = Date.now()
-    setHabits([...habits, { id, name: newHabitName.trim(), dim: newHabitDim }])
+    setHabits(prev => prev.some(h => nombreHabito(h.name) === nombreHabito(name)) ? prev : [...prev, { id, name, dim: newHabitDim }])
     setNewHabitName('')
+    setAvisoHabito('')
     setShowAddHabit(false)
+    setHabitoNuevo({ id, name, dim: newHabitDim })
   }
 
   const removeHabit = (id) => {
@@ -917,9 +945,23 @@ function App() {
     cta: 'Dejar la ruta',
     onConfirm: () => quitProgram(prog.id),
   })
-  const addSuggestedHabit = (habit) => {
+  const addSuggestedHabit = (habit, e) => {
+    if (tieneHabito(habit.name)) return
     const id = Date.now()
-    setHabits(prev => [...prev, { id, name: habit.name, dim: habit.dim }])
+    setHabits(prev => prev.some(h => nombreHabito(h.name) === nombreHabito(habit.name)) ? prev : [...prev, { id, name: habit.name, dim: habit.dim }])
+    setSugeridosAgregados(prev => [...prev, habit.name])
+    setTimeout(() => setSugeridosAgregados(prev => prev.filter(n => n !== habit.name)), 1500)
+    // Arriba entra el hábito nuevo (y a veces se va el aviso de lista vacía):
+    // se corrige el scroll para que el botón tocado, ya "Agregado", siga bajo
+    // el dedo y un segundo toque no caiga en otro sugerido.
+    const boton = e?.currentTarget
+    if (!boton) return
+    const antes = boton.getBoundingClientRect().top
+    requestAnimationFrame(() => {
+      if (!boton.isConnected) return
+      const corrido = boton.getBoundingClientRect().top - antes
+      if (corrido) window.scrollBy({ top: corrido, behavior: 'instant' })
+    })
   }
 
   const addToolkitItem = () => {
@@ -1418,8 +1460,8 @@ function App() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {dimHabits.map(h => (
-                <div key={h.id} style={{
-                  background: C.card, borderRadius: 12, paddingRight: 4,
+                <div key={h.id} data-habito={h.id} style={{
+                  background: habitoNuevo?.id === h.id ? C.orquideaClara : C.card, borderRadius: 12, paddingRight: 4,
                   display: 'flex', alignItems: 'center',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.04)', borderLeft: `3px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
                   transition: 'all 0.15s', opacity: checked[h.id] ? 0.65 : 1,
@@ -1461,14 +1503,29 @@ function App() {
         )
       })}
 
+      {/* Para lector de pantalla: confirma el hábito que se acaba de agregar */}
+      <div role="status" aria-live="polite" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }}>
+        {habitoNuevo
+          ? `Agregaste "${habitoNuevo.name}" en ${DIMS[habitoNuevo.dim].label}.`
+          : sugeridosAgregados.length > 0 ? `Agregaste "${sugeridosAgregados[sugeridosAgregados.length - 1]}".` : ''}
+      </div>
+
       {/* Add habit */}
       {showAddHabit ? (
         <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 19, fontWeight: 700, marginBottom: 10, color: C.text }}>Nuevo hábito</div>
-          <input value={newHabitName} onChange={e => setNewHabitName(e.target.value)} placeholder="Nombre del hábito..."
+          <input value={newHabitName} onChange={e => { setNewHabitName(e.target.value); setAvisoHabito('') }} placeholder="Nombre del hábito..."
+            aria-invalid={!!avisoHabito} aria-describedby={avisoHabito ? 'aviso-habito' : undefined}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
             onKeyDown={e => e.key === 'Enter' && addHabit()}
           />
+          <div role="status" aria-live="polite">
+            {avisoHabito && (
+              <div id="aviso-habito" style={{ fontSize: 17, fontWeight: 600, color: C.morado, marginTop: -4, marginBottom: 10 }}>
+                {avisoHabito}
+              </div>
+            )}
+          </div>
           <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
             {Object.entries(DIMS).map(([key, d]) => (
               <button key={key} onClick={() => setNewHabitDim(key)} style={{
@@ -1485,7 +1542,7 @@ function App() {
             <button onClick={addHabit} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               Agregar
             </button>
-            <button onClick={() => setShowAddHabit(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+            <button onClick={() => { setShowAddHabit(false); setAvisoHabito('') }} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
               Cancelar
             </button>
           </div>
@@ -1500,14 +1557,16 @@ function App() {
       )}
 
       {/* Suggested habits */}
-      {SUGGESTED_HABITS.filter(sh => !habits.some(h => h.name === sh.name)).length > 0 && (
+      {SUGGESTED_HABITS.some(sugeridoVisible) && (
         <div>
           <div style={{ fontSize: 19, fontWeight: 700, color: C.teal, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, marginTop: 8 }}>
             Sugeridos para ti
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {SUGGESTED_HABITS.filter(sh => !habits.some(h => h.name === sh.name)).map((sh, i) => (
-              <div key={i} style={{
+            {SUGGESTED_HABITS.filter(sugeridoVisible).map(sh => {
+              const agregado = tieneHabito(sh.name)
+              return (
+              <div key={sh.name} style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
                 background: C.card, borderRadius: 12, border: `1px solid ${C.border}`,
               }}>
@@ -1518,15 +1577,18 @@ function App() {
                   <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{sh.name}</div>
                   <div style={{ fontSize: 19, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].label}</div>
                 </div>
-                <button onClick={() => addSuggestedHabit(sh)} aria-label={`Agregar hábito ${sh.name}`} style={{
+                <button type="button" onClick={e => addSuggestedHabit(sh, e)} disabled={agregado}
+                  aria-label={agregado ? `Hábito ${sh.name} agregado` : `Agregar hábito ${sh.name}`} style={{
                   padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${DIMS[sh.dim].color}`,
-                  background: 'transparent', color: DIMS[sh.dim].color, fontSize: 20, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
+                  background: agregado ? DIMS[sh.dim].color : 'transparent', color: agregado ? 'white' : DIMS[sh.dim].color, fontSize: 20, fontWeight: 700,
+                  cursor: agregado ? 'default' : 'pointer', fontFamily: 'inherit',
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
                 }}>
-                  + Agregar
+                  {agregado ? <>{UI_ICONS.check('white', 14)} Agregado</> : '+ Agregar'}
                 </button>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
