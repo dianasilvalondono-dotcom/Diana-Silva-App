@@ -3977,7 +3977,7 @@ function App() {
           { title: 'Tus hábitos', desc: 'Márcalos cada día y mira tu racha crecer.', color: C.gold },
           { title: 'Tu rutina', desc: 'Mañana, mediodía y noche, a tu medida.', color: C.teal },
           { title: 'Tu diario', desc: 'Escribe cómo te fue. Solo tú lo lees.', color: C.rose },
-          { title: 'Tus rutas', desc: 'Caminos de 7 días, un minuto al día.', color: C.mint },
+          { title: 'Tus rutas', desc: 'Caminos de 7 días, una práctica al día.', color: C.mint },
         ].map((item, i) => (
           <div key={i} style={{ background: C.card, borderRadius: 14, padding: '14px 16px', boxShadow: SHADOW.sm, textAlign: 'left', display: 'flex', gap: 14, alignItems: 'center', borderLeft: '3px solid '+item.color }}>
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: item.color+'20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

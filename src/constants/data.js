@@ -114,7 +114,7 @@ export const MOOD_RECS = {
 export const PROGRAMAS = [
   {
     id: 'tusa', title: 'Salir de una tusa',
-    desc: 'Un camino de 7 días para soltar y avanzar, un minuto a la vez', color: '#592147',
+    desc: 'Un camino de 7 días para soltar y avanzar, un paso a la vez', color: '#592147',
     days: [
       { day: 1, title: 'Acepta lo que sientes', task: 'Escribe lo que sientes sin filtro. Solo 1 minuto. No lo juzgues.' },
       { day: 2, title: 'Llora si necesitas', task: 'Pon una canción que te haga sentir y déjate llorar. El llanto sana.' },
@@ -143,7 +143,7 @@ export const PROGRAMAS = [
     desc: '7 días para recuperar tu centro, paso a paso', color: '#726D2D',
     days: [
       { day: 1, title: 'Respiración 4-7-8', task: 'Inhala 4s, sostén 7s, exhala 8s. Repite 3 veces. Tu sistema nervioso se calma.' },
-      { day: 2, title: 'Grounding: 5-4-3-2-1', task: '5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.' },
+      { day: 2, title: 'Vuelve a tus sentidos: 5-4-3-2-1', task: '5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.' },
       { day: 3, title: 'Escribe tus miedos', task: 'Ponlos en papel. Al verlos escritos, pierden poder sobre ti.' },
       { day: 4, title: 'Meditación guiada', task: '5 minutos. Pon una meditación guiada y solo escucha.' },
       { day: 5, title: 'Desconexión digital', task: '1 hora sin celular. Lee, dibuja, respira. Tu mente necesita silencio.' },
@@ -159,7 +159,7 @@ export const PROGRAMAS = [
       { day: 2, title: 'Limpia un espacio', task: 'Tu escritorio, tu mesa, un cajón. Espacio limpio = mente clara.' },
       { day: 3, title: '1 hábito nuevo, 1 minuto', task: 'Escoge 1 hábito y hazlo solo 1 minuto. Mañana serán 2.' },
       { day: 4, title: 'Elimina 1 distracción', task: 'Borra una app, silencia un grupo, di no a un compromiso.' },
-      { day: 5, title: 'Aprende algo nuevo', task: '10 minutos de un podcast, un TED Talk, un artículo. Alimenta tu mente.' },
+      { day: 5, title: 'Aprende algo nuevo', task: '10 minutos de un podcast, una charla TED, un artículo. Alimenta tu mente.' },
       { day: 6, title: 'Haz algo que te dé miedo', task: 'Ese mensaje, esa llamada, esa decisión. Hazlo hoy. El miedo es la señal.' },
       { day: 7, title: 'Escribe tu visión', task: '¿Cómo es tu vida ideal en 1 año? Descríbela con detalle. Ya empezaste.' },
     ],
@@ -255,7 +255,7 @@ export const PLAN_PRECIO = '$9.99/mes'
 export const PROGRAMAS_PREMIUM = [
   {
     id: 'despertar21', title: 'Despertar — 21 días para crear tu hábito',
-    desc: '3 semanas para sembrar, construir e integrar el hábito que va a cambiar tu vida. 1-2 minutos al día.',
+    desc: '3 semanas para sembrar, construir e integrar el hábito que va a cambiar tu vida. Una práctica al día.',
     color: '#726D2D', price: 9.99, duration: '21 días',
     phases: [
       { name: 'Sembrar', days: '1-7', desc: 'Conocerte y despertar' },
@@ -269,14 +269,14 @@ export const PROGRAMAS_PREMIUM = [
       { day: 3, title: 'Mueve tu cuerpo', dim: 'fisico', task: 'Estira tu cuerpo 2 minutos. Cuello, hombros, espalda. Tu cuerpo guarda todo.', prompt: '¿Dónde siento tensión en mi cuerpo hoy?', neuro: 'El movimiento libera BDNF (factor neurotrófico), que es como fertilizante para tu cerebro. Mover el cuerpo literalmente hace crecer nuevas neuronas.' },
       { day: 4, title: 'Observa tu mente', dim: 'mental', task: 'Por 1 minuto, solo observa tus pensamientos. No los juzgues. Solo míralos pasar.', prompt: '¿Qué pensamientos se repiten más en mi cabeza?', neuro: 'Observar tus pensamientos sin reaccionar fortalece tu corteza prefrontal. Es como hacer pesas para tu cerebro — se llama metacognición.' },
       { day: 5, title: '3 gratitudes', dim: 'emocional', task: 'Escribe 3 cosas por las que estás agradecida hoy. Pueden ser pequeñas.', prompt: '¿Qué tengo hoy que antes soñaba con tener?', neuro: 'La gratitud entrena tu atención para registrar lo bueno — y lo que tu atención repite, tu cerebro lo fortalece. Eso es neuroplasticidad.' },
-      { day: 6, title: 'Conexión espiritual', dim: 'espiritual', task: 'Dedica 2 minutos a lo que te conecta: oración, naturaleza, silencio, música.', prompt: '¿Qué me hace sentir que soy parte de algo más grande?', neuro: 'La conexión espiritual activa la red neuronal por defecto (DMN), que procesa el sentido de vida y pertenencia. Tu cerebro necesita estos momentos.' },
+      { day: 6, title: 'Conexión espiritual', dim: 'espiritual', task: 'Dedica 2 minutos a lo que te conecta: oración, naturaleza, silencio, música.', prompt: '¿Qué me hace sentir que soy parte de algo más grande?', neuro: 'La conexión espiritual activa la red neuronal por defecto, que procesa el sentido de vida y pertenencia. Tu cerebro necesita estos momentos.' },
       { day: 7, title: 'Revisa tu semana', dim: 'mental', task: 'Mira atrás: 6 días cumplidos. Escribe qué fue fácil y qué difícil.', prompt: '¿Qué aprendí de mí esta semana?', neuro: 'La reflexión activa la consolidación de memoria. Al revisar tu semana, tu hipocampo convierte las experiencias en aprendizaje permanente.' },
 
       /* === SEMANA 2: CONSTRUIR — Crear las conexiones neuronales === */
       { day: 8, title: 'Define tu hábito', dim: 'mental', task: 'Escoge 1 hábito que quieres para siempre. Escríbelo claro: "Yo hago X cada día a las Y".', prompt: '¿Por qué este hábito y no otro? ¿Qué cambia si lo logro?', neuro: 'Un hábito claro y específico activa los ganglios basales — la zona del cerebro que automatiza comportamientos. Mientras más específico, más fácil de automatizar.' },
-      { day: 9, title: 'Tu ancla neuronal', dim: 'emocional', task: 'Conecta tu hábito a algo que ya haces. Ejemplo: "Después de mi café, medito 2 min."', prompt: '¿A qué momento del día puedo anclar este nuevo hábito?', neuro: 'Esto se llama "habit stacking" — conectas una red neuronal nueva a una que ya existe. Es como colgar una hamaca de dos árboles que ya están firmes.' },
+      { day: 9, title: 'Tu ancla neuronal', dim: 'emocional', task: 'Conecta tu hábito a algo que ya haces. Ejemplo: "Después de mi café, medito 2 min."', prompt: '¿A qué momento del día puedo anclar este nuevo hábito?', neuro: 'Esto se llama "apilar hábitos": conectas una red neuronal nueva a una que ya existe. Es como colgar una hamaca de dos árboles que ya están firmes.' },
       { day: 10, title: 'Hazlo ridículamente fácil', dim: 'fisico', task: 'Reduce tu hábito a 1 minuto. Si es ir al gimnasio, ponte los tenis. Si es leer, abre el libro. Solo eso.', prompt: '¿Cuál es la versión más pequeña de mi hábito que puedo hacer sin excusas?', neuro: 'Tu cerebro resiste el cambio grande (homeostasis). Pero cambios pequeños pasan por debajo del radar de la amígdala — no activan el miedo al cambio.' },
-      { day: 11, title: 'Celebra cada vez', dim: 'emocional', task: 'Cada vez que hagas tu hábito hoy, sonríe y dite "¡Eso!". La celebración crea dopamina.', prompt: '¿Cómo me siento cuando cumplo lo que me propongo?', neuro: 'La dopamina no solo es placer — es la señal que le dice a tu cerebro "repite esto". Celebrar después del hábito crea un loop de recompensa que lo vuelve adictivo.' },
+      { day: 11, title: 'Celebra cada vez', dim: 'emocional', task: 'Cada vez que hagas tu hábito hoy, sonríe y dite "¡Eso!". La celebración crea dopamina.', prompt: '¿Cómo me siento cuando cumplo lo que me propongo?', neuro: 'La dopamina no solo es placer — es la señal que le dice a tu cerebro "repite esto". Celebrar después del hábito crea un ciclo de recompensa que te invita a repetirlo.' },
       { day: 12, title: 'Diseña tu entorno', dim: 'fisico', task: 'Haz que tu hábito sea fácil: deja la ropa lista, el libro visible, la app abierta.', prompt: '¿Qué puedo cambiar en mi espacio para que sea más fácil cumplir?', neuro: 'Casi la mitad de tus acciones diarias son hábitos automáticos disparados por tu entorno (Wood, Quinn & Kashy, 2002). Cambia el entorno y cambias el comportamiento sin usar fuerza de voluntad.' },
       { day: 13, title: 'El día difícil', dim: 'espiritual', task: 'Hoy haz tu hábito aunque no quieras. La consistencia importa más que la perfección.', prompt: '¿Qué me digo a mí misma cuando no tengo ganas?', neuro: 'Cada vez que haces algo difícil, se fortalece tu mielina — la capa que recubre tus conexiones neuronales y las hace más rápidas. La dificultad es el entrenamiento.' },
       { day: 14, title: 'Revisa tu progreso', dim: 'mental', task: '2 semanas. Mira tu registro. ¿Cuántos días cumpliste? Escribe qué sientes.', prompt: '¿En qué he cambiado desde el día 1?', neuro: 'Ver tu progreso visual activa el circuito de recompensa. Un metaanálisis de 138 estudios muestra que monitorear tu progreso aumenta significativamente la probabilidad de lograr tu meta (Harkin et al., 2016).' },
