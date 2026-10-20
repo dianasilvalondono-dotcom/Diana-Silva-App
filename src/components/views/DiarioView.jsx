@@ -77,6 +77,7 @@ export default function DiarioView({
           />
           <button onClick={toggleVoiceInput}
             aria-label={isListening ? 'Detener dictado' : 'Dictar por voz'}
+            aria-describedby="diario-nota-dictado"
             style={{
               position: 'absolute', top: 10, right: 10, width: 36, height: 36, borderRadius: '50%',
               border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -87,6 +88,12 @@ export default function DiarioView({
             }}>
             {isListening ? UI_ICONS.stop('currentColor', 18) : UI_ICONS.mic('currentColor', 18)}
           </button>
+        </div>
+        {/* El dictado usa la Web Speech API: el reconocimiento de voz lo hace el
+            navegador con su propio servicio (en Chrome, Google; en Safari,
+            Apple). A la app llega solo el texto, que se queda en el teléfono. */}
+        <div id="diario-nota-dictado" style={{ fontSize: 15, color: C.muted, lineHeight: 1.5, marginTop: 6 }}>
+          Al dictar, tu navegador convierte tu voz en texto con su propio servicio. A tu diario llega solo el texto, y se guarda en tu teléfono.
         </div>
         {isListening && (
           <div style={{

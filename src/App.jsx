@@ -5,6 +5,7 @@ import { FONT, FONT_DISPLAY, SHADOW } from './constants/tokens'
 import { ICONS, MOOD_ICONS, UI_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
 import LineaCrisis from './components/ui/LineaCrisis'
+import SalidaAyuda from './components/ui/SalidaAyuda'
 import HistoriaView from './components/views/HistoriaView'
 import DiarioView from './components/views/DiarioView'
 import RondasView from './components/views/RondasView'
@@ -32,11 +33,15 @@ import { PantallaAutorizacion, TarjetaIA, TusAutorizaciones, EnlacePolitica } fr
 import {
   leerAutorizaciones, guardarAutorizaciones, cuentaAutorizada as cuentaAutorizadaEn, iaAutorizada as iaAutorizadaEn,
   iaRespondida, registrar as registrarAutorizaciones, adoptar as adoptarAutorizaciones, leerAutorizacionesNube,
-  subirAutorizaciones, trasSubir, hayQueSubir,
+  subirAutorizaciones, trasSubir, hayQueSubir, crearCola,
 } from './lib/autorizaciones'
 import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL } from './lib/database'
 import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
 import { esAdmin, rondaPlusVigente } from './utils/plan'
+
+/* Antes de pagar Ronda+: lo que usa la IA pide su propia autorización
+   (textos-autorizacion-v1; Ley 1581, art. 6). Va en el paywall y en el plan. */
+const NOTA_IA_PLUS = 'Tu Ronda, escribir en la Comunidad y Crea tu programa usan la IA de Ronda. Para usarlas te pedimos una autorización aparte, que das o quitas cuando quieras en Perfil → Tus autorizaciones.'
 
 // Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
 const BOARD_MAX = 2000
@@ -52,6 +57,16 @@ function enfocarDespues(id, { centrar = false } = {}) {
     el.focus({ preventScroll: true })
     if (centrar) el.scrollIntoView({ block: 'center' })
   })
+}
+
+/* Trae a la vista algo que aparece en su lugar (la tarjeta de la IA en la
+   Comunidad), entre el encabezado fijo (124 px) y el menú fijo de abajo: si
+   cabe, completo; si es más alto que lo que se ve, desde su título. Las
+   márgenes las pone el elemento (scrollMarginTop y scrollMarginBottom). */
+function traerALaVista(el, { arriba = 140, abajo = 120 } = {}) {
+  if (!el) return
+  const cabe = el.getBoundingClientRect().height <= window.innerHeight - arriba - abajo
+  el.scrollIntoView({ block: cabe ? 'nearest' : 'start' })
 }
 
 /* Cuando se va una pantalla completa (el aviso único, «Lo íntimo es tuyo»),
@@ -133,7 +148,8 @@ function Paywall({ feature, price, desc, onCta }) {
         {desc}
       </div>
       <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{price}</div>
-      <div style={{ fontSize: 20, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
+      <div style={{ fontSize: 20, color: C.subtle, marginBottom: 16 }}>Cancela cuando quieras</div>
+      <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.55, maxWidth: 320, margin: '0 auto 20px' }}>{NOTA_IA_PLUS}</p>
       <button type="button" onClick={() => { track('paywall_cta_clicked', { feature }); onCta?.() }} style={{
         padding: '14px 32px', borderRadius: 14, border: 'none',
         background: `linear-gradient(135deg, ${C.gold}, #141833)`, color: 'white',
@@ -145,34 +161,6 @@ function Paywall({ feature, price, desc, onCta }) {
       <div style={{ fontSize: 19, color: C.subtle, marginTop: 12 }}>
         Próximamente · Te avisamos cuando esté disponible
       </div>
-    </div>
-  )
-}
-
-/* ── La salida a Ayuda y a las líneas ──
-   Para cuando lo que ella escribió no recibe respuesta: el aviso de pago de la
-   Comunidad y el aviso de que la Guía IA no pudo responder (error, sin red,
-   tiempo agotado o el 403 de Ronda+, que trae este mismo texto en `ayuda`).
-   Lo que escribió puede ser una crisis dicha de una forma que isCrisis no
-   reconoce, y sin respuesta tampoco la ve el modelo. onAbrir abre Ayuda como
-   ante una crisis ("No estás sola." y el 123, no "Estás a salvo."). */
-function SalidaAyuda({ onAbrir, style }) {
-  return (
-    <div style={{
-      padding: '12px 14px', borderRadius: 14,
-      border: `1px solid ${C.border}`, background: 'white', textAlign: 'center',
-      ...style,
-    }}>
-      <div style={{ fontSize: 16, color: C.text, lineHeight: 1.5 }}>
-        Si estás pasando por un momento difícil, abre {BOTON_AYUDA} o llama a la{' '}
-        <a href="tel:106" style={{ color: C.text, fontWeight: 800 }}>Línea 106</a> (gratuita y confidencial).
-        Si estás en peligro inmediato, llama al <a href="tel:123" style={{ color: C.text, fontWeight: 800 }}>123</a>.
-      </div>
-      <button type="button" onClick={onAbrir} style={{
-        marginTop: 10, minHeight: 44, padding: '8px 16px', borderRadius: 20, cursor: 'pointer',
-        border: `2px solid ${C.lavanda}`, background: 'white', color: C.lavanda,
-        fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
-      }}>Abrir {BOTON_AYUDA}</button>
     </div>
   )
 }
@@ -370,13 +358,16 @@ function App() {
   const isFoundingMember = premiumStatus.premium_source === 'founding_member'
 
   // ─── Analítica (PostHog): solo con la autorización de cuenta ───
-  // Antes de que la dé (el aviso único, o si toca «No estoy de acuerdo»),
+  // Antes de que la dé (el aviso único, o si toca «Prefiero salir»),
   // PostHog ni carga ni sabe quién es (Decreto 1377, art. 5). Con ella, se
   // vincula a la usuaria (base de la retención D1/D7/D30) y app_opened sale
-  // una vez por cuenta y por sesión.
+  // una vez por cuenta y por sesión. Si lo de este teléfono es de otra cuenta
+  // (entró otra en el mismo teléfono), espera: la autorización que hay en
+  // memoria es de la anterior (asegurarDuenaLocal, más abajo, la aparta).
   const appAbiertaDeRef = useRef(null)
   useEffect(() => {
     if (!cuentaAutorizada || (isConfigured && !userId)) return
+    if (userId && datosDeOtraCuenta(userId)) return
     initAnalytics()
     if (!userId) return
     identifyUser(userId)
@@ -386,7 +377,7 @@ function App() {
     }
   }, [cuentaAutorizada, isConfigured, userId])
   useEffect(() => {
-    if (!cuentaAutorizada || !userId || premiumDe !== userId) return
+    if (!cuentaAutorizada || !userId || premiumDe !== userId || datosDeOtraCuenta(userId)) return
     setUserProps({
       is_premium: premiumStatus.is_premium,
       premium_source: premiumStatus.premium_source || 'free',
@@ -416,9 +407,10 @@ function App() {
   // Vincular el user.id de Supabase con la suscripción de OneSignal
   // (permite mandar push targeted a usuarias específicas). Solo con la
   // autorización de cuenta, y sin el correo: para los recordatorios no hace
-  // falta, y escribirle por correo pediría una autorización aparte.
+  // falta, y escribirle por correo pediría una autorización aparte. Nunca
+  // con la autorización de otra cuenta (la que entró antes en este teléfono).
   useEffect(() => {
-    if (osStatus === 'subscribed' && userId && cuentaAutorizada) osSetExternalUserId(userId)
+    if (osStatus === 'subscribed' && userId && cuentaAutorizada && !datosDeOtraCuenta(userId)) osSetExternalUserId(userId)
   }, [osStatus, userId, cuentaAutorizada, osSetExternalUserId])
 
   // ─── Modal genérico de la marca (reemplaza alert() feo del navegador) ───
@@ -789,29 +781,36 @@ function App() {
   // una subida vieja pisa lo recién leído (src/lib/autorizaciones.js).
   const registroAutorizaciones = user?.user_metadata?.autorizaciones
   const firmaRegistro = registroAutorizaciones && typeof registroAutorizaciones === 'object' ? JSON.stringify(registroAutorizaciones) : ''
-  const colaAutorizacionesRef = useRef(Promise.resolve())
-  const enCola = useCallback((paso) => {
-    const corrida = colaAutorizacionesRef.current.then(paso, paso)
-    colaAutorizacionesRef.current = corrida.catch(() => null)
-    return corrida
-  }, [])
-  // Sube lo pendiente. true si no quedó nada por subir.
+  // Cada paso con su tope: una subida colgada no traba la cola (ni deja el
+  // interruptor de Perfil en «guardando»).
+  const [enCola] = useState(() => crearCola())
+  // Sube lo pendiente. Devuelve 'listo' (nada quedó por subir), 'pendiente'
+  // (sin red o sin respuesta: queda en este teléfono y se reintenta) u
+  // 'otro-telefono' (este «sí» a la IA perdió con un «no» de otro teléfono).
   const subirPendientes = useCallback(() => enCola(async () => {
     const id = userId
-    if (!id || !isConfigured || datosDeOtraCuenta(id)) return false
+    if (!id || !isConfigured || datosDeOtraCuenta(id)) return 'pendiente'
     const enviado = autorizacionesRef.current
-    if (!hayQueSubir(enviado)) return true
+    if (!hayQueSubir(enviado)) return 'listo'
     const resultado = await subirAutorizaciones(id, enviado)
-    if (datosDeOtraCuenta(id)) return false
+    if (datosDeOtraCuenta(id)) return 'pendiente'
     cambiarAutorizaciones(prev => trasSubir(prev, resultado, enviado))
-    return resultado.completo && !resultado.ganaNube.ia
-  }), [enCola, userId, isConfigured, cambiarAutorizaciones])
+    if (resultado.ganaNube.ia) return 'otro-telefono'
+    return resultado.completo && !resultado.sinFila.ia ? 'listo' : 'pendiente'
+  }, 'pendiente'), [enCola, userId, isConfigured, cambiarAutorizaciones])
   // Lee la nube (si respondió o cambió algo en otro teléfono) y, si nunca
   // respondió, adopta lo que marcó al crear la cuenta (metadatos).
+  // Sin respuesta de la nube, lo del registro espera (no se crea un «sí» a
+  // ciegas): si acaba de crear la cuenta, se intenta una vez más antes de
+  // seguir. Si tampoco responde, sale el aviso único y ella responde ahí.
   const revisarNube = useCallback(() => enCola(async () => {
     const id = userId
     if (!id || !isConfigured || datosDeOtraCuenta(id)) return
-    const nube = await leerAutorizacionesNube(id)
+    let nube = await leerAutorizacionesNube(id)
+    if (nube === null && firmaRegistro && !cuentaAutorizadaEn(autorizacionesRef.current)) {
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      nube = await leerAutorizacionesNube(id)
+    }
     if (datosDeOtraCuenta(id)) return
     const metadatos = firmaRegistro ? { autorizaciones: JSON.parse(firmaRegistro) } : null
     cambiarAutorizaciones(prev => adoptarAutorizaciones(prev, { nube, metadatos }))
@@ -833,6 +832,7 @@ function App() {
   // si falta algo, la app espera en "Cargando..." (revisandoAutorizaciones).
   // Y cada vez que vuelve a la app (la PWA queda abierta días): así un
   // retiro hecho en otro teléfono llega aquí sin cerrar la app.
+  // Al volver la conexión, lo que quedó en este teléfono sube.
   useEffect(() => {
     if (!userId || !isConfigured || datosDeOtraCuenta(userId)) return
     revisarNube()
@@ -840,11 +840,16 @@ function App() {
     const alVolver = () => {
       if (document.visibilityState !== 'visible' || Date.now() - ultima < 60000) return
       ultima = Date.now()
-      revisarNube()
+      sincronizarAutorizaciones()
     }
+    const alConectar = () => { sincronizarAutorizaciones() }
     document.addEventListener('visibilitychange', alVolver)
-    return () => document.removeEventListener('visibilitychange', alVolver)
-  }, [userId, isConfigured, revisarNube])
+    window.addEventListener('online', alConectar)
+    return () => {
+      document.removeEventListener('visibilitychange', alVolver)
+      window.removeEventListener('online', alConectar)
+    }
+  }, [userId, isConfigured, revisarNube, sincronizarAutorizaciones])
 
   // Lo que no se ha subido (sin red, o antes de que existiera la tabla) se
   // sube en cuanto se puede. Cada fila lleva su id: reintentar no duplica.
@@ -856,7 +861,7 @@ function App() {
   // `analitica: false` cuando no hay autorización de cuenta (el rechazo).
   const responderAutorizacion = (respuestas, canal, { analitica = true } = {}) => {
     const siguiente = cambiarAutorizaciones(prev => registrarAutorizaciones(prev, respuestas, canal))
-    if (analitica && cuentaAutorizadaEn(siguiente)) {
+    if (analitica && cuentaAutorizadaEn(siguiente) && !(userId && datosDeOtraCuenta(userId))) {
       // Con la autorización recién dada, PostHog ya puede arrancar (el efecto
       // de la analítica lo haría después de pintar y este evento se perdería).
       initAnalytics()
@@ -866,15 +871,16 @@ function App() {
     }
     return siguiente
   }
-  // Perfil → Tus autorizaciones. true si quedó también en la nube; en este
-  // teléfono queda siempre, y sin la autorización la IA se cierra ya.
+  // Perfil → Tus autorizaciones. En este teléfono queda siempre (y sin la
+  // autorización la IA se cierra ya); devuelve cómo quedó en la nube
+  // ('listo', 'pendiente' u 'otro-telefono', ver subirPendientes).
   const cambiarAutorizacionIA = async (valor) => {
     if (!valor) stopSpeech()
     responderAutorizacion({ ia: valor }, 'perfil')
-    if (!isConfigured || !userId) return true
+    if (!isConfigured || !userId) return 'listo'
     return subirPendientes()
   }
-  // Aviso único → «No estoy de acuerdo» → «Cerrar sesión»: queda la prueba
+  // Aviso único → «Prefiero salir» → «Cerrar sesión»: queda la prueba
   // del rechazo (cuenta = no) antes de salir. Sin red, queda pendiente en
   // este teléfono y sube la próxima vez que entre (como máximo espera 6 s).
   const rechazarYCerrarSesion = async () => {
@@ -1555,8 +1561,9 @@ function App() {
 
   const abrirAyuda = (desde = 'encabezado') => {
     // Abierta por una señal de crisis (crisis_chat, crisis_comunidad,
-    // crisis_programa), desde el aviso de pago (crisis_aviso_pago) o desde el
-    // aviso de que la Guía IA no respondió (crisis_guia_fallo): sin
+    // crisis_programa), desde el aviso de pago (crisis_aviso_pago), desde el
+    // aviso de que la Guía IA no respondió (crisis_guia_fallo) o desde la
+    // tarjeta que pide la autorización de la IA (crisis_tarjeta_ia): sin
     // "Estás a salvo." y con el 123 en el primer texto.
     setPanicOrigen(String(desde).startsWith('crisis') ? 'crisis' : 'ayuda')
     setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicDbtExpanded(null)
@@ -3170,7 +3177,7 @@ function App() {
   // va el botón para escribir (textos-autorizacion-v1, c).
   const pedirIAComunidad = () => {
     setPidiendoIA(true)
-    requestAnimationFrame(() => document.getElementById('ia-comunidad')?.scrollIntoView({ block: 'nearest' }))
+    requestAnimationFrame(() => traerALaVista(document.getElementById('ia-comunidad')))
   }
 
   const avisoPagoComunidad = () => {
@@ -3311,7 +3318,8 @@ function App() {
             setBoardShowForm(true)
             enfocarDespues('board-texto', { centrar: true })
           }}
-          onAhoraNo={() => { setPidiendoIA(false); enfocarDespues(boardShowForm ? 'board-texto' : 'board-nueva') }} />
+          onAhoraNo={() => { setPidiendoIA(false); enfocarDespues(boardShowForm ? 'board-texto' : 'board-nueva') }}
+          onAyuda={() => abrirAyuda('crisis_tarjeta_ia')} />
       ) : !boardShowForm ? (
         <button id="board-nueva" onClick={() => {
           if (isPremium && !iaOk) { pedirIAComunidad(); return }
@@ -3708,15 +3716,17 @@ function App() {
     const todayChecked = Object.values(checked).filter(Boolean).length
     const totalHabits = habits.length
 
-    // Recent mood from last 7 journal entries
-    const recentEntries = entries.slice(0, 7)
-    // Solo entradas con un ánimo elegido (0 = Difícil cuenta). La intención de
-    // la mañana no lleva ánimo. Se envía como texto ('0.0' no es falsy).
-    const conAnimo = recentEntries.filter(e => typeof e.mood === 'number' && e.type !== 'morning')
+    // El ánimo de los últimos 7 días (hoy y los 6 anteriores), como dicen la
+    // casilla de la IA y la política: solo entradas con un ánimo elegido
+    // (0 = Difícil cuenta). La intención de la mañana no lleva ánimo. Se
+    // envía como texto ('0.0' no es falsy).
+    const desde7Dias = dateKey(-6)
+    const conAnimo = entries.filter(e => typeof e.mood === 'number' && e.type !== 'morning' && typeof e.date === 'string' && e.date >= desde7Dias)
     const avgMood = conAnimo.length > 0
       ? (conAnimo.reduce((s, e) => s + e.mood, 0) / conAnimo.length).toFixed(1)
       : null
-    const lastJournalNote = recentEntries[0]?.text || null
+    // La última entrada del diario (sus primeros 200 caracteres, abajo).
+    const lastJournalNote = entries[0]?.text || null
 
     // Rutas activas, con el día en que va cada una (las creadas con la IA incluidas).
     const rutasEnCurso = Object.entries(activePrograms).map(([id, p]) => {
@@ -4162,14 +4172,19 @@ function App() {
           />
 
           <label htmlFor="perfil-bio" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Bio</label>
-          <textarea id="perfil-bio" value={(perfilBorrador || profile).bio || ''} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..." maxLength={160}
+          <textarea id="perfil-bio" aria-describedby="perfil-nota-cuenta" value={(perfilBorrador || profile).bio || ''} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..." maxLength={160}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
           <label htmlFor="perfil-intencion" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Mi intención</label>
-          <textarea id="perfil-intencion" value={(perfilBorrador || profile).intention || ''} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?" maxLength={200}
+          <textarea id="perfil-intencion" aria-describedby="perfil-nota-cuenta" value={(perfilBorrador || profile).intention || ''} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?" maxLength={200}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 8, boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
+          {/* La bio y la intención suben a su cuenta (con la autorización de
+              cuenta, que no cubre datos sensibles): lo íntimo, al diario. */}
+          <p id="perfil-nota-cuenta" style={{ margin: '0 0 8px', fontSize: 15, color: C.muted, lineHeight: 1.5 }}>
+            Tu bio y tu intención se guardan en tu cuenta. Lo de tu salud y tus emociones guárdalo en tu diario, que vive solo en tu teléfono.
+          </p>
 
           <button onClick={guardarPerfil} style={{
             width: '100%', padding: 12, borderRadius: 12, border: 'none',
@@ -4326,6 +4341,9 @@ function App() {
                   <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>{plan.price}</div>
                 </div>
                 <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.5, marginBottom: 10 }}>{plan.features}</div>
+                {plan.name === PLAN_PAGO && (
+                  <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.5, marginBottom: 10 }}>{NOTA_IA_PLUS}</div>
+                )}
                 <button onClick={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${plan.name}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} style={{
                   width: '100%', padding: '10px', borderRadius: 12, border: 'none',
                   background: plan.color, color: 'white', fontSize: 17, fontWeight: 700,
@@ -5006,8 +5024,9 @@ function App() {
   /* ── Auth loading ── (pantallaCarga, arriba)
      También mientras los datos de este dispositivo son de otra cuenta (no se
      muestra nada de ella mientras se apartan y la app se recarga, perfil-1)
-     y mientras se leen sus autorizaciones de la nube (hasta 6 s). Ayuda y
-     las líneas de crisis están a mano también aquí. */
+     y mientras se leen sus autorizaciones de la nube (hasta 6 s; recién
+     creada la cuenta y sin respuesta, un intento más). Ayuda y las líneas de
+     crisis están a mano también aquí. */
   if (pantallaCarga) {
     return (
       <>
@@ -5416,7 +5435,8 @@ function App() {
               onAhoraNo={() => {
                 irASubTab('')
                 requestAnimationFrame(() => document.querySelector('[data-acceso="ai"]')?.focus({ preventScroll: true }))
-              }} />
+              }}
+              onAyuda={() => abrirAyuda('crisis_tarjeta_ia')} />
           )) : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
         </>}
 

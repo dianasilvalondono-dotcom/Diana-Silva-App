@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { C } from '../constants/colors'
 import { FONT } from '../constants/tokens'
 import Button from './ui/Button'
-import { Casilla, EnlacePolitica } from './Autorizaciones'
+import { Casilla, EnlacePolitica, PROMESA } from './Autorizaciones'
 import { autorizacionesParaRegistro, URL_AVISO } from '../lib/autorizaciones'
 
 /* Supabase responde en inglés ("Invalid login credentials"…). A la usuaria
@@ -229,10 +229,10 @@ export default function AuthScreen({
               <Casilla id="auth-autorizo" marcada={autorizaCuenta} invalida={campoInvalido === 'cuenta'}
                 describedBy={campoInvalido === 'cuenta' ? 'auth-error' : undefined}
                 onCambiar={v => { setAutorizaCuenta(v); setError(''); setCampoInvalido(null) }}>
-                <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, lo que hago en Afuera y cómo uso la app) para crear mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
+                <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, los planes en los que aparto cupo y cómo uso la app) para crear mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
               </Casilla>
               <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.55, marginTop: 6 }}>
-                <em>Ronda no vende tus datos ni los comparte con terceros para publicidad. Lo íntimo te lo preguntamos aparte y es opcional.</em>{' '}
+                <em>{PROMESA} Lo íntimo te lo preguntamos aparte y es opcional.</em>{' '}
                 <EnlacePolitica href={URL_AVISO}>Aviso de privacidad</EnlacePolitica>
               </div>
             </div>

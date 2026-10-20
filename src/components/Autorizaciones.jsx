@@ -6,17 +6,25 @@
        y (b) el aviso único a las ya inscritas
      · TarjetaIA → (c) al tocar una función de IA sin autorización
      · TusAutorizaciones → (e) la tarjeta de Perfil
-   Las reglas de qué se guarda y dónde viven en src/lib/autorizaciones.js. */
+   Las reglas de qué se guarda y dónde viven en src/lib/autorizaciones.js.
+   Todo texto va en positivo (pedido de Diana): sin «no», «nunca», «sin»,
+   «ni»… El rechazo del aviso existe igual, con otro nombre: «Prefiero salir». */
 import { useEffect, useRef, useState } from 'react'
 import { C } from '../constants/colors'
 import { FONT, FONT_DISPLAY, SHADOW } from '../constants/tokens'
 import { BOTON_AYUDA } from '../utils/crisis'
 import LineaCrisis from './ui/LineaCrisis'
+import SalidaAyuda from './ui/SalidaAyuda'
 import {
   CORREO_DATOS, URL_POLITICA, iaAutorizada, fechaAutorizacion,
 } from '../lib/autorizaciones'
 
-const NO_VENDE = 'Ronda no vende tus datos ni los comparte con terceros para publicidad.'
+// La promesa de Diana: Ronda no vende tus datos ni los usa para publicidad.
+export const PROMESA = 'Nuestra promesa: tus datos son tuyos. Venderlos o usarlos para publicidad queda por fuera de nuestro trato contigo.'
+
+// Con el encabezado fijo arriba (124 px) y el menú fijo abajo: lo que se trae
+// a la vista queda entre los dos.
+const MARGEN_VISTA = { scrollMarginTop: 140, scrollMarginBottom: 120 }
 
 const enlace = { color: C.morado, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2 }
 
@@ -57,10 +65,10 @@ export function CasillaIA({ id, marcada, onCambiar, ref }) {
           Aplica a <strong>Tu Ronda</strong>, a la <strong>Guía IA de la Comunidad</strong> y a <strong>Crea tu programa</strong>. Para responderte, Tu Ronda también lee tu nombre, tu ciudad, tu intención, tus hábitos de hoy, tu ánimo de los últimos 7 días, tu última entrada del diario, tu programa activo y lo que recuerda de ti.
         </li>
         <li style={{ marginBottom: 6 }}>
-          Lo procesa <strong>Anthropic</strong>, en Estados Unidos, que no lo usa para entrenar sus modelos. Si tocas escuchar una respuesta, <strong>ElevenLabs</strong> (Estados Unidos) la lee en voz alta.
+          Lo procesa <strong>Anthropic</strong>, en Estados Unidos, y sus condiciones le prohíben usarlo para entrenar sus modelos. Si tocas escuchar una respuesta, <strong>ElevenLabs</strong> (Estados Unidos) la lee en voz alta.
         </li>
         <li>
-          Si no lo marcas, esas tres funciones no se abren. Ayuda, los programas de 7 días, tus hábitos, tu diario y Afuera siguen igual.
+          Esas tres funciones se abren solo si lo marcas. Ayuda, los programas de 7 días, tus hábitos, tu diario y los planes de tu ciudad funcionan igual, decidas lo que decidas.
         </li>
       </ul>
     </div>
@@ -130,17 +138,35 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
   const [cuenta, setCuenta] = useState(false)
   const [ia, setIa] = useState(false)
   const [error, setError] = useState('')
+  // Qué casilla falta ('edad' o 'cuenta'): la marca como inválida y la
+  // describe con el mensaje.
+  const [falta, setFalta] = useState(null)
   const [desacuerdo, setDesacuerdo] = useState(false)
   const tituloRef = useRef(null)
+  const edadRef = useRef(null)
+  const cuentaRef = useRef(null)
 
-  // El lector de pantalla empieza por el título (y al ir y volver de «No estoy de acuerdo»).
+  // El lector de pantalla empieza por el título (y al ir y volver de «Prefiero salir»).
   useEffect(() => { tituloRef.current?.focus({ preventScroll: true }) }, [desacuerdo])
+
+  // Como en «Crear cuenta»: el foco y la vista van a la casilla que falta
+  // (estaba 500 px arriba de «Seguir»), con el mensaje justo debajo.
+  const marcarFalta = (campo, texto) => {
+    setFalta(campo)
+    setError(texto)
+    requestAnimationFrame(() => {
+      const casilla = (campo === 'edad' ? edadRef : cuentaRef).current
+      casilla?.focus({ preventScroll: true })
+      casilla?.scrollIntoView({ block: 'center' })
+    })
+  }
+  const limpiarError = () => { setError(''); setFalta(null) }
 
   const obligatoriasListas = !aviso || (edad && cuenta)
   const seguir = () => {
     if (aviso) {
-      if (!edad) { setError(`Ronda es solo para mayores de 18 años. Si tienes menos de 18, escríbenos a ${CORREO_DATOS} y borramos tu cuenta.`); return }
-      if (!cuenta) { setError('Para mantener tu cuenta necesitamos tu autorización para tratar tus datos de cuenta.'); return }
+      if (!edad) { marcarFalta('edad', `Ronda es solo para mayores de 18 años. Si tienes menos de 18, escríbenos a ${CORREO_DATOS} y borramos tu cuenta.`); return }
+      if (!cuenta) { marcarFalta('cuenta', 'Para mantener tu cuenta necesitamos tu autorización para tratar tus datos de cuenta.'); return }
       onResponder({ edad: true, cuenta: true, ia })
     } else {
       onResponder({ ia })
@@ -151,9 +177,12 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
   if (aviso && desacuerdo) {
     return (
       <MarcoAutorizacion onAyuda={onAyuda} inerte={inerte}>
-        <h1 ref={tituloRef} tabIndex={-1} style={titulo}>Sin esta autorización no podemos mantener tu cuenta</h1>
+        <h1 ref={tituloRef} tabIndex={-1} style={titulo}>Tu cuenta necesita esta autorización</h1>
         <p style={parrafo}>
-          Si quieres, la borramos con todo lo que guarda: escríbenos a <a href={`mailto:${CORREO_DATOS}?subject=${encodeURIComponent('Borrar mi cuenta')}`} style={enlace}>{CORREO_DATOS}</a> desde el correo de tu cuenta y lo hacemos en máximo 15 días hábiles. Lo que está en este teléfono lo puedes borrar desde los ajustes de tu navegador.
+          Con esta autorización mantenemos tu cuenta y te damos el servicio. Si prefieres salir, cierra sesión: guardamos tu respuesta y, si vuelves a entrar, te preguntamos otra vez.
+        </p>
+        <p style={parrafo}>
+          Si quieres que borremos tu cuenta con todo lo que guarda, escríbenos a <a href={`mailto:${CORREO_DATOS}?subject=${encodeURIComponent('Borrar mi cuenta')}`} style={enlace}>{CORREO_DATOS}</a> desde el correo de tu cuenta y lo hacemos en máximo 15 días hábiles. Lo que está en este teléfono lo borras desde los ajustes de tu navegador.
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
           <button type="button" onClick={() => setDesacuerdo(false)} style={{ ...botonPrincipal(true), flex: 1, minWidth: 140 }}>Volver</button>
@@ -182,23 +211,32 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
 
       {aviso ? <>
         <p style={parrafo}>
-          Publicamos nuestra Política de Tratamiento de Datos y te pedimos tu autorización expresa, una sola vez. <strong>{NO_VENDE}</strong>
+          Publicamos nuestra Política de Tratamiento de Datos y te pedimos tu autorización expresa, una sola vez. <strong>{PROMESA}</strong>
         </p>
-        <Casilla id="aviso-edad" marcada={edad} onCambiar={v => { setEdad(v); setError('') }} invalida={!!error && !edad}>
+        <Casilla id="aviso-edad" ref={edadRef} marcada={edad} onCambiar={v => { setEdad(v); limpiarError() }}
+          invalida={falta === 'edad'} describedBy={falta === 'edad' ? 'aviso-error' : undefined}>
           <strong>Tengo 18 años o más.</strong>
         </Casilla>
-        <Casilla id="aviso-cuenta" marcada={cuenta} onCambiar={v => { setCuenta(v); setError('') }} invalida={!!error && edad && !cuenta}>
-          <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, lo que hago en Afuera y cómo uso la app) para mantener mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
+        <Casilla id="aviso-cuenta" ref={cuentaRef} marcada={cuenta} onCambiar={v => { setCuenta(v); limpiarError() }}
+          invalida={falta === 'cuenta'} describedBy={falta === 'cuenta' ? 'aviso-error' : undefined}>
+          <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, los planes en los que aparto cupo y cómo uso la app) para mantener mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
         </Casilla>
+        {/* Justo debajo de las dos casillas: «Seguir» lleva hasta aquí. */}
+        {error && (
+          <div id="aviso-error" role="alert" style={{
+            marginTop: 8, fontSize: 15, color: C.morado, background: C.roseLight, padding: '10px 14px',
+            borderRadius: 10, fontWeight: 600, lineHeight: 1.5,
+          }}>{error}</div>
+        )}
         <p style={{ ...parrafo, marginTop: 14 }}>
-          <strong>Lo íntimo es tuyo.</strong> Tu diario, tu ánimo y lo que le cuentas a la IA son datos sensibles y <strong>no estás obligada a autorizarnos a tratarlos</strong>. Tu diario, tus check-ins y lo que Tu Ronda recuerda de ti se quedan <strong>solo en este teléfono</strong>. Si antes se guardó una copia de tu diario en tu cuenta, la borramos de nuestros servidores en los próximos 30 días. Si la quieres antes, escríbenos a <a href={`mailto:${CORREO_DATOS}?subject=${encodeURIComponent('Pedir una copia de mi diario')}`} style={enlace}>{CORREO_DATOS}</a>.
+          <strong>Lo íntimo es tuyo.</strong> Tu diario, tu ánimo y lo que le cuentas a la IA son datos sensibles, y <strong>autorizarnos a tratarlos es opcional: tú decides</strong>. Tu diario, tus check-ins y lo que Tu Ronda recuerda de ti se quedan <strong>solo en este teléfono</strong>. Si antes se guardó en tu cuenta una copia de tu diario, tu ánimo, tus hábitos, tu racha, tus programas o tus frases favoritas, la borramos de nuestros servidores en los próximos 30 días. Si quieres la copia de tu diario antes, escríbenos a <a href={`mailto:${CORREO_DATOS}?subject=${encodeURIComponent('Pedir una copia de mi diario')}`} style={enlace}>{CORREO_DATOS}</a>.
         </p>
       </> : <>
         <p style={parrafo}>
-          Tu diario, tu ánimo y lo que le cuentas a la IA de Ronda son <strong>datos sensibles</strong>: hablan de tus emociones y de tu salud. <strong>No estás obligada a autorizarnos a tratarlos.</strong>
+          Tu diario, tu ánimo y lo que le cuentas a la IA de Ronda son <strong>datos sensibles</strong>: hablan de tus emociones y de tu salud. <strong>Autorizarnos a tratarlos es opcional: tú decides.</strong>
         </p>
         <p style={parrafo}>
-          Tu diario, tus check-ins y lo que Tu Ronda recuerda de ti <strong>se guardan solo en este teléfono</strong>. No los subimos a nuestros servidores.
+          Tu diario, tus check-ins y lo que Tu Ronda recuerda de ti <strong>se guardan solo en este teléfono</strong>.
         </p>
       </>}
 
@@ -206,15 +244,8 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
 
       {!aviso && (
         <p style={{ margin: '14px 0 0', fontSize: 15, lineHeight: 1.55, color: C.muted }}>
-          <em>{NO_VENDE} Lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
+          <em>{PROMESA} Lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
         </p>
-      )}
-
-      {error && (
-        <div role="alert" style={{
-          marginTop: 14, fontSize: 15, color: C.morado, background: C.roseLight, padding: '10px 14px',
-          borderRadius: 10, fontWeight: 600, lineHeight: 1.5,
-        }}>{error}</div>
       )}
 
       {/* En el aviso, «Seguir» se ve activo con las dos primeras casillas.
@@ -225,7 +256,7 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
       </button>
       {aviso && (
         <div style={{ textAlign: 'center', marginTop: 6 }}>
-          <button type="button" onClick={() => { setError(''); setDesacuerdo(true) }} style={botonTexto}>No estoy de acuerdo</button>
+          <button type="button" onClick={() => { limpiarError(); setDesacuerdo(true) }} style={botonTexto}>Prefiero salir</button>
         </div>
       )}
     </MarcoAutorizacion>
@@ -233,29 +264,34 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
 }
 
 /* (c) En la misma pantalla de la función (no en una ventana encima): Tu
-   Ronda, escribir en la Comunidad o Crea tu programa sin la autorización. */
-export function TarjetaIA({ idBase, onAutorizar, onAhoraNo }) {
+   Ronda, escribir en la Comunidad o Crea tu programa sin la autorización.
+   Abajo, siempre, la salida a Ayuda y a las líneas (onAyuda): aquí llega
+   también quien escribió algo y recibió el 403 de la IA, y lo que escribió
+   pudo ser una crisis. */
+export function TarjetaIA({ idBase, onAutorizar, onAhoraNo, onAyuda }) {
   const [ia, setIa] = useState(false)
   const tituloRef = useRef(null)
   useEffect(() => { tituloRef.current?.focus({ preventScroll: true }) }, [])
   return (
     <section id={idBase} aria-labelledby={`${idBase}-titulo`} style={{
       background: C.card, borderRadius: 18, padding: '20px 18px', boxShadow: SHADOW.md, border: `1px solid ${C.orquidea}`,
+      ...MARGEN_VISTA,
     }}>
       <h2 id={`${idBase}-titulo`} ref={tituloRef} tabIndex={-1} style={{
         margin: '0 0 8px', fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 26, lineHeight: 1.15, color: C.navy, outline: 'none',
       }}>Para esto, la IA de Ronda tiene que leer lo que escribes</h2>
-      <p style={parrafo}>Es opcional. Si no quieres, todo lo demás de Ronda sigue igual.</p>
+      <p style={parrafo}>Es opcional: todo lo demás de Ronda sigue igual para ti, decidas lo que decidas.</p>
       <CasillaIA id={`${idBase}-casilla`} marcada={ia} onCambiar={setIa} />
       {/* Al pedir la autorización: quién es la responsable y sus derechos
           (Ley 1581, art. 12, lit. c y d), igual que en «Lo íntimo es tuyo». */}
       <p style={{ margin: '14px 0 0', fontSize: 15, lineHeight: 1.55, color: C.muted }}>
-        <em>{NO_VENDE} Lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
+        <em>{PROMESA} Lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
       </p>
       <button type="button" disabled={!ia} onClick={onAutorizar} style={{ ...botonPrincipal(ia), marginTop: 16 }}>Seguir</button>
       <div style={{ textAlign: 'center', marginTop: 4 }}>
-        <button type="button" onClick={onAhoraNo} style={botonTexto}>Ahora no</button>
+        <button type="button" onClick={onAhoraNo} style={botonTexto}>Más tarde</button>
       </div>
+      {onAyuda && <SalidaAyuda style={{ marginTop: 12 }} onAbrir={onAyuda} />}
     </section>
   )
 }
@@ -270,16 +306,23 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
   const [mensaje, setMensaje] = useState('')
   const [guardando, setGuardando] = useState(false)
   const pasoRef = useRef(null)
+  const pasoCajaRef = useRef(null)
+  const filaIARef = useRef(null)
   const interruptorRef = useRef(null)
   const volverAlInterruptorRef = useRef(false)
 
-  // Al abrir un paso, el foco va a su título (o a la casilla); al cerrarlo,
-  // vuelve al interruptor (el botón tocado ya no está).
+  // Al abrir un paso, el foco va a su título (o a la casilla) y el paso
+  // queda a la vista; al cerrarlo, el foco vuelve al interruptor (el botón
+  // tocado ya no está) y la página, que se acortó, lo trae al centro: si no,
+  // queda detrás del encabezado fijo.
   useEffect(() => {
-    if (paso) pasoRef.current?.focus({ preventScroll: true })
-    else if (volverAlInterruptorRef.current && !guardando) {
+    if (paso) {
+      pasoRef.current?.focus({ preventScroll: true })
+      pasoCajaRef.current?.scrollIntoView({ block: 'nearest' })
+    } else if (volverAlInterruptorRef.current && !guardando) {
       volverAlInterruptorRef.current = false
       interruptorRef.current?.focus({ preventScroll: true })
+      filaIARef.current?.scrollIntoView({ block: 'center' })
     }
   }, [paso, guardando])
 
@@ -288,14 +331,19 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
     setPaso(null)
     setMarcada(false)
   }
+  // onCambiarIA devuelve cómo quedó en la cuenta: 'listo', 'pendiente' (sin
+  // red: quedó en este teléfono y sube al volver la conexión) u
+  // 'otro-telefono' (un «no» dado en otro dispositivo ganó a este «sí»).
   const cambiar = async (valor) => {
     setGuardando(true)
     setMensaje('')
-    const enLaNube = await onCambiarIA(valor)
+    const estado = await onCambiarIA(valor)
     setGuardando(false)
     cerrarPaso()
-    if (!enLaNube) setMensaje('No pudimos guardar el cambio. Revisa tu conexión e inténtalo de nuevo.')
-    else if (!valor) setMensaje('Listo. Desde ahora la IA de Ronda no recibe lo que escribes.')
+    if (estado === 'otro-telefono') setMensaje('En otro dispositivo quitaste esta autorización. Si quieres activarla aquí, toca el interruptor otra vez.')
+    else if (estado !== 'listo') setMensaje('Quedó guardado en este teléfono. Revisa tu conexión: en cuanto vuelva, lo guardamos también en tu cuenta.')
+    else if (valor) setMensaje('Listo. Diste tu autorización para usar la IA de Ronda.')
+    else setMensaje('Listo. Desde ahora la IA de Ronda deja de recibir lo que escribes.')
   }
 
   const fechaIA = iaOk ? fechaAutorizacion(autorizaciones?.ia?.en) : ''
@@ -314,12 +362,12 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
         Tus autorizaciones
       </h2>
       <p style={{ margin: '0 0 6px', fontSize: 16, color: C.muted, lineHeight: 1.55 }}>
-        Tú decides qué hacemos con tus datos. {NO_VENDE}
+        Tú decides qué hacemos con tus datos. {PROMESA}
       </p>
 
       {/* Usar la IA de Ronda */}
       <div style={fila}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div ref={filaIARef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <span id="perfil-ia-nombre" style={nombre}>Usar la IA de Ronda</span>
           <button ref={interruptorRef} type="button" role="switch" aria-checked={iaOk} aria-labelledby="perfil-ia-nombre"
             aria-describedby="perfil-ia-detalle" disabled={guardando}
@@ -330,7 +378,7 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
               color: iaOk ? 'white' : C.muted, fontSize: 15, fontWeight: 700, fontFamily: 'inherit',
               display: 'flex', alignItems: 'center', justifyContent: iaOk ? 'flex-start' : 'flex-end', gap: 6,
             }}>
-            {iaOk ? 'Sí' : 'No'}
+            {iaOk ? 'Activa' : 'Apagada'}
             <span aria-hidden="true" style={{
               width: 26, height: 26, borderRadius: '50%', background: iaOk ? 'white' : C.contorno,
               order: iaOk ? 1 : -1,
@@ -338,30 +386,30 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
           </button>
         </div>
         <div id="perfil-ia-detalle" style={detalle}>
-          Tu Ronda, la Guía IA de la Comunidad y Crea tu programa. <em>{iaOk ? (fechaIA ? `Autorizada el ${fechaIA}.` : 'Autorizada.') : 'No autorizada.'}</em>
+          Tu Ronda, la Guía IA de la Comunidad y Crea tu programa. <em>{iaOk ? (fechaIA ? `Autorizada el ${fechaIA}.` : 'Autorizada.') : 'La activas cuando quieras.'}</em>
         </div>
 
         {paso === 'quitar' && (
-          <div role="group" aria-labelledby="perfil-ia-quitar" style={{ marginTop: 12, padding: 16, borderRadius: 14, background: C.cream, border: `1px solid ${C.border}` }}>
+          <div ref={pasoCajaRef} role="group" aria-labelledby="perfil-ia-quitar" style={{ marginTop: 12, padding: 16, borderRadius: 14, background: C.cream, border: `1px solid ${C.border}`, ...MARGEN_VISTA }}>
             <div id="perfil-ia-quitar" ref={pasoRef} tabIndex={-1} style={{ fontSize: 17, fontWeight: 700, color: C.text, outline: 'none' }}>
               ¿Quitamos esta autorización?
             </div>
             <div style={{ ...detalle, color: C.text }}>
-              Desde ya, Tu Ronda, la Guía IA y Crea tu programa no se abren. Lo que Tu Ronda recuerda de ti sigue en este teléfono, y lo puedes borrar en «Lo que sé de ti».
+              Desde ya se cierran Tu Ronda, la Guía IA y Crea tu programa. Las vuelves a abrir cuando quieras, dando otra vez tu autorización. Lo que Tu Ronda recuerda de ti sigue en este teléfono, y lo puedes borrar en «Lo que sé de ti».
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-              <button type="button" onClick={cerrarPaso} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120, background: C.card, color: C.morado, border: `2px solid ${C.morado}` }}>Mejor no</button>
-              <button type="button" onClick={() => cambiar(false)} disabled={guardando} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120 }}>Sí, quitar</button>
+              <button type="button" onClick={cerrarPaso} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120, padding: '12px 8px', background: C.card, color: C.morado, border: `2px solid ${C.morado}` }}>Dejarla así</button>
+              <button type="button" onClick={() => cambiar(false)} disabled={guardando} style={{ ...botonPrincipal(true), flex: 1, minWidth: 120, padding: '12px 8px' }}>Sí, quitar</button>
             </div>
           </div>
         )}
 
         {paso === 'dar' && (
-          <div role="group" aria-label="Usar la IA de Ronda" style={{ marginTop: 12 }}>
+          <div ref={pasoCajaRef} role="group" aria-label="Usar la IA de Ronda" style={{ marginTop: 12, ...MARGEN_VISTA }}>
             <CasillaIA id="perfil-ia-casilla" ref={pasoRef} marcada={marcada} onCambiar={setMarcada} />
             <button type="button" disabled={!marcada || guardando} onClick={() => cambiar(true)} style={{ ...botonPrincipal(marcada), marginTop: 12 }}>Seguir</button>
             <div style={{ textAlign: 'center', marginTop: 4 }}>
-              <button type="button" onClick={cerrarPaso} style={botonTexto}>Ahora no</button>
+              <button type="button" onClick={cerrarPaso} style={botonTexto}>Más tarde</button>
             </div>
           </div>
         )}
@@ -373,11 +421,11 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
       <div style={fila}>
         <div style={nombre}>Datos de tu cuenta</div>
         <div style={detalle}>
-          <em>{fechaCuenta ? `Autorizada el ${fechaCuenta}.` : 'Autorizada.'}</em> Es necesaria para tener cuenta. Si ya no la quieres, pídenos que borremos tu cuenta.
+          <em>{fechaCuenta ? `Autorizada el ${fechaCuenta}.` : 'Autorizada.'}</em> Es necesaria para tener cuenta. Si quieres retirarla, pídenos que borremos tu cuenta.
         </div>
       </div>
 
-      {/* Lo que no sale del teléfono */}
+      {/* Lo que se queda en el teléfono */}
       <div style={fila}>
         <div style={nombre}>Tu diario, tus check-ins y lo que Tu Ronda recuerda de ti</div>
         <div style={detalle}><em>Solo en este teléfono.</em></div>
