@@ -940,7 +940,11 @@ function App() {
   }
 
   const removeToolkitItem = (id) => {
+    const restantes = toolkitItems.filter(t => t.id !== id)
     setToolkitItems(prev => prev.filter(t => t.id !== id))
+    // Si era el último recurso de la categoría filtrada, la vista vuelve a
+    // 'Todas' en vez de quedar vacía y sin filtro marcado (toolkit-2).
+    setToolFilter(f => (f === 'todas' || restantes.some(t => t.cat === f) ? f : 'todas'))
   }
   const pedirBorrarRecurso = (item) => setAppModal({
     type: 'confirm',
@@ -2017,11 +2021,14 @@ function App() {
   )
 
   /* ── TOOLKIT ── */
-  const filteredTools = toolFilter === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === toolFilter)
   const toolkitCounts = TOOLKIT_CATS.reduce((acc, cat) => {
     acc[cat.id] = toolkitItems.filter(t => t.cat === cat.id).length
     return acc
   }, {})
+  // Un filtro cuya categoría quedó sin recursos se ve como 'Todas': nunca
+  // una lista vacía sin ningún chip marcado (toolkit-2).
+  const filtroToolkit = toolFilter !== 'todas' && !toolkitCounts[toolFilter] ? 'todas' : toolFilter
+  const filteredTools = filtroToolkit === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === filtroToolkit)
 
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -2029,29 +2036,33 @@ function App() {
       <div style={{ background: C.morado, borderRadius: 20, padding: 20, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Mi Toolkit</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
-        <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
+        <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} {toolkitItems.length === 1 ? 'recurso guardado' : 'recursos guardados'}</div>
       </div>
 
-      {/* Category chips with counts */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
-        <button onClick={() => setToolFilter('todas')} style={{
-          padding: '6px 14px', borderRadius: 20, border: `2px solid ${toolFilter === 'todas' ? C.rose : C.border}`,
-          background: toolFilter === 'todas' ? C.rose : C.card, color: toolFilter === 'todas' ? 'white' : C.muted,
+      {/* Category chips with counts. aria-pressed dice cuál está activo (toolkit-16). */}
+      <div role="group" aria-label="Filtrar por categoría" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+        <button type="button" aria-pressed={filtroToolkit === 'todas'} onClick={() => setToolFilter('todas')} style={{
+          padding: '6px 14px', borderRadius: 20, border: `2px solid ${filtroToolkit === 'todas' ? C.rose : C.border}`,
+          background: filtroToolkit === 'todas' ? C.rose : C.card, color: filtroToolkit === 'todas' ? 'white' : C.muted,
           fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
         }}>
           Todas ({toolkitItems.length})
         </button>
-        {TOOLKIT_CATS.map(cat => (
-          toolkitCounts[cat.id] > 0 && (
-            <button key={cat.id} onClick={() => setToolFilter(cat.id)} style={{
-              padding: '6px 14px', borderRadius: 20, border: `2px solid ${toolFilter === cat.id ? cat.color : C.border}`,
-              background: toolFilter === cat.id ? cat.color : C.card, color: toolFilter === cat.id ? 'white' : C.muted,
+        {TOOLKIT_CATS.map(cat => {
+          // El ícono va en blanco sobre el chip activo: con cat.color
+          // desaparecía contra su propio fondo (toolkit-10).
+          const activo = filtroToolkit === cat.id
+          const colorIcono = activo ? '#FFFFFF' : cat.color
+          return toolkitCounts[cat.id] > 0 && (
+            <button key={cat.id} type="button" aria-pressed={activo} onClick={() => setToolFilter(cat.id)} style={{
+              padding: '6px 14px', borderRadius: 20, border: `2px solid ${activo ? cat.color : C.border}`,
+              background: activo ? cat.color : C.card, color: activo ? 'white' : C.muted,
               fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>
-              {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label} ({toolkitCounts[cat.id]})
+              {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](colorIcono, 16) : (ICONS[cat.id] ? ICONS[cat.id](colorIcono, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: colorIcono, display: 'inline-block' }} />)} {cat.label} ({toolkitCounts[cat.id]})
             </button>
           )
-        ))}
+        })}
       </div>
 
       {/* Add new resource */}
@@ -2076,18 +2087,22 @@ function App() {
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
-          {/* Category selector */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-            {TOOLKIT_CATS.map(cat => (
-              <button key={cat.id} onClick={() => setNewToolCat(cat.id)} style={{
-                padding: '5px 10px', borderRadius: 20, border: `2px solid ${cat.color}`,
-                background: newToolCat === cat.id ? cat.color : 'transparent',
-                color: newToolCat === cat.id ? 'white' : cat.color,
-                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>
-                {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label}
-              </button>
-            ))}
+          {/* Category selector. aria-pressed dice cuál está elegida (toolkit-16). */}
+          <div role="group" aria-label="Categoría del recurso" style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+            {TOOLKIT_CATS.map(cat => {
+              const elegida = newToolCat === cat.id
+              const colorIcono = elegida ? '#FFFFFF' : cat.color // visible sobre el fondo de color (toolkit-10)
+              return (
+                <button key={cat.id} type="button" aria-pressed={elegida} onClick={() => setNewToolCat(cat.id)} style={{
+                  padding: '5px 10px', borderRadius: 20, border: `2px solid ${cat.color}`,
+                  background: elegida ? cat.color : 'transparent',
+                  color: elegida ? 'white' : cat.color,
+                  fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](colorIcono, 16) : (ICONS[cat.id] ? ICONS[cat.id](colorIcono, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: colorIcono, display: 'inline-block' }} />)} {cat.label}
+                </button>
+              )
+            })}
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
@@ -2146,9 +2161,9 @@ function App() {
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
-          <div style={{ fontSize: 36, marginBottom: 10, color: C.mint, opacity: 0.4 }}>●</div>
+          {/* Sin el punto decorativo: el círculo queda solo en el logo (toolkit-20) */}
           <div style={{ fontSize: 19, fontWeight: 600 }}>
-            {toolFilter === 'todas' ? 'Tu toolkit está vacío' : 'No hay recursos en esta categoría'}
+            {filtroToolkit === 'todas' ? 'Tu toolkit está vacío' : 'No hay recursos en esta categoría'}
           </div>
           <div style={{ fontSize: 20, marginTop: 4 }}>Agrega tus podcasts, libros, cursos y más</div>
         </div>
