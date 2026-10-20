@@ -750,10 +750,19 @@ function App() {
   }
 
   const addTomorrowTask = () => {
-    if (!newTomorrowTask.trim()) return
-    setTomorrowTasks(prev => [...prev, { id: Date.now(), task: newTomorrowTask, done: false }])
+    const task = newTomorrowTask.trim()
+    if (!task) return
+    setTomorrowTasks(prev => [...prev, { id: Date.now(), task, done: false }])
     setNewTomorrowTask('')
   }
+  const removeTomorrowTask = (id) => setTomorrowTasks(prev => prev.filter(t => t.id !== id))
+  const pedirQuitarTareaManana = (t) => setAppModal({
+    type: 'confirm',
+    title: `¿Quitar "${String(t.task ?? '').trim()}" de tus tareas para mañana?`,
+    body: 'Puedes volver a escribirla cuando quieras.',
+    cta: 'Quitar',
+    onConfirm: () => removeTomorrowTask(t.id),
+  })
 
   // Marca o desmarca una tarea en una lista de tareas (para mañana o para hoy).
   const toggleTaskIn = (setList) => (id) => {
@@ -1646,21 +1655,30 @@ function App() {
   const edicionValida = (it) => horaValida(it.time) && !!(it.task || '').trim()
 
   // Lista de tareas del ritual de noche (para mañana o planeadas para hoy).
-  const renderTaskList = (tasks, onToggle) => (
+  // Con onRemove, cada tarea lleva su × para quitarla.
+  const renderTaskList = (tasks, onToggle, onRemove) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {tasks.map(t => (
-        <button type="button" role="checkbox" aria-checked={!!t.done} key={t.id} onClick={() => onToggle(t.id)} style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: C.cream,
-          borderRadius: 10, cursor: 'pointer', border: 'none', margin: 0, width: '100%', textAlign: 'left',
-          fontFamily: 'inherit', color: 'inherit',
-        }}>
-          <span aria-hidden="true" style={{
-            width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.contorno}`,
-            background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontSize: 20, flexShrink: 0,
-          }}>{t.done && UI_ICONS.check('white', 13)}</span>
-          <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none', flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t.task}</span>
-        </button>
+        <div key={t.id} style={{ display: 'flex', alignItems: 'center', background: C.cream, borderRadius: 10 }}>
+          <button type="button" role="checkbox" aria-checked={!!t.done} onClick={() => onToggle(t.id)} style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: onRemove ? '8px 0 8px 12px' : '8px 12px', background: 'none',
+            borderRadius: 10, cursor: 'pointer', border: 'none', margin: 0, flex: 1, minWidth: 0, textAlign: 'left',
+            fontFamily: 'inherit', color: 'inherit',
+          }}>
+            <span aria-hidden="true" style={{
+              width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.contorno}`,
+              background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontSize: 20, flexShrink: 0,
+            }}>{t.done && UI_ICONS.check('white', 13)}</span>
+            <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none', flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t.task}</span>
+          </button>
+          {onRemove && (
+            <button type="button" aria-label={`Quitar ${t.task}`} onClick={() => onRemove(t)} style={{
+              background: 'none', border: 'none', color: C.coral, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
+              minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            }}><span aria-hidden="true">×</span></button>
+          )}
+        </div>
       ))}
     </div>
   )
@@ -1771,12 +1789,12 @@ function App() {
 
         {/* Tomorrow tasks */}
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
-        <div style={{ marginBottom: 12 }}>{renderTaskList(tomorrowTasks, toggleTomorrowTask)}</div>
+        <div style={{ marginBottom: 12 }}>{renderTaskList(tomorrowTasks, toggleTomorrowTask, pedirQuitarTareaManana)}</div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
             style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
             onKeyDown={e => e.key === 'Enter' && addTomorrowTask()} />
-          <button onClick={addTomorrowTask} disabled={!newTomorrowTask.trim()} style={{
+          <button onClick={addTomorrowTask} disabled={!newTomorrowTask.trim()} aria-label="Agregar tarea para mañana" style={{
             padding: '8px 16px', borderRadius: 10, border: 'none', background: newTomorrowTask.trim() ? C.gold : C.border,
             color: newTomorrowTask.trim() ? 'white' : C.subtle, fontSize: 20, fontWeight: 700, cursor: newTomorrowTask.trim() ? 'pointer' : 'default', fontFamily: 'inherit',
           }}>+</button>
