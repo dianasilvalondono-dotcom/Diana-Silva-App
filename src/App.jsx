@@ -1887,16 +1887,21 @@ function App() {
         <div style={{ background: C.card, borderRadius: 16, padding: 16, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: C.text }}>Agregar recurso</div>
 
-          <input value={newToolName} onChange={e => setNewToolName(e.target.value)} placeholder="Nombre (ej: Podcast de Jay Shetty)"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
+          {/* Etiqueta visible: el placeholder desaparece al escribir */}
+          <label htmlFor="recurso-nombre" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</label>
+          <input id="recurso-nombre" value={newToolName} onChange={e => setNewToolName(e.target.value)} placeholder="Ej: Podcast de Jay Shetty"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
-          <input value={newToolUrl} onChange={e => setNewToolUrl(e.target.value)} placeholder="Link (ej: https://spotify.com/...)"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box' }}
+          <label htmlFor="recurso-link" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Link</label>
+          <input id="recurso-link" value={newToolUrl} onChange={e => setNewToolUrl(e.target.value)} placeholder="Ej: https://spotify.com/..."
+            inputMode="url" autoCapitalize="off"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
-          <input value={newToolNote} onChange={e => setNewToolNote(e.target.value)} placeholder="Nota (opcional)"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
+          <label htmlFor="recurso-nota" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nota (opcional)</label>
+          <input id="recurso-nota" value={newToolNote} onChange={e => setNewToolNote(e.target.value)}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
           {/* Category selector */}
@@ -2801,24 +2806,24 @@ function App() {
             ))}
           </div>
 
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</div>
-          <input value={profile.name} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
+          <label htmlFor="perfil-nombre" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</label>
+          <input id="perfil-nombre" value={profile.name} onChange={e => updateProfile('name', e.target.value)} placeholder="¿Cómo te llamas?"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box' }}
           />
 
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Ciudad</div>
-          <input value={profile.city} onChange={e => updateProfile('city', e.target.value)} placeholder="¿De dónde eres?"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box' }}
+          <label htmlFor="perfil-ciudad" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Ciudad</label>
+          <input id="perfil-ciudad" value={profile.city} onChange={e => updateProfile('city', e.target.value)} placeholder="¿De dónde eres?"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box' }}
           />
 
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Bio</div>
-          <textarea value={profile.bio} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..."
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
+          <label htmlFor="perfil-bio" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Bio</label>
+          <textarea id="perfil-bio" value={profile.bio} onChange={e => updateProfile('bio', e.target.value)} placeholder="Cuéntanos sobre ti en una frase..."
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
-          <div style={{ fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Mi intención</div>
-          <textarea value={profile.intention} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 8, outline: 'none', boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
+          <label htmlFor="perfil-intencion" style={{ display: 'block', fontSize: 19, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Mi intención</label>
+          <textarea id="perfil-intencion" value={profile.intention} onChange={e => updateProfile('intention', e.target.value)} placeholder="¿Cuál es tu intención para este año?"
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 8, boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
           <button onClick={() => setEditingProfile(false)} style={{

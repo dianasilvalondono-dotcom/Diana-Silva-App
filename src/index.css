@@ -41,6 +41,18 @@ input, textarea, select, button {
   font-size: inherit;
 }
 
+/* Indicador de foco del teclado. Dos tonos para que se vea en todas partes:
+   anillo morado sobre la hoja clara y borde blanco entre el control y el
+   anillo sobre el telón morado y la Ayuda. !important porque muchos campos
+   traen outline: 'none' en línea. Los diálogos (tabindex -1) no lo llevan. */
+input:focus-visible, textarea:focus-visible, select:focus-visible,
+button:focus-visible, a[href]:focus-visible, [role="checkbox"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 3px solid #592147 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px #FFFFFF !important;
+}
+
 /* Fix iOS Safari zoom en inputs al hacer focus */
 input, textarea, select {
   font-size: 16px;
