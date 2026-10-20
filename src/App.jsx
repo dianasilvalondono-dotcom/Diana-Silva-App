@@ -933,9 +933,19 @@ function App() {
       added: todayKey(),
     }
     setToolkitItems([item, ...toolkitItems])
+    // Con un filtro de otra categoría el recurso nuevo no se vería: la
+    // lista pasa a su categoría (toolkit-6).
+    if (toolFilter !== 'todas' && toolFilter !== newToolCat) setToolFilter(newToolCat)
+    cerrarFormRecurso()
+  }
+
+  // Guardar y Cancelar dejan el formulario vacío, con la categoría por
+  // defecto: no queda un borrador escondido (toolkit-7).
+  const cerrarFormRecurso = () => {
     setNewToolName('')
     setNewToolUrl('')
     setNewToolNote('')
+    setNewToolCat('podcast')
     setShowAddTool(false)
   }
 
@@ -2029,6 +2039,16 @@ function App() {
   // una lista vacía sin ningún chip marcado (toolkit-2).
   const filtroToolkit = toolFilter !== 'todas' && !toolkitCounts[toolFilter] ? 'todas' : toolFilter
   const filteredTools = filtroToolkit === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === filtroToolkit)
+  // Enter (o 'Ir' en el teclado del celular) guarda, como en los demás
+  // formularios de la app (toolkit-8).
+  const guardarRecursoConEnter = (e) => {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+      e.preventDefault()
+      addToolkitItem()
+    }
+  }
+  const nombreRecursoListo = newToolName.trim() !== ''
+  const faltaNombreRecurso = !nombreRecursoListo && !!(newToolUrl.trim() || newToolNote.trim())
 
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -2073,17 +2093,20 @@ function App() {
           {/* Etiqueta visible: el placeholder desaparece al escribir */}
           <label htmlFor="recurso-nombre" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</label>
           <input id="recurso-nombre" value={newToolName} onChange={e => setNewToolName(e.target.value)} placeholder="Ej: Podcast de Jay Shetty"
+            onKeyDown={guardarRecursoConEnter}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
           <label htmlFor="recurso-link" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Link</label>
           <input id="recurso-link" value={newToolUrl} onChange={e => setNewToolUrl(e.target.value)} placeholder="Ej: https://spotify.com/..."
             inputMode="url" autoCapitalize="off"
+            onKeyDown={guardarRecursoConEnter}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
           <label htmlFor="recurso-nota" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nota (opcional)</label>
           <input id="recurso-nota" value={newToolNote} onChange={e => setNewToolNote(e.target.value)}
+            onKeyDown={guardarRecursoConEnter}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
@@ -2105,17 +2128,31 @@ function App() {
             })}
           </div>
 
+          {/* Sin nombre no se puede guardar: el botón se apaga, como en los
+              demás formularios, y si ya hay link o nota se dice qué falta
+              (toolkit-5). */}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={addToolkitItem} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button type="button" onClick={addToolkitItem} disabled={!nombreRecursoListo} style={{
+              flex: 1, padding: 10, borderRadius: 10, border: 'none', fontSize: 19, fontWeight: 700, fontFamily: 'inherit',
+              background: nombreRecursoListo ? C.rose : C.border, color: nombreRecursoListo ? 'white' : C.subtle,
+              cursor: nombreRecursoListo ? 'pointer' : 'default',
+            }}>
               Guardar
             </button>
-            <button onClick={() => setShowAddTool(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+            <button type="button" onClick={cerrarFormRecurso} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
               Cancelar
             </button>
           </div>
+          <div aria-live="polite" style={{ fontSize: 17, color: C.muted, marginTop: faltaNombreRecurso ? 8 : 0 }}>
+            {faltaNombreRecurso ? 'Escribe un nombre para guardar el recurso.' : ''}
+          </div>
         </div>
       ) : (
-        <button onClick={() => setShowAddTool(true)} style={{
+        <button onClick={() => {
+          // Con un filtro activo, el formulario abre con esa categoría (toolkit-6).
+          if (filtroToolkit !== 'todas') setNewToolCat(filtroToolkit)
+          setShowAddTool(true)
+        }} style={{
           padding: 14, borderRadius: 12, border: `2px dashed ${C.contorno}`, background: 'transparent',
           color: C.rose, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
