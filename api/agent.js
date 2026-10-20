@@ -1,5 +1,5 @@
 // Patrones y respuesta de crisis: los mismos de la Guía IA y de la app.
-import { normalize, isCrisis, CRISIS_TEXT_CHAT } from '../src/utils/crisis.js'
+import { normalize, isCrisis, CRISIS_TEXT_CHAT, BOTON_AYUDA } from '../src/utils/crisis.js'
 
 // Largo máximo de cada turno del historial que se le pasa al modelo.
 const MAX_TURNO = 4000
@@ -269,6 +269,10 @@ function respuestaDeRespaldo(message) {
     reply = 'Me encanta que quieras empezar algo nuevo. Cambia a "Crea tu programa" arriba y te armo uno paso a paso. O cuéntame qué quieres lograr y te oriento.'
   } else if (hasWord('habito', 'habitos', 'rutina', 'rutinas')) {
     reply = 'Tus hábitos son la arquitectura de tu bienestar. ¿Quieres que revisemos juntas cuáles tienes activos? O si prefieres, puedo sugerirte nuevos basados en lo que necesitas.'
+  } else if (hasWord('necesito ayuda', 'ayudame', 'auxilio')) {
+    // El botón rápido "Necesito ayuda" del chat: la salida a Ayuda a la mano.
+    reply = `Aquí estoy contigo. Si esto pesa ahora mismo, toca "${BOTON_AYUDA}": tienes respiración guiada y ejercicios para volver al presente. Y si quieres, cuéntame qué está pasando.`
+    sos = true
   } else if (hasWord('hola', 'hey', 'buenos', 'buenas')) {
     reply = '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo escucharte, sugerirte un programa o ayudarte con tus hábitos.'
   } else {

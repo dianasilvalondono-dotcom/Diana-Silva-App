@@ -324,7 +324,9 @@ function App() {
   const showFoundingPerk = (featureKey, featureName) => {
     if (marcarAvisoFundadora(featureKey)) setFoundingToast({ feature: featureName, key: featureKey })
   }
-  const TEXTO_FUNDADORA = `Esta función es parte de ${PLAN_PAGO}. La tienes incluida por ser de las primeras 50 mujeres en Ronda. Disfrútala.`
+  // Corto (dos renglones en el celular): en Pregúntale el aviso va encima de
+  // la conversación y le quita espacio mientras está abierto.
+  const TEXTO_FUNDADORA = `Es parte de ${PLAN_PAGO} y la tienes incluida por ser de las primeras 50 mujeres. Disfrútala.`
   // El aviso va en la misma pantalla de la función, en su lugar: no flota
   // encima del selector del chat ni del campo (ia-18). Se queda hasta que lo
   // cierra o cambia de pantalla; no se va solo, así nada salta debajo del dedo.
@@ -332,14 +334,14 @@ function App() {
     <div style={{
       flexShrink: 0, marginBottom: 12,
       background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
-      borderRadius: 18, padding: '12px 4px 12px 18px', color: 'white',
+      borderRadius: 18, padding: '8px 4px 10px 18px', color: 'white',
       display: 'flex', alignItems: 'flex-start', gap: 10,
     }}>
       <div style={{ flex: 1, paddingTop: 2 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 2 }}>
           <span aria-hidden="true">💛 </span>Miembro fundadora
         </div>
-        <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>{foundingToast.feature}</div>
+        <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2, lineHeight: 1.3 }}>{foundingToast.feature}</div>
         <div style={{ fontSize: 14, lineHeight: 1.4, opacity: 0.95 }}>{TEXTO_FUNDADORA}</div>
       </div>
       <button type="button" aria-label="Cerrar aviso de miembro fundadora" onClick={(e) => {
@@ -3406,9 +3408,11 @@ function App() {
   // va el "escribiendo…" o se abre el chat. Escuchar o escribir no mueven la lectura.
   const chatRef = useRef(null)
   const chatAbierto = view === 'ahora' && subTab === 'ai' && isPremium && chatMode === 'chat'
+  // Con solo el saludo, se ve desde su primera línea (con el aviso de
+  // fundadora abierto el espacio no alcanza para todo el saludo).
   useEffect(() => {
     const el = chatRef.current
-    if (el) el.scrollTop = el.scrollHeight
+    if (el) el.scrollTop = chatMessages.length > 1 || chatLoading ? el.scrollHeight : 0
   }, [chatMessages.length, chatLoading, chatAbierto])
 
   // El chat cabe en la pantalla sin que la página se desplace: arriba el
@@ -3544,8 +3548,10 @@ function App() {
           )}
         </div>
 
-        {/* Quick actions */}
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, paddingTop: 4 }}>
+        {/* Quick actions. Mismo criterio que los filtros de Afuera (fila-filtros,
+            rondas-17): en el celular se deslizan sin barra gris; con ratón o en
+            pantalla ancha bajan de línea y se ven todas. */}
+        <div className="fila-filtros" style={{ paddingBottom: 8, paddingTop: 4 }}>
           {['¿Cómo empiezo?', 'Necesito ayuda', 'Quiero un programa'].map((q, i) => (
             <button key={i} onClick={() => { setChatInput(q); }} style={{
               padding: '6px 14px', borderRadius: 20, border: `1px solid ${C.roseLight}`,
