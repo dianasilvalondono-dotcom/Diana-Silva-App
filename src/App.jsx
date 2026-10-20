@@ -3947,7 +3947,6 @@ function App() {
 
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
-          <div style={{ fontSize: 56, marginBottom: 16 }}></div>
           <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8 }}>
             Estás a salvo.
           </div>
@@ -3960,10 +3959,10 @@ function App() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
             {[
-              { id: 'breathe', icon: '', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#BFD5EB' },
-              { id: 'ground', icon: '🌍', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#E3E5D3' },
-              { id: 'dbt', icon: '', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#D6BFDD' },
-              { id: 'accept', icon: '🙏', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#141833' },
+              { id: 'breathe', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#BFD5EB' },
+              { id: 'ground', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#E3E5D3' },
+              { id: 'dbt', title: 'Skills DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#D6BFDD' },
+              { id: 'accept', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#141833' },
             ].map(opt => (
               <button key={opt.id} onClick={() => {
                 setPanicScreen(opt.id)
@@ -3974,7 +3973,6 @@ function App() {
                 background: 'rgba(255,255,255,0.08)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)',
                 cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
               }}>
-                <div style={{ fontSize: 28, minWidth: 40, textAlign: 'center' }}>{opt.icon}</div>
                 <div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>{opt.title}</div>
                   <div style={{ fontSize: 20, color: '#E3E5D3', marginTop: 2 }}>{opt.sub}</div>
