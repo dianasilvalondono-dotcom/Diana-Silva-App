@@ -1644,8 +1644,17 @@ function App() {
   // esa pantalla no lo tiene, el foco se queda donde está.
   useDialog(panicRef, showPanic, cerrarAyuda,
     (previo) => (previo && previo.isConnected && previo !== document.body ? previo : document.getElementById('boton-ayuda')))
-  useDialog(morningRef, showMorningCheckin && pantallaPrincipal, posponerCheckin)
-  useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
+  // Al cerrar un check-in («Empezar mi día», «Cerrar mi día», «Más tarde»,
+  // Escape o un toque afuera), el foco vuelve a donde estaba; si ya no está,
+  // al título de la pantalla (no a <body>).
+  const focoTrasCheckin = (previo) => {
+    if (previo && previo.isConnected && previo !== document.body) return previo
+    const titulo = document.querySelector('main h1') || document.querySelector('h1')
+    if (titulo && !titulo.hasAttribute('tabindex')) titulo.setAttribute('tabindex', '-1')
+    return titulo
+  }
+  useDialog(morningRef, showMorningCheckin && pantallaPrincipal, posponerCheckin, focoTrasCheckin)
+  useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin, focoTrasCheckin)
   useDialog(appModalRef, !!appModal && pantallaPrincipal, () => setAppModal(null), (previo) => {
     const elegir = focoTrasModalRef.current
     focoTrasModalRef.current = null
@@ -1733,8 +1742,19 @@ function App() {
     if (view === 'rondas') return <div style={estiloTelon}>{temporadaVigente() ? `${mesTemporada()} · ${TEMPORADA.nombre}` : 'Tu ciudad'}</div>
     if (view === 'juntas') return <div style={estiloTelon}>Tu gente</div>
     if (view === 'perfil') return <div style={estiloTelon}>Tu perfil</div>
+    // Al volver, el foco pasa al acceso de la herramienta que se cerró (y se
+    // trae a la vista); si no hay, al título de Adentro. Si no, se perdía en <body>.
     if (view === 'ahora' && subTab) return (
-      <button onClick={() => irASubTab('')} style={{ ...estiloTelon, ...botonTelon, gap: 6 }}>
+      <button onClick={() => {
+        const desde = subTab
+        irASubTab('')
+        requestAnimationFrame(() => {
+          const acceso = document.querySelector(`[data-acceso="${desde}"]`)
+          if (!acceso) return enfocarPantallaNueva()
+          acceso.focus({ preventScroll: true })
+          acceso.scrollIntoView({ block: 'center' })
+        })
+      }} style={{ ...estiloTelon, ...botonTelon, gap: 6 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         Volver a Adentro
       </button>
@@ -1940,7 +1960,9 @@ function App() {
 
       <nav aria-label="Tus herramientas" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
         {ACCESOS.map(a => (
-          <button key={a.id} data-acceso={a.id} onClick={() => abrirAcceso(a.id)} style={{
+          <button key={a.id} id={`acceso-${a.id}`} data-acceso={a.id} onClick={() => abrirAcceso(a.id)} style={{
+            // Con Tab o al volver aquí, el acceso queda por encima del menú fijo de abajo.
+            scrollMarginBottom: 84,
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 4px',
             background: C.card, border: '1px solid rgba(20,24,51,0.08)', borderRadius: 16,
             cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: C.navy,
@@ -5511,7 +5533,8 @@ function App() {
               }}
               onAhoraNo={() => {
                 irASubTab('')
-                requestAnimationFrame(() => document.querySelector('[data-acceso="ai"]')?.focus({ preventScroll: true }))
+                // El foco vuelve a «Pregúntale», traído al centro: abajo lo tapaba el menú fijo.
+                enfocarDespues('acceso-ai', { centrar: true })
               }}
               onAyuda={() => abrirAyuda('crisis_tarjeta_ia')} />
           )) : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
@@ -5545,8 +5568,8 @@ function App() {
         <p style={{ margin: '32px 0 0', fontSize: 12, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
           Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención médica o psicológica profesional. Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
         </p>
-        <p style={{ margin: '8px 0 0', fontSize: 13, textAlign: 'center' }}>
-          <EnlacePolitica style={{ display: 'inline-block', padding: '8px 0', fontWeight: 600 }}>Cómo cuidamos tus datos</EnlacePolitica>
+        <p style={{ margin: '4px 0 0', fontSize: 13, textAlign: 'center' }}>
+          <EnlacePolitica style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 4px', fontWeight: 600 }}>Cómo cuidamos tus datos</EnlacePolitica>
         </p>
       </main>
       {bottomNav}

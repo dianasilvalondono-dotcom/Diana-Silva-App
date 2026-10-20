@@ -27,6 +27,8 @@ export const PROMESA = 'Nuestra promesa: tus datos son tuyos. Venderlos o usarlo
 const MARGEN_VISTA = { scrollMarginTop: 140, scrollMarginBottom: 120 }
 
 const enlace = { color: C.morado, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2 }
+// Un enlace suelto (fuera de una frase) se toca cómodo: 44 px de alto.
+const enlaceSuelto = { display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 2px' }
 
 // La política abre aparte: lo que lleva escrito o marcado aquí no se pierde.
 export function EnlacePolitica({ href = URL_POLITICA, children = 'Política de Tratamiento de Datos', style }) {
@@ -86,15 +88,26 @@ const botonTexto = {
 }
 const parrafo = { margin: '0 0 14px', fontSize: 16, lineHeight: 1.6, color: C.text }
 
-/* Pantalla completa, antes que cualquier otra. Arriba, siempre, Ayuda: ni
-   el aviso ni «Lo íntimo es tuyo» la tapan. Mientras la Ayuda está abierta,
-   esto queda inerte (inerte). */
+/* Pantalla completa, antes que cualquier otra. Arriba, siempre, Ayuda: el
+   encabezado queda fijo arriba al bajar (como el de la app), así Ayuda está
+   a la vista mientras lee la casilla de la IA. Mientras la Ayuda está
+   abierta, esto queda inerte (inerte). */
 function MarcoAutorizacion({ onAyuda, inerte, children }) {
+  // Con el encabezado fijo, lo que se enfoca con el teclado queda debajo de
+  // él y no tapado (WCAG 2.4.11): 84 px = 10 + 48 + 14 del encabezado, más
+  // un margen.
+  useEffect(() => {
+    const raiz = document.documentElement
+    const antes = raiz.style.scrollPaddingTop
+    raiz.style.scrollPaddingTop = 'calc(env(safe-area-inset-top, 0px) + 84px)'
+    return () => { raiz.style.scrollPaddingTop = antes }
+  }, [])
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.morado, fontFamily: FONT }}>
       <header inert={inerte} style={{
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)', paddingLeft: 20, paddingRight: 12, paddingBottom: 14,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 48,
+        position: 'sticky', top: 0, zIndex: 100, background: C.morado,
       }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
@@ -311,14 +324,15 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
   const interruptorRef = useRef(null)
   const volverAlInterruptorRef = useRef(false)
 
-  // Al abrir un paso, el foco va a su título (o a la casilla) y el paso
-  // queda a la vista; al cerrarlo, el foco vuelve al interruptor (el botón
-  // tocado ya no está) y la página, que se acortó, lo trae al centro: si no,
-  // queda detrás del encabezado fijo.
+  // Al abrir un paso, el foco va a su título (o a la casilla) y la fila del
+  // interruptor sube justo debajo del encabezado fijo, con el paso debajo de
+  // ella; al cerrarlo, el foco vuelve al interruptor (el botón tocado ya no
+  // está) y la página, que se acortó, lo trae al centro: si no, queda detrás
+  // del encabezado fijo.
   useEffect(() => {
     if (paso) {
       pasoRef.current?.focus({ preventScroll: true })
-      pasoCajaRef.current?.scrollIntoView({ block: 'nearest' })
+      filaIARef.current?.scrollIntoView({ block: 'start' })
     } else if (volverAlInterruptorRef.current && !guardando) {
       volverAlInterruptorRef.current = false
       interruptorRef.current?.focus({ preventScroll: true })
@@ -367,7 +381,7 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
 
       {/* Usar la IA de Ronda */}
       <div style={fila}>
-        <div ref={filaIARef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div ref={filaIARef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, ...MARGEN_VISTA }}>
           <span id="perfil-ia-nombre" style={nombre}>Usar la IA de Ronda</span>
           <button ref={interruptorRef} type="button" role="switch" aria-checked={iaOk} aria-labelledby="perfil-ia-nombre"
             aria-describedby="perfil-ia-detalle" disabled={guardando}
@@ -432,10 +446,10 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
       </div>
 
       <div style={{ ...fila, display: 'flex', flexWrap: 'wrap', gap: '4px 14px', fontSize: 15, lineHeight: 1.5 }}>
-        <EnlacePolitica style={{ padding: '6px 0' }} />
-        <a href={correo('Pedir una copia de mis datos')} style={{ ...enlace, padding: '6px 0' }}>Pedir una copia de mis datos</a>
-        <a href={correo('Corregir o borrar mis datos')} style={{ ...enlace, padding: '6px 0' }}>Corregir o borrar mis datos</a>
-        <a href={correo('Borrar mi cuenta')} style={{ ...enlace, padding: '6px 0' }}>Borrar mi cuenta</a>
+        <EnlacePolitica style={enlaceSuelto} />
+        <a href={correo('Pedir una copia de mis datos')} style={{ ...enlace, ...enlaceSuelto }}>Pedir una copia de mis datos</a>
+        <a href={correo('Corregir o borrar mis datos')} style={{ ...enlace, ...enlaceSuelto }}>Corregir o borrar mis datos</a>
+        <a href={correo('Borrar mi cuenta')} style={{ ...enlace, ...enlaceSuelto }}>Borrar mi cuenta</a>
       </div>
       <p style={{ margin: '6px 0 0', fontSize: 15, color: C.muted, lineHeight: 1.55 }}>
         Escríbenos a <a href={`mailto:${CORREO_DATOS}`} style={enlace}>{CORREO_DATOS}</a>, preferiblemente desde el correo de tu cuenta.
