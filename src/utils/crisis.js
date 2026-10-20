@@ -23,9 +23,19 @@ export function normalize(s) {
 // mata"), la b por la v ("bibir", "me bolvi", "me biolaron", "benas"), "golpió"
 // (golpeó), "pejó" (pegó), "abuzaron", "ahorkar" y "aorcar", "desapareser",
 // "segir" y "pastiyas".
-function textoParaCrisis(content) {
-  return ` ${normalize(content)} `
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+//
+// Los signos que cierran una cláusula (. , ; : ! ? ¡ ¿ … las rayas y los
+// saltos de línea) quedan como un separador, " | ": isCrisis lee cada
+// cláusula por aparte, para que ninguna excepción de las de abajo ("vivir
+// con…", "acabar con todo lo…", "desaparecer un día…") lea la palabra que
+// viene después de la coma ("no quiero vivir, de verdad"). Con clausulas en
+// false, los signos son un espacio más, como antes.
+const SEPARADORES = /(?<!\d)[.,]|[.,](?!\d)|[;:!?¡¿…\n\r]|\s[-–—]+\s|[–—]/g
+function textoParaCrisis(content, clausulas = true) {
+  const t = ` ${normalize(content)} `
+  return (clausulas
+    ? t.replace(SEPARADORES, ' | ').replace(/[^\p{L}\p{N}|]+/gu, ' ').replace(/ ?(\| ?)+/g, ' | ')
+    : t.replace(/[^\p{L}\p{N}]+/gu, ' '))
     .replace(/(\p{L})\1{2,}/gu, '$1')
     .replace(/([aiou])\1/g, '$1')
     .replace(/(\p{L})\1(?= )/gu, '$1')
@@ -54,6 +64,7 @@ function textoParaCrisis(content) {
     .replace(/ (xq|pq|porq) /g, ' porque ')
     .replace(/ x /g, ' por ').replace(/ x /g, ' por ')
     .trim()
+    .replace(/^(\| ?)+|( ?\|)+$/g, '')
 }
 
 // Lo que viene después de "cortar(me)" cuando no es una crisis: el pelo, las
@@ -534,9 +545,28 @@ export const CRISIS_PATTERNS = [
   /\bya no me (van|vas) a tener que (aguantar|soportar|cuidar|mantener|cargar)\b(?!.{0,20}\b(me (voy|cambio|mudo) de|renuncie|renuncio|consegui)\b)/,
 ]
 
+// Cuántas cláusulas seguidas se leen también juntas: una pausa dentro de la
+// frase ("no quiero... vivir, de verdad") no la parte.
+const CLAUSULAS_JUNTAS = 3
+
+// Las lecturas del texto: entero (los signos como espacios, para las frases
+// que cruzan un signo: "me quiero... morir") y cada cláusula sola o con las
+// que le siguen. En una cláusula sola, las excepciones solo ven esa cláusula:
+// "no quiero vivir, de verdad" activa aunque "vivir de…" sea una excepción.
+function lecturas(content) {
+  const todas = new Set([textoParaCrisis(content, false)])
+  const partes = textoParaCrisis(content).split(' | ').filter(Boolean)
+  if (partes.length > 1) {
+    for (let i = 0; i < partes.length; i++) {
+      for (let k = 1; k <= CLAUSULAS_JUNTAS && i + k <= partes.length; k++) todas.add(partes.slice(i, i + k).join(' '))
+    }
+  }
+  return [...todas]
+}
+
 export function isCrisis(content) {
-  const n = textoParaCrisis(content)
-  return CRISIS_PATTERNS.some((re) => re.test(n))
+  const textos = lecturas(content)
+  return CRISIS_PATTERNS.some((re) => textos.some((t) => re.test(t)))
 }
 
 // Nombre del botón que abre las herramientas de crisis, tal como se ve en el
