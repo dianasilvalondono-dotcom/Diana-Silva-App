@@ -3466,9 +3466,9 @@ function App() {
         Creces tú, crecemos todas
       </div>
       <div style={{ width: 60, height: 2, background: C.gold, marginBottom: 32, borderRadius: 2 }} />
-      <div style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.4, marginBottom: 12 }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.4, margin: '0 0 12px' }}>
         Tu compañera en cada etapa
-      </div>
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.7, maxWidth: 300 }}>
         Vamos a empezar por lo tuyo. Dos preguntas y estás lista.
       </div>
@@ -3476,9 +3476,9 @@ function App() {
 
     /* Paso 1 — Su nombre. La app le habla por su nombre desde el primer día. */
     onboardStepShell(1, <>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10 }}>
+      <h1 id="onboard-nombre-titulo" style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px' }}>
         ¿Cómo te llamas?
-      </div>
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 28, maxWidth: 300, lineHeight: 1.6 }}>
         Para llamarte por tu nombre. Puedes cambiarlo después en tu perfil.
       </div>
@@ -3486,6 +3486,8 @@ function App() {
         value={onboardName}
         onChange={e => setOnboardName(e.target.value)}
         placeholder="Tu nombre"
+        aria-labelledby="onboard-nombre-titulo"
+        autoComplete="given-name"
         autoFocus
         maxLength={40}
         style={{
@@ -3503,13 +3505,13 @@ function App() {
 
     /* Paso 2 — Sus primeros hábitos (hasta 3). Que salga del onboarding habiendo HECHO algo. */
     onboardStepShell(2, <>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10, maxWidth: '100%', overflowWrap: 'anywhere' }}>
+      <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px', maxWidth: '100%', overflowWrap: 'anywhere' }}>
         {onboardName.trim() ? `${onboardName.trim()}, elige tus primeros hábitos` : 'Elige tus primeros hábitos'}
-      </div>
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 8, maxWidth: 320, lineHeight: 1.6 }}>
         Hasta tres para empezar. Puedes sumar más cuando quieras.
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: onboardHabits.length ? C.teal : C.subtle, marginBottom: 20 }}>
+      <div aria-live="polite" style={{ fontSize: 14, fontWeight: 700, color: onboardHabits.length ? C.teal : C.subtle, marginBottom: 20 }}>
         {onboardHabits.length} de 3
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', width: '100%', maxWidth: 360 }}>
@@ -3522,6 +3524,7 @@ function App() {
               key={h.name}
               onClick={() => toggleOnboardHabit(h)}
               disabled={full}
+              aria-pressed={isOn}
               style={{
                 padding: '10px 16px', borderRadius: 22, cursor: full ? 'default' : 'pointer',
                 border: `2px solid ${isOn ? dim.color : C.border}`,
@@ -3544,9 +3547,9 @@ function App() {
       <div style={{ width: 56, height: 56, borderRadius: '50%', border: `3px solid ${C.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
         <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.gold }} />
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px' }}>
         Empecemos por Adentro
-      </div>
+      </h1>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 26, maxWidth: 310, lineHeight: 1.6 }}>
         Es tu pantalla del día: tus hábitos, tu rutina, tu diario y tus rutas.
       </div>
