@@ -1515,7 +1515,7 @@ function App() {
         <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 19, fontWeight: 700, marginBottom: 10, color: C.text }}>Nuevo hábito</div>
           <input value={newHabitName} onChange={e => { setNewHabitName(e.target.value); setAvisoHabito('') }} placeholder="Nombre del hábito..."
-            aria-invalid={!!avisoHabito} aria-describedby={avisoHabito ? 'aviso-habito' : undefined}
+            autoFocus aria-label="Nombre del hábito" aria-invalid={!!avisoHabito} aria-describedby={avisoHabito ? 'aviso-habito' : undefined}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, outline: 'none', boxSizing: 'border-box' }}
             onKeyDown={e => e.key === 'Enter' && addHabit()}
           />
@@ -1540,7 +1540,11 @@ function App() {
             ))}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={addHabit} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={addHabit} disabled={!newHabitName.trim()} style={{
+              flex: 1, padding: 10, borderRadius: 10, border: 'none', fontSize: 19, fontWeight: 700, fontFamily: 'inherit',
+              background: newHabitName.trim() ? C.rose : C.border, color: newHabitName.trim() ? 'white' : C.subtle,
+              cursor: newHabitName.trim() ? 'pointer' : 'default',
+            }}>
               Agregar
             </button>
             <button onClick={() => { setShowAddHabit(false); setAvisoHabito('') }} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
