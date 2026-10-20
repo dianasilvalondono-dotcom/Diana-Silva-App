@@ -10,7 +10,7 @@ import DiarioView from './components/views/DiarioView'
 import RondasView from './components/views/RondasView'
 import { TEMPORADA, temporadaVigente, mesTemporada, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from './constants/curaduria'
 import {
-  DIMS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
+  DIMS, DIM_POR_DEFECTO, dimValida, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
@@ -153,6 +153,17 @@ const CHAT_GREETING = { role: 'assistant', local: true, text: '¡Hola! Soy Tu Ro
 // La conversación se guarda en este dispositivo ('ronda-chat'): los últimos 30 mensajes.
 const CHAT_KEY = 'ronda-chat'
 const CHAT_MAX = 30
+// Los hábitos guardados ('diana-habits'). Uno con una dimensión que no
+// existe pasa a la dimensión por defecto en vez de tumbar la app; lo que no
+// es un hábito (null, sin nombre) se salta.
+function cargarHabitos() {
+  const guardados = load('diana-habits', [])
+  return Array.isArray(guardados)
+    ? guardados
+      .filter(h => h && typeof h === 'object' && typeof h.name === 'string' && h.name.trim())
+      .map(h => (dimValida(h.dim) === h.dim ? h : { ...h, dim: dimValida(h.dim) }))
+    : []
+}
 function cargarChat() {
   const guardado = load(CHAT_KEY, null)
   // El aviso de un programa creado en el chat no se recupera: el programa
@@ -430,7 +441,7 @@ function App() {
   const [diaApp, setDiaApp] = useState(todayKey)
 
   // Habits
-  const [habits, setHabits] = useState(() => load('diana-habits', []))
+  const [habits, setHabits] = useState(cargarHabitos)
   const [checked, setChecked] = useState(() => load(`diana-checked-${diaApp}`, {}))
   // Días anteriores con hábitos marcados ({ 'AAAA-MM-DD': { id: true } }). Se
   // lee una sola vez: durante la sesión solo cambia hoy, que sale de `checked`.
@@ -582,7 +593,7 @@ function App() {
 
   // Habit editor
   const [newHabitName, setNewHabitName] = useState('')
-  const [newHabitDim, setNewHabitDim] = useState('espiritual')
+  const [newHabitDim, setNewHabitDim] = useState(DIM_POR_DEFECTO)
   const [showAddHabit, setShowAddHabit] = useState(false)
 
   // Responsive

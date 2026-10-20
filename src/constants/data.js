@@ -6,6 +6,12 @@ export const DIMS = {
   mental:     { icon: 'mental',     color: '#141833', label: 'Mental' },
 }
 
+/* La dimensión con la que empieza un hábito nuevo. Un hábito guardado con
+   una dimensión que no está en DIMS (de una versión anterior o dañado) pasa
+   a esta, sin perderse. */
+export const DIM_POR_DEFECTO = 'espiritual'
+export const dimValida = (d) => (Object.keys(DIMS).includes(d) ? d : DIM_POR_DEFECTO)
+
 /* ── Rutinas vacías por defecto — cada mujer arma la suya ── */
 export const DEFAULT_MORNING = []
 export const DEFAULT_MIDDAY = []
