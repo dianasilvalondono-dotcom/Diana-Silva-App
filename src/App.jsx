@@ -1767,6 +1767,18 @@ function App() {
   /* ── HISTORIA DE RONDA ── */
   const historiaView = <HistoriaView showFullStory={showFullStory} setShowFullStory={setShowFullStory} />
 
+  // Lleva a la tarjeta de una ruta en "Mis rutas activas" (recién empezada o
+  // ya en curso): queda arriba, bajo el encabezado fijo, con su Día 1 a la
+  // vista, y el foco pasa a su título. Con un aviso abierto el fondo es inerte:
+  // se mueve igual y el foco se queda en el aviso.
+  const irARutaActiva = (progId) => requestAnimationFrame(() => {
+    const tarjeta = document.getElementById(`ruta-activa-${progId}`)
+    if (!tarjeta) return
+    const alto = document.querySelector('header')?.offsetHeight || 0
+    window.scrollTo({ top: tarjeta.getBoundingClientRect().top + window.scrollY - alto - 12 })
+    tarjeta.querySelector('[data-titulo-ruta]')?.focus({ preventScroll: true })
+  })
+
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
@@ -1789,10 +1801,10 @@ function App() {
               const completedCount = progress.completedDays.length
               const pct = Math.round((completedCount / prog.days.length) * 100)
               return (
-                <div key={progId} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
+                <div key={progId} id={`ruta-activa-${progId}`} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : <span aria-hidden="true" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: prog.color, verticalAlign: 'middle' }} />} {prog.title}</div>
+                      <div data-titulo-ruta tabIndex={-1} style={{ fontSize: 19, fontWeight: 800, color: C.text, outline: 'none' }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : <span aria-hidden="true" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: prog.color, verticalAlign: 'middle' }} />} {prog.title}</div>
                       <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
                     </div>
                     <button type="button" aria-label={`Dejar la ruta ${prog.title}`} onClick={() => pedirDejarRuta(prog, completedCount)} style={{
@@ -1874,7 +1886,7 @@ function App() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
-                <button onClick={() => startProgram(prog.id)} style={{
+                <button onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
@@ -1910,7 +1922,7 @@ function App() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
-                <button onClick={() => startProgram(prog.id)} style={{
+                <button onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
@@ -1994,6 +2006,8 @@ function App() {
                 }
                 startProgram(prog.id)
                 showFoundingPerk('p21', 'Rutas de 21 días')
+                // Detrás del aviso la página ya sube a la ruta: al cerrarlo, el Día 1 queda a la vista.
+                irARutaActiva(prog.id)
                 setAppModal({
                   type: 'success',
                   title: `¡Activaste "${prog.title}"!`,
