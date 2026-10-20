@@ -1328,7 +1328,7 @@ function App() {
         </div>
       ) : (
         <button onClick={() => setShowAddHabit(true)} style={{
-          padding: 12, borderRadius: 12, border: `2px dashed ${C.roseLight}`, background: 'transparent',
+          padding: 12, borderRadius: 12, border: `2px dashed ${C.contorno}`, background: 'transparent',
           color: C.rose, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
           + Agregar hábito
@@ -1924,7 +1924,7 @@ function App() {
         </div>
       ) : (
         <button onClick={() => setShowAddTool(true)} style={{
-          padding: 14, borderRadius: 12, border: `2px dashed ${C.roseLight}`, background: 'transparent',
+          padding: 14, borderRadius: 12, border: `2px dashed ${C.contorno}`, background: 'transparent',
           color: C.rose, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
           + Agregar recurso
@@ -2689,7 +2689,7 @@ function App() {
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..."
-                  style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`, fontSize: 19, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none' }} />
+                  style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none' }} />
                 <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} aria-label="Continuar con esta meta" style={{
                   padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
                   background: aiGoal.trim() ? C.rose : C.border, color: 'white', fontSize: 19, fontWeight: 700,
@@ -2708,7 +2708,7 @@ function App() {
               <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.6 }}>¿Quieres contarme algo más? Entre más me cuentes, mejor tu programa.</div>
               <textarea value={aiContext} onChange={e => setAiContext(e.target.value)}
                 placeholder="Opcional: cuéntame un poco más..." rows={3}
-                style={{ padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.roseLight}`, fontSize: 19, fontFamily: 'inherit', background: C.cream, color: C.text, outline: 'none', resize: 'none', lineHeight: 1.6 }} />
+                style={{ padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none', resize: 'none', lineHeight: 1.6 }} />
               {aiError && <div style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>← Atrás</button>
@@ -3334,11 +3334,11 @@ function App() {
         {/* Dots + Navigation */}
         <div style={{ position: 'fixed', bottom: 40, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
           {/* Dots */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div role="img" aria-label={`Paso ${onboardStep + 1} de ${onboardSlides.length}`} style={{ display: 'flex', gap: 8 }}>
             {onboardSlides.map((_, i) => (
               <div key={i} style={{
                 width: onboardStep === i ? 24 : 8, height: 8, borderRadius: 4,
-                background: onboardStep === i ? C.gold : C.roseLight,
+                background: onboardStep === i ? C.gold : C.contorno,
                 transition: 'all 0.3s',
               }} />
             ))}
@@ -3349,7 +3349,7 @@ function App() {
             <div style={{ display: 'flex', gap: 16 }}>
               {onboardStep > 0 && (
                 <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
-                  padding: '12px 28px', borderRadius: 25, border: `2px solid ${C.roseLight}`,
+                  padding: '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
                   background: 'transparent', color: C.muted, fontSize: 19, fontWeight: 700,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}>
@@ -3445,7 +3445,7 @@ function App() {
         </div>
         {habits.length === 0 ? (
           <button type="button" onClick={() => { posponerCheckin(); openModule('ahora', 'habitos') }} style={{
-            width: '100%', padding: '14px', borderRadius: 14, border: `1.5px dashed ${C.roseLight}`,
+            width: '100%', padding: '14px', borderRadius: 14, border: `1.5px dashed ${C.contorno}`,
             background: C.cream, color: C.rose, fontSize: 18, fontWeight: 700,
             cursor: 'pointer', fontFamily: 'inherit', textAlign: 'center',
           }}>

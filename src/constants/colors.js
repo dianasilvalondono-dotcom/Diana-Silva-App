@@ -27,6 +27,10 @@ export const C = {
   aguaClara:     '#DCE7F3',
   hoja:          '#EEF3F9',   // fondo de la hoja de contenido
   navy:          '#141833',
+  // Contorno de controles e indicadores (bordes punteados, campos, casillas
+  // sin marcar, puntos de progreso): 3,9:1 sobre la hoja y 4,3:1 sobre
+  // blanco (WCAG pide 3:1). orquideaClara/roseLight es relleno, no contorno.
+  contorno:      '#936F87',
 
   /* Nombres de la primera versión → misma función, tono nuevo */
   merlot:         '#592147',
