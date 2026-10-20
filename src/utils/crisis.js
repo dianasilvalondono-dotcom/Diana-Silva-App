@@ -252,7 +252,7 @@ export const CRISIS_PATTERNS = [
   // Revisión sistemática (verbos, tiempos y formas con y sin "me").
   // Terminar, acabar, quitar o ponerle fin a la propia vida: "quiero terminar
   // con mi vida", "me quito la vida", "le voy a poner fin a mi vida".
-  new RegExp(`\\b(acab|termin)\\w* (con )?mi (propia )?vida\\b${NO_ES_ETAPA}`),
+  new RegExp(`\\b(acab|termin)\\w* (con )?mi (propia )?(vida|existencia)\\b${NO_ES_ETAPA}`),
   new RegExp(`${PONER_FIN} a mi (propia )?vida\\b${NO_ES_ETAPA}`),
   /\bme (\w+ ){0,3}quit(o|e|are|aria|aba|ar) la vida\b/,
   new RegExp(`\\b(terminar|termino|terminare|terminaria|acabo|acabare|acabaria) con todo\\b${NO_ES_PENDIENTE}`),
@@ -263,6 +263,16 @@ export const CRISIS_PATTERNS = [
   new RegExp(`\\bme (matare|mataria|suicidare|suicidaria|ahorcare|ahorcaria|envenenare|envenenaria|disparare|dispararia|lastimare|lastimaria)\\b${NO_ES_ESFUERZO}`),
   new RegExp(`\\bme (cortare|cortaria)\\b${NO_ES_PELO}`),
   /\b(envenenarme|dispararme)\b/, new RegExp(`${ME_QUIERO} disparar\\b`),
+  // En presente o pasado con "me": "me disparo en la cabeza", "me disparé",
+  // "me enveneno", "me envenené", "salto del puente", "me voy a quitar del
+  // medio". No activan "se me disparó la ansiedad", "me envenené con
+  // mariscos", "me enveneno con pensamientos negativos", "un salto al vacío",
+  // "el salto del puente fue increíble" ni "me quito del medio para que
+  // hablen".
+  /(?<!\bse )\bme (disparo|dispare|dispararon)\b(?! ((la|el|los|las) (ansiedad|presion|azucar|glucosa|tension|precios?|alarma|estres|ritmo|corazon|pulso|flash|cuenta|factura)|en el pie)\b)/,
+  /(?<!\bse )\bme (enveneno|envenene|envenenaron)\b(?! ((con|de) (la |el |algo que )?(comida|mariscos|pescado|pollo|comi|almuerzo|pensamientos)|( (la|el|mi|mis))? (mente|cabeza|pensamientos|alma|corazon|vida))\b)/,
+  new RegExp(`(?<!\\b(un|el|ese|este|mi|su|otro|primer|gran|ultimo|del|al) )\\bsalto (de|del|desde|por) ((el|la|los|las|un|una|este|esta|ese|esa|mi|lo alto de|lo alto del) )?${SITIO_ALTO}\\b`),
+  new RegExp(`(${ME_QUIERO} quitar|\\bquitarme|\\bme (quito|quitare|quitaria)) del medio\\b(?! (para que (hablen|pasen|puedan|arreglen|conversen)|de (la|esa|esta) (pelea|discusion)|un rato)\\b)`),
   /\bdejarme (atropellar|pisar)\b/,
   // Pastillas: diez o más (también "como 20", "unas 20", "más de 10"), "todo
   // el frasco", "el blíster completo", "me las voy a tomar todas".
@@ -309,7 +319,7 @@ export const CRISIS_PATTERNS = [
   // "me obliga a tener sexo", "me amenaza con…", "le tengo miedo a mi pareja".
   new RegExp(`\\bme (pego|pegaron|pegaban)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}`),
   new RegExp(`\\bme (golpeo|golpearon|golpeaba|golpeaban|golpean)\\b${NO_ES_NOTICIA}`),
-  /\bme (ahorco|ahorcaron|estrangula|estrangulo|estrangularon|cachetea|cacheteo|cachetearon|abofeteo|violaron|encerro|encerraron)\b/,
+  /\bme (ahorco|ahorque|ahorcaron|estrangula|estrangulo|estrangularon|cachetea|cacheteo|cachetearon|abofeteo|violaron|encerro|encerraron)\b/,
   /\bme (tiene|tienen|tenia|tenian) encerrada\b/,
   // Más formas de violencia física: empujar, patear, la cachetada, levantar
   // la mano, el cuello, "me ahorca" en presente, "me encierra con llave", un
