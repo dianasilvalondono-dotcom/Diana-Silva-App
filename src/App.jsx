@@ -130,6 +130,34 @@ function Paywall({ feature, price, desc, onCta }) {
   )
 }
 
+/* ── La salida a Ayuda y a las líneas ──
+   Para cuando lo que ella escribió no recibe respuesta: el aviso de pago de la
+   Comunidad y el aviso de que la Guía IA no pudo responder (error, sin red,
+   tiempo agotado o el 403 de Ronda+, que trae este mismo texto en `ayuda`).
+   Lo que escribió puede ser una crisis dicha de una forma que isCrisis no
+   reconoce, y sin respuesta tampoco la ve el modelo. onAbrir abre Ayuda como
+   ante una crisis ("No estás sola." y el 123, no "Estás a salvo."). */
+function SalidaAyuda({ onAbrir, style }) {
+  return (
+    <div style={{
+      padding: '12px 14px', borderRadius: 14,
+      border: `1px solid ${C.border}`, background: 'white', textAlign: 'center',
+      ...style,
+    }}>
+      <div style={{ fontSize: 16, color: C.text, lineHeight: 1.5 }}>
+        Si estás pasando por un momento difícil, abre {BOTON_AYUDA} o llama a la{' '}
+        <a href="tel:106" style={{ color: C.text, fontWeight: 800 }}>Línea 106</a> (gratuita y confidencial).
+        Si estás en peligro inmediato, llama al <a href="tel:123" style={{ color: C.text, fontWeight: 800 }}>123</a>.
+      </div>
+      <button type="button" onClick={onAbrir} style={{
+        marginTop: 10, minHeight: 44, padding: '8px 16px', borderRadius: 20, cursor: 'pointer',
+        border: `2px solid ${C.lavanda}`, background: 'white', color: C.lavanda,
+        fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
+      }}>Abrir {BOTON_AYUDA}</button>
+    </div>
+  )
+}
+
 /* Un programa creado con la IA llega como { title, desc, days: [{ day, title, task }] }.
    Se completa lo que la app necesita para pintarlo (color y número de día). */
 function normalizarPrograma(p) {
@@ -1336,7 +1364,8 @@ function App() {
 
   const abrirAyuda = (desde = 'encabezado') => {
     // Abierta por una señal de crisis (crisis_chat, crisis_comunidad,
-    // crisis_programa) o desde el aviso de pago (crisis_aviso_pago): sin
+    // crisis_programa), desde el aviso de pago (crisis_aviso_pago) o desde el
+    // aviso de que la Guía IA no respondió (crisis_guia_fallo): sin
     // "Estás a salvo." y con el 123 en el primer texto.
     setPanicOrigen(String(desde).startsWith('crisis') ? 'crisis' : 'ayuda')
     setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicDbtExpanded(null)
@@ -2908,7 +2937,9 @@ function App() {
       // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
       if (data.crisis) abrirAyuda('crisis_comunidad')
     } catch {
-      // Sin respuesta: la publicación queda guardada y se puede reintentar.
+      // Sin respuesta (también el 403 de Ronda+ cuando el perfil no se pudo
+      // leer): la publicación queda guardada, se puede reintentar y el aviso
+      // deja a la vista Ayuda, la Línea 106 y el 123 (SalidaAyuda).
       actualizar({ awaitingGuia: false, guiaFallo: true })
       track('community_guia_failed', { category: cat })
     } finally {
@@ -3218,6 +3249,10 @@ function App() {
                   ? 'La Guía IA no pudo responder ahora. Tu publicación quedó guardada.'
                   : 'La Guía IA no pudo responder ahora, y este dispositivo no dejó guardar tu publicación.'}
               </div>
+              {/* Sin respuesta tampoco hay segunda capa (el modelo) que vea una
+                  crisis dicha de otra forma: Ayuda y las líneas quedan a la
+                  vista, como en el chat cuando no se conecta. */}
+              <SalidaAyuda style={{ alignSelf: 'stretch' }} onAbrir={() => abrirAyuda('crisis_guia_fallo')} />
               {/* Pedir la respuesta es parte de Ronda+, igual que publicar.
                   Con una señal de crisis, requestGuiaReply abre Ayuda y deja
                   el texto de crisis sin llamar al servidor: también sin Ronda+. */}
@@ -5162,21 +5197,8 @@ function App() {
                 desde aquí, Ayuda abre como ante una crisis: "No estás sola." y
                 el 123, no "Estás a salvo.". */}
             {appModal.ayuda && (
-              <div style={{
-                marginTop: -8, marginBottom: 20, padding: '12px 14px', borderRadius: 14,
-                border: `1px solid ${C.border}`, background: 'white', textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 16, color: C.text, lineHeight: 1.5 }}>
-                  Si estás pasando por un momento difícil, abre {BOTON_AYUDA} o llama a la{' '}
-                  <a href="tel:106" style={{ color: C.text, fontWeight: 800 }}>Línea 106</a> (gratuita y confidencial).
-                  Si estás en peligro inmediato, llama al <a href="tel:123" style={{ color: C.text, fontWeight: 800 }}>123</a>.
-                </div>
-                <button type="button" onClick={() => { setAppModal(null); abrirAyuda('crisis_aviso_pago') }} style={{
-                  marginTop: 10, minHeight: 44, padding: '8px 16px', borderRadius: 20, cursor: 'pointer',
-                  border: `2px solid ${C.lavanda}`, background: 'white', color: C.lavanda,
-                  fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
-                }}>Abrir {BOTON_AYUDA}</button>
-              </div>
+              <SalidaAyuda style={{ marginTop: -8, marginBottom: 20 }}
+                onAbrir={() => { setAppModal(null); abrirAyuda('crisis_aviso_pago') }} />
             )}
 
             {/* En 'confirm' el foco empieza en "Cancelar": Enter no borra por accidente */}
