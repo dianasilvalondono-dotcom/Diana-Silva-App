@@ -749,10 +749,12 @@ function App() {
   // día nuevo y devuelve true (el toque que lo descubrió no se aplica, igual
   // que antes con la recarga). Mientras un check-in de ese día está abierto
   // (el cierre de la noche pasada la medianoche), no: lo que se marque o se
-  // escriba ahí es de ese día (adentro-2).
+  // escriba ahí es de ese día (adentro-2). La Ayuda abierta encima lo tapa
+  // pero no lo cierra: también cuenta (checkinEnCurso no mira showPanic), o
+  // lo escrito antes de tocar "Ayuda" se borraría al volver.
   const pasarAlDiaNuevo = () => {
     const hoy = todayKey()
-    if (hoy === diaApp || showNightCheckin || showMorningCheckin) return false
+    if (hoy === diaApp || checkinEnCurso) return false
     cambiarDeDia(hoy)
     return true
   }
@@ -1185,6 +1187,8 @@ function App() {
   // El cierre de la noche va de las 7 p. m. a la medianoche: en la madrugada
   // el día ya cambió y se gastaría el cierre de la noche siguiente.
   const isNightTime = (franjaActual === 'noche' && currentHour >= 12) || !!nightReflection.trim() || nightMood !== null
+  // Un check-in sigue en curso aunque la Ayuda lo tape; se ve cuando no está.
+  const checkinEnCurso = !checkinPospuesto && ((isMorningTime && !morningDone) || (isNightTime && !nightDone))
   const showMorningCheckin = isMorningTime && !morningDone && !checkinPospuesto && !showPanic
   const showNightCheckin = isNightTime && !nightDone && !checkinPospuesto && !showPanic
 
@@ -4343,9 +4347,13 @@ function App() {
     minHeight: 44, padding: '0 10px', background: 'none', border: 'none', cursor: 'pointer',
     fontSize: 16, fontWeight: 600, fontFamily: 'inherit',
   }
+  // Si ya escribió o eligió algo, "Ayuda" no cierra el check-in: se esconde
+  // mientras la Ayuda está abierta y vuelve con lo suyo al cerrarla (y el día
+  // no cambia debajo, ver checkinEnCurso). Sin nada, se cierra por esta sesión.
+  const checkinConAlgo = !!morningIntention.trim() || !!nightReflection.trim() || nightMood !== null
   const barraCheckin = (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '-14px -10px 4px' }}>
-      <button type="button" onClick={() => { posponerCheckin(); abrirAyuda('checkin') }} style={{ ...botonCheckinSecundario, color: C.morado, textDecoration: 'underline' }}>
+      <button type="button" onClick={() => { if (!checkinConAlgo) posponerCheckin(); abrirAyuda('checkin') }} style={{ ...botonCheckinSecundario, color: C.morado, textDecoration: 'underline' }}>
         Ayuda
       </button>
       <button type="button" onClick={posponerCheckin} style={{ ...botonCheckinSecundario, color: C.muted }}>
