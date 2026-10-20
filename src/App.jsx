@@ -993,23 +993,68 @@ function App() {
 
   const addToolkitItem = () => {
     if (!newToolName.trim()) return
+    // El link se guarda ya listo para abrir; si no es una dirección web,
+    // se avisa junto al campo y no se guarda (toolkit-1, toolkit-4).
+    const url = urlDelRecurso(newToolUrl)
+    if (url === null) {
+      setLinkRecursoInvalido(true)
+      // Al centro de la pantalla: arriba quedaría tapado por la barra fija.
+      const campo = document.getElementById('recurso-link')
+      campo?.focus({ preventScroll: true })
+      campo?.scrollIntoView({ block: 'center' })
+      return
+    }
     const item = {
       id: Date.now(),
       name: newToolName.trim(),
-      url: newToolUrl.trim(),
+      url,
       cat: newToolCat,
       note: newToolNote.trim(),
       added: todayKey(),
     }
     setToolkitItems([item, ...toolkitItems])
+    // Con un filtro de otra categoría el recurso nuevo no se vería: la
+    // lista pasa a su categoría (toolkit-6).
+    if (toolFilter !== 'todas' && toolFilter !== newToolCat) setToolFilter(newToolCat)
+    cerrarFormRecurso()
+  }
+
+  /* Link de un recurso listo para abrir: '' si no hay link y null si el
+     texto no es una dirección web. Acepta 'Https://' (la mayúscula que pone
+     el teclado del celular) y agrega https:// cuando falta, también a
+     dominios como 'httpster.net'. Sirve para lo ya guardado: no hay que
+     migrar nada (toolkit-1, toolkit-4). */
+  const urlDelRecurso = (texto) => {
+    const limpio = typeof texto === 'string' ? texto.trim() : ''
+    if (!limpio) return ''
+    if (/\s/.test(limpio)) return null
+    try {
+      const u = new URL(/^https?:\/\//i.test(limpio) ? limpio : `https://${limpio}`)
+      if (!/^https?:$/.test(u.protocol) || !u.hostname.includes('.') || u.username || u.password) return null
+      return u.href
+    } catch { return null }
+  }
+
+  // Aviso del link que no se pudo guardar; se borra al corregirlo.
+  const [linkRecursoInvalido, setLinkRecursoInvalido] = useState(false)
+
+  // Guardar y Cancelar dejan el formulario vacío, con la categoría por
+  // defecto: no queda un borrador escondido (toolkit-7).
+  const cerrarFormRecurso = () => {
     setNewToolName('')
     setNewToolUrl('')
     setNewToolNote('')
+    setNewToolCat('podcast')
+    setLinkRecursoInvalido(false)
     setShowAddTool(false)
   }
 
   const removeToolkitItem = (id) => {
+    const restantes = toolkitItems.filter(t => t.id !== id)
     setToolkitItems(prev => prev.filter(t => t.id !== id))
+    // Si era el último recurso de la categoría filtrada, la vista vuelve a
+    // 'Todas' en vez de quedar vacía y sin filtro marcado (toolkit-2).
+    setToolFilter(f => (f === 'todas' || restantes.some(t => t.cat === f) ? f : 'todas'))
   }
   const pedirBorrarRecurso = (item) => setAppModal({
     type: 'confirm',
@@ -2195,11 +2240,24 @@ function App() {
   )
 
   /* ── TOOLKIT ── */
-  const filteredTools = toolFilter === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === toolFilter)
   const toolkitCounts = TOOLKIT_CATS.reduce((acc, cat) => {
     acc[cat.id] = toolkitItems.filter(t => t.cat === cat.id).length
     return acc
   }, {})
+  // Un filtro cuya categoría quedó sin recursos se ve como 'Todas': nunca
+  // una lista vacía sin ningún chip marcado (toolkit-2).
+  const filtroToolkit = toolFilter !== 'todas' && !toolkitCounts[toolFilter] ? 'todas' : toolFilter
+  const filteredTools = filtroToolkit === 'todas' ? toolkitItems : toolkitItems.filter(t => t.cat === filtroToolkit)
+  // Enter (o 'Ir' en el teclado del celular) guarda, como en los demás
+  // formularios de la app (toolkit-8).
+  const guardarRecursoConEnter = (e) => {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+      e.preventDefault()
+      addToolkitItem()
+    }
+  }
+  const nombreRecursoListo = newToolName.trim() !== ''
+  const faltaNombreRecurso = !nombreRecursoListo && !!(newToolUrl.trim() || newToolNote.trim())
 
   const toolkitView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -2207,29 +2265,33 @@ function App() {
       <div style={{ background: C.morado, borderRadius: 20, padding: 20, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Mi Toolkit</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Tus recursos de crecimiento, todo en un lugar</div>
-        <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} recursos guardados</div>
+        <div style={{ fontSize: 19, marginTop: 8, opacity: 0.7 }}>{toolkitItems.length} {toolkitItems.length === 1 ? 'recurso guardado' : 'recursos guardados'}</div>
       </div>
 
-      {/* Category chips with counts */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
-        <button onClick={() => setToolFilter('todas')} style={{
-          padding: '6px 14px', borderRadius: 20, border: `2px solid ${toolFilter === 'todas' ? C.rose : C.border}`,
-          background: toolFilter === 'todas' ? C.rose : C.card, color: toolFilter === 'todas' ? 'white' : C.muted,
+      {/* Category chips with counts. aria-pressed dice cuál está activo (toolkit-16). */}
+      <div role="group" aria-label="Filtrar por categoría" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+        <button type="button" aria-pressed={filtroToolkit === 'todas'} onClick={() => setToolFilter('todas')} style={{
+          padding: '6px 14px', borderRadius: 20, border: `2px solid ${filtroToolkit === 'todas' ? C.rose : C.border}`,
+          background: filtroToolkit === 'todas' ? C.rose : C.card, color: filtroToolkit === 'todas' ? 'white' : C.muted,
           fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
         }}>
           Todas ({toolkitItems.length})
         </button>
-        {TOOLKIT_CATS.map(cat => (
-          toolkitCounts[cat.id] > 0 && (
-            <button key={cat.id} onClick={() => setToolFilter(cat.id)} style={{
-              padding: '6px 14px', borderRadius: 20, border: `2px solid ${toolFilter === cat.id ? cat.color : C.border}`,
-              background: toolFilter === cat.id ? cat.color : C.card, color: toolFilter === cat.id ? 'white' : C.muted,
+        {TOOLKIT_CATS.map(cat => {
+          // El ícono va en blanco sobre el chip activo: con cat.color
+          // desaparecía contra su propio fondo (toolkit-10).
+          const activo = filtroToolkit === cat.id
+          const colorIcono = activo ? '#FFFFFF' : cat.color
+          return toolkitCounts[cat.id] > 0 && (
+            <button key={cat.id} type="button" aria-pressed={activo} onClick={() => setToolFilter(cat.id)} style={{
+              padding: '6px 14px', borderRadius: 20, border: `2px solid ${activo ? cat.color : C.border}`,
+              background: activo ? cat.color : C.card, color: activo ? 'white' : C.muted,
               fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
             }}>
-              {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label} ({toolkitCounts[cat.id]})
+              {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](colorIcono, 16) : (ICONS[cat.id] ? ICONS[cat.id](colorIcono, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: colorIcono, display: 'inline-block' }} />)} {cat.label} ({toolkitCounts[cat.id]})
             </button>
           )
-        ))}
+        })}
       </div>
 
       {/* Add new resource */}
@@ -2240,45 +2302,72 @@ function App() {
           {/* Etiqueta visible: el placeholder desaparece al escribir */}
           <label htmlFor="recurso-nombre" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</label>
           <input id="recurso-nombre" value={newToolName} onChange={e => setNewToolName(e.target.value)} placeholder="Ej: Podcast de Jay Shetty"
+            onKeyDown={guardarRecursoConEnter}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
           <label htmlFor="recurso-link" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Link</label>
-          <input id="recurso-link" value={newToolUrl} onChange={e => setNewToolUrl(e.target.value)} placeholder="Ej: https://spotify.com/..."
-            inputMode="url" autoCapitalize="off"
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
+          <input id="recurso-link" value={newToolUrl} onChange={e => { setNewToolUrl(e.target.value); setLinkRecursoInvalido(false) }} placeholder="Ej: https://spotify.com/..."
+            inputMode="url" autoCapitalize="off" autoCorrect="off" spellCheck={false}
+            aria-invalid={linkRecursoInvalido} aria-describedby={linkRecursoInvalido ? 'recurso-link-error' : undefined}
+            onKeyDown={guardarRecursoConEnter}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${linkRecursoInvalido ? C.coral : C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
+          {linkRecursoInvalido && (
+            <div id="recurso-link-error" role="alert" style={{ fontSize: 17, color: C.coral, fontWeight: 600, marginTop: -4, marginBottom: 10 }}>
+              Revisa el link: debe verse como ejemplo.com o https://ejemplo.com
+            </div>
+          )}
 
           <label htmlFor="recurso-nota" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nota (opcional)</label>
           <input id="recurso-nota" value={newToolNote} onChange={e => setNewToolNote(e.target.value)}
+            onKeyDown={guardarRecursoConEnter}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
-          {/* Category selector */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-            {TOOLKIT_CATS.map(cat => (
-              <button key={cat.id} onClick={() => setNewToolCat(cat.id)} style={{
-                padding: '5px 10px', borderRadius: 20, border: `2px solid ${cat.color}`,
-                background: newToolCat === cat.id ? cat.color : 'transparent',
-                color: newToolCat === cat.id ? 'white' : cat.color,
-                fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              }}>
-                {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](cat.color, 16) : (ICONS[cat.id] ? ICONS[cat.id](cat.color, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, display: 'inline-block' }} />)} {cat.label}
-              </button>
-            ))}
+          {/* Category selector. aria-pressed dice cuál está elegida (toolkit-16). */}
+          <div role="group" aria-label="Categoría del recurso" style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+            {TOOLKIT_CATS.map(cat => {
+              const elegida = newToolCat === cat.id
+              const colorIcono = elegida ? '#FFFFFF' : cat.color // visible sobre el fondo de color (toolkit-10)
+              return (
+                <button key={cat.id} type="button" aria-pressed={elegida} onClick={() => setNewToolCat(cat.id)} style={{
+                  padding: '5px 10px', borderRadius: 20, border: `2px solid ${cat.color}`,
+                  background: elegida ? cat.color : 'transparent',
+                  color: elegida ? 'white' : cat.color,
+                  fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  {ICONS['cat_'+cat.id] ? ICONS['cat_'+cat.id](colorIcono, 16) : (ICONS[cat.id] ? ICONS[cat.id](colorIcono, 16) : <span style={{ width: 8, height: 8, borderRadius: '50%', background: colorIcono, display: 'inline-block' }} />)} {cat.label}
+                </button>
+              )
+            })}
           </div>
 
+          {/* Sin nombre no se puede guardar: el botón se apaga, como en los
+              demás formularios, y si ya hay link o nota se dice qué falta
+              (toolkit-5). */}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={addToolkitItem} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: C.rose, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button type="button" onClick={addToolkitItem} disabled={!nombreRecursoListo} style={{
+              flex: 1, padding: 10, borderRadius: 10, border: 'none', fontSize: 19, fontWeight: 700, fontFamily: 'inherit',
+              background: nombreRecursoListo ? C.rose : C.border, color: nombreRecursoListo ? 'white' : C.subtle,
+              cursor: nombreRecursoListo ? 'pointer' : 'default',
+            }}>
               Guardar
             </button>
-            <button onClick={() => setShowAddTool(false)} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+            <button type="button" onClick={cerrarFormRecurso} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
               Cancelar
             </button>
           </div>
+          <div aria-live="polite" style={{ fontSize: 17, color: C.muted, marginTop: faltaNombreRecurso ? 8 : 0 }}>
+            {faltaNombreRecurso ? 'Escribe un nombre para guardar el recurso.' : ''}
+          </div>
         </div>
       ) : (
-        <button onClick={() => setShowAddTool(true)} style={{
+        <button onClick={() => {
+          // Con un filtro activo, el formulario abre con esa categoría (toolkit-6).
+          if (filtroToolkit !== 'todas') setNewToolCat(filtroToolkit)
+          setShowAddTool(true)
+        }} style={{
           padding: 14, borderRadius: 12, border: `2px dashed ${C.contorno}`, background: 'transparent',
           color: C.rose, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
@@ -2291,6 +2380,9 @@ function App() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filteredTools.map(item => {
             const cat = TOOLKIT_CATS.find(c => c.id === item.cat) || TOOLKIT_CATS[TOOLKIT_CATS.length - 1]
+            // También corrige links ya guardados ('Https://…', 'httpster.net');
+            // si el texto no es una dirección web no se ofrece un enlace roto.
+            const link = urlDelRecurso(item.url)
             return (
               <div key={item.id} style={{
                 background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
@@ -2304,11 +2396,17 @@ function App() {
                     <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.textColor || cat.color, fontWeight: 700 }}>
                       {cat.label}
                     </span>
-                    {item.url && (
-                      <a href={item.url.startsWith('http') ? item.url : `https://${item.url}`} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: 19, color: C.rose, fontWeight: 700, textDecoration: 'none' }}
+                    {link && (
+                      // Nombre que dice qué abre y área táctil de 36 px; los
+                      // márgenes negativos dejan el diseño igual (toolkit-14).
+                      <a href={link} target="_blank" rel="noopener noreferrer"
+                        aria-label={`Abrir ${item.name} (se abre en otra pestaña)`}
+                        style={{
+                          fontSize: 19, color: C.rose, fontWeight: 700, textDecoration: 'none',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.3em', minHeight: 36, padding: '4px 6px', margin: '-4px -6px',
+                        }}
                         onClick={e => e.stopPropagation()}>
-                        Abrir →
+                        Abrir <span aria-hidden="true">→</span>
                       </a>
                     )}
                   </div>
@@ -2324,9 +2422,9 @@ function App() {
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: 40, color: C.subtle }}>
-          <div style={{ fontSize: 36, marginBottom: 10, color: C.mint, opacity: 0.4 }}>●</div>
+          {/* Sin el punto decorativo: el círculo queda solo en el logo (toolkit-20) */}
           <div style={{ fontSize: 19, fontWeight: 600 }}>
-            {toolFilter === 'todas' ? 'Tu toolkit está vacío' : 'No hay recursos en esta categoría'}
+            {filtroToolkit === 'todas' ? 'Tu toolkit está vacío' : 'No hay recursos en esta categoría'}
           </div>
           <div style={{ fontSize: 20, marginTop: 4 }}>Agrega tus podcasts, libros, cursos y más</div>
         </div>
