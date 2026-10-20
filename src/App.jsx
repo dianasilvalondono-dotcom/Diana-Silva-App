@@ -2914,7 +2914,14 @@ function App() {
 
   const addBoardPost = async () => {
     if (!boardNewText.trim()) return
-    if (!isPremium) { avisoPagoComunidad(); return }
+    // Sin Ronda+ no se publica, pero una señal de crisis abre Ayuda (con la
+    // Línea 106) en vez del aviso de pago: la ayuda nunca queda detrás del
+    // paywall.
+    if (!isPremium) {
+      if (isCrisis(boardNewText)) abrirAyuda('crisis_comunidad')
+      else avisoPagoComunidad()
+      return
+    }
     showFoundingPerk('board', 'Comunidad y Guía IA de Ronda')
     const createdAt = Date.now()
     const newPost = {
@@ -3193,8 +3200,10 @@ function App() {
                   ? 'La Guía IA no pudo responder ahora. Tu publicación quedó guardada.'
                   : 'La Guía IA no pudo responder ahora, y este dispositivo no dejó guardar tu publicación.'}
               </div>
-              {/* Pedir la respuesta es parte de Ronda+, igual que publicar. */}
-              <button type="button" onClick={() => (isPremium ? requestGuiaReply(post) : avisoPagoComunidad())} style={{
+              {/* Pedir la respuesta es parte de Ronda+, igual que publicar.
+                  Con una señal de crisis, requestGuiaReply abre Ayuda y deja
+                  el texto de crisis sin llamar al servidor: también sin Ronda+. */}
+              <button type="button" onClick={() => (isPremium || isCrisis(post.content) ? requestGuiaReply(post) : avisoPagoComunidad())} style={{
                 minHeight: 44, padding: '0 20px', borderRadius: 12, border: 'none',
                 background: C.rose, color: 'white', fontSize: 17, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
