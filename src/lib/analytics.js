@@ -72,7 +72,7 @@ export function initAnalytics() {
         // Que PostHog no calcule ciudad ni coordenadas a partir de la IP
         // (la transformación GeoIP deja pasar sin tocar todo evento que trae
         // $geoip_disable). Vale para todos, también $identify y $set. Además,
-        // Diana apaga GeoIP en el panel (lo-que-hace-diana-antes-de-publicar).
+        // Diana apaga GeoIP en el panel (lo-que-hace-diana-antes-de-publicar, paso 5d).
         before_send: (ev) => {
           if (ev) ev.properties = { ...(ev.properties || {}), $geoip_disable: true }
           return ev
