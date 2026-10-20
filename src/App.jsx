@@ -73,6 +73,63 @@ function NavItem({ icon, label, active, onClick }) {
   )
 }
 
+/* ── Sub-tab navigation (pill style) ──
+   A nivel de módulo: si se declarara dentro de App, cada render crearía un
+   componente nuevo y React desmontaría los botones (el foco se iría a <body>). */
+const TAB_COLORS = [C.teal, C.coral, C.lavanda, C.gold, C.rose, C.mint]
+function SubTabs({ tabs, active, onChange, accentColor }) {
+  return (
+    <div role="tablist" style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      {tabs.map((t, i) => {
+        const color = accentColor || TAB_COLORS[i % TAB_COLORS.length]
+        return (
+        <button key={t.id} type="button" role="tab" aria-selected={active === t.id} onClick={() => onChange(t.id)} style={{
+          padding: '8px 18px', borderRadius: 20, border: active === t.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
+          background: active === t.id ? color : C.card,
+          color: active === t.id ? 'white' : C.text,
+          fontSize: 19, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+          boxShadow: active === t.id ? `0 2px 10px ${color}40` : 'none',
+          transition: 'all 0.15s',
+        }}>
+          {t.label}
+        </button>
+      )})}
+    </div>
+  )
+}
+
+/* ── Paywall component ──
+   A nivel de módulo por la misma razón que SubTabs. onCta abre el aviso
+   (lo decide App, que tiene el estado del modal). */
+function Paywall({ feature, price, desc, onCta }) {
+  return (
+    <div style={{
+      textAlign: 'center', padding: 32, background: `linear-gradient(135deg, ${C.rose}08, ${C.gold}08)`,
+      borderRadius: 20, border: `1.5px solid ${C.roseLight}`,
+    }}>
+      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 8 }}>
+        {feature}
+      </div>
+      <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
+        {desc}
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{price}</div>
+      <div style={{ fontSize: 20, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
+      <button type="button" onClick={() => { track('paywall_cta_clicked', { feature }); onCta?.() }} style={{
+        padding: '14px 32px', borderRadius: 14, border: 'none',
+        background: `linear-gradient(135deg, ${C.gold}, #141833)`, color: 'white',
+        fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        boxShadow: '0 4px 16px rgba(114,109,45,0.3)',
+      }}>
+        Desbloquear Ronda Premium
+      </button>
+      <div style={{ fontSize: 19, color: C.subtle, marginTop: 12 }}>
+        Próximamente · Te avisamos cuando esté disponible
+      </div>
+    </div>
+  )
+}
+
 /* ¿La usuaria está escribiendo? (el foco está en un campo de texto) */
 function escribiendo() {
   const el = document.activeElement
@@ -2228,27 +2285,6 @@ function App() {
     </div>
   )
 
-  /* ── Sub-tab navigation (pill style) ── */
-  const TAB_COLORS = [C.teal, C.coral, C.lavanda, C.gold, C.rose, C.mint]
-  const SubTabs = ({ tabs, active, onChange, accentColor }) => (
-    <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-      {tabs.map((t, i) => {
-        const color = accentColor || TAB_COLORS[i % TAB_COLORS.length]
-        return (
-        <button key={t.id} onClick={() => onChange(t.id)} style={{
-          padding: '8px 18px', borderRadius: 20, border: active === t.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
-          background: active === t.id ? color : C.card,
-          color: active === t.id ? 'white' : C.text,
-          fontSize: 19, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
-          boxShadow: active === t.id ? `0 2px 10px ${color}40` : 'none',
-          transition: 'all 0.15s',
-        }}>
-          {t.label}
-        </button>
-      )})}
-    </div>
-  )
-
   /* ── Directorio / Marketplace ── */
   const DIRECTORIO_CATS = []
   const SEED_DIRECTORIO = []
@@ -2298,35 +2334,6 @@ function App() {
         <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
           hola@rondahub.com
         </div>
-      </div>
-    </div>
-  )
-
-  /* ── Paywall component ── */
-  const Paywall = ({ feature, price, desc }) => (
-    <div style={{
-      textAlign: 'center', padding: 32, background: `linear-gradient(135deg, ${C.rose}08, ${C.gold}08)`,
-      borderRadius: 20, border: `1.5px solid ${C.roseLight}`,
-    }}>
-      <div style={{ fontSize: 40, marginBottom: 12, color: C.teal, opacity: 0.3 }}>●</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 8 }}>
-        {feature}
-      </div>
-      <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
-        {desc}
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{price}</div>
-      <div style={{ fontSize: 20, color: C.subtle, marginBottom: 20 }}>Cancela cuando quieras</div>
-      <button onClick={() => track('paywall_cta_clicked', { feature })} style={{
-        padding: '14px 32px', borderRadius: 14, border: 'none',
-        background: `linear-gradient(135deg, ${C.gold}, #141833)`, color: 'white',
-        fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-        boxShadow: '0 4px 16px rgba(114,109,45,0.3)',
-      }}>
-        Desbloquear Ronda Premium
-      </button>
-      <div style={{ fontSize: 19, color: C.subtle, marginTop: 12 }}>
-        Próximamente · Te avisamos cuando esté disponible
       </div>
     </div>
   )
@@ -3854,7 +3861,7 @@ function App() {
           {subTab === 'diario' && diarioView}
           {subTab === 'toolkit' && toolkitView}
           {subTab === 'programas' && programasView}
-          {subTab === 'ai' && (isPremium ? (() => { showFoundingPerk('chat', 'Tu Ronda · IA personal'); return aiAgentView })() : <Paywall feature="Tu Ronda — IA personal" price="$9.99/mes" desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." />)}
+          {subTab === 'ai' && (isPremium ? (() => { showFoundingPerk('chat', 'Tu Ronda · IA personal'); return aiAgentView })() : <Paywall feature="Tu Ronda — IA personal" price="$9.99/mes" desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: 'Estamos finalizando el sistema de pago para Ronda Premium. Te avisaremos cuando esté listo. 💛', cta: 'Entendido' })} />)}
         </>}
 
         {view === 'juntas' && <>
