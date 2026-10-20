@@ -14,7 +14,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, seGuardo, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -2625,25 +2625,27 @@ function App() {
   ]
 
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
+  /* En orden de la más reciente a la más antigua: así se leen las horas
+     (2 h, 3 h, 4 h, 5 h, 8 h, 1 día) (juntas-13). */
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
       replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
         text: 'Muchas mujeres lo han sentido. Lo que pasa es que tu mente está tratando de "resolver" el futuro desde la cama — y eso activa tu sistema nervioso. Prueba esto: escribe TODO lo que te preocupa en un papel (descarga mental). Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Tu cerebro necesita sentir que no va a olvidar para poder soltar. Si esto sigue por más de 2 semanas, te recomiendo buscar acompañamiento profesional. Aquí estoy contigo. 💛' }] },
-    { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
-      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, no solo se pierde a la persona, también la versión de ti que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
-    { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
-      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
-        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
       replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
         text: 'Los patrones de relación se forman temprano — el cerebro busca lo "familiar" (que viene de familia, no de "conocido"). Si creciste con amor intermitente, tu cerebro puede confundir la intensidad con el amor. El primer paso es reconocer el patrón, y tú ya lo estás haciendo. El segundo es explorar tu estilo de apego. Hay herramientas como DBT que te ayudan a reprogramar lo que buscas en una pareja. No estás "rota" — estás programada, y eso se puede cambiar.' }] },
-    { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
-      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
-        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
       replies: [{ pro: { name: 'Camila S.', title: 'Guía Ronda · Mentora de emprendimiento', verified: true },
         text: 'El miedo al fracaso es en realidad miedo al juicio. Tu cerebro no teme al fracaso — teme que los demás te vean fracasar. Pero aquí va la verdad: nadie está mirando tanto como crees. El costo de no intentar siempre es mayor que el costo de fracasar. Empieza con la versión más pequeña posible de tu idea. No necesitas que sea perfecto — necesitas que EXISTA.' }] },
+    { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
+      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
+        text: 'Lo que sientes es normal y tiene nombre: se llama "duelo de identidad." Cuando una relación larga termina, no solo se pierde a la persona, también la versión de ti que existía en esa relación. Pero aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ sola. Empieza pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo. Ahí empieza el camino de regreso a ti. 🌱' }] },
+    { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
+      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
+        text: 'El duelo no es lineal. No hay un día mágico en que "pare." Lo que cambia es tu relación con el dolor. Con el tiempo, el dolor no se va — aprende a vivir dentro de ti sin ocupar todo el espacio. Los días fuertes van a seguir viniendo (fechas especiales, canciones, olores). Y eso no significa que no estás avanzando. Significa que amaste mucho. Y eso es hermoso. Permítete sentir sin juzgarte. 💛' }] },
+    { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
+      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
+        text: 'No solo NO está mal — es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás sienten lo mismo y no lo dicen. No eres mala madre por querer tiempo para ti. Eres una madre humana. Empieza con 15 minutos al día solo para ti — sin culpa. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
   ]
 
   // Los posts sembrados se muestran como EJEMPLOS y sus respuestas se atribuyen
@@ -2716,18 +2718,19 @@ function App() {
     }
   }
 
+  const avisoPagoComunidad = () => {
+    track('paywall_viewed', { feature: 'comunidad_escribir', price: PLAN_PRECIO })
+    setAppModal({
+      type: 'paywall',
+      title: `Escribir en la Comunidad es parte de ${PLAN_PAGO}`,
+      body: 'Publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda.',
+      cta: 'Ver planes',
+    })
+  }
+
   const addBoardPost = async () => {
     if (!boardNewText.trim()) return
-    if (!isPremium) {
-      track('paywall_viewed', { feature: 'comunidad_escribir', price: PLAN_PRECIO })
-      setAppModal({
-        type: 'paywall',
-        title: `Escribir en la Comunidad es parte de ${PLAN_PAGO}`,
-        body: 'Publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda.',
-        cta: 'Ver planes',
-      })
-      return
-    }
+    if (!isPremium) { avisoPagoComunidad(); return }
     showFoundingPerk('board', 'Comunidad y Guía IA de Ronda')
     const createdAt = Date.now()
     const newPost = {
@@ -2781,7 +2784,11 @@ function App() {
     title: '¿Borrar tu publicación?',
     body: 'Se borra de este dispositivo y después no la podrás recuperar.',
     cta: 'Borrar publicación',
-    onConfirm: () => removeBoardPost(post.id),
+    onConfirm: () => {
+      removeBoardPost(post.id)
+      // El botón "Borrar" se fue con la publicación: el foco pasa a escribir una nueva.
+      focoTrasModalRef.current = () => document.getElementById('board-nueva') || document.getElementById('board-texto')
+    },
   })
 
   /* ── Board View ── */
@@ -2822,7 +2829,7 @@ function App() {
 
       {/* New post button */}
       {!boardShowForm ? (
-        <button onClick={() => setBoardShowForm(true)} style={{
+        <button id="board-nueva" onClick={() => setBoardShowForm(true)} style={{
           padding: '14px 18px', borderRadius: 16, border: `2px dashed ${C.roseLight}`,
           background: C.card, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
         }}>
@@ -2850,6 +2857,7 @@ function App() {
             ))}
           </div>
           <textarea
+            id="board-texto"
             value={boardNewText}
             onChange={e => setBoardNewText(e.target.value)}
             placeholder="Escribe lo que sientes, lo que te preocupa, lo que necesitas saber. Este es tu espacio seguro."
@@ -2995,9 +3003,13 @@ function App() {
               display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10,
             }}>
               <div style={{ fontSize: 17, color: C.text, lineHeight: 1.5 }}>
-                La Guía IA no pudo responder ahora. Tu publicación quedó guardada.
+                {/* Si el dispositivo no dejó guardar, no se dice que quedó guardada. */}
+                {seGuardo('ronda-board')
+                  ? 'La Guía IA no pudo responder ahora. Tu publicación quedó guardada.'
+                  : 'La Guía IA no pudo responder ahora, y este dispositivo no dejó guardar tu publicación.'}
               </div>
-              <button type="button" onClick={() => requestGuiaReply(post)} style={{
+              {/* Pedir la respuesta es parte de Ronda+, igual que publicar. */}
+              <button type="button" onClick={() => (isPremium ? requestGuiaReply(post) : avisoPagoComunidad())} style={{
                 minHeight: 44, padding: '0 20px', borderRadius: 12, border: 'none',
                 background: C.rose, color: 'white', fontSize: 17, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -3089,7 +3101,10 @@ function App() {
           Estamos armando un directorio de profesionales verificadas para ti.
         </div>
         <div style={{ fontSize: 15, color: C.teal, fontWeight: 600, marginTop: 16 }}>
-          Mientras tanto, pregunta lo que quieras en la Comunidad — te responde la Guía IA de Ronda.
+          {/* Sin Ronda+ no se puede publicar: no prometer que puede preguntar. */}
+          {isPremium
+            ? 'Mientras tanto, pregunta lo que quieras en la Comunidad: te responde la Guía IA de Ronda.'
+            : 'Mientras tanto, lee en la Comunidad cómo acompaña la Guía IA de Ronda.'}
         </div>
       </div>
 
@@ -3278,6 +3293,13 @@ function App() {
     openModule('juntas', 'board')
     setBoardNewCat(BOARD_CATS.some(c => c.id === cat && c.id !== 'todas') ? cat : 'general')
     setBoardShowForm(true)
+    // Después del salto arriba de la sección nueva (el efecto de view/subTab):
+    // el campo queda a la vista (no bajo el borde) y listo para escribir.
+    setTimeout(() => {
+      const campo = document.getElementById('board-texto')
+      campo?.focus({ preventScroll: true })
+      campo?.scrollIntoView({ block: 'center', behavior: 'instant' })
+    }, 0)
   }
 
   // La conversación baja al final solo cuando llega un mensaje, aparece o se

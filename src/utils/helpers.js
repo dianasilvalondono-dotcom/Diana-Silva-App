@@ -38,13 +38,21 @@ function avisarFalloGuardado(err) {
   try { window.dispatchEvent(new CustomEvent(STORAGE_ERROR_EVENT)) } catch { /* sin ventana */ }
 }
 
+/* Claves cuyo último guardado falló: así un aviso no dice "quedó guardada"
+   cuando no se pudo guardar (ver seGuardo). */
+const clavesSinGuardar = new Set()
+/* ¿El último guardado de esta clave funcionó? */
+export const seGuardo = (key) => !clavesSinGuardar.has(key)
+
 /* Devuelve true si quedó guardado y false si no se pudo. */
 export const save = (key, val) => {
   if (guardadoBloqueado) return false
   try {
     localStorage.setItem(key, JSON.stringify(val))
+    clavesSinGuardar.delete(key)
     return true
   } catch (err) {
+    clavesSinGuardar.add(key)
     avisarFalloGuardado(err)
     return false
   }
