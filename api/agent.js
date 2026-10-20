@@ -1,8 +1,39 @@
+// Patrones y respuesta de crisis: los mismos de la Guía IA y de la app.
+import { normalize, isCrisis, CRISIS_TEXT_CHAT } from '../src/utils/crisis.js'
+
+// Largo máximo de cada turno del historial que se le pasa al modelo.
+const MAX_TURNO = 4000
+
+/* El historial que manda la app, listo para la Messages API: solo turnos de
+   'user' o 'assistant' con texto, los consecutivos del mismo rol unidos y sin
+   turnos de la asistente al inicio (el primer mensaje tiene que ser de la
+   usuaria). */
+function normalizarHistorial(history) {
+  if (!Array.isArray(history)) return []
+  const turnos = []
+  const validos = history.filter(h =>
+    h && (h.role === 'user' || h.role === 'assistant') && typeof h.text === 'string' && h.text.trim())
+  for (const h of validos.slice(-10)) {
+    const texto = h.text.trim().slice(0, MAX_TURNO)
+    const ultimo = turnos[turnos.length - 1]
+    if (ultimo && ultimo.role === h.role) ultimo.content += `\n\n${texto}`
+    else turnos.push({ role: h.role, content: texto })
+  }
+  while (turnos.length && turnos[0].role !== 'user') turnos.shift()
+  return turnos
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { message, context, history, memory } = req.body
-  if (!message) return res.status(400).json({ error: 'Message is required' })
+  const { message, context, history, memory } = req.body || {}
+  if (typeof message !== 'string' || !message.trim()) return res.status(400).json({ error: 'Message is required' })
+
+  // ── Chequeo de crisis PRIMERO — respuesta segura garantizada, sin IA ──
+  // Corre con y sin API key, antes del modelo y antes del respaldo.
+  if (isCrisis(message)) {
+    return res.status(200).json({ reply: CRISIS_TEXT_CHAT, sos: true, crisis: true, connect: null, memoryUpdate: null })
+  }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 
@@ -82,13 +113,12 @@ Solo incluye el bloque MEMORY si aprendiste algo nuevo. Si no, omítelo. Los "fa
 
 DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención profesional en salud mental.`
 
-  const messages = []
-  if (history && Array.isArray(history)) {
-    for (const h of history.slice(-10)) {
-      messages.push({ role: h.role, content: h.text })
-    }
-  }
-  messages.push({ role: 'user', content: message })
+  const messages = normalizarHistorial(history)
+  const ultimo = messages[messages.length - 1]
+  // Si el último turno ya es de la usuaria (su mensaje anterior no tuvo
+  // respuesta), el nuevo se une a ese turno.
+  if (ultimo && ultimo.role === 'user') ultimo.content += `\n\n${message}`
+  else messages.push({ role: 'user', content: message })
 
   if (apiKey) {
     try {
@@ -101,7 +131,10 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
         },
         body: JSON.stringify({
           model: 'claude-sonnet-5',
-          max_tokens: 1024,
+          // Tope del total de salida (pensamiento + respuesta): tiene que
+          // alcanzar para la respuesta, el JSON de un programa de 7 días y el
+          // bloque ---MEMORY---.
+          max_tokens: 4096,
           system: systemPrompt,
           messages,
         }),
@@ -113,7 +146,19 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
       }
 
       const data = await response.json()
-      const rawText = data.content[0].text
+      // La respuesta puede traer bloques de pensamiento antes del texto: se
+      // unen todos los bloques de texto, no solo el primero.
+      const rawText = (Array.isArray(data.content) ? data.content : [])
+        .filter(b => b && b.type === 'text' && typeof b.text === 'string')
+        .map(b => b.text)
+        .join('')
+        .trim()
+      // Sin texto o rechazada: la respuesta de respaldo, nunca un error.
+      if (!rawText || data.stop_reason === 'refusal') {
+        return res.status(200).json(respuestaDeRespaldo(message))
+      }
+      // Cortada por el tope de tokens: lo que venga como JSON quedó a medias.
+      const cortada = data.stop_reason === 'max_tokens'
 
       // ── Separate reply from memory block ──
       let replyText = rawText
@@ -124,34 +169,55 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
         try {
           const jsonStr = memMatch[1].trim().replace(/^```json\s*/, '').replace(/```$/, '').trim()
           memoryUpdate = JSON.parse(jsonStr)
-        } catch (e) {
+        } catch {
           // If parse fails, skip memory update
         }
+      } else {
+        // Un bloque de memoria cortado antes del separador completo no se muestra.
+        replyText = rawText.replace(/-{2,}\s*MEMORY[\s\S]*$/, '').trim()
       }
 
-      // Parse action tags
-      const connectMatch = replyText.match(/\[CONECTAR:(\w+)\]/)
-      const hasSOS = replyText.includes('[SOS]')
-      const cleanText = replyText.replace(/\[CONECTAR:\w+\]/g, '').replace(/\[SOS\]/g, '').trim()
+      // Parse action tags (con o sin tildes y mayúsculas: [CONECTAR:Nutrición])
+      const connectMatch = replyText.match(/\[CONECTAR:\s*([^\]\n]+?)\s*\]/iu)
+      const hasSOS = /\[SOS\]/i.test(replyText)
+      let cleanText = replyText
+        .replace(/\[CONECTAR:[^\]\n]*\]/giu, '')
+        .replace(/\[SOS\]/gi, '')
+        .replace(/[ \t]{2,}/g, ' ')
+        .trim()
+      // La categoría va sin tildes y en minúscula ('nutrición' → 'nutricion').
+      const connect = connectMatch ? normalize(connectMatch[1]).trim() || null : null
 
-      // Check if response contains a program JSON
-      const jsonMatch = cleanText.match(/\{[\s\S]*"type"\s*:\s*"program"[\s\S]*\}/)
-      if (jsonMatch) {
-        try {
-          const program = JSON.parse(jsonMatch[0])
-          return res.status(200).json({
-            reply: cleanText.replace(jsonMatch[0], '').trim(),
-            program,
-            connect: connectMatch ? connectMatch[1] : null,
-            sos: hasSOS,
-            memoryUpdate,
-          })
-        } catch (e) {}
+      // ¿Viene un programa en JSON? Nunca se deja el JSON en el texto del chat.
+      let program = null
+      const posTipo = cleanText.search(/"type"\s*:\s*"program"/)
+      if (posTipo !== -1) {
+        const inicio = cleanText.lastIndexOf('{', posTipo)
+        const fin = cleanText.lastIndexOf('}')
+        const desde = inicio === -1 ? posTipo : inicio
+        if (!cortada && inicio !== -1 && fin > posTipo) {
+          try {
+            const candidato = JSON.parse(cleanText.slice(inicio, fin + 1))
+            if (candidato && Array.isArray(candidato.days) && candidato.days.length) program = candidato
+          } catch {
+            program = null
+          }
+        }
+        // Lo que va después del JSON solo se conserva si el JSON se leyó completo.
+        cleanText = cleanText.slice(0, desde) + (program ? cleanText.slice(fin + 1) : '')
       }
+      // Restos de un bloque de código (```json ... ```) alrededor del programa.
+      cleanText = cleanText.replace(/```(?:json)?/gi, '').replace(/[ \t]{2,}/g, ' ').trim()
+
+      let reply = cleanText
+      if (!reply && program) reply = 'Armé un programa pensado para ti.'
+      // Sin nada que mostrar (por ejemplo, solo un JSON cortado): respaldo.
+      if (!reply) return res.status(200).json(respuestaDeRespaldo(message))
 
       return res.status(200).json({
-        reply: cleanText,
-        connect: connectMatch ? connectMatch[1] : null,
+        reply,
+        ...(program ? { program } : {}),
+        connect,
         sos: hasSOS,
         memoryUpdate,
       })
@@ -161,42 +227,50 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
   }
 
   // Fallback without API key
-  const m = message.toLowerCase()
+  return res.status(200).json(respuestaDeRespaldo(message))
+}
+
+/* Respuesta sin IA, por palabras clave. Compara palabras completas (sin
+   tildes ni mayúsculas), no pedazos: 'normal' no es 'mal' ni 'hice' es 'hi'.
+   Las crisis ya se atendieron antes, con isCrisis. */
+function respuestaDeRespaldo(message) {
+  const m = normalize(message)
+  const hasWord = (...ks) => ks.some(k => new RegExp(`(?<!\\p{L})${k}(?!\\p{L})`, 'u').test(m))
   let reply = ''
   let connect = null
   let sos = false
 
-  if (m.includes('mal') || m.includes('triste') || m.includes('ansiedad') || m.includes('crisis') || m.includes('no puedo') || m.includes('llorar')) {
+  if (hasWord('mal', 'fatal', 'triste', 'tristeza', 'ansiedad', 'ansiosa', 'crisis', 'no puedo', 'llorar', 'lloro', 'llorando')) {
     reply = 'Lo que sientes es real y es válido. Ya diste un paso importante al contarlo. Puedo activar herramientas de bienestar para ti — respiración guiada, grounding, y técnicas de regulación emocional. Si necesitas acompañamiento más profundo, te oriento.'
     connect = 'coaching'
     sos = true
-  } else if (m.includes('pareja') || m.includes('esposo') || m.includes('novio') || m.includes('separar') || m.includes('divorcio')) {
+  } else if (hasWord('pareja', 'esposo', 'novio', 'separar', 'separarme', 'divorcio')) {
     reply = 'Las relaciones son complejas y lo que sientes tiene todo el sentido. Reconocerlo es poder. Tenemos Guías Ronda que se especializan en transiciones y relaciones.'
     connect = 'coaching'
-  } else if (m.includes('comer') || m.includes('peso') || m.includes('dieta') || m.includes('nutrición') || m.includes('comida')) {
+  } else if (hasWord('comer', 'peso', 'dieta', 'nutricion', 'comida')) {
     reply = 'La relación con la comida es un camino, no una carrera. Puedo sugerirte un programa de 7 días para empezar, y también conectarte con una nutricionista que entiende que se trata de bienestar real, no de dietas.'
     connect = 'nutricion'
-  } else if (m.includes('trabajo') || m.includes('emprender') || m.includes('negocio') || m.includes('jefa') || m.includes('lider')) {
-    reply = 'Que bueno que estás pensando en crecer profesionalmente. Tenemos Guías Ronda especializadas en emprendimiento y liderazgo. ¿Te conecto?'
+  } else if (hasWord('trabajo', 'emprender', 'emprendimiento', 'negocio', 'negocios', 'jefa', 'jefe', 'lider')) {
+    reply = '¡Qué bueno que estás pensando en crecer profesionalmente! Tenemos Guías Ronda especializadas en emprendimiento y liderazgo. ¿Te conecto?'
     connect = 'negocios'
-  } else if (m.includes('yoga') || m.includes('meditar') || m.includes('meditación') || m.includes('respirar')) {
+  } else if (hasWord('yoga', 'meditar', 'meditacion', 'respirar')) {
     reply = 'La meditación y el yoga son herramientas poderosas — tu sistema nervioso te lo va a agradecer. Puedo sugerirte un programa de 7 días, y también tenemos Guías Ronda certificadas.'
     connect = 'yoga'
-  } else if (m.includes('mamá') || m.includes('mama') || m.includes('hijos') || m.includes('maternidad')) {
+  } else if (hasWord('mama', 'hijos', 'hijo', 'hija', 'hijas', 'bebe', 'maternidad')) {
     reply = 'Ser mamá es un viaje intenso y hermoso. Tenemos el programa "Volver a mí" diseñado para mamás, y Guías Ronda de maternidad que entienden exactamente lo que vives.'
     connect = 'maternidad'
-  } else if (m.includes('profesional') || m.includes('psicóloga') || m.includes('coach') || m.includes('terapeuta') || m.includes('ayuda profesional')) {
+  } else if (hasWord('profesional', 'psicologa', 'psicologo', 'coach', 'coaching', 'terapeuta', 'ayuda profesional')) {
     reply = 'Por supuesto. Tenemos Guías Ronda verificadas en bienestar, yoga, nutrición, derecho de familia, emprendimiento y más. ¿Qué tipo de acompañamiento necesitas?'
     connect = 'coaching'
-  } else if (m.includes('programa') || m.includes('crear') || m.includes('quiero')) {
+  } else if (hasWord('programa', 'crear')) {
     reply = 'Me encanta que quieras empezar algo nuevo. Cambia a "Crea tu programa" arriba y te armo uno paso a paso. O cuéntame qué quieres lograr y te oriento.'
-  } else if (m.includes('hábito') || m.includes('rutina')) {
+  } else if (hasWord('habito', 'habitos', 'rutina', 'rutinas')) {
     reply = 'Tus hábitos son la arquitectura de tu bienestar. ¿Quieres que revisemos juntas cuáles tienes activos? O si prefieres, puedo sugerirte nuevos basados en lo que necesitas.'
-  } else if (m.includes('hola') || m.includes('hey') || m.includes('buenos') || m.includes('hi')) {
+  } else if (hasWord('hola', 'hey', 'buenos', 'buenas')) {
     reply = '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo escucharte, sugerirte un programa, o conectarte con una Guía Ronda.'
   } else {
     reply = 'Estoy aquí para ti. Puedo escucharte, ayudarte con tus hábitos, crear un programa personalizado, conectarte con una Guía Ronda, o activar herramientas de bienestar. ¿Por dónde empezamos?'
   }
 
-  return res.status(200).json({ reply, connect, sos, memoryUpdate: null })
+  return { reply, connect, sos, memoryUpdate: null }
 }

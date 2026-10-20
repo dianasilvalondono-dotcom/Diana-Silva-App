@@ -14,6 +14,10 @@ import { isCrisis, CRISIS_TEXT, BOTON_AYUDA } from '../src/utils/crisis.js'
 
 const GUIA_IA = { name: 'Emilia', title: 'Guía IA de Ronda' }
 
+// Respuesta sin IA (sin API key, o si el modelo no devuelve texto), con la
+// misma identidad de IA.
+const FALLBACK_TEXT = 'Lo que estás sintiendo tiene todo el sentido, y muchas mujeres lo viven sin atreverse a decirlo. Reconocerlo y escribirlo aquí ya es un paso. Una cosa pequeña que ayuda es ponerle nombre a lo que sientes en el cuerpo (¿pecho apretado? ¿estómago cerrado?) y respirar profundo hacia ese lugar — tu sistema nervioso necesita sentirse acompañado para soltar. Si esto sigue por más de dos semanas o se intensifica, busca acompañamiento con un profesional de salud mental. Aquí estoy contigo 💛'
+
 // Categorías del Board (las mismas de BOARD_CATS en src/App.jsx, sin 'todas').
 const CATEGORIAS = ['ansiedad', 'relaciones', 'autoestima', 'maternidad', 'duelo', 'emprendimiento', 'general']
 // Largo máximo de una publicación (el mismo BOARD_MAX de src/App.jsx).
@@ -94,7 +98,8 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta, 
         },
         body: JSON.stringify({
           model: 'claude-sonnet-5',
-          max_tokens: 600,
+          // Tope del total de salida: pensamiento + respuesta.
+          max_tokens: 2048,
           system: systemPrompt,
           messages: [{ role: 'user', content: userMessage }],
         }),
@@ -106,12 +111,20 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta, 
       }
 
       const data = await response.json()
-      const text = data.content[0].text.trim()
+      // La respuesta puede traer bloques de pensamiento antes del texto: se
+      // unen todos los bloques de texto, no solo el primero.
+      const text = (Array.isArray(data.content) ? data.content : [])
+        .filter(b => b && b.type === 'text' && typeof b.text === 'string')
+        .map(b => b.text)
+        .join('')
+        .trim()
+      // Sin texto, rechazada o cortada a medias: la respuesta de respaldo.
+      const usable = text && data.stop_reason !== 'refusal' && data.stop_reason !== 'max_tokens'
 
       return res.status(200).json({
         reply: {
           pro: { name: GUIA_IA.name, title: GUIA_IA.title, verified: false, ai: true },
-          text,
+          text: usable ? text : FALLBACK_TEXT,
         },
       })
     } catch (err) {
@@ -123,7 +136,7 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta, 
   return res.status(200).json({
     reply: {
       pro: { name: GUIA_IA.name, title: GUIA_IA.title, verified: false, ai: true },
-      text: 'Lo que estás sintiendo tiene todo el sentido, y muchas mujeres lo viven sin atreverse a decirlo. Reconocerlo y escribirlo aquí ya es un paso. Una cosa pequeña que ayuda es ponerle nombre a lo que sientes en el cuerpo (¿pecho apretado? ¿estómago cerrado?) y respirar profundo hacia ese lugar — tu sistema nervioso necesita sentirse acompañado para soltar. Si esto sigue por más de dos semanas o se intensifica, busca acompañamiento con un profesional de salud mental. Aquí estoy contigo 💛',
+      text: FALLBACK_TEXT,
     },
   })
 }

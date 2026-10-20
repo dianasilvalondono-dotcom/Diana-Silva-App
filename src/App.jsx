@@ -28,7 +28,7 @@ import { useSpeech } from './lib/useSpeech'
 import { useDialog } from './lib/useDialog'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile } from './lib/database'
-import { isCrisis, CRISIS_TEXT, BOTON_AYUDA } from './utils/crisis'
+import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
 
 // Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
 const BOARD_MAX = 2000
@@ -285,8 +285,10 @@ function App() {
   const [aiError, setAiError] = useState('')
   const [aiSaved, setAiSaved] = useState(false)
   // Chat state (Tu Ronda)
+  // local: true = mensaje de la app (saludo, avisos, errores), no del modelo:
+  // se muestra pero no se envía como historial a /api/agent.
   const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', text: '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo ayudarte con tus hábitos, sugerirte un programa, o simplemente estar aquí contigo.' }
+    { role: 'assistant', local: true, text: '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo ayudarte con tus hábitos, sugerirte un programa, o simplemente estar aquí contigo.' }
   ])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
@@ -2543,6 +2545,15 @@ function App() {
     // Sin texto del mensaje: solo la señal de uso, nunca el contenido.
     track('chat_message_sent', { mode: chatMode, turn: chatMessages.length })
 
+    // Señal de crisis: se atiende aquí mismo, sin depender del servidor ni de
+    // la red. Respuesta fija con la Línea 106 y el 123, y se abre Ayuda.
+    if (isCrisis(msg)) {
+      setChatMessages(prev => [...prev, { role: 'assistant', text: CRISIS_TEXT_CHAT, sos: true, connect: null }])
+      setChatLoading(false)
+      abrirAyuda('crisis_chat')
+      return
+    }
+
     // ── Build rich context from user state ──
     const todayChecked = Object.values(checked).filter(Boolean).length
     const totalHabits = habits.length
@@ -2578,8 +2589,12 @@ function App() {
       programActive: rutasEnCurso.length ? rutasEnCurso.join('; ') : null,
     }
 
-    // Send history for multi-turn conversation
-    const recentHistory = chatMessages.slice(-8).map(m => ({ role: m.role, text: m.text }))
+    // Send history for multi-turn conversation (sin los mensajes de la app:
+    // el saludo, los avisos y los errores no los escribió el modelo)
+    const recentHistory = chatMessages
+      .filter(m => !m.local && !m.isProgram && m.text)
+      .slice(-8)
+      .map(m => ({ role: m.role, text: m.text }))
 
     try {
       const resp = await fetch('/api/agent', {
@@ -2592,16 +2607,24 @@ function App() {
           memory: memory,       // 🧠 Memoria persistente
         }),
       })
-      const data = await resp.json()
-      if (data.error) throw new Error(data.error)
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const data = await resp.json().catch(() => null)
+      if (!data || data.error) throw new Error(data?.error || 'Respuesta vacía')
 
-      const assistantMsg = { role: 'assistant', text: data.reply, connect: data.connect || null, sos: data.sos || false }
-      setChatMessages(prev => [...prev, assistantMsg])
+      // Por si alguna etiqueta se le escapó al servidor, no se muestra.
+      const replyText = (typeof data.reply === 'string' ? data.reply : '')
+        .replace(/\[CONECTAR:[^\]\n]*\]/giu, '').replace(/\[SOS\]/gi, '').trim()
+      // Sin texto ni botones no hay burbuja (el aviso del programa va aparte).
+      if (replyText || data.connect || data.sos) {
+        setChatMessages(prev => [...prev, { role: 'assistant', text: replyText, connect: data.connect || null, sos: data.sos || false }])
+      }
+      // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
+      if (data.crisis) abrirAyuda('crisis_chat')
 
       // If AI returned a program, save it for the create flow
       if (data.program) {
         setAiProgram(data.program)
-        setChatMessages(prev => [...prev, { role: 'assistant', text: '¡Te armé un programa! Cambia a "Crea tu programa" arriba para verlo y guardarlo.', isProgram: true }])
+        setChatMessages(prev => [...prev, { role: 'assistant', text: '¡Te armé un programa! Cambia a "Crea tu programa" arriba para verlo y guardarlo.', isProgram: true, local: true }])
       }
 
       // 🧠 Update memory if the agent extracted new facts
@@ -2619,7 +2642,9 @@ function App() {
         setMemory(prev => ({ ...prev, conversationCount: (prev.conversationCount || 0) + 1 }))
       }
     } catch (err) {
-      setChatMessages(prev => [...prev, { role: 'assistant', text: 'Estoy teniendo problemas para conectarme. Pero puedo decirte: lo que sientes es válido, y estoy aquí contigo. Respira profundo.' }])
+      console.error('agent', err)
+      // Sin conexión: el aviso siempre deja a mano Ayuda y las líneas.
+      setChatMessages(prev => [...prev, { role: 'assistant', text: CHAT_ERROR_TEXT, sos: true, local: true }])
     }
     setChatLoading(false)
   }
@@ -2645,7 +2670,7 @@ function App() {
         {/* Messages */}
         <div ref={el => { chatRef.current = el; if (el) el.scrollTop = el.scrollHeight }}
           style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
-          {chatMessages.map((msg, i) => (
+          {chatMessages.map((msg, i) => (msg.role === 'assistant' && !msg.text && !msg.connect && !msg.sos) ? null : (
             <div key={i} style={{
               display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
             }}>
