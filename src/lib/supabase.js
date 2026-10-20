@@ -21,3 +21,23 @@ export async function apiHeaders() {
   }
   return headers
 }
+
+// fetch a /api con el token de la sesión. Si el servidor responde 401 con
+// una sesión que aquí todavía parece vigente (se cerró sesión en otro
+// dispositivo, o el reloj del celular va atrasado y el token ya venció para
+// el servidor), se renueva la sesión una vez y se reintenta. Si no se puede
+// renovar, auth-js cierra la sesión de este dispositivo (SIGNED_OUT) y
+// aparece el inicio de sesión, en vez de dejar la IA fallando hasta que
+// venza el token.
+export async function apiFetch(url, opciones = {}) {
+  const pedir = async () => fetch(url, { ...opciones, headers: await apiHeaders() })
+  const resp = await pedir()
+  if (resp.status !== 401 || !supabase) return resp
+  try {
+    const { data, error } = await supabase.auth.refreshSession()
+    if (error || !data?.session) return resp
+  } catch {
+    return resp
+  }
+  return pedir()
+}

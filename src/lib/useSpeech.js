@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { apiHeaders } from './supabase'
+import { apiFetch } from './supabase'
 
 // Reproduce en voz las respuestas de Tu Ronda.
 // La sintesis ocurre en /api/speak (la key de ElevenLabs nunca toca el bundle).
@@ -82,9 +82,8 @@ export function useSpeech() {
     limpiarError()
 
     try {
-      const resp = await fetch('/api/speak', {
+      const resp = await apiFetch('/api/speak', {
         method: 'POST',
-        headers: await apiHeaders(),
         body: JSON.stringify({ text, tone }),
         signal: ctrl.signal,
       })
