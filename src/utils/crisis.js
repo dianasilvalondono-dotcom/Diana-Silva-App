@@ -32,10 +32,19 @@ export function normalize(s) {
 // viene después de la coma ("no quiero vivir, de verdad"). Con clausulas en
 // false, los signos son un espacio más, como antes.
 const SEPARADORES = /(?<!\d)[.,]|[.,](?!\d)|[;:!?¡¿…\n\r]|\s[-–—]+\s|[–—]/g
+// Con clausulas en 'amplia', también parten la frase lo que muchas escriben
+// en lugar de la coma: un emoji ("no quiero vivir 😭 de verdad"), un doble
+// espacio, y las coletillas que no completan lo anterior aunque vayan sin
+// signo ("no quiero vivir de verdad", "en serio", "por favor", "les juro").
+// Las caras de risa (😂 🤣) no parten: "me quiero morir 😂 de la risa" sigue
+// siendo la risa.
+const SEPARADORES_AMPLIOS = /(?:(?![😂🤣😆😅😹])[\p{Extended_Pictographic}\p{S}])+|\s{2,}/gu
+const COLETILLAS = / (?=(de verdad|de veras|en serio|en verdad|por favor|porfa|porfavor|por dios|la verdad|(se )?(les|los|las|te|lo|se lo) juro|no es (chiste|broma|mentira|juego)|ayuda|ayudame|ayudenme|auxilio|socorro|no se que hacer|(ya )?no (puedo|aguanto|soporto|doy) mas|nadie me (entiende|quiere|escucha|cree|ayuda)|estoy llorando|jaja\p{L}*|jeje\p{L}*)( |$))/gu
 function textoParaCrisis(content, clausulas = true) {
   const t = ` ${normalize(content)} `
-  return (clausulas
-    ? t.replace(SEPARADORES, ' | ').replace(/[^\p{L}\p{N}|]+/gu, ' ').replace(/ ?(\| ?)+/g, ' | ')
+  const s = (clausulas
+    ? (clausulas === 'amplia' ? t.replace(SEPARADORES, ' | ').replace(SEPARADORES_AMPLIOS, ' | ') : t.replace(SEPARADORES, ' | '))
+      .replace(/[^\p{L}\p{N}|]+/gu, ' ').replace(/ ?(\| ?)+/g, ' | ')
     : t.replace(/[^\p{L}\p{N}]+/gu, ' '))
     .replace(/(\p{L})\1{2,}/gu, '$1')
     .replace(/([aiou])\1/g, '$1')
@@ -69,6 +78,7 @@ function textoParaCrisis(content, clausulas = true) {
     .replace(/ (q|k) /g, ' que ').replace(/ (q|k) /g, ' que ')
     .replace(/ (xq|pq|porq) /g, ' porque ')
     .replace(/ x /g, ' por ').replace(/ x /g, ' por ')
+  return (clausulas === 'amplia' ? `${s} `.replace(COLETILLAS, ' | ').replace(/ ?(\| ?)+/g, ' | ') : s)
     .trim()
     .replace(/^(\| ?)+|( ?\|)+$/g, '')
 }
@@ -677,10 +687,15 @@ const CLAUSULAS_JUNTAS = 3
 // que cruzan un signo: "me quiero... morir") y cada cláusula sola o con las
 // que le siguen. En una cláusula sola, las excepciones solo ven esa cláusula:
 // "no quiero vivir, de verdad" activa aunque "vivir de…" sea una excepción.
+// Las cláusulas se cortan dos veces: por los signos, y además por los emojis,
+// los dobles espacios y las coletillas ("no quiero vivir 😭 de verdad", "no
+// quiero vivir de verdad"). Las dos lecturas se suman: cortar de más nunca
+// quita una lectura que ya activaba.
 function lecturas(content) {
   const todas = new Set([textoParaCrisis(content, false)])
-  const partes = textoParaCrisis(content).split(' | ').filter(Boolean)
-  if (partes.length > 1) {
+  for (const modo of [true, 'amplia']) {
+    const partes = textoParaCrisis(content, modo).split(' | ').filter(Boolean)
+    if (partes.length < 2) continue
     for (let i = 0; i < partes.length; i++) {
       for (let k = 1; k <= CLAUSULAS_JUNTAS && i + k <= partes.length; k++) todas.add(partes.slice(i, i + k).join(' '))
     }
