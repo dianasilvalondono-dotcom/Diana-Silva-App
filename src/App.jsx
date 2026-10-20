@@ -14,7 +14,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -328,6 +328,18 @@ function App() {
   // 'confirm' pide un sí antes de borrar: el CTA ejecuta onConfirm; "Cancelar",
   // Escape o tocar el fondo lo cierran sin hacer nada.
   const [appModal, setAppModal] = useState(null)
+  // Si el navegador no deja guardar (memoria llena o almacenamiento
+  // bloqueado), save() avisa una sola vez con este evento (salud-global-2).
+  // Va antes de los efectos que guardan para escuchar desde el primero.
+  useEffect(() => {
+    const avisar = () => setAppModal({
+      type: 'info',
+      title: 'No pudimos guardar en este dispositivo',
+      body: 'Libera espacio o revisa los permisos del navegador. Puedes seguir usando Ronda, pero lo nuevo podría perderse al cerrarla.',
+    })
+    window.addEventListener(STORAGE_ERROR_EVENT, avisar)
+    return () => window.removeEventListener(STORAGE_ERROR_EVENT, avisar)
+  }, [])
 
   // ─── Toast "feature premium gratis para founding member" — solo 1 vez por feature ───
   const [foundingMsgShown, setFoundingMsgShown] = useState(() => load('ronda-founding-msg-shown', {}))
@@ -2174,12 +2186,10 @@ function App() {
     daysActive: (() => {
       const dias = new Set(entries.map(e => e.date).filter(Boolean))
       Object.entries(historialPrevio).forEach(([d, data]) => { if (Object.values(data || {}).some(Boolean)) dias.add(d) })
-      try {
-        Object.keys(localStorage).forEach(k => {
-          const d = k.slice('diana-routine-'.length)
-          if (k.startsWith('diana-routine-') && d !== diaApp && Object.values(load(k, {})).some(Boolean)) dias.add(d)
-        })
-      } catch { /* sin almacenamiento */ }
+      safeKeys().forEach(k => {
+        const d = k.slice('diana-routine-'.length)
+        if (k.startsWith('diana-routine-') && d !== diaApp && Object.values(load(k, {})).some(Boolean)) dias.add(d)
+      })
       if (Object.values(checked).some(Boolean) || Object.values(routineChecked).some(Boolean)) dias.add(diaApp)
       return dias.size
     })(),

@@ -26,9 +26,33 @@ let guardadoBloqueado = false
 export const bloquearGuardado = () => { guardadoBloqueado = true }
 export const guardadoEstaBloqueado = () => guardadoBloqueado
 
+/* Si el navegador no deja guardar (memoria llena o almacenamiento
+   bloqueado), la app sigue funcionando con lo que tiene en memoria y avisa
+   una sola vez: App escucha el evento 'ronda-storage-error' (salud-global-2). */
+export const STORAGE_ERROR_EVENT = 'ronda-storage-error'
+let avisoGuardadoDado = false
+function avisarFalloGuardado(err) {
+  if (avisoGuardadoDado) return
+  avisoGuardadoDado = true
+  console.error('No se pudo guardar en este dispositivo', err)
+  try { window.dispatchEvent(new CustomEvent(STORAGE_ERROR_EVENT)) } catch { /* sin ventana */ }
+}
+
+/* Devuelve true si quedó guardado y false si no se pudo. */
 export const save = (key, val) => {
-  if (guardadoBloqueado) return
-  localStorage.setItem(key, JSON.stringify(val))
+  if (guardadoBloqueado) return false
+  try {
+    localStorage.setItem(key, JSON.stringify(val))
+    return true
+  } catch (err) {
+    avisarFalloGuardado(err)
+    return false
+  }
+}
+
+/* Las claves guardadas, o [] si el almacenamiento está bloqueado. */
+export const safeKeys = () => {
+  try { return Object.keys(localStorage) } catch { return [] }
 }
 
 /* ¿Un valor diario está vacío? ({} sin ningún true, [], false o null) */
@@ -183,6 +207,16 @@ export const MOODS = ['😢','😐','🙂','😊','🤩'] // kept for backward c
  * haya agregado por su cuenta. Corre solo 1 vez por dispositivo.
  */
 export function runMigrationCleanDianaDefaults() {
+  // Corre al importar App.jsx: si el almacenamiento está bloqueado, no hace
+  // nada en vez de impedir que la app arranque (salud-global-2).
+  try {
+    return migrarDefaultsDeDiana()
+  } catch {
+    return false
+  }
+}
+
+function migrarDefaultsDeDiana() {
   const FLAG = 'ronda-migration-clean-diana-v1'
   if (localStorage.getItem(FLAG) === 'done') return false
 
