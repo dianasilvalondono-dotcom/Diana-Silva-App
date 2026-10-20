@@ -89,3 +89,55 @@ CREATE TABLE IF NOT EXISTS encuestas_seguridad (
 
 ALTER TABLE encuestas_seguridad ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Cada usuaria responde su encuesta" ON encuestas_seguridad FOR INSERT WITH CHECK ((select auth.uid()) = user_id);
+
+-- ═══════════════════════════════════════════
+--  Límite de cupos (rondas-10)
+--  Estado: PENDIENTE. NO está aplicado en producción: necesita el visto
+--  bueno de Diana y aplicarse como migración nueva. Mientras tanto la app
+--  sigue igual (muestra el aforo y no limita); en cuanto se aplique, dice
+--  cuántos cupos quedan y no deja apartar si está lleno.
+-- ═══════════════════════════════════════════
+
+-- Antes de cada reserva: si el plan tiene cupos y ya están todos tomados,
+-- la reserva no entra ('cupos_llenos'). FOR UPDATE pone en fila a las que
+-- reservan el mismo plan al mismo tiempo, así no se pasa del aforo.
+CREATE OR REPLACE FUNCTION public.reservas_validar_cupo()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_cupos INTEGER;
+  v_ocupados INTEGER;
+BEGIN
+  SELECT cupos INTO v_cupos FROM public.planes WHERE id = NEW.plan_id FOR UPDATE;
+  IF v_cupos IS NULL THEN
+    RETURN NEW;
+  END IF;
+  -- Si ya tenía su cupo, que responda el UNIQUE (la app lo toma como apartado).
+  IF EXISTS (SELECT 1 FROM public.reservas WHERE plan_id = NEW.plan_id AND user_id = NEW.user_id) THEN
+    RETURN NEW;
+  END IF;
+  SELECT count(*) INTO v_ocupados FROM public.reservas WHERE plan_id = NEW.plan_id;
+  IF v_ocupados >= v_cupos THEN
+    RAISE EXCEPTION 'cupos_llenos';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+CREATE OR REPLACE TRIGGER reservas_limite_cupos
+  BEFORE INSERT ON reservas
+  FOR EACH ROW EXECUTE FUNCTION public.reservas_validar_cupo();
+
+-- Cupos tomados por plan (solo el número, nunca quién reservó), para los
+-- planes publicados de una ciudad y los en línea. La app lo llama con
+-- supabase.rpc('cupos_ocupados', { p_ciudad }).
+CREATE OR REPLACE FUNCTION public.cupos_ocupados(p_ciudad TEXT)
+RETURNS TABLE (plan_id UUID, ocupados INTEGER) AS $$
+  SELECT r.plan_id, count(*)::INTEGER
+  FROM public.reservas r
+  JOIN public.planes p ON p.id = r.plan_id
+  WHERE p.publicado AND (p.ciudad = p_ciudad OR p.modalidad = 'en-linea')
+  GROUP BY r.plan_id;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+
+REVOKE EXECUTE ON FUNCTION public.cupos_ocupados(TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.cupos_ocupados(TEXT) TO authenticated;
