@@ -153,6 +153,12 @@ export const CRISIS_PATTERNS = [
   /\bno quiero estar (mas )?(aqui|aca|en este mundo|viva|vivo)\b/,
   new RegExp(`\\b(ya no quiero seguir|no quiero seguir mas)\\b${NO_ES_ALGO}`),
   /\bque (se acabe|se termine) todo\b/, /\bque todo (se acabe|se termine)\b/,
+  // Sin el "se": "quiero que todo termine", "que acabe todo", "que esto se
+  // acabe para siempre". No activan "ojalá que todo termine bien" ni "espero
+  // que todo termine pronto con la mudanza".
+  /\bque todo (termine|acabe)\b(?! (bien|pronto|rapido|como|para|en|con|antes|a tiempo)\b)/,
+  /\bque (termine|acabe) todo\b(?! (bien|lo|el|la|los|las|pronto|rapido|a tiempo)\b)/,
+  /\bque esto (se )?(acabe|termine) para siempre\b/,
   new RegExp(`\\bmejor (me muero|me muera|morirme)\\b${NO_ES_RISA}`), /\bmejor (estar|estaria) muert[ao]/,
   new RegExp(ME_MATO),
   /\bno me importa(ria)? (si me muero|si muero|morir(me)?)\b/,
