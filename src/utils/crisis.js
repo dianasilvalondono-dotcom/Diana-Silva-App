@@ -29,11 +29,12 @@ function textoParaCrisis(content) {
 // uñas, el fleco… ("me quiero cortar el pelo").
 const NO_ES_PELO = '(?!( (el|la|los|las|mi|mis|un|una))? (pelo|cabello|unas|fleco|flequillo|pollina|capul|cerquillo|puntas|barba|melena)\\b)'
 
-// Lo que viene después de "morir(me)" cuando es una exageración y no una
-// crisis: "me quiero morir de (la) risa", "quiero morirme de la vergüenza",
-// "de la pena ajena", "de amor por este perrito". Solo esas: "morirme de
-// tristeza", "de pena" o "de dolor" sí activan ayuda.
-const NO_ES_RISA = '(?!(me)? de (la )?(risa|verguenza|pena ajena|amor|ternura)\\b)'
+// Lo que viene después de "morir(me)" cuando es una exageración cómica y no
+// una crisis: "me quiero morir de (la) risa", "quiero morirme de la
+// vergüenza", "de la pena ajena". Solo esas: "morirme de amor" ("me quiero
+// morir de amor, no puedo más"), "de tristeza", "de pena" o "de dolor" sí
+// activan ayuda. Ante la duda, se activa.
+const NO_ES_RISA = '(?!(me)? de (la )?(risa|verguenza|pena ajena)\\b)'
 
 // Lo que viene después de "matar(me)" cuando exagera el esfuerzo: "me voy a
 // matar estudiando", "matarme en el gym".
