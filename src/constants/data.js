@@ -48,7 +48,8 @@ export const TOOLKIT_CATS = [
   { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#141833' },
   { id: 'musica',     emoji: '', label: 'Música',        color: '#141833' },
   { id: 'masterclass',emoji: '', label: 'Masterclasses', color: '#592147' },
-  { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#91946E' },
+  // textColor: el salvia es acento; la etiqueta de texto va en oliva oscuro (8:1).
+  { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#91946E', textColor: '#4F4B1E' },
   { id: 'otro',       emoji: '', label: 'Otros',         color: '#592147' },
 ]
 

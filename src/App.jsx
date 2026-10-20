@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import './App.css'
-import { C } from './constants/colors'
+import { C, colorTexto } from './constants/colors'
 import { FONT, FONT_DISPLAY, SHADOW } from './constants/tokens'
 import { ICONS, MOOD_ICONS, UI_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
@@ -1655,7 +1655,7 @@ function App() {
                           display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
                           background: isDone ? `${prog.color}08` : C.cream, borderRadius: 14,
                           cursor: 'pointer', border: `1px solid ${isDone ? `${prog.color}30` : C.border}`,
-                          opacity: isDone ? 0.7 : 1, transition: 'all 0.15s',
+                          transition: 'all 0.15s',
                           width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                         }}>
                           <span aria-hidden="true" style={{
@@ -1666,7 +1666,7 @@ function App() {
                             {isDone && UI_ICONS.check('white', 15)}
                           </span>
                           <span style={{ display: 'block', flex: 1 }}>
-                            <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                            <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: colorTexto(prog.color), textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                               Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
                             </span>
                             <span style={{ display: 'block', fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
@@ -1684,7 +1684,7 @@ function App() {
                   {pct === 100 && (
                     <div style={{ textAlign: 'center', marginTop: 14, padding: 16, background: `${prog.color}10`, borderRadius: 14 }}>
                       <div style={{ fontSize: 28, marginBottom: 6, color: C.teal }}>●</div>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: prog.color }}>¡Completaste la ruta!</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: colorTexto(prog.color) }}>¡Completaste la ruta!</div>
                       <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Eres increíble. Cada paso cuenta.</div>
                     </div>
                   )}
@@ -1969,7 +1969,7 @@ function App() {
                   <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{item.name}</div>
                   {item.note && <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{item.note}</div>}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                    <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.color, fontWeight: 700 }}>
+                    <span style={{ fontSize: 20, background: C.beige, padding: '2px 8px', borderRadius: 20, color: cat.textColor || cat.color, fontWeight: 700 }}>
                       {cat.label}
                     </span>
                     {item.url && (
@@ -3027,14 +3027,15 @@ function App() {
             { label: 'Hábitos cumplidos', value: profileStats.totalHabitsEver, color: C.coral },
             { label: 'Entradas diario', value: profileStats.totalEntries, color: C.lavanda },
             { label: 'Frases favoritas', value: profileStats.favQuotesCount, color: C.gold },
-            { label: 'Recursos guardados', value: profileStats.toolkitCount, color: C.mint },
+            // El salvia queda en el punto; el número va en un tono que se lee (8:1).
+            { label: 'Recursos guardados', value: profileStats.toolkitCount, color: C.mint, textColor: C.olivaOscura },
             { label: 'Hoy', value: `${totalDone}/${totalHabits}`, color: C.rose },
           ].map((stat, i) => (
             <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 16, textAlign: 'center', border: `1px solid ${C.border}` }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${stat.color}15`, margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ width: 14, height: 14, borderRadius: '50%', background: stat.color }} />
               </div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: stat.color }}>{stat.value}</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: stat.textColor || stat.color }}>{stat.value}</div>
               <div style={{ fontSize: 19, fontWeight: 600, color: C.muted, marginTop: 4 }}>{stat.label}</div>
             </div>
           ))}

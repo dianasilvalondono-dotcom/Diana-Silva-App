@@ -82,3 +82,8 @@ export const C = {
   beige:     '#EEF3F9',
   nude:      '#EEF3F9',
 }
+
+/* El salvia (#91946E) es acento: como texto sobre la hoja da 2,8:1. Donde
+   un color de programa o de categoría se usa como texto, el salvia pasa a
+   oliva (4,8:1). Los demás colores ya tienen contraste y no cambian. */
+export const colorTexto = (c) => (typeof c === 'string' && c.toUpperCase() === C.sage ? C.oliva : c)
