@@ -471,6 +471,17 @@ function App() {
     if (isAdmin) { setOnboarded(false); setModuleIntros({}) }
   }, [isAdmin])
 
+  // Bienvenida: la barra de abajo es fija y opaca. Mientras dura, el
+  // navegador trae el control enfocado con Tab por encima de ella, no debajo
+  // (WCAG 2.4.11; bienvenida-1). 190 px = alto de la barra con margen.
+  useEffect(() => {
+    if (onboarded) return
+    const raiz = document.documentElement
+    const antes = raiz.style.scrollPaddingBottom
+    raiz.style.scrollPaddingBottom = '190px'
+    return () => { raiz.style.scrollPaddingBottom = antes }
+  }, [onboarded])
+
   const [onboardStep, setOnboardStep] = useState(0)
   const [onboardName, setOnboardName] = useState('')
   const [onboardHabits, setOnboardHabits] = useState([])
@@ -4266,20 +4277,22 @@ function App() {
               Ronda" y Atrás se queda, para corregir el nombre o los hábitos
               antes de crearlos (bienvenida-7). Ahí los botones van más
               compactos para caber lado a lado en un teléfono de 360px. */}
-          <div style={{ display: 'flex', gap: 16, maxWidth: '100%' }}>
+          <div style={{ display: 'flex', gap: ultimoPaso ? 10 : 16, maxWidth: '100%' }}>
             {onboardStep > 0 && (
               <button onClick={() => irAPasoOnboard(onboardStep - 1)} style={{
-                padding: ultimoPaso ? '12px 18px' : '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
+                padding: ultimoPaso ? '12px 14px' : '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
                 background: C.card, color: C.muted, fontSize: 19, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
               }}>
                 Atrás
               </button>
             )}
+            {/* A 320 px "Comenzar mi Ronda" cabe en una línea al lado de Atrás
+                (antes se partía en dos y la barra crecía). */}
             <button onClick={ultimoPaso ? finishOnboarding : () => irAPasoOnboard(onboardStep + 1)} style={{
-              padding: ultimoPaso ? '12px 22px' : '12px 32px', borderRadius: 25, border: 'none',
+              padding: ultimoPaso ? '12px 16px' : '12px 32px', borderRadius: 25, border: 'none',
               background: ultimoPaso ? `linear-gradient(135deg, ${C.teal}, ${C.tealDark})` : `${C.teal}`,
-              color: 'white', fontSize: ultimoPaso ? 18 : 19, fontWeight: 800,
+              color: 'white', fontSize: ultimoPaso ? 'clamp(16px, 5vw, 18px)' : 19, fontWeight: 800, whiteSpace: 'nowrap',
               cursor: 'pointer', fontFamily: 'inherit',
               boxShadow: '0 4px 12px rgba(20,24,51,0.3)',
             }}>
