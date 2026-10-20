@@ -157,6 +157,39 @@ function normalizarPrograma(p) {
   }
 }
 
+/* ── Tu Ronda: conversación y memoria ── */
+// Saludo al abrir el chat. Es de la app, no del modelo (local: no se envía
+// como historial a /api/agent).
+const CHAT_GREETING = { role: 'assistant', local: true, text: '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo ayudarte con tus hábitos, sugerirte un programa, o simplemente estar aquí contigo.' }
+// La conversación se guarda en este dispositivo ('ronda-chat'): los últimos 30 mensajes.
+const CHAT_KEY = 'ronda-chat'
+const CHAT_MAX = 30
+function cargarChat() {
+  const guardado = load(CHAT_KEY, null)
+  // El aviso de un programa creado en el chat no se recupera: el programa
+  // no se guarda hasta que la usuaria lo guarda en Rutas.
+  const mensajes = Array.isArray(guardado)
+    ? guardado.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string' && !m.isProgram)
+    : []
+  return mensajes.length ? mensajes.slice(-CHAT_MAX) : [CHAT_GREETING]
+}
+// La memoria nueva se suma a la que ya había (el modelo solo devuelve lo
+// nuevo), sin repetir —se compara en minúsculas y sin espacios— y con un
+// tope: si se pasa, quedan los más recientes.
+function unirMemoria(previos, nuevos, tope) {
+  const lista = []
+  const vistos = new Set()
+  for (const x of [...(Array.isArray(previos) ? previos : []), ...(Array.isArray(nuevos) ? nuevos : [])]) {
+    if (typeof x !== 'string') continue
+    const texto = x.trim()
+    const clave = texto.toLowerCase().replace(/\s+/g, '')
+    if (!clave || vistos.has(clave)) continue
+    vistos.add(clave)
+    lista.push(texto)
+  }
+  return lista.slice(-tope)
+}
+
 /* Une dos trozos de texto con un espacio, sin duplicarlo. */
 function juntarTexto(a, b) {
   if (!b) return a
@@ -287,10 +320,14 @@ function App() {
   const [aiSaved, setAiSaved] = useState(false)
   // Chat state (Tu Ronda)
   // local: true = mensaje de la app (saludo, avisos, errores), no del modelo:
-  // se muestra pero no se envía como historial a /api/agent.
-  const [chatMessages, setChatMessages] = useState([
-    { role: 'assistant', local: true, text: '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo ayudarte con tus hábitos, sugerirte un programa, o simplemente estar aquí contigo.' }
-  ])
+  // se muestra y se guarda, pero no se envía como historial a /api/agent.
+  const [chatMessages, setChatMessages] = useState(cargarChat)
+  useEffect(() => {
+    try { save(CHAT_KEY, chatMessages.slice(-CHAT_MAX)) } catch { /* sin almacenamiento */ }
+  }, [chatMessages])
+  // Una conversación = cada vez que entra a Pregúntale (no cada mensaje):
+  // el contador de la memoria sube con la primera respuesta de esa visita.
+  const chatSesionContadaRef = useRef(false)
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatMode, setChatMode] = useState('chat') // 'chat' or 'create'
@@ -1145,6 +1182,7 @@ function App() {
   const abrirAcceso = (id) => {
     if (id === 'ai') {
       resetAiAgent(); setChatMode('chat')
+      chatSesionContadaRef.current = false
       if (isPremium) showFoundingPerk('chat', 'Tu Ronda · IA personal')
     }
     irASubTab(id)
@@ -2640,19 +2678,23 @@ function App() {
         setChatMessages(prev => [...prev, { role: 'assistant', text: '¡Te armé un programa! Cambia a "Crea tu programa" arriba para verlo y guardarlo.', isProgram: true, local: true }])
       }
 
-      // 🧠 Update memory if the agent extracted new facts
-      if (data.memoryUpdate) {
+      // 🧠 Memoria: lo nuevo se suma a lo que ya sabía (no lo reemplaza).
+      // El contador sube una vez por conversación, no por mensaje.
+      const sumarConversacion = chatSesionContadaRef.current ? 0 : 1
+      chatSesionContadaRef.current = true
+      const upd = data.memoryUpdate && typeof data.memoryUpdate === 'object' ? data.memoryUpdate : null
+      if (upd || sumarConversacion) {
         setMemory(prev => ({
           ...prev,
-          facts: data.memoryUpdate.facts || prev.facts,
-          patterns: data.memoryUpdate.patterns || prev.patterns,
-          preferences: { ...prev.preferences, ...(data.memoryUpdate.preferences || {}) },
-          summary: data.memoryUpdate.summary || prev.summary,
-          lastUpdated: new Date().toISOString(),
-          conversationCount: (prev.conversationCount || 0) + 1,
+          ...(upd ? {
+            facts: unirMemoria(prev.facts, upd.facts, 30),
+            patterns: unirMemoria(prev.patterns, upd.patterns, 20),
+            preferences: { ...prev.preferences, ...(upd.preferences && typeof upd.preferences === 'object' ? upd.preferences : {}) },
+            summary: typeof upd.summary === 'string' && upd.summary.trim() ? upd.summary.trim() : prev.summary,
+            lastUpdated: new Date().toISOString(),
+          } : {}),
+          conversationCount: (prev.conversationCount || 0) + sumarConversacion,
         }))
-      } else {
-        setMemory(prev => ({ ...prev, conversationCount: (prev.conversationCount || 0) + 1 }))
       }
     } catch (err) {
       console.error('agent', err)
@@ -2689,6 +2731,25 @@ function App() {
 
       {/* ── CHAT MODE ── */}
       {chatMode === 'chat' && <>
+        {/* La conversación se guarda en este dispositivo: se puede empezar de cero. */}
+        {chatMessages.length > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -6, marginBottom: 4 }}>
+            <button type="button" onClick={() => setAppModal({
+              type: 'confirm',
+              title: '¿Empezar una conversación nueva?',
+              body: 'Esta conversación se borra de este dispositivo. Lo que Tu Ronda sabe de ti se queda.',
+              cta: 'Empezar de nuevo',
+              onConfirm: () => {
+                stopSpeech()
+                setChatMessages([CHAT_GREETING])
+                chatSesionContadaRef.current = false
+              },
+            })} style={{
+              minHeight: 32, padding: '0 4px', background: 'none', border: 'none', cursor: 'pointer',
+              color: C.muted, fontSize: 15, fontWeight: 600, fontFamily: 'inherit', textDecoration: 'underline',
+            }}>Nueva conversación</button>
+          </div>
+        )}
         {/* Messages */}
         <div ref={el => { chatRef.current = el; if (el) el.scrollTop = el.scrollHeight }}
           style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
@@ -3208,9 +3269,12 @@ function App() {
             <button onClick={() => setAppModal({
               type: 'confirm',
               title: '¿Borrar lo que Ronda ha aprendido de ti?',
-              body: 'Esta acción no se puede deshacer.',
+              body: 'Se borra lo que Tu Ronda sabe de ti y también tu conversación con ella. Esta acción no se puede deshacer.',
               cta: 'Borrar',
-              onConfirm: () => setMemory({ facts: [], patterns: [], preferences: {}, summary: '', lastUpdated: null, conversationCount: 0 }),
+              onConfirm: () => {
+                setMemory({ facts: [], patterns: [], preferences: {}, summary: '', lastUpdated: null, conversationCount: 0 })
+                setChatMessages([CHAT_GREETING])
+              },
             })} style={{
               padding: '6px 12px', borderRadius: 10, border: `1px solid ${C.border}`,
               background: 'transparent', color: C.muted, fontSize: 14, fontWeight: 600,
@@ -3253,7 +3317,7 @@ function App() {
           )}
 
           <div style={{ fontSize: 13, color: C.subtle, marginTop: 12, fontStyle: 'italic' }}>
-            {memory.conversationCount > 0 ? `${memory.conversationCount} conversaciones hasta hoy` : ''}
+            {memory.conversationCount > 0 ? `${memory.conversationCount} ${memory.conversationCount === 1 ? 'conversación' : 'conversaciones'} hasta hoy` : ''}
           </div>
         </div>
       )}

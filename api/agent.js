@@ -103,7 +103,7 @@ FORMATO DE RESPUESTA:
 - Si te piden programa: devuélvelo como JSON {"type":"program","title":"...","desc":"...","days":[...]}
 
 EXTRACCIÓN DE MEMORIA (CRÍTICO):
-Al final de tu respuesta al usuario, SEPARADO por "---MEMORY---", incluye un JSON con nueva memoria SI aprendiste algo nuevo e importante:
+Al final de tu respuesta al usuario, SEPARADO por "---MEMORY---", incluye un JSON con nueva memoria SI aprendiste algo nuevo e importante. En "facts" y "patterns" van SOLO los que no estén ya en su memoria (la app los suma a los que ya tiene):
 
 ---MEMORY---
 {
