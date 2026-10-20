@@ -149,6 +149,19 @@ export function formatDayKey(key) {
   return `${DAYS[d.getDay()]} ${d.getDate()} de ${MONTHS[d.getMonth()]}${anio}`
 }
 
+/* Hora relativa de una marca de tiempo (ms): 'Ahora', 'Hace 5 min',
+   'Hace 2 horas', 'Hace 3 días'. */
+export function formatRelative(ts, ahora = Date.now()) {
+  const min = Math.floor((ahora - ts) / 60000)
+  if (!Number.isFinite(min)) return ''
+  if (min < 1) return 'Ahora'
+  if (min < 60) return `Hace ${min} min`
+  const horas = Math.floor(min / 60)
+  if (horas < 24) return `Hace ${horas} ${horas === 1 ? 'hora' : 'horas'}`
+  const dias = Math.floor(horas / 24)
+  return `Hace ${dias} ${dias === 1 ? 'día' : 'días'}`
+}
+
 export const MOOD_LABELS = ['Difícil', 'Meh', 'Bien', 'Genial', 'Increíble']
 export const MOOD_COLORS = ['#592147', '#141833', '#726D2D', '#91946E', '#141833']
 export const MOODS = ['😢','😐','🙂','😊','🤩'] // kept for backward compat with saved data

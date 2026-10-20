@@ -8,38 +8,25 @@
 //
 // Para cambiar el nombre de la Guía IA, edita GUIA_IA.name (una sola línea).
 
+// Patrones y respuesta de crisis: compartidos con la app (la app también
+// detecta crisis antes de llamar aquí, para abrir Ayuda aunque esto falle).
+import { isCrisis, CRISIS_TEXT } from '../src/utils/crisis.js'
+
 const GUIA_IA = { name: 'Emilia', title: 'Guía IA de Ronda' }
 
-// Normaliza para detectar crisis sin importar acentos ni mayúsculas.
-function normalize(s) {
-  return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-}
-
-// Señales de crisis de alto riesgo. Ante la duda, preferimos activar ayuda real.
-const CRISIS_PATTERNS = [
-  /\bsuicid/, /quitarme la vida/, /acabar con mi vida/, /matarme/, /me quiero morir/,
-  /quiero morir/, /no quiero (vivir|seguir viviendo|seguir aca|seguir aqui)/,
-  /mejor no estar/, /acabar con todo/, /hacerme dano/, /lastimarme/, /cortarme/,
-  /\bautolesion/, /me estoy cortando/,
-  /me viol/, /abuso sexual/, /me esta pegando/, /me pega/, /me golpea/, /me maltrata/,
-  /estoy en peligro/, /me va a matar/, /amenaza de muerte/,
-]
-
-function isCrisis(content) {
-  const n = normalize(content)
-  return CRISIS_PATTERNS.some((re) => re.test(n))
-}
-
-const CRISIS_TEXT =
-  'Lo que me cuentas es muy importante, y no tienes que cargarlo sola. Yo soy la Guía IA de Ronda, y para esto necesitas a una persona real ahora mismo. Abre el botón "¿Necesitas apoyo?" aquí en la app para herramientas inmediatas, y comunícate ya con la Línea 106 (salud mental, gratuita y confidencial en Colombia). Si estás en peligro inmediato, llama al 123. Estoy contigo, y quiero que hables con alguien que pueda acompañarte de verdad en este momento. 💛'
+// Categorías del Board (las mismas de BOARD_CATS en src/App.jsx, sin 'todas').
+const CATEGORIAS = ['ansiedad', 'relaciones', 'autoestima', 'maternidad', 'duelo', 'emprendimiento', 'general']
+// Largo máximo de una publicación (el mismo BOARD_MAX de src/App.jsx).
+const MAX_CONTENT = 2000
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { content, cat } = req.body
-  if (!content) return res.status(400).json({ error: 'Content is required' })
+  const { content, cat } = req.body || {}
+  if (typeof content !== 'string' || !content.trim()) return res.status(400).json({ error: 'Content is required' })
 
   // ── Chequeo de crisis PRIMERO — respuesta segura garantizada, sin IA ──
+  // Va antes de validar largo y categoría: una crisis nunca recibe un error.
   if (isCrisis(content)) {
     return res.status(200).json({
       crisis: true,
@@ -49,6 +36,9 @@ export default async function handler(req, res) {
       },
     })
   }
+
+  if (content.length > MAX_CONTENT) return res.status(413).json({ error: 'El mensaje es demasiado largo' })
+  if (!CATEGORIAS.includes(cat)) return res.status(400).json({ error: 'Categoría no válida' })
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 

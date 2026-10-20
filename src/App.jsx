@@ -13,7 +13,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -28,6 +28,10 @@ import { useSpeech } from './lib/useSpeech'
 import { useDialog } from './lib/useDialog'
 import AuthScreen from './components/AuthScreen'
 import { syncFromLocal, getUserProfile } from './lib/database'
+import { isCrisis, CRISIS_TEXT } from './utils/crisis'
+
+// Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
+const BOARD_MAX = 2000
 
 /* ── Reusable components ── */
 function Bar({ value, color = C.rose, height = 6 }) {
@@ -399,7 +403,19 @@ function App() {
   const [groundStep, setGroundStep] = useState(0)
 
   // Board (Bulletin Board 24/7)
-  const [boardPosts, setBoardPosts] = useState(() => load('ronda-board', []))
+  const [boardPosts, setBoardPosts] = useState(() => {
+    const guardados = load('ronda-board', [])
+    // Toda publicación propia pide respuesta. Si al cargar no tiene ninguna,
+    // esa respuesta ya no va a llegar: quedó pendiente (se recargó o se cerró
+    // la app mientras la Guía IA respondía) o falló en silencio en versiones
+    // anteriores. Se marca como fallida para que aparezca "Reintentar" en vez
+    // de "está leyendo" para siempre.
+    return Array.isArray(guardados)
+      ? guardados.filter(Boolean).map(p => p.replies?.length
+        ? (p.awaitingGuia ? { ...p, awaitingGuia: false } : p)
+        : { ...p, awaitingGuia: false, guiaFallo: true })
+      : []
+  })
   const [boardFilter, setBoardFilter] = useState('todas')
   const [boardNewText, setBoardNewText] = useState('')
   const [boardNewCat, setBoardNewCat] = useState('general')
@@ -2090,18 +2106,72 @@ function App() {
   // Los posts sembrados se muestran como EJEMPLOS y sus respuestas se atribuyen
   // a la Guía IA de Ronda (misma identidad transparente que en vivo), no a
   // profesionales humanas verificadas. Correccion de brand voice (P1.2).
+  // Las publicaciones propias van primero: son las más recientes.
+  const GUIA_IA_PRO = { name: 'Emilia', title: 'Guía IA de Ronda', verified: false, ai: true }
   const allBoardPosts = [
+    ...boardPosts,
     ...SEED_POSTS.map(p => ({
       ...p,
       example: true,
       replies: (p.replies || []).map(r => ({
         ...r,
-        pro: { name: 'Emilia', title: 'Guía IA de Ronda', verified: false, ai: true },
+        pro: GUIA_IA_PRO,
       })),
     })),
-    ...boardPosts,
   ]
   const filteredBoardPosts = boardFilter === 'todas' ? allBoardPosts : allBoardPosts.filter(p => p.cat === boardFilter)
+
+  // Hora de una publicación: relativa desde createdAt. Las guardadas antes no
+  // lo tienen, pero su id es 'u' + Date.now(); los ejemplos traen su texto.
+  const horaPost = (post) => {
+    const ts = post.createdAt ?? (/^u\d+$/.test(post.id) ? Number(post.id.slice(1)) : null)
+    return ts ? formatRelative(ts) : post.time
+  }
+
+  // Pide (o vuelve a pedir) la respuesta de la Guía IA para una publicación.
+  const requestGuiaReply = async ({ id, content, cat }) => {
+    const actualizar = (cambios) => setBoardPosts(prev => prev.map(p => p.id === id ? { ...p, ...cambios } : p))
+
+    // Señal de crisis: se revisa aquí mismo, sin depender del servidor. Se
+    // abre Ayuda y se responde con el texto de crisis (el mismo del servidor,
+    // con la Línea 106 y el 123) aunque no haya red.
+    if (isCrisis(content)) {
+      actualizar({ replies: [{ pro: GUIA_IA_PRO, text: CRISIS_TEXT }], awaitingGuia: false, guiaFallo: false })
+      abrirAyuda('crisis_comunidad')
+      return
+    }
+
+    actualizar({ awaitingGuia: true, guiaFallo: false })
+    // Pausa breve (se siente considerada), en paralelo con la petición: la
+    // respuesta se guarda en cuanto termina, sin un setTimeout suelto después.
+    // Es IA: responde rápido, sin fingir ser humana.
+    const delaySec = 2 + Math.floor(Math.random() * 3)
+    const control = new AbortController()
+    const corte = setTimeout(() => control.abort(), 20000)
+    try {
+      const pedir = fetch('/api/guia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, cat }),
+        signal: control.signal,
+      }).then(async resp => {
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+        const data = await resp.json()
+        if (data.error || !data.reply) throw new Error(data.error || 'Sin respuesta')
+        return data
+      })
+      const [data] = await Promise.all([pedir, new Promise(r => setTimeout(r, delaySec * 1000))])
+      actualizar({ replies: [data.reply], awaitingGuia: false, guiaFallo: false })
+      // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
+      if (data.crisis) abrirAyuda('crisis_comunidad')
+    } catch {
+      // Sin respuesta: la publicación queda guardada y se puede reintentar.
+      actualizar({ awaitingGuia: false, guiaFallo: true })
+      track('community_guia_failed', { category: cat })
+    } finally {
+      clearTimeout(corte)
+    }
+  }
 
   const addBoardPost = async () => {
     if (!boardNewText.trim()) return
@@ -2116,60 +2186,24 @@ function App() {
       return
     }
     showFoundingPerk('board', 'Comunidad y Guías Ronda')
-    const newPostId = `u${Date.now()}`
-    const content = boardNewText.trim()
-    const cat = boardNewCat
-
+    const createdAt = Date.now()
     const newPost = {
-      id: newPostId,
-      cat,
-      content,
-      time: 'Ahora',
+      id: `u${createdAt}`,
+      cat: boardNewCat,
+      // Recorte por si un pegado se salta el maxLength del campo.
+      content: boardNewText.trim().slice(0, BOARD_MAX),
+      createdAt,
       hearts: 0,
       replies: [],
-      awaitingGuia: true,  // mostrar "Una guía está respondiendo..."
+      awaitingGuia: true,  // mostrar "La Guía IA está leyendo tu mensaje"
     }
     setBoardPosts(prev => [newPost, ...prev])
     setBoardNewText('')
     setBoardShowForm(false)
     // Sin el contenido del post: solo la senal y la categoria.
-    track('community_post_created', { category: cat })
+    track('community_post_created', { category: newPost.cat })
 
-    // ── Pedir respuesta de la Guía IA de Ronda ──
-    // Pausa breve (se siente considerada). Es IA: responde rápido, sin fingir ser humana.
-    const delaySec = 2 + Math.floor(Math.random() * 3)
-
-    try {
-      const resp = await fetch('/api/guia', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, cat }),
-      })
-      const data = await resp.json()
-      if (data.error) throw new Error(data.error)
-
-      // Señal de crisis del servidor: mostrar la respuesta ya y abrir el SOS de inmediato.
-      if (data.crisis) {
-        setBoardPosts(prev => prev.map(p =>
-          p.id === newPostId ? { ...p, replies: [data.reply], awaitingGuia: false } : p
-        ))
-        abrirAyuda('crisis_comunidad')
-        return
-      }
-
-      setTimeout(() => {
-        setBoardPosts(prev => prev.map(p =>
-          p.id === newPostId
-            ? { ...p, replies: [data.reply], awaitingGuia: false }
-            : p
-        ))
-      }, delaySec * 1000)
-    } catch (err) {
-      // Si falla, marcar como sin respuesta pero no romper el post
-      setBoardPosts(prev => prev.map(p =>
-        p.id === newPostId ? { ...p, awaitingGuia: false } : p
-      ))
-    }
+    requestGuiaReply(newPost)
   }
 
   const toggleBoardHeart = (postId) => {
@@ -2246,12 +2280,21 @@ function App() {
             onChange={e => setBoardNewText(e.target.value)}
             placeholder="Escribe lo que sientes, lo que te preocupa, lo que necesitas saber. Este es tu espacio seguro."
             rows={4}
+            maxLength={BOARD_MAX}
+            aria-describedby="board-contador board-aviso"
             style={{
               width: '100%', border: `1px solid ${C.border}`, borderRadius: 12, padding: 14,
               fontSize: 20, fontFamily: 'inherit', resize: 'vertical', outline: 'none',
               lineHeight: 1.6, background: C.cream, color: C.text, boxSizing: 'border-box',
             }}
           />
+          <div id="board-contador" style={{ fontSize: 14, color: C.subtle, textAlign: 'right', marginTop: 4 }}>
+            {boardNewText.length}/{BOARD_MAX}
+          </div>
+          {/* Aviso honesto: aún no hay comunidad en el servidor (ver juntas-1). */}
+          <div id="board-aviso" style={{ fontSize: 15, color: C.muted, lineHeight: 1.5, marginTop: 6 }}>
+            Por ahora tu publicación se guarda solo en este dispositivo y te responde la Guía IA de Ronda.
+          </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
             <button onClick={() => setBoardShowForm(false)} style={{
               flex: 1, padding: '10px 16px', borderRadius: 12, border: `1px solid ${C.border}`,
@@ -2281,7 +2324,7 @@ function App() {
               }}>🔒</div>
               <div>
                 <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>Anónima</div>
-                <div style={{ fontSize: 19, color: C.subtle }}>{post.time}</div>
+                <div style={{ fontSize: 19, color: C.subtle }}>{horaPost(post)}</div>
               </div>
             </div>
             <span style={{
@@ -2331,6 +2374,24 @@ function App() {
               <div style={{ fontSize: 17, color: C.muted, fontStyle: 'italic' }}>
                 La Guía IA de Ronda está leyendo tu mensaje. Te responde en un momento.
               </div>
+            </div>
+          )}
+
+          {/* La Guía IA no respondió (error, sin red o recarga a mitad de camino) */}
+          {post.guiaFallo && !post.awaitingGuia && (!post.replies || post.replies.length === 0) && (
+            <div role="status" style={{
+              marginTop: 14, padding: 14, borderRadius: 14,
+              background: C.cream, border: `1px dashed ${C.contorno}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10,
+            }}>
+              <div style={{ fontSize: 17, color: C.text, lineHeight: 1.5 }}>
+                La Guía IA no pudo responder ahora. Tu publicación quedó guardada.
+              </div>
+              <button type="button" onClick={() => requestGuiaReply(post)} style={{
+                minHeight: 44, padding: '0 20px', borderRadius: 12, border: 'none',
+                background: C.rose, color: 'white', fontSize: 17, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>Reintentar</button>
             </div>
           )}
 
