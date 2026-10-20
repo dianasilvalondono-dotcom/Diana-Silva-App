@@ -1977,16 +1977,21 @@ function App() {
             <div style={{ fontSize: 19, fontWeight: 800, color: C.text, fontFamily: FONT, marginBottom: 6 }}>{prog.title}</div>
             <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 16 }}>{prog.desc}</div>
 
-            {/* 3 fases */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            {/* 3 fases: en columnas en escritorio; en el celular, una debajo de
+                otra (en tres columnas de ~90 px el rango y las palabras se partían) */}
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 8, marginBottom: 16 }}>
               {prog.phases.map((phase, i) => (
                 <div key={i} style={{
-                  flex: 1, background: C.card, borderRadius: 12, padding: '10px 8px', textAlign: 'center',
+                  flex: isMobile ? 'none' : '1 1 0', minWidth: 0, background: C.card, borderRadius: 12,
+                  padding: isMobile ? '10px 14px' : '10px 8px', textAlign: isMobile ? 'left' : 'center',
                   border: `1px solid ${C.border}`,
+                  ...(isMobile && { display: 'flex', alignItems: 'baseline', gap: 12 }),
                 }}>
-                  <div style={{ fontSize: 19, fontWeight: 800, color: C.gold, marginBottom: 2 }}>Días {phase.days}</div>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{phase.name}</div>
-                  <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{phase.desc}</div>
+                  <div style={{ fontSize: 19, fontWeight: 800, color: C.gold, marginBottom: 2, whiteSpace: 'nowrap', flexShrink: 0, minWidth: isMobile ? 100 : 0 }}>Días {phase.days}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{phase.name}</div>
+                    <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{phase.desc}</div>
+                  </div>
                 </div>
               ))}
             </div>
