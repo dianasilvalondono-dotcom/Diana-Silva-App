@@ -1821,11 +1821,13 @@ function App() {
               background: C.card, borderRadius: 12, padding: 14,
               boxShadow: '0 2px 8px rgba(20,24,51,0.15)', border: `2px solid ${C.rose}`,
             }}>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              {/* Como en "+ Agregar a mi rutina": si junto al selector de hora
+                  (~150 px en el celular) la tarea no se lee, baja de línea. */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
                 <input type="time" aria-label="Hora" value={editingRoutineItem.time} onChange={e => setEditingRoutineItem(prev => ({...prev, time: e.target.value}))}
                   style={{ flexShrink: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', fontWeight: 700, color: C.gold, boxSizing: 'border-box' }} />
                 <input value={editingRoutineItem.task} onChange={e => setEditingRoutineItem(prev => ({...prev, task: e.target.value}))}
-                  style={{ flex: 1, minWidth: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
+                  style={{ flex: '1 1 200px', minWidth: 0, padding: '6px 8px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
                   onKeyDown={e => e.key === 'Enter' && saveRoutineItemEdit()} />
               </div>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
