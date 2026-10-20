@@ -2993,6 +2993,7 @@ function App() {
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..."
+                  onKeyDown={e => { if (e.key === 'Enter' && aiGoal.trim()) { e.preventDefault(); setAiStep(1) } }}
                   style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none' }} />
                 <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} aria-label="Continuar con esta meta" style={{
                   padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
