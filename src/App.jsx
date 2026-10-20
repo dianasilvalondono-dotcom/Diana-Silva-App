@@ -371,6 +371,9 @@ function App() {
   const [aiStep, setAiStep] = useState(0) // 0=meta, 1=contexto (y error), 3=creando, 4=resultado
   const [aiProgram, setAiProgram] = useState(null)
   const [aiError, setAiError] = useState('')
+  // La meta o el contexto traen una señal de crisis: en vez del programa, el
+  // texto de crisis con "Abrir Ayuda" (como en el chat).
+  const [aiCrisis, setAiCrisis] = useState(false)
   const [aiSaved, setAiSaved] = useState(false)
   // Chat state (Tu Ronda)
   // local: true = mensaje de la app (saludo, avisos, errores), no del modelo:
@@ -3226,6 +3229,18 @@ function App() {
 
   /* ── AI Agent: Generate custom program ── */
   const generateAiProgram = async () => {
+    // Señal de crisis en la meta o en lo que contó: no se arma un programa.
+    // Como en el chat y en la Comunidad, se atiende aquí mismo, sin depender
+    // del servidor ni de la red: se abre Ayuda y queda el texto de crisis con
+    // la Línea 106 y el 123.
+    if (isCrisis(aiGoal) || isCrisis(aiContext)) {
+      setAiError('')
+      setAiCrisis(true)
+      setAiStep(1)
+      abrirAyuda('crisis_programa')
+      return
+    }
+    setAiCrisis(false)
     setAiStep(3)
     setAiError('')
     try {
@@ -3236,6 +3251,13 @@ function App() {
       })
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
       const data = await resp.json().catch(() => null)
+      // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
+      if (data?.crisis) {
+        setAiCrisis(true)
+        setAiStep(1)
+        abrirAyuda('crisis_programa')
+        return
+      }
       if (!data || data.error || !Array.isArray(data.program?.days) || !data.program.days.length) {
         throw new Error(data?.error || 'Sin programa')
       }
@@ -3261,7 +3283,7 @@ function App() {
   }
 
   const resetAiAgent = () => {
-    setAiGoal(''); setAiContext(''); setAiStep(0); setAiProgram(null); setAiError(''); setAiSaved(false)
+    setAiGoal(''); setAiContext(''); setAiStep(0); setAiProgram(null); setAiError(''); setAiCrisis(false); setAiSaved(false)
   }
 
   const sendChatMessage = async () => {
@@ -3406,8 +3428,8 @@ function App() {
   const aiAccionesRef = useRef(null)
   const aiGuardadoRef = useRef(null)
   useEffect(() => {
-    if (aiError && aiStep === 1) aiAccionesRef.current?.scrollIntoView({ block: 'nearest' })
-  }, [aiError, aiStep])
+    if ((aiError || aiCrisis) && aiStep === 1) aiAccionesRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [aiError, aiCrisis, aiStep])
   useEffect(() => {
     if (aiSaved) aiGuardadoRef.current?.scrollIntoView({ block: 'nearest' })
   }, [aiSaved])
@@ -3641,8 +3663,18 @@ function App() {
                 placeholder="Opcional: cuéntame un poco más..." rows={3}
                 style={{ padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none', resize: 'none', lineHeight: 1.6 }} />
               {aiError && <div role="alert" style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
+              {aiCrisis && (
+                <div role="alert" style={{ background: C.card, borderRadius: 14, padding: 16, border: `1.5px solid ${C.lavanda}` }}>
+                  <div style={{ fontSize: 18, color: C.text, lineHeight: 1.6 }}>{CRISIS_TEXT_CHAT}</div>
+                  <button onClick={() => abrirAyuda('programa')} style={{
+                    marginTop: 10, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
+                    background: C.lavanda, color: 'white',
+                    fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
+                  }}>Abrir {BOTON_AYUDA}</button>
+                </div>
+              )}
               <div ref={aiAccionesRef} style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext('') }} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>← Atrás</button>
+                <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext(''); setAiCrisis(false) }} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>← Atrás</button>
                 <button onClick={generateAiProgram} style={{ flex: 2, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Crear mi programa</button>
               </div>
             </div>

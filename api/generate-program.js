@@ -1,3 +1,5 @@
+// Patrones de crisis: los mismos de la app, la Guía IA y Tu Ronda.
+import { isCrisis } from '../src/utils/crisis.js'
 import { exigirSesion } from './_auth.js'
 
 // Los mensajes de error son internos (la app muestra su propio texto fijo),
@@ -10,6 +12,13 @@ export default async function handler(req, res) {
 
   const { goal, context } = req.body || {}
   if (typeof goal !== 'string' || !goal.trim()) return res.status(400).json({ error: 'Falta la meta' })
+
+  // ── Chequeo de crisis PRIMERO: con una señal de crisis en la meta o en el
+  // contexto no se arma un programa. La app abre Ayuda con la Línea 106 y el
+  // 123 (también lo revisa antes de llamar aquí). Con y sin API key.
+  if (isCrisis(goal) || (typeof context === 'string' && isCrisis(context))) {
+    return res.status(200).json({ crisis: true, program: null })
+  }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 
