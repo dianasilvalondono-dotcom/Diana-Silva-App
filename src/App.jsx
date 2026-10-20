@@ -2858,7 +2858,8 @@ function App() {
                 {msg.role === 'assistant' && (
                   <div style={{ fontSize: 17, fontWeight: 700, color: C.rose, marginBottom: 4 }}>Tu Ronda</div>
                 )}
-                {msg.text}
+                {/* Los párrafos y las listas de la respuesta conservan sus saltos de línea. */}
+                {msg.text && <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{msg.text}</div>}
                 {/* Escuchar la respuesta en voz. En crisis la voz va más pausada. */}
                 {msg.role === 'assistant' && voiceAvailable && msg.text && !msg.isProgram && (
                   <button
