@@ -3249,7 +3249,7 @@ function App() {
     }).filter(Boolean)
 
     const ctx = {
-      name: profile.name || 'Usuaria',
+      name: nombrePerfil || 'Usuaria',
       city: profile.city || null,
       intention: profile.intention || null,
       habitsToday: `${todayChecked}/${totalHabits}`,
@@ -4291,7 +4291,7 @@ function App() {
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div aria-hidden="true" style={{ fontSize: 32, marginBottom: 8, color: C.gold }}>●</div>
           <div id="checkin-manana-titulo" style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
-            {profile.name ? `${profile.name}, ${getGreeting(currentHour).toLowerCase()}` : getGreeting(currentHour)}
+            {nombrePerfil ? `${nombrePerfil}, ${getGreeting(currentHour).toLowerCase()}` : getGreeting(currentHour)}
           </div>
           <div style={{ fontSize: 19, color: C.muted, marginTop: 4 }}>Define tu intención y activa tus hábitos</div>
         </div>
@@ -4301,6 +4301,7 @@ function App() {
           value={morningIntention}
           onChange={e => setMorningIntention(e.target.value)}
           placeholder="Hoy quiero..."
+          aria-label="Tu intención para hoy"
           rows={2}
           style={{
             width: '100%', padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
@@ -4378,7 +4379,7 @@ function App() {
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div aria-hidden="true" style={{ fontSize: 36, marginBottom: 10, color: '#141833' }}>●</div>
           <div id="checkin-noche-titulo" style={{ fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
-            {profile.name ? `${profile.name}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
+            {nombrePerfil ? `${nombrePerfil}, ¿cómo te fue hoy?` : '¿Cómo te fue hoy?'}
           </div>
           <div style={{ fontSize: 20, color: C.muted, marginTop: 6 }}>Revisa tu día y cierra con una reflexión</div>
         </div>
@@ -4391,15 +4392,15 @@ function App() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginBottom: 14 }}>
             <div style={{ textAlign: 'center', minWidth: 0 }}>
               <div style={{ fontSize: 26, fontWeight: 900, color: C.rose }}>{totalDone}</div>
-              <div style={{ fontSize: 14, color: C.muted, fontWeight: 600, lineHeight: 1.2, overflowWrap: 'anywhere' }}>completados</div>
+              <div style={{ fontSize: 'clamp(11px, 3.6vw, 14px)', color: C.muted, fontWeight: 600, lineHeight: 1.2 }}>completados</div>
             </div>
             <div style={{ textAlign: 'center', minWidth: 0 }}>
               <div style={{ fontSize: 26, fontWeight: 900, color: C.subtle }}>{totalHabits - totalDone}</div>
-              <div style={{ fontSize: 14, color: C.muted, fontWeight: 600, lineHeight: 1.2, overflowWrap: 'anywhere' }}>pendientes</div>
+              <div style={{ fontSize: 'clamp(11px, 3.6vw, 14px)', color: C.muted, fontWeight: 600, lineHeight: 1.2 }}>pendientes</div>
             </div>
             <div style={{ textAlign: 'center', minWidth: 0 }}>
               <div style={{ fontSize: 26, fontWeight: 900, color: C.gold }}>{totalHabits > 0 ? Math.round((totalDone / totalHabits) * 100) : 0}%</div>
-              <div style={{ fontSize: 14, color: C.muted, fontWeight: 600, lineHeight: 1.2, overflowWrap: 'anywhere' }}>progreso</div>
+              <div style={{ fontSize: 'clamp(11px, 3.6vw, 14px)', color: C.muted, fontWeight: 600, lineHeight: 1.2 }}>progreso</div>
             </div>
           </div>
           {/* Uncompleted habits */}
@@ -4408,7 +4409,17 @@ function App() {
               <div style={{ fontSize: 20, color: C.muted, fontWeight: 600, marginBottom: 6 }}>Puedes completar aún:</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {habits.filter(h => !checked[h.id]).map(h => (
-                  <button type="button" role="checkbox" aria-checked={!!checked[h.id]} key={h.id} onClick={() => toggleHabit(h.id)} style={{
+                  <button type="button" role="checkbox" aria-checked={!!checked[h.id]} key={h.id} onClick={(e) => {
+                    // Marcada, la fila sale de la lista: el foco pasa a la
+                    // siguiente (o a la anterior) y no cae fuera del diálogo.
+                    const fila = e.currentTarget
+                    const otra = fila.nextElementSibling || fila.previousElementSibling
+                    toggleHabit(h.id)
+                    setTimeout(() => {
+                      if (fila.isConnected) return
+                      ;(otra?.isConnected ? otra : nightRef.current)?.focus({ preventScroll: true })
+                    }, 0)
+                  }} style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
                     background: C.card, borderRadius: 10, cursor: 'pointer', border: `1px solid ${C.border}`,
                     width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
@@ -4417,7 +4428,9 @@ function App() {
                       width: 18, height: 18, borderRadius: 5, border: `2px solid ${DIMS[h.dim].color}`,
                       background: 'transparent', flexShrink: 0,
                     }} />
-                    <span style={{ fontSize: 19, color: C.text, fontWeight: 600, minWidth: 0, overflowWrap: 'anywhere' }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)} {h.name}</span>
+                    {/* El ícono va aparte: con un nombre largo sin espacios no queda solo en una línea */}
+                    <span aria-hidden="true" style={{ display: 'flex', flexShrink: 0 }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)}</span>
+                    <span style={{ fontSize: 19, color: C.text, fontWeight: 600, minWidth: 0, overflowWrap: 'anywhere' }}>{h.name}</span>
                   </button>
                 ))}
               </div>
@@ -4449,6 +4462,7 @@ function App() {
           value={nightReflection}
           onChange={e => setNightReflection(e.target.value)}
           placeholder="¿Qué aprendiste hoy? ¿Qué agradeces?"
+          aria-label="Tu reflexión de hoy"
           style={{
             width: '100%', minHeight: 80, padding: 12, borderRadius: 12, border: `1px solid ${C.border}`,
             fontSize: 19, fontFamily: 'inherit', resize: 'vertical', outline: 'none', lineHeight: 1.5,
