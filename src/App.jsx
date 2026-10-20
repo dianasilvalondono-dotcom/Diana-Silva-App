@@ -312,19 +312,61 @@ function App() {
     return () => window.removeEventListener(STORAGE_ERROR_EVENT, avisar)
   }, [])
 
-  // ─── Toast "feature premium gratis para founding member" — solo 1 vez por feature ───
+  // ─── Aviso "esta función de Ronda+ la tienes incluida" para miembros
+  // fundadoras — solo 1 vez por función ───
   const [foundingMsgShown, setFoundingMsgShown] = useState(() => load('ronda-founding-msg-shown', {}))
-  const [foundingToast, setFoundingToast] = useState(null) // { feature: 'Tu Ronda' }
+  const [foundingToast, setFoundingToast] = useState(null) // { feature: 'Tu Ronda', key: 'chat' }
 
-  // Se llama desde handlers (nunca en el render).
-  const showFoundingPerk = (featureKey, featureName) => {
-    if (!isFoundingMember) return
-    if (foundingMsgShown[featureKey]) return
+  // Marca el aviso de esa función como visto. true si es la primera vez y
+  // hay que mostrarlo. Se llama desde handlers (nunca en el render).
+  const marcarAvisoFundadora = (featureKey) => {
+    if (!isFoundingMember) return false
+    if (foundingMsgShown[featureKey]) return false
     const next = { ...foundingMsgShown, [featureKey]: true }
     setFoundingMsgShown(next)
     save('ronda-founding-msg-shown', next)
-    setFoundingToast({ feature: featureName, key: featureKey })
+    return true
   }
+  const showFoundingPerk = (featureKey, featureName) => {
+    if (marcarAvisoFundadora(featureKey)) setFoundingToast({ feature: featureName, key: featureKey })
+  }
+  const TEXTO_FUNDADORA = `Esta función es parte de ${PLAN_PAGO}. La tienes incluida por ser de las primeras 50 mujeres en Ronda. Disfrútala.`
+  // El aviso va en la misma pantalla de la función, en su lugar: no flota
+  // encima del selector del chat ni del campo (ia-18). Se queda hasta que lo
+  // cierra o cambia de pantalla; no se va solo, así nada salta debajo del dedo.
+  const avisoFundadora = (featureKey) => foundingToast?.key === featureKey && (
+    <div style={{
+      flexShrink: 0, marginBottom: 12,
+      background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
+      borderRadius: 18, padding: '12px 4px 12px 18px', color: 'white',
+      display: 'flex', alignItems: 'flex-start', gap: 10,
+    }}>
+      <div style={{ flex: 1, paddingTop: 2 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
+          <span aria-hidden="true">💛 </span>Miembro fundadora
+        </div>
+        <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>{foundingToast.feature}</div>
+        <div style={{ fontSize: 14, lineHeight: 1.4, opacity: 0.95 }}>{TEXTO_FUNDADORA}</div>
+      </div>
+      <button type="button" aria-label="Cerrar aviso de miembro fundadora" onClick={(e) => {
+        // El foco pasa a lo que sigue al aviso (no se pierde en <body>).
+        const sigue = e.currentTarget.parentElement?.nextElementSibling
+        setFoundingToast(null)
+        requestAnimationFrame(() => {
+          const sel = 'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled])'
+          ;(sigue?.matches?.(sel) ? sigue : sigue?.querySelector?.(sel))?.focus({ preventScroll: true })
+        })
+      }} style={{
+        background: 'none', border: 'none', padding: 0, width: 44, height: 44, cursor: 'pointer',
+        flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <span aria-hidden="true" style={{
+          width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>{UI_ICONS.close('white', 14)}</span>
+      </button>
+    </div>
+  )
 
   // AI Agent state
   const [aiGoal, setAiGoal] = useState('')
@@ -1145,6 +1187,7 @@ function App() {
     setView(destino)
     setSubTab(sub)
     limpiarTelon()
+    setFoundingToast(null)
     track('module_viewed', { module: destino, sub: sub || null })
   }
   // Cambia de subpestaña dentro de la misma sección.
@@ -1152,6 +1195,7 @@ function App() {
     stopSpeech()
     setSubTab(id)
     limpiarTelon()
+    setFoundingToast(null)
   }
 
   const abrirAyuda = (desde = 'encabezado') => {
@@ -1371,9 +1415,10 @@ function App() {
       if (!programaPendiente) resetAiAgent()
       setChatMode(programaPendiente ? 'create' : 'chat')
       chatSesionContadaRef.current = false
-      if (isPremium) showFoundingPerk('chat', 'Tu Ronda · IA personal')
     }
     irASubTab(id)
+    // Después de navegar: irASubTab quita el aviso de la pantalla anterior.
+    if (id === 'ai' && isPremium) showFoundingPerk('chat', 'Tu Ronda · IA personal')
     track('module_viewed', { module: 'ahora', sub: id })
   }
 
@@ -2236,13 +2281,13 @@ function App() {
                   <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Incluido en {PLAN_PAGO}</div>
                 </>
               )}
-              <button onClick={() => {
+              <button data-empezar-ruta={prog.id} onClick={() => {
                 if (!isPremium) {
                   track('paywall_viewed', { feature: 'programa_21_dias', price: PLAN_PRECIO })
                   setAppModal({
                     type: 'paywall',
                     title: `Esta ruta es parte de ${PLAN_PAGO}`,
-                    body: `Las rutas de 21 días están incluidas en ${PLAN_PAGO}. Te acompañan paso a paso con neurociencia y micro-acciones diarias.`,
+                    body: 'Durante 21 días te acompaña paso a paso, con neurociencia y una micro-acción al día.',
                     cta: 'Ver planes',
                   })
                   return
@@ -2253,13 +2298,18 @@ function App() {
                   return
                 }
                 startProgram(prog.id)
-                showFoundingPerk('p21', 'Rutas de 21 días')
-                // Detrás del aviso la página ya sube a la ruta: al cerrarlo, el Día 1 queda a la vista.
+                // Miembro fundadora: el aviso de que la tiene incluida va en
+                // este mismo mensaje (detrás, la página ya bajó a la ruta).
+                const fundadora = marcarAvisoFundadora('p21')
+                // Detrás del aviso la página ya sube a la ruta: al cerrarlo, el
+                // Día 1 queda a la vista y el foco va a su título (no al botón
+                // de más abajo, que quedó fuera de la vista).
                 irARutaActiva(prog.id)
+                focoTrasModalRef.current = () => document.querySelector(`#ruta-activa-${prog.id} [data-titulo-ruta]`)
                 setAppModal({
                   type: 'success',
                   title: `¡Activaste "${prog.title}"!`,
-                  body: 'Tu Día 1 ya está listo en Mis rutas activas. Un paso al día, durante 21 días. 💛',
+                  body: `Tu Día 1 ya está listo en Mis rutas activas. Un paso al día, durante 21 días.${fundadora ? ` Como miembro fundadora, la tienes incluida en ${PLAN_PAGO}.` : ''} 💛`,
                   cta: 'Empezar mi camino',
                 })
               }} style={{
@@ -2672,8 +2722,8 @@ function App() {
       track('paywall_viewed', { feature: 'comunidad_escribir', price: PLAN_PRECIO })
       setAppModal({
         type: 'paywall',
-        title: 'Escribir en la comunidad es premium',
-        body: `Publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda. Disponible con ${PLAN_PAGO}.`,
+        title: `Escribir en la Comunidad es parte de ${PLAN_PAGO}`,
+        body: 'Publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda.',
         cta: 'Ver planes',
       })
       return
@@ -2835,6 +2885,8 @@ function App() {
           </div>
         </div>
       )}
+
+      {avisoFundadora('board')}
 
       {/* Categoría sin publicaciones: se dice, no se deja la lista en blanco (juntas-14) */}
       {filteredBoardPosts.length === 0 && (
@@ -3242,6 +3294,7 @@ function App() {
   // en móvil, ~50 en escritorio) y el espacio de la barra inferior (110).
   const aiAgentView = (
     <div style={{ display: 'flex', flexDirection: 'column', height: `calc(100dvh - env(safe-area-inset-top, 0px) - ${isMobile ? 376 : 344}px)`, minHeight: 280, maxHeight: 600 }}>
+      {avisoFundadora('chat')}
       {/* Mode toggle */}
       <div role="group" aria-label="Modo de Tu Ronda" style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
         {[{ id: 'chat', label: 'Habla conmigo' }, { id: 'create', label: 'Crea tu programa' }].map(m => (
@@ -4810,48 +4863,10 @@ function App() {
         </div>
       )}
 
-      {/* ─── Aviso: una miembro fundadora tiene incluida esta función premium ───
-          Arriba, bajo el encabezado, para no tapar el campo del chat ni el
-          menú, y nunca encima de un diálogo. Centrado sin transform (la
-          animación no lo descentra). La región viva existe siempre, así el
-          lector de pantalla lo anuncia. */}
-      <div role="status" aria-live="polite">
-        {foundingToast && !fondoInerte && (
-          <div style={{
-            position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 136px)', left: 16, right: 16,
-            margin: '0 auto', maxWidth: 420, zIndex: 9999,
-            background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
-            borderRadius: 18, padding: '14px 12px 14px 20px',
-            boxShadow: '0 8px 32px rgba(114,109,45,0.45)',
-            color: 'white',
-            animation: 'slideDown 0.3s ease',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <div aria-hidden="true" style={{ fontSize: 26, lineHeight: 1, marginTop: 6 }}>💛</div>
-              <div style={{ flex: 1, paddingTop: 4 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 4 }}>
-                  Miembro fundadora
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>
-                  {foundingToast.feature} es una función premium.
-                </div>
-                <div style={{ fontSize: 14, lineHeight: 1.4, opacity: 0.95 }}>
-                  La tienes incluida por ser de las primeras 50 mujeres en Ronda. Disfrútala. 💛
-                </div>
-              </div>
-              <button type="button" aria-label="Cerrar aviso" onClick={() => setFoundingToast(null)} style={{
-                background: 'none', border: 'none', padding: 0,
-                width: 44, height: 44, cursor: 'pointer',
-                flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span aria-hidden="true" style={{
-                  width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>{UI_ICONS.close('white', 14)}</span>
-              </button>
-            </div>
-          </div>
-        )}
+      {/* El aviso de miembro fundadora se ve en su pantalla (avisoFundadora);
+          esta región, siempre montada, lo anuncia al lector de pantalla. */}
+      <div role="status" aria-live="polite" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 }}>
+        {foundingToast ? `Miembro fundadora. ${foundingToast.feature}. ${TEXTO_FUNDADORA}` : ''}
       </div>
     </div>
   )
