@@ -43,8 +43,12 @@
        (se compara la hora del servidor).
      · Una escritura que se quedó sin respuesta (tiempo límite o red) pudo
        llegar igual: lo que se mandó queda en `sinRespuesta`. Así, si la nube
-       muestra después ese mismo «no», este teléfono sabe que pudo ser el
-       suyo, y un «sí» posterior suyo no cuenta como «de otro teléfono».
+       muestra después ese mismo «no», este teléfono lo toma como suyo: un
+       «sí» posterior suyo no cuenta como «de otro teléfono», y desde esa
+       lectura conoce la hora de ese «no» (`conocida`). Aunque la escritura
+       del «sí» también quede sin respuesta o se pierda, el reintento ya no
+       ve «otro teléfono». Un «no» real de otro teléfono llega después,
+       cambia la hora y sigue ganando.
      · Toda lectura y escritura tiene tiempo límite (LIMITE_MS): una subida
        colgada nunca deja la cola ni el interruptor de Perfil esperando. */
 import { supabase } from './supabase'
@@ -281,11 +285,13 @@ export const hayQueSubir = (a) =>
        escritos / ganaNube / sinFila: { tipo: true }, nube: la fila de profiles,
        sinRespuesta: { tipo: valor } lo que se mandó a profiles y quedó sin
                respuesta (pudo llegar),
+       conocida: { tipo: hora } el «no» de la nube que este teléfono tomó
+               como suyo (lo había mandado sin respuesta),
        completo: true si no quedó nada por subir } */
 const esErrorDeDatos = (e) => typeof e?.code === 'string' && /^2[23]/.test(e.code) // 22xxx y 23xxx: nunca va a pasar
 
 export async function subirAutorizaciones(userId, a) {
-  const r = { filas: [], escritos: {}, ganaNube: {}, sinFila: {}, sinRespuesta: {}, nube: null, completo: false }
+  const r = { filas: [], escritos: {}, ganaNube: {}, sinFila: {}, sinRespuesta: {}, conocida: {}, nube: null, completo: false }
   if (!supabase || !userId || !a) return r
   try {
     const pendientes = (Array.isArray(a.pendientes) ? a.pendientes : []).filter(f => f?.id)
@@ -339,10 +345,14 @@ export async function subirAutorizaciones(userId, a) {
       if (t === 'edad') { estado.autorizacion_edad = a.edad.valor; continue }
       const enNube = fila?.[`autorizacion_${t}_en`] ?? null
       const otroTelefono = fila && !mismoInstante(enNube, a.nube?.[t])
-      // Si este teléfono mandó antes un «no» que quedó sin respuesta, el «no»
-      // de la nube pudo ser el suyo: su «sí» de después es su decisión más
-      // nueva y se escribe (con el filtro de la hora recién leída).
-      if (otroTelefono && nubeVigente && fila[`autorizacion_${t}`] === false && a[t].valor === true && a.sinRespuesta?.[t] !== false) {
+      const noEnNube = otroTelefono && nubeVigente && fila[`autorizacion_${t}`] === false && a[t].valor === true
+      if (noEnNube && a.sinRespuesta?.[t] === false) {
+        // Este teléfono mandó antes un «no» que quedó sin respuesta: el «no»
+        // de la nube se toma como el suyo, y desde ya conoce esa hora. Su
+        // «sí» de después es su decisión más nueva y se escribe (con el
+        // filtro de la hora recién leída).
+        r.conocida[t] = enNube
+      } else if (noEnNube) {
         // Otro teléfono dijo «no» y este no lo sabía: el «no» gana.
         r.ganaNube[t] = true
         continue
@@ -434,6 +444,18 @@ export function trasSubir(prev, r, enviado) {
     }
   }
 
+  // El «no» de la nube que se tomó como propio: ya conoce su hora (antes de
+  // anotar lo nuevo sin respuesta). Si la escritura del «sí» que siguió
+  // también queda sin respuesta o se pierde, el reintento ya no ve «otro
+  // teléfono» y vuelve a escribir el «sí» con el filtro de esa hora.
+  for (const [t, en] of Object.entries(r.conocida || {})) {
+    cambiar({ nube: { ...(sig.nube || {}), [t]: en } })
+    if (sig.sinRespuesta && t in sig.sinRespuesta) {
+      const { [t]: _, ...resto } = sig.sinRespuesta
+      cambiar({ sinRespuesta: resto })
+    }
+  }
+
   // Lo que se mandó y quedó sin respuesta pudo llegar: se anota aunque ella
   // haya respondido otra vez mientras subía.
   for (const [t, v] of Object.entries(r.sinRespuesta || {})) {
@@ -465,17 +487,19 @@ export function trasSubir(prev, r, enviado) {
 }
 
 /* Antes de cada llamada a la IA (Tu Ronda, la Guía IA, Crea tu programa y
-   la voz). El servidor lee profiles en cada petición (api/_auth.js): si el
-   «sí» de este teléfono aún no llegó allá, respondería 403 justo después de
-   dar la autorización. Entonces se espera esa subida (`subir`: la de la
-   cola, que ya está en curso). true si se puede llamar; false si este «sí»
-   perdió con un «no» de otro teléfono. Si la nube no responde, se sigue: el
-   servidor dirá si falta algo. */
+   la voz). El servidor lee profiles en cada petición (api/_auth.js) y exige
+   la IA y la cuenta: si el «sí» de este teléfono a cualquiera de las dos
+   aún no llegó allá, respondería 403 justo después de darlo. Entonces se
+   espera esa subida (`subir`: la de la cola, que también espera la que ya
+   está en curso). true si se puede llamar; false si este «sí» perdió con un
+   «no» de otro teléfono. Si la nube no responde, se sigue: el servidor dirá
+   si falta algo. */
 export async function esperarIAEnNube(actual, subir) {
-  const ia = actual()?.ia
-  if (!(ia?.pendiente && ia.valor === true)) return true
+  const a = actual()
+  const porSubir = (t) => a?.[t]?.pendiente && a[t].valor === true
+  if (!porSubir('ia') && !porSubir('cuenta')) return true
   const r = await subir()
-  return r !== 'otro-telefono' && iaAutorizada(actual())
+  return r !== 'otro-telefono' && iaAutorizada(actual()) && cuentaAutorizada(actual())
 }
 
 /* La cola de la app: leer la nube y subir van uno detrás de otro, cada paso

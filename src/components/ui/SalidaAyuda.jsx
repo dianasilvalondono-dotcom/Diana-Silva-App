@@ -1,8 +1,10 @@
 /* SalidaAyuda — la salida a Ayuda y a las líneas.
    Para cuando lo que ella escribió no recibe respuesta: el aviso de pago de la
    Comunidad, el aviso de que la Guía IA no pudo responder (error, sin red,
-   tiempo agotado o el 403 de Ronda+, que trae este mismo texto en `ayuda`) y
-   la tarjeta que pide la autorización de la IA (TarjetaIA: ahí llega también
+   tiempo agotado o el 403 de Ronda+, que trae este mismo texto en `ayuda`),
+   el aviso de que Crea tu programa no pudo crear el programa (error, sin red
+   o el 403 de la IA o de Ronda+) y la tarjeta que pide la autorización de
+   la IA (TarjetaIA: ahí llega también
    quien escribió algo y recibió el 403 de la IA). Lo que escribió puede ser
    una crisis dicha de una forma que isCrisis no reconoce, y sin respuesta
    tampoco la ve el modelo. onAbrir abre Ayuda como ante una crisis ("No

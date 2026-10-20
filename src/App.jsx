@@ -814,8 +814,9 @@ function App() {
     if (resultado.ganaNube.ia) return 'otro-telefono'
     return resultado.completo && !resultado.sinFila.ia ? 'listo' : 'pendiente'
   }, 'pendiente'), [enCola, userId, isConfigured, cambiarAutorizaciones])
-  // Antes de cada llamada a la IA: si el «sí» de aquí aún no está en
-  // profiles, se espera esa subida (src/lib/autorizaciones.js). Así, quien
+  // Antes de cada llamada a la IA: si el «sí» de aquí (a la IA o a la
+  // cuenta) aún no está en profiles, se espera esa subida
+  // (src/lib/autorizaciones.js). Así, quien
   // acaba de autorizar en la tarjeta (o en «Lo íntimo es tuyo», o en el
   // aviso) no recibe un 403 en su primer mensaje.
   const iaListaEnNube = () => esperarIAEnNube(() => autorizacionesRef.current, subirPendientes)
@@ -1600,8 +1601,9 @@ function App() {
   const abrirAyuda = (desde = 'encabezado') => {
     // Abierta por una señal de crisis (crisis_chat, crisis_comunidad,
     // crisis_programa), desde el aviso de pago (crisis_aviso_pago), desde el
-    // aviso de que la Guía IA no respondió (crisis_guia_fallo) o desde la
-    // tarjeta que pide la autorización de la IA (crisis_tarjeta_ia): sin
+    // aviso de que la Guía IA no respondió (crisis_guia_fallo), desde el de
+    // que Crea tu programa no pudo crear el programa (crisis_programa_fallo)
+    // o desde la tarjeta que pide la autorización de la IA (crisis_tarjeta_ia): sin
     // "Estás a salvo." y con el 123 en el primer texto.
     setPanicOrigen(String(desde).startsWith('crisis') ? 'crisis' : 'ayuda')
     setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicDbtExpanded(null)
@@ -3737,7 +3739,7 @@ function App() {
     } catch (err) {
       // El detalle técnico queda en la consola; a la usuaria, un texto claro.
       console.error('generate-program', err)
-      setAiError('No pude crear tu programa ahora. Inténtalo de nuevo en un momento.')
+      setAiError('Algo falló al crear tu programa. Inténtalo de nuevo en un momento.')
       // Vuelve al paso de contexto: conserva la meta y deja reintentar.
       setAiStep(1)
     }
@@ -4147,7 +4149,14 @@ function App() {
               <textarea value={aiContext} onChange={e => setAiContext(e.target.value)}
                 placeholder="Opcional: cuéntame un poco más..." rows={3}
                 style={{ padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none', resize: 'none', lineHeight: 1.6 }} />
-              {aiError && <div role="alert" style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>}
+              {aiError && <>
+                <div role="alert" style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>
+                {/* Sin programa, tampoco hay segunda capa (el modelo) que vea una
+                    crisis dicha de otra forma: Ayuda y las líneas quedan a la
+                    vista, como en la Guía IA y en el chat. Va antes de los
+                    botones: el scrollIntoView de aiAccionesRef la deja a la vista. */}
+                <SalidaAyuda onAbrir={() => abrirAyuda('crisis_programa_fallo')} />
+              </>}
               {aiCrisis && (
                 <div role="alert" style={{ background: C.card, borderRadius: 14, padding: 16, border: `1.5px solid ${C.lavanda}` }}>
                   <div style={{ fontSize: 18, color: C.text, lineHeight: 1.6 }}>{CRISIS_TEXT_CHAT}</div>
