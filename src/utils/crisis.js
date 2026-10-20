@@ -282,6 +282,19 @@ export const CRISIS_PATTERNS = [
   /\bno (quiero|quisiera|deseo) (volver a )?amanecer\b(?! (tan|muy|cansada|agotada|con|de|en|sin|temprano|trasnochada)\b)/,
   // Sentirse una carga o creer que nadie la extrañaría.
   /\b(soy|me siento|siento que soy) (una|un) carga\b/,
+  // "Mejor sin mí", no merecer vivir y no haber querido nacer: "el mundo sería
+  // mejor sin mí", "mis hijos estarían más felices sin mí", "no merezco
+  // vivir", "quisiera no haber nacido". No activan "la reunión fue mejor sin
+  // mí", "sería mejor sin mi novio", "no merezco vivir así", "no debería comer
+  // tanto dulce" ni "quisiera no haber nacido en esta época".
+  /\b(estarian|estaria|seria|serian|vivirian|viviria) (\w+ ){0,3}(mejor|mas felices|mas feliz|mas tranquil[oa]s?|en paz)( para (todos|todas|ellos|ellas|mi familia|mis hijos))? sin mi(?= (y|pero|porque|que|todos|ya|lo|asi|de verdad|seguro|nadie|no|me|eso|esto|la verdad|en serio|creo|se)\b|$)/,
+  /\b(estarian|estaria|seria|serian|vivirian|viviria) (\w+ ){0,3}(mejor|mas felices|mas feliz|mas tranquil[oa]s?|en paz)( para (todos|todas|ellos|ellas|mi familia|mis hijos))? si yo no (existiera|estuviera|hubiera nacido)\b(?! (en (la|el|esta|este) \w+|\w+ando|\w+iendo)\b)/,
+  new RegExp(`\\bno merezco (vivir|estar viva|estar vivo|existir|seguir viva|seguir vivo|seguir viviendo)\\b${NO_ES_VIVIR_CON}(?! (asi|esto|esta|como)\\b)`),
+  /\bno (deberia|debi|debo) (estar viva|estar vivo|existir|haber nacido|nacer|seguir viva|seguir vivo|seguir viviendo)\b(?! (el|la|los|las|un|una|eso|esto|ese|esa|tanta|tanto|tantas|tantos|gente|personas|nadie|asi|en)\b)/,
+  /\b(quisiera|ojala|preferiria|me gustaria|desearia|deseo|hubiera preferido) no haber nacido\b(?! en (esta|este|esa|ese|otra|otro) (epoca|siglo|pais|ciudad|generacion|decada|era)\b)/,
+  /\bojala no (hubiera|hubiese) nacido\b(?! en (esta|este|esa|ese|otra|otro) (epoca|siglo|pais|ciudad|generacion|decada|era)\b)/,
+  /\bnunca (debi|deberia haber|debio|tuve que) nacer\b/, /\barrepiento de haber nacido\b/,
+  /\bsobro en (este mundo|esta vida|la vida|esta tierra)\b/,
   /\bnadie (me )?(extranaria|echaria de menos|notaria|lloraria)\b/,
   // También con "va a" y en futuro ("nadie me va a extrañar", "nadie me
   // extrañará cuando me vaya"), y "nadie se daría cuenta si me muero". No
