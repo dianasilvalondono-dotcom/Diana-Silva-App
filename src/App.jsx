@@ -3314,6 +3314,18 @@ function App() {
   )
 
   /* ── AI Agent: Generate custom program ── */
+  // Paso 1 → 2: la meta se revisa al confirmarla. Con una señal de crisis se
+  // abre Ayuda ahí mismo y el paso 2 muestra el texto de crisis, sin esperar
+  // a "Crear mi programa" (que vuelve a revisar la meta y el contexto).
+  const confirmarMeta = (meta) => {
+    const crisis = isCrisis(meta)
+    setAiGoal(meta)
+    setAiError('')
+    setAiCrisis(crisis)
+    setAiStep(1)
+    if (crisis) abrirAyuda('crisis_programa')
+  }
+
   const generateAiProgram = async () => {
     // Señal de crisis en la meta o en lo que contó: no se arma un programa.
     // Como en el chat y en la Comunidad, se atiende aquí mismo, sin depender
@@ -3712,7 +3724,7 @@ function App() {
                 'Quiero dormir mejor', 'Quiero dejar de procrastinar',
                 'Quiero fortalecer mi relación de pareja', 'Quiero aprender a decir que no',
               ].map((goal, i) => (
-                <button key={i} onClick={() => { setAiGoal(goal); setAiStep(1) }} style={{
+                <button key={i} onClick={() => confirmarMeta(goal)} style={{
                   padding: '12px 16px', borderRadius: 14, border: `1px solid ${C.border}`,
                   background: C.card, cursor: 'pointer', textAlign: 'left',
                   display: 'flex', alignItems: 'center', gap: 12,
@@ -3725,9 +3737,9 @@ function App() {
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..."
-                  onKeyDown={e => { if (e.key === 'Enter' && aiGoal.trim()) { e.preventDefault(); setAiStep(1) } }}
+                  onKeyDown={e => { if (e.key === 'Enter' && aiGoal.trim()) { e.preventDefault(); confirmarMeta(aiGoal) } }}
                   style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none' }} />
-                <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} aria-label="Continuar con esta meta" style={{
+                <button onClick={() => aiGoal.trim() && confirmarMeta(aiGoal)} disabled={!aiGoal.trim()} aria-label="Continuar con esta meta" style={{
                   padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
                   background: aiGoal.trim() ? C.rose : C.border, color: 'white', fontSize: 19, fontWeight: 700,
                 }}><span aria-hidden="true">→</span></button>
