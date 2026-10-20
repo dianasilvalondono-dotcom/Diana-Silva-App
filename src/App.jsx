@@ -2593,6 +2593,11 @@ function App() {
     setBoardPosts(prev => [newPost, ...prev])
     setBoardNewText('')
     setBoardShowForm(false)
+    // Que la usuaria vea lo que acaba de publicar: si el filtro activo es de
+    // otra categoría la publicación quedaría oculta, y en móvil cae debajo
+    // del borde de la pantalla (juntas-2).
+    if (boardFilter !== 'todas' && boardFilter !== newPost.cat) setBoardFilter('todas')
+    requestAnimationFrame(() => document.getElementById(`post-${newPost.id}`)?.scrollIntoView({ block: 'nearest' }))
     // Sin el contenido del post: solo la senal y la categoria.
     track('community_post_created', { category: newPost.cat })
 
@@ -2602,6 +2607,32 @@ function App() {
   const toggleBoardHeart = (postId) => {
     setBoardHearts(prev => ({ ...prev, [postId]: !prev[postId] }))
   }
+  // "1 te acompaña", "24 te acompañan" (juntas-15).
+  const textoAcompanan = (post) => {
+    const n = (post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)
+    return n === 1 ? '1 te acompaña' : `${n} te acompañan`
+  }
+
+  // Borrar una publicación propia (juntas-9). Hoy viven solo en este
+  // dispositivo; si la Guía IA aún estaba respondiendo, su respuesta busca
+  // la publicación por id y ya no encuentra nada.
+  const removeBoardPost = (postId) => {
+    setBoardPosts(prev => prev.filter(p => p.id !== postId))
+    setBoardHearts(prev => {
+      if (!(postId in prev)) return prev
+      const sinEsta = { ...prev }
+      delete sinEsta[postId]
+      return sinEsta
+    })
+    track('community_post_deleted')
+  }
+  const pedirBorrarPublicacion = (post) => setAppModal({
+    type: 'confirm',
+    title: '¿Borrar tu publicación?',
+    body: 'Se borra de este dispositivo y después no la podrás recuperar.',
+    cta: 'Borrar publicación',
+    onConfirm: () => removeBoardPost(post.id),
+  })
 
   /* ── Board View ── */
   const boardView = (
@@ -2623,9 +2654,9 @@ function App() {
       </div>
 
       {/* Category filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+      <div role="group" aria-label="Filtrar por categoría" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
         {BOARD_CATS.map(cat => (
-          <button key={cat.id} onClick={() => setBoardFilter(cat.id)} style={{
+          <button key={cat.id} type="button" aria-pressed={boardFilter === cat.id} onClick={() => setBoardFilter(cat.id)} style={{
             padding: '6px 14px', borderRadius: 20, border: boardFilter === cat.id ? 'none' : `1.5px solid ${C.border}`, cursor: 'pointer',
             background: boardFilter === cat.id ? cat.color : C.card,
             color: boardFilter === cat.id ? 'white' : C.text,
@@ -2654,9 +2685,9 @@ function App() {
             🔒 Publicación anónima
           </div>
           {/* Category selector */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          <div role="group" aria-label="Categoría de tu publicación" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
             {BOARD_CATS.filter(c => c.id !== 'todas').map(cat => (
-              <button key={cat.id} onClick={() => setBoardNewCat(cat.id)} style={{
+              <button key={cat.id} type="button" aria-pressed={boardNewCat === cat.id} onClick={() => setBoardNewCat(cat.id)} style={{
                 padding: '4px 10px', borderRadius: 12, border: boardNewCat === cat.id ? 'none' : `1px solid ${C.border}`, cursor: 'pointer',
                 background: boardNewCat === cat.id ? cat.color : C.card,
                 color: boardNewCat === cat.id ? 'white' : C.muted,
@@ -2674,6 +2705,7 @@ function App() {
             placeholder="Escribe lo que sientes, lo que te preocupa, lo que necesitas saber. Este es tu espacio seguro."
             rows={4}
             maxLength={BOARD_MAX}
+            aria-label="Tu publicación anónima"
             aria-describedby="board-contador board-aviso"
             style={{
               width: '100%', border: `1px solid ${C.border}`, borderRadius: 12, padding: 14,
@@ -2693,20 +2725,41 @@ function App() {
               flex: 1, padding: '10px 16px', borderRadius: 12, border: `1px solid ${C.border}`,
               background: 'none', color: C.muted, fontSize: 20, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
             }}>Cancelar</button>
-            <button onClick={addBoardPost} style={{
+            {/* Vacío: deshabilitado de verdad y con texto legible (juntas-19) */}
+            <button type="button" onClick={addBoardPost} disabled={!boardNewText.trim()} style={{
               flex: 1, padding: '10px 16px', borderRadius: 12, border: 'none',
-              background: boardNewText.trim() ? C.rose : C.border, color: 'white',
-              fontSize: 20, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}>Publicar </button>
+              background: boardNewText.trim() ? C.rose : C.border,
+              color: boardNewText.trim() ? 'white' : C.muted,
+              fontSize: 20, fontWeight: 700, cursor: boardNewText.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+            }}>Publicar</button>
           </div>
+        </div>
+      )}
+
+      {/* Categoría sin publicaciones: se dice, no se deja la lista en blanco (juntas-14) */}
+      {filteredBoardPosts.length === 0 && (
+        <div style={{
+          textAlign: 'center', padding: 24, background: C.card, borderRadius: 16,
+          border: `1.5px dashed ${C.border}`,
+        }}>
+          <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.5 }}>
+            Aún no hay publicaciones en {(BOARD_CATS.find(c => c.id === boardFilter) || {}).label}. Puedes escribir la primera aquí arriba.
+          </div>
+          <button type="button" onClick={() => setBoardFilter('todas')} style={{
+            marginTop: 12, minHeight: 44, padding: '0 20px', borderRadius: 12,
+            border: `1px solid ${C.border}`, background: 'none', color: C.rose,
+            fontSize: 17, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+          }}>Ver todas</button>
         </div>
       )}
 
       {/* Posts */}
       {filteredBoardPosts.map(post => (
-        <div key={post.id} style={{
+        <div key={post.id} id={`post-${post.id}`} style={{
           background: C.card, borderRadius: 16, padding: 18,
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: `1px solid ${C.border}`,
+          // Al publicar se baja hasta aquí: que no quede bajo el encabezado ni el menú.
+          scrollMarginTop: 140, scrollMarginBottom: 84,
         }}>
           {/* Post header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -2723,6 +2776,7 @@ function App() {
             <span style={{
               padding: '3px 10px', borderRadius: 10, fontSize: 19, fontWeight: 600,
               background: `${C.rose}15`, color: C.roseDark,
+              display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
             }}>
               {ICONS['cat_'+post.cat] ? ICONS['cat_'+post.cat]((BOARD_CATS.find(c => c.id === post.cat) || {}).color, 14) : null}
               {(BOARD_CATS.find(c => c.id === post.cat) || {}).label}
@@ -2731,7 +2785,7 @@ function App() {
 
           {/* Etiqueta de ejemplo (contenido sembrado, no comunidad real) */}
           {post.example && (
-            <Badge variant="example" style={{ marginBottom: 10 }}>Ejemplo · así funciona el Board</Badge>
+            <Badge variant="example" style={{ marginBottom: 10 }}>Ejemplo · así funciona la Comunidad</Badge>
           )}
 
           {/* Post content */}
@@ -2739,18 +2793,29 @@ function App() {
             {post.content}
           </div>
 
-          {/* Hearts */}
-          <button onClick={() => toggleBoardHeart(post.id)} style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
-            borderRadius: 20, border: `1px solid ${boardHearts[post.id] ? C.rose : C.border}`,
-            background: boardHearts[post.id] ? `${C.rose}12` : 'none',
-            cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '' : '🤍'}</span>
-            <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
-              {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
-            </span>
-          </button>
+          {/* Hearts (y Borrar en las publicaciones propias) */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <button type="button" onClick={() => toggleBoardHeart(post.id)}
+              aria-pressed={!!boardHearts[post.id]} aria-label={`Acompañar esta publicación. ${textoAcompanan(post)}`} style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+              borderRadius: 20, border: `1px solid ${boardHearts[post.id] ? C.rose : C.border}`,
+              background: boardHearts[post.id] ? `${C.rose}12` : 'none',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              {/* Marcado: corazón lleno; antes quedaba vacío (juntas-8) */}
+              <span aria-hidden="true" style={{ fontSize: 14 }}>{boardHearts[post.id] ? '💜' : '🤍'}</span>
+              <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
+                {textoAcompanan(post)}
+              </span>
+            </button>
+            {!post.example && (
+              <button type="button" onClick={() => pedirBorrarPublicacion(post)} aria-label="Borrar mi publicación" style={{
+                minHeight: 44, padding: '0 8px', marginRight: -8, background: 'none', border: 'none',
+                color: C.muted, fontSize: 17, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                flexShrink: 0,
+              }}>Borrar</button>
+            )}
+          </div>
 
           {/* "Una guía está respondiendo" indicator while waiting */}
           {post.awaitingGuia && (!post.replies || post.replies.length === 0) && (
@@ -2760,7 +2825,7 @@ function App() {
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
               <div style={{
-                width: 28, height: 28, borderRadius: '50%', background: C.teal,
+                width: 28, height: 28, borderRadius: '50%', background: C.teal, flexShrink: 0,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'white', fontSize: 14, fontWeight: 700,
               }}>{UI_ICONS.check('white', 16)}</div>
@@ -2798,7 +2863,7 @@ function App() {
               {/* Professional header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{
-                  width: 36, height: 36, borderRadius: '50%',
+                  width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
                   background: `${C.teal}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'white', fontSize: 20, fontWeight: 700,
@@ -2833,7 +2898,7 @@ function App() {
           Únete como Guía Ronda verificada y acompaña a mujeres en su camino.
         </div>
         <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
-          Escríbenos → hola@rondahub.com
+          Escríbenos → <a href="mailto:hola@rondahub.com" style={{ color: 'inherit', textDecoration: 'underline', display: 'inline-block', padding: '10px 0' }}>hola@rondahub.com</a>
         </div>
       </div>
     </div>
@@ -2887,9 +2952,9 @@ function App() {
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
           Estamos buscando Guías Ronda verificadas. Escríbenos.
         </div>
-        <div style={{ fontSize: 19, fontWeight: 700, color: C.rose }}>
+        <a href="mailto:hola@rondahub.com" style={{ display: 'inline-block', padding: '10px 0', fontSize: 19, fontWeight: 700, color: C.rose, textDecoration: 'underline' }}>
           hola@rondahub.com
-        </div>
+        </a>
       </div>
     </div>
   )
