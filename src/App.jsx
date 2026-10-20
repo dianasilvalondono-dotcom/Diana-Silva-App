@@ -2236,6 +2236,17 @@ function App() {
     error: { title: 'No se pudo activar', body: 'No pudimos conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo en un momento.' },
   }
 
+  // Miembro fundadora: el texto del acceso sigue su vigencia real (is_premium
+  // ya la incluye), no solo que haya una fecha guardada (perfil-10).
+  const fundadoraFecha = premiumStatus.premium_source === 'founding_member' && premiumStatus.premium_until
+    ? new Date(premiumStatus.premium_until) : null
+  const fundadoraFechaTexto = fundadoraFecha
+    ? fundadoraFecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+  const fundadoraAcceso = !fundadoraFecha ? ''
+    : premiumStatus.is_premium ? `Tienes acceso completo incluido hasta el ${fundadoraFechaTexto}.`
+      : fundadoraFecha <= new Date() ? `Tu acceso completo incluido terminó el ${fundadoraFechaTexto}.`
+        : 'Tu acceso completo incluido ya no está activo.'
+
   /* ── Board categories ── */
   const BOARD_CATS = [
     { id: 'todas', label: 'Todas', color: '#141833' },
@@ -3267,7 +3278,7 @@ function App() {
         </div>
 
         {/* Badge especial founding member */}
-        {premiumStatus.premium_source === 'founding_member' && premiumStatus.premium_until && (
+        {fundadoraFecha && (
           <div style={{
             background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`,
             borderRadius: 14, padding: '14px 16px', marginBottom: 14,
@@ -3280,7 +3291,7 @@ function App() {
               Eres parte de las primeras 50 mujeres
             </div>
             <div style={{ fontSize: 14, opacity: 0.95, lineHeight: 1.4 }}>
-              Tienes acceso completo incluido hasta el {new Date(premiumStatus.premium_until).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}.
+              {fundadoraAcceso}
             </div>
           </div>
         )}
