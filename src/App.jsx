@@ -1785,7 +1785,7 @@ function App() {
       <div style={{ background: C.morado, borderRadius: 20, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Rutas</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para crecer y brillar</div>
-        <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
+        <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>Una práctica al día. Tu transformación.</div>
       </div>
 
       {/* Active programs */}
@@ -1911,7 +1911,7 @@ function App() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
+                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
                 <button onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
@@ -1947,7 +1947,7 @@ function App() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
+                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
                 <button onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
