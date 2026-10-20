@@ -2186,6 +2186,16 @@ function App() {
     if (user && isConfigured && duenaLocal() === user.id) saveUserProfile(user.id, profile)
   }
 
+  // Notificaciones: mientras se activan la tarjeta sigue a la vista (perfil-4)
+  // y el aviso dice por qué no se activaron, sin culpar siempre al navegador (perfil-29).
+  const activandoPush = oneSignal.status === 'loading' || oneSignal.status === 'subscribing'
+  const AVISOS_PUSH = {
+    denied: { title: 'Notificaciones bloqueadas', body: 'Tu navegador bloqueó las notificaciones de Ronda. Para activarlas, ve a la configuración del sitio en tu navegador.' },
+    dismissed: { title: 'Aún no están activas', body: 'Cuando quieras recibirlas, toca "Activar notificaciones" otra vez y acepta el permiso que te pide el navegador.' },
+    unsupported: { title: 'No se pudo activar', body: 'Este navegador no permite notificaciones. Si estás en iPhone, instala Ronda en tu pantalla de inicio primero (botón Compartir → Agregar a pantalla de inicio) y actívalas desde ahí.' },
+    error: { title: 'No se pudo activar', body: 'No pudimos conectar con el servicio de notificaciones. Revisa tu conexión e inténtalo de nuevo en un momento.' },
+  }
+
   /* ── Board categories ── */
   const BOARD_CATS = [
     { id: 'todas', label: 'Todas', color: '#141833' },
@@ -3113,7 +3123,7 @@ function App() {
       )}
 
       {/* Notificaciones — OneSignal */}
-      {(oneSignal.status === 'idle' || oneSignal.status === 'error') && (
+      {(oneSignal.status === 'idle' || oneSignal.status === 'error' || activandoPush) && (
         <div style={{
           background: `linear-gradient(135deg, ${C.cream}, #E3E5D3)`,
           borderRadius: 16, padding: 18,
@@ -3135,27 +3145,22 @@ function App() {
               </div>
             </div>
           </div>
-          <button onClick={async () => {
-            const ok = await oneSignal.subscribe()
-            if (!ok) {
-              setAppModal({
-                type: 'info',
-                title: 'No se pudo activar',
-                body: 'Tu navegador bloqueó las notificaciones. Si estás en iPhone, instala Ronda en tu pantalla de inicio primero (botón Compartir → Agregar a pantalla de inicio).',
-                cta: 'Entendido',
-              })
-            }
+          <button disabled={activandoPush} aria-busy={activandoPush} onClick={async () => {
+            if (activandoPush) return
+            const resultado = await oneSignal.subscribe()
+            const aviso = AVISOS_PUSH[resultado]
+            if (aviso) setAppModal({ type: 'info', ...aviso, cta: 'Entendido' })
           }} style={{
             width: '100%', padding: '12px 16px', borderRadius: 12, border: 'none',
             background: C.teal, color: 'white', fontSize: 16, fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'inherit',
+            cursor: activandoPush ? 'default' : 'pointer', opacity: activandoPush ? 0.7 : 1, fontFamily: 'inherit',
           }}>
-            Activar notificaciones
+            {activandoPush ? 'Activando…' : 'Activar notificaciones'}
           </button>
         </div>
       )}
 
-      {oneSignal.status === 'subscribed' && (
+      {(oneSignal.status === 'subscribed' || oneSignal.status === 'pausing') && (
         <div style={{
           background: `${C.teal}10`,
           borderRadius: 16, padding: 14,
@@ -3172,11 +3177,15 @@ function App() {
             <div style={{ fontSize: 15, fontWeight: 700, color: C.teal }}>Notificaciones activas</div>
             <div style={{ fontSize: 13, color: C.muted }}>Tu Ronda te puede acompañar.</div>
           </div>
-          <button onClick={() => oneSignal.unsubscribe()} style={{
+          <button disabled={oneSignal.status === 'pausing'} aria-busy={oneSignal.status === 'pausing'} onClick={async () => {
+            if (oneSignal.status === 'pausing') return
+            const pausadas = await oneSignal.unsubscribe()
+            if (!pausadas) setAppModal({ type: 'info', title: 'No se pudo pausar', body: AVISOS_PUSH.error.body, cta: 'Entendido' })
+          }} style={{
             background: 'transparent', border: `1px solid ${C.border}`,
             borderRadius: 10, padding: '6px 10px', fontSize: 13,
-            color: C.muted, cursor: 'pointer', fontFamily: 'inherit',
-          }}>Pausar</button>
+            color: C.muted, cursor: oneSignal.status === 'pausing' ? 'default' : 'pointer', fontFamily: 'inherit',
+          }}>{oneSignal.status === 'pausing' ? 'Pausando…' : 'Pausar'}</button>
         </div>
       )}
 
