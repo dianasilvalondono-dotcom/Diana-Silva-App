@@ -125,7 +125,7 @@ export const CRISIS_PATTERNS = [
   /mejor no estar/, /acabar con todo/, /hacerme dano/, /lastimarme/, new RegExp(`cortarme\\b${NO_ES_PELO}`),
   /\bautolesion/, /me estoy cortando/,
   /me viol/, /abuso sexual/, /me esta pegando/, new RegExp(`me pega\\w*\\b${NO_ES_GRIPA}`), /me golpea/, /me maltrata/,
-  /estoy en peligro/, /me va a matar/, /amenaza de muerte/,
+  /estoy en peligro/, /me (va|van|iba|iban) a matar/, /amenazas? de muerte/,
   // Formas frecuentes que no caían en las de arriba (ia-5): "me quiero
   // matar/cortar", "me voy a matar", "tengo ganas de morirme", "me hago
   // daño", "quisiera estar muerta". Cortar(se) no cuenta cuando es el pelo,
@@ -226,6 +226,13 @@ export const CRISIS_PATTERNS = [
   /\bme (abusaron|abuso|abusa|abusan|abusaba|abusaban|ha abusado|han abusado|esta abusando|estan abusando)\b/,
   /\babus\w* (sexualmente )?de mi\b/,
   /\bque me (mate|maten|vaya a matar|quiera matar|viole|violen)\b/, /\bme (quiere|quieren|quiso|intento|trato de) matar\b/,
+  // Amenazas: "dice que si lo dejo me mata", "me tiene amenazada", "temo por
+  // mi vida", "nos va a matar". No activan "si como eso me mata la gastritis",
+  // "estoy amenazada de despido" ni "temo por mi vida social".
+  /\bsi (\w+ ){1,5}me (mata|matan)\b(?! (el|la|los|las|un|una|de)\b)/,
+  /\b(me tiene|me tienen|me tenia|me tenian|estoy|vivo|me siento) amenazad[ao]\b(?! (de|con) (despido|despedirme|echarme|demanda|demandarme|multa|sacarme del|quitarme el (puesto|trabajo)))/,
+  new RegExp(`\\b(miedo|temo|temor|temer) por mi vida\\b${NO_ES_ETAPA}`),
+  /\bnos (va|van|iba|iban|quiere|quieren) a matar\b/,
   // Revisión sistemática (verbos, tiempos y formas con y sin "me").
   // Terminar, acabar, quitar o ponerle fin a la propia vida: "quiero terminar
   // con mi vida", "me quito la vida", "le voy a poner fin a mi vida".
