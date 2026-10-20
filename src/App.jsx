@@ -2317,6 +2317,11 @@ function App() {
     setBoardPosts(prev => [newPost, ...prev])
     setBoardNewText('')
     setBoardShowForm(false)
+    // Que la usuaria vea lo que acaba de publicar: si el filtro activo es de
+    // otra categoría la publicación quedaría oculta, y en móvil cae debajo
+    // del borde de la pantalla (juntas-2).
+    if (boardFilter !== 'todas' && boardFilter !== newPost.cat) setBoardFilter('todas')
+    requestAnimationFrame(() => document.getElementById(`post-${newPost.id}`)?.scrollIntoView({ block: 'nearest' }))
     // Sin el contenido del post: solo la senal y la categoria.
     track('community_post_created', { category: newPost.cat })
 
@@ -2326,6 +2331,32 @@ function App() {
   const toggleBoardHeart = (postId) => {
     setBoardHearts(prev => ({ ...prev, [postId]: !prev[postId] }))
   }
+  // "1 te acompaña", "24 te acompañan" (juntas-15).
+  const textoAcompanan = (post) => {
+    const n = (post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)
+    return n === 1 ? '1 te acompaña' : `${n} te acompañan`
+  }
+
+  // Borrar una publicación propia (juntas-9). Hoy viven solo en este
+  // dispositivo; si la Guía IA aún estaba respondiendo, su respuesta busca
+  // la publicación por id y ya no encuentra nada.
+  const removeBoardPost = (postId) => {
+    setBoardPosts(prev => prev.filter(p => p.id !== postId))
+    setBoardHearts(prev => {
+      if (!(postId in prev)) return prev
+      const sinEsta = { ...prev }
+      delete sinEsta[postId]
+      return sinEsta
+    })
+    track('community_post_deleted')
+  }
+  const pedirBorrarPublicacion = (post) => setAppModal({
+    type: 'confirm',
+    title: '¿Borrar tu publicación?',
+    body: 'Se borra de este dispositivo y después no la podrás recuperar.',
+    cta: 'Borrar publicación',
+    onConfirm: () => removeBoardPost(post.id),
+  })
 
   /* ── Board View ── */
   const boardView = (
@@ -2448,9 +2479,11 @@ function App() {
 
       {/* Posts */}
       {filteredBoardPosts.map(post => (
-        <div key={post.id} style={{
+        <div key={post.id} id={`post-${post.id}`} style={{
           background: C.card, borderRadius: 16, padding: 18,
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: `1px solid ${C.border}`,
+          // Al publicar se baja hasta aquí: que no quede bajo el encabezado ni el menú.
+          scrollMarginTop: 140, scrollMarginBottom: 84,
         }}>
           {/* Post header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -2484,18 +2517,29 @@ function App() {
             {post.content}
           </div>
 
-          {/* Hearts */}
-          <button onClick={() => toggleBoardHeart(post.id)} style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
-            borderRadius: 20, border: `1px solid ${boardHearts[post.id] ? C.rose : C.border}`,
-            background: boardHearts[post.id] ? `${C.rose}12` : 'none',
-            cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-            <span style={{ fontSize: 14 }}>{boardHearts[post.id] ? '' : '🤍'}</span>
-            <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
-              {(post.hearts || 0) + (boardHearts[post.id] ? 1 : 0)} te acompañan
-            </span>
-          </button>
+          {/* Hearts (y Borrar en las publicaciones propias) */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <button type="button" onClick={() => toggleBoardHeart(post.id)}
+              aria-pressed={!!boardHearts[post.id]} aria-label={`Acompañar esta publicación. ${textoAcompanan(post)}`} style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
+              borderRadius: 20, border: `1px solid ${boardHearts[post.id] ? C.rose : C.border}`,
+              background: boardHearts[post.id] ? `${C.rose}12` : 'none',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              {/* Marcado: corazón lleno; antes quedaba vacío (juntas-8) */}
+              <span aria-hidden="true" style={{ fontSize: 14 }}>{boardHearts[post.id] ? '💜' : '🤍'}</span>
+              <span style={{ fontSize: 20, fontWeight: 600, color: boardHearts[post.id] ? C.roseDark : C.muted }}>
+                {textoAcompanan(post)}
+              </span>
+            </button>
+            {!post.example && (
+              <button type="button" onClick={() => pedirBorrarPublicacion(post)} aria-label="Borrar mi publicación" style={{
+                minHeight: 44, padding: '0 8px', marginRight: -8, background: 'none', border: 'none',
+                color: C.muted, fontSize: 17, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                flexShrink: 0,
+              }}>Borrar</button>
+            )}
+          </div>
 
           {/* "Una guía está respondiendo" indicator while waiting */}
           {post.awaitingGuia && (!post.replies || post.replies.length === 0) && (
