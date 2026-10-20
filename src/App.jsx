@@ -1800,6 +1800,8 @@ function App() {
               if (!prog || !prog.days?.length) return null
               const completedCount = progress.completedDays.length
               const pct = Math.round((completedCount / prog.days.length) * 100)
+              // El primer día sin hacer muestra abierto su "Por qué funciona".
+              const diaSiguiente = prog.days.find(d => !progress.completedDays.includes(d.day))?.day
               return (
                 <div key={progId} id={`ruta-activa-${progId}`} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
@@ -1817,34 +1819,58 @@ function App() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 }}>
                     {prog.days.map(d => {
                       const isDone = progress.completedDays.includes(d.day)
+                      // Rutas de 21 días: el porqué (neuro) y la pregunta (prompt) de cada día.
+                      const porQue = typeof d.neuro === 'string' ? d.neuro.trim() : ''
+                      const pregunta = typeof d.prompt === 'string' ? d.prompt.trim() : ''
                       return (
-                        <button type="button" role="checkbox" aria-checked={isDone} key={d.day} onClick={() => completeProgDay(progId, d.day)} style={{
-                          display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+                        <div key={d.day} style={{
                           background: isDone ? `${prog.color}08` : C.cream, borderRadius: 14,
-                          cursor: 'pointer', border: `1px solid ${isDone ? `${prog.color}30` : C.border}`,
+                          border: `1px solid ${isDone ? `${prog.color}30` : C.border}`,
                           transition: 'all 0.15s',
-                          width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                         }}>
-                          <span aria-hidden="true" style={{
-                            width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
-                            background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
+                          <button type="button" role="checkbox" aria-checked={isDone} onClick={() => completeProgDay(progId, d.day)} style={{
+                            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+                            background: 'none', borderRadius: 14, cursor: 'pointer', border: 'none',
+                            width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                           }}>
-                            {isDone && UI_ICONS.check('white', 15)}
-                          </span>
-                          <span style={{ display: 'block', flex: 1 }}>
-                            <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: colorTexto(prog.color), textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                              Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
+                            <span aria-hidden="true" style={{
+                              width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
+                              background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
+                            }}>
+                              {isDone && UI_ICONS.check('white', 15)}
                             </span>
-                            <span style={{ display: 'block', fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
-                              textDecoration: isDone ? 'line-through' : 'none' }}>
-                              {d.title}
+                            <span style={{ display: 'block', flex: 1 }}>
+                              <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: colorTexto(prog.color), textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                                Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
+                              </span>
+                              <span style={{ display: 'block', fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
+                                textDecoration: isDone ? 'line-through' : 'none' }}>
+                                {d.title}
+                              </span>
+                              <span style={{ display: 'block', fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
+                                {d.task}
+                              </span>
                             </span>
-                            <span style={{ display: 'block', fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
-                              {d.task}
-                            </span>
-                          </span>
-                        </button>
+                          </button>
+                          {(porQue || pregunta) && (
+                            <details open={d.day === diaSiguiente} style={{ padding: '0 14px 12px 48px' }}>
+                              <summary style={{ fontSize: 19, fontWeight: 700, color: colorTexto(prog.color), cursor: 'pointer', padding: '8px 0' }}>
+                                {porQue ? 'Por qué funciona' : 'Para reflexionar'}
+                              </summary>
+                              {porQue && (
+                                <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.5, marginTop: 4, padding: '8px 10px', background: C.goldLight, borderRadius: 10 }}>
+                                  {porQue}
+                                </div>
+                              )}
+                              {pregunta && (
+                                <div style={{ fontSize: 19, color: C.text, lineHeight: 1.5, marginTop: 8, fontStyle: 'italic' }}>
+                                  {porQue && <span style={{ fontWeight: 700, fontStyle: 'normal' }}>Para reflexionar: </span>}{pregunta}
+                                </div>
+                              )}
+                            </details>
+                          )}
+                        </div>
                       )
                     })}
                   </div>
