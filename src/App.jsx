@@ -3839,9 +3839,9 @@ function App() {
         </div>
       </div>
 
-      {/* Membership — Yo soy Ronda */}
-      <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm, border: `1px solid ${C.goldLight}` }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Yo soy Ronda</div>
+      {/* Membership — Yo soy Ronda ("Ver planes" del aviso de pago llega aquí) */}
+      <div id="perfil-planes" style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm, border: `1px solid ${C.goldLight}` }}>
+        <div id="perfil-planes-titulo" tabIndex={-1} style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em', outline: 'none' }}>Yo soy Ronda</div>
         <div style={{ fontSize: 18, color: C.muted, marginBottom: 14 }}>
           {isPremium ? 'Tienes acceso completo a Ronda' : 'Plan actual: Freemium'}
         </div>
@@ -3868,7 +3868,9 @@ function App() {
         {!isPremium && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { name: PLAN_PAGO, price: PLAN_PRECIO, features: 'Tu Ronda (IA), rutas de 21 días, 5 respuestas profesionales/mes', color: C.teal },
+              // Lo mismo que dice "Acceso completo activo": sin profesionales
+              // (en la Comunidad responde la Guía IA de Ronda).
+              { name: PLAN_PAGO, price: PLAN_PRECIO, features: 'Tu Ronda (IA), rutas de 21 días, escribir en la Comunidad y más.', color: C.teal },
               { name: 'Ronda Pro', price: 'Próximamente', features: 'El siguiente nivel de Ronda, en camino.', color: C.gold },
             ].map((plan, i) => (
               <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 14, border: `2px solid ${plan.color}30` }}>
@@ -4970,6 +4972,16 @@ function App() {
               if (appModal.type === 'paywall') {
                 track('paywall_cta_clicked', { title: appModal.title })
                 openModule('perfil')
+                // Los planes están en "Yo soy Ronda", más abajo en Perfil (en el
+                // celular no se ven al abrir): se baja hasta ahí, bajo el
+                // encabezado fijo, y el foco pasa a su título.
+                focoTrasModalRef.current = () => document.getElementById('perfil-planes-titulo')
+                requestAnimationFrame(() => {
+                  const tarjeta = document.getElementById('perfil-planes')
+                  if (!tarjeta) return
+                  const alto = document.querySelector('header')?.offsetHeight || 0
+                  window.scrollTo({ top: tarjeta.getBoundingClientRect().top + window.scrollY - alto - 12, behavior: 'instant' })
+                })
               }
               if (appModal.type === 'confirm') appModal.onConfirm?.()
               setAppModal(null)
