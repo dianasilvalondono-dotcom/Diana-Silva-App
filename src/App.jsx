@@ -4000,36 +4000,39 @@ function App() {
 
         {/* ── BREATHE: 4-7-8 Guided Breathing ── */}
         {panicScreen === 'breathe' && <>
-          <div style={{
-            width: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
-            height: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
-            borderRadius: '50%',
-            background: breathePhase === 'inhale'
-              ? 'radial-gradient(circle, rgba(191,213,235,0.45), rgba(191,213,235,0.08))'
-              : breathePhase === 'hold'
-              ? 'radial-gradient(circle, rgba(145,148,110,0.6), rgba(145,148,110,0.1))'
-              : 'radial-gradient(circle, rgba(214,191,221,0.45), rgba(214,191,221,0.08))',
-            transition: 'all 1.5s ease-in-out',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 32,
-          }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-              {breathePhase === 'inhale' ? 'Inhala' : breathePhase === 'hold' ? 'Sostén' : 'Exhala'}
+          {/* Al terminar, el cierre reemplaza las instrucciones: no queda
+             'Exhala — suelta todo' encima de 'Lo hiciste.' */}
+          {(breatheActive || breatheCount === 0) && <>
+            <div style={{
+              width: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
+              height: breathePhase === 'inhale' ? 200 : breathePhase === 'hold' ? 200 : 120,
+              borderRadius: '50%',
+              background: breathePhase === 'inhale'
+                ? 'radial-gradient(circle, rgba(191,213,235,0.45), rgba(191,213,235,0.08))'
+                : breathePhase === 'hold'
+                ? 'radial-gradient(circle, rgba(145,148,110,0.6), rgba(145,148,110,0.1))'
+                : 'radial-gradient(circle, rgba(214,191,221,0.45), rgba(214,191,221,0.08))',
+              transition: 'all 1.5s ease-in-out',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 32,
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                {breathePhase === 'inhale' ? 'Inhala' : breathePhase === 'hold' ? 'Sostén' : 'Exhala'}
+              </div>
             </div>
-          </div>
 
-          <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
-            {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
-             breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
-             '8 segundos — suelta todo, deja ir'}
-          </div>
-          <div style={{ fontSize: 19, color: '#D6BFDD', marginBottom: 24 }}>
-            Ciclo {Math.min(breatheCount + 1, 5)} de 5
-          </div>
+            <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
+              {breathePhase === 'inhale' ? '4 segundos — llena tu pecho de aire' :
+               breathePhase === 'hold' ? '7 segundos — el aire te sostiene' :
+               '8 segundos — suelta todo, deja ir'}
+            </div>
+            <div style={{ fontSize: 19, color: '#D6BFDD', marginBottom: 24 }}>
+              Ciclo {Math.min(breatheCount + 1, 5)} de 5
+            </div>
+          </>}
 
           {!breatheActive && breatheCount > 0 && (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 40, marginBottom: 12, color: C.teal, opacity: 0.3 }}>●</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
               <div style={{ fontSize: 20, color: '#E3E5D3', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
               <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
