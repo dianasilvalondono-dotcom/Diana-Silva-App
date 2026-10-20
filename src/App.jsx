@@ -1995,13 +1995,9 @@ function App() {
                   })
                   return
                 }
+                // Ya en curso: lleva a su tarjeta en "Mis rutas activas".
                 if (activePrograms[prog.id]) {
-                  setAppModal({
-                    type: 'info',
-                    title: 'Ya estás en esta ruta',
-                    body: `Sigues "${prog.title}". Continúa con tu día de hoy.`,
-                    cta: 'Listo',
-                  })
+                  irARutaActiva(prog.id)
                   return
                 }
                 startProgram(prog.id)
@@ -2020,7 +2016,7 @@ function App() {
                 color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(114,109,45,0.35)', letterSpacing: '0.02em',
               }}>
-                {isPremium ? 'Empezar esta ruta' : `Desbloquear con ${PLAN_PAGO}`}
+                {!isPremium ? `Desbloquear con ${PLAN_PAGO}` : activePrograms[prog.id] ? 'Continuar mi ruta' : 'Empezar esta ruta'}
               </button>
             </div>
           </div>
