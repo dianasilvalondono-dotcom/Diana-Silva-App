@@ -13,7 +13,7 @@ import { C } from '../../constants/colors'
 import { FONT_DISPLAY } from '../../constants/tokens'
 import { CIUDADES, SALAS, ACCESO, MODALIDAD, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from '../../constants/curaduria'
 import { load, save } from '../../utils/helpers'
-import { getPlanes, getReservas, getReservasLocales, reservarCupo, liberarCupo, enviarReporte, enviarReportesPendientes } from '../../lib/curaduria'
+import { getPlanes, getReservas, getReservasLocales, reservarCupo, liberarCupo, enviarReporte } from '../../lib/curaduria'
 import { track } from '../../lib/analytics'
 import LineaCrisis from '../ui/LineaCrisis'
 
@@ -398,14 +398,15 @@ export default function RondasView({ user, onIrAdentro }) {
     return () => { cancelled = true }
   }, [ciudad])
 
-  // Las reservas salen de la cuenta, no solo del teléfono (rondas-9), y los
-  // mensajes a la curadora que se quedaron sin enviar salen ahora (rondas-1).
+  // Las reservas salen de la cuenta, no solo del teléfono (rondas-9). Los
+  // mensajes de antes que se quedaron sin enviar ya no salen solos: un
+  // mensaje sobre un plan se envía solo cuando ella toca «Enviar» (ver
+  // src/lib/curaduria.js).
   const userId = user?.id || null
   useEffect(() => {
     if (!userId) return
     let cancelled = false
     getReservas({ id: userId }).then(ids => { if (!cancelled) setReservas(ids) })
-    enviarReportesPendientes({ id: userId })
     return () => { cancelled = true }
   }, [userId])
 

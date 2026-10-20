@@ -14,6 +14,8 @@
 //     clics muertos, sin errores automáticos y sin encuestas: todo eso puede
 //     llevar texto de la pantalla (el diario, el chat), y la política promete
 //     que PostHog nunca recibe lo que escribes.
+//   • Sin ubicación calculada por la IP ($geoip_disable en cada evento): la
+//     política dice que Ronda no calcula dónde estás.
 //
 // Para activarlo:
 //   1. Crea cuenta gratis en https://posthog.com (free: 1M eventos/mes).
@@ -67,6 +69,14 @@ export function initAnalytics() {
         // La IP: en posthog-js 1.415 la opción `ip` del cliente ya no hace
         // nada. Se descarta en el panel del proyecto («Discard client IP
         // data»): acción pendiente de Diana.
+        // Que PostHog no calcule ciudad ni coordenadas a partir de la IP
+        // (la transformación GeoIP deja pasar sin tocar todo evento que trae
+        // $geoip_disable). Vale para todos, también $identify y $set. Además,
+        // Diana apaga GeoIP en el panel (lo-que-hace-diana-antes-de-publicar).
+        before_send: (ev) => {
+          if (ev) ev.properties = { ...(ev.properties || {}), $geoip_disable: true }
+          return ev
+        },
       })
       ph = posthog
       // Desahogar lo que ocurrió mientras cargaba, en orden.

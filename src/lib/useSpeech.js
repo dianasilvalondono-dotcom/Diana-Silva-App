@@ -7,7 +7,10 @@ import { apiFetch } from './supabase'
 // y la app sigue igual de completa en texto. Si falla por otra razon, errorId
 // marca por unos segundos el mensaje que no se pudo leer (el boton lo avisa).
 // Solo suena la ultima peticion: pedir otro mensaje cancela la anterior.
-export function useSpeech() {
+// alRechazar(resp), si se pasa, recibe cada 403 del servidor: App lo usa para
+// ver si es el de la IA sin autorizar (la quitaron en otro telefono) y volver
+// a leer las autorizaciones, como con agent, guia y generate-program.
+export function useSpeech({ alRechazar } = {}) {
   const [speakingId, setSpeakingId] = useState(null)
   const [loadingId, setLoadingId] = useState(null)
   const [errorId, setErrorId] = useState(null)
@@ -18,6 +21,9 @@ export function useSpeech() {
   const abortRef = useRef(null)   // fetch en curso
   const reqRef = useRef(0)        // numero de la peticion vigente
   const errorTimerRef = useRef(null)
+  // Siempre la version mas reciente, sin sumarla a las dependencias de speak.
+  const alRechazarRef = useRef(alRechazar)
+  useEffect(() => { alRechazarRef.current = alRechazar })
 
   const cleanup = useCallback(() => {
     if (audioRef.current) {
@@ -94,7 +100,8 @@ export function useSpeech() {
         return
       }
       if (!resp.ok) {
-        marcarError(id)
+        if (resp.status === 403) await alRechazarRef.current?.(resp)
+        if (vigente()) marcarError(id)
         return
       }
 

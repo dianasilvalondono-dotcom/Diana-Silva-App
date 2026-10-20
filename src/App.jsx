@@ -33,11 +33,12 @@ import { PantallaAutorizacion, TarjetaIA, TusAutorizaciones, EnlacePolitica } fr
 import {
   leerAutorizaciones, guardarAutorizaciones, cuentaAutorizada as cuentaAutorizadaEn, iaAutorizada as iaAutorizadaEn,
   iaRespondida, registrar as registrarAutorizaciones, adoptar as adoptarAutorizaciones, leerAutorizacionesNube,
-  subirAutorizaciones, trasSubir, hayQueSubir, crearCola,
+  subirAutorizaciones, trasSubir, hayQueSubir, crearCola, esperarIAEnNube,
 } from './lib/autorizaciones'
 import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL } from './lib/database'
 import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
 import { esAdmin, rondaPlusVigente } from './utils/plan'
+import { ultimaEntradaDiario } from './utils/diario'
 
 /* Antes de pagar Ronda+: lo que usa la IA pide su propia autorización
    (textos-autorizacion-v1; Ley 1581, art. 6). Va en el paywall y en el plan. */
@@ -412,6 +413,16 @@ function App() {
   useEffect(() => {
     if (osStatus === 'subscribed' && userId && cuentaAutorizada && !datosDeOtraCuenta(userId)) osSetExternalUserId(userId)
   }, [osStatus, userId, cuentaAutorizada, osSetExternalUserId])
+  // Al cerrar sesión, el teléfono se suelta de la cuenta en OneSignal: si
+  // entra otra cuenta aquí, los recordatorios de la anterior no le llegan.
+  // Los botones de cerrar sesión ya lo hacen (y pausan); esto cubre la
+  // sesión que se cierra sola (solo logout).
+  const { soltarCuenta: osSoltarCuenta } = oneSignal
+  const prevUserOSRef = useRef(null)
+  useEffect(() => {
+    if (prevUserOSRef.current && !userId) osSoltarCuenta()
+    prevUserOSRef.current = userId
+  }, [userId, osSoltarCuenta])
 
   // ─── Modal genérico de la marca (reemplaza alert() feo del navegador) ───
   // { type: 'success'|'info'|'paywall'|'confirm', title, body, cta, onConfirm }
@@ -519,7 +530,12 @@ function App() {
   // Voz de Tu Ronda. Si /api/speak no está configurado, available queda en false
   // y el botón no se muestra. Si falla, errorId marca el mensaje por un momento.
   // El hook vive en App (no se desmonta): al salir del chat se llama stopSpeech.
-  const { speak, stop: stopSpeech, speakingId, loadingId: speechLoadingId, errorId: speechErrorId, available: voiceAvailable } = useSpeech()
+  // Un 403 de la voz pasa por el mismo detector que el chat (iaRechazadaEnServidor,
+  // más abajo): si es el de la IA sin autorizar, se vuelven a leer las autorizaciones.
+  const iaRechazadaRef = useRef(null)
+  const { speak, stop: stopSpeech, speakingId, loadingId: speechLoadingId, errorId: speechErrorId, available: voiceAvailable } = useSpeech({
+    alRechazar: (resp) => iaRechazadaRef.current?.(resp),
+  })
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   // Día al que pertenecen los estados diarios (hábitos, rutina, check-ins,
@@ -798,6 +814,11 @@ function App() {
     if (resultado.ganaNube.ia) return 'otro-telefono'
     return resultado.completo && !resultado.sinFila.ia ? 'listo' : 'pendiente'
   }, 'pendiente'), [enCola, userId, isConfigured, cambiarAutorizaciones])
+  // Antes de cada llamada a la IA: si el «sí» de aquí aún no está en
+  // profiles, se espera esa subida (src/lib/autorizaciones.js). Así, quien
+  // acaba de autorizar en la tarjeta (o en «Lo íntimo es tuyo», o en el
+  // aviso) no recibe un 403 en su primer mensaje.
+  const iaListaEnNube = () => esperarIAEnNube(() => autorizacionesRef.current, subirPendientes)
   // Lee la nube (si respondió o cambió algo en otro teléfono) y, si nunca
   // respondió, adopta lo que marcó al crear la cuenta (metadatos).
   // Sin respuesta de la nube, lo del registro espera (no se crea un «sí» a
@@ -827,6 +848,7 @@ function App() {
     sincronizarAutorizaciones()
     return true
   }
+  useEffect(() => { iaRechazadaRef.current = iaRechazadaEnServidor })
 
   // Al entrar: lo que falta o cambió se completa con la nube. Mientras tanto,
   // si falta algo, la app espera en "Cargando..." (revisandoAutorizaciones).
@@ -880,18 +902,34 @@ function App() {
     if (!isConfigured || !userId) return 'listo'
     return subirPendientes()
   }
-  // Aviso único → «Prefiero salir» → «Cerrar sesión»: queda la prueba
-  // del rechazo (cuenta = no) antes de salir. Sin red, queda pendiente en
-  // este teléfono y sube la próxima vez que entre (como máximo espera 6 s).
+  // Aviso único → «Rechazar la autorización» → «Cerrar sesión»: queda la
+  // prueba del rechazo (cuenta = no) antes de salir. Sin red, queda pendiente
+  // en este teléfono y sube la próxima vez que entre (como máximo espera 6 s).
+  // En el mismo tiempo, las notificaciones se pausan y el teléfono se suelta
+  // de la cuenta en OneSignal: tras el rechazo, los recordatorios paran.
   const rechazarYCerrarSesion = async () => {
     // Un segundo intento (sin red no se pudo salir) no repite la fila.
     if (!(autorizacionesRef.current?.cuenta?.valor === false && autorizacionesRef.current.cuenta.pendiente)) {
       responderAutorizacion({ cuenta: false }, 'aviso-unico', { analitica: false })
     }
-    if (isConfigured && userId) {
-      await Promise.race([subirPendientes(), new Promise(resolve => setTimeout(resolve, 6000))])
-    }
+    const pasos = [oneSignal.soltarCuenta({ pausar: true })]
+    if (isConfigured && userId) pasos.push(subirPendientes())
+    await Promise.race([Promise.all(pasos), new Promise(resolve => setTimeout(resolve, 6000))])
     return signOut()
+  }
+  // Perfil → «Cerrar sesión»: antes de salir, las notificaciones se pausan y
+  // el teléfono se suelta de la cuenta en OneSignal (como máximo 6 s), así
+  // otra cuenta que entre aquí no recibe sus recordatorios.
+  const [cerrandoSesion, setCerrandoSesion] = useState(false)
+  const cerrarSesion = async () => {
+    if (cerrandoSesion) return
+    setCerrandoSesion(true)
+    try {
+      await Promise.race([oneSignal.soltarCuenta({ pausar: true }), new Promise(resolve => setTimeout(resolve, 6000))])
+      await signOut()
+    } finally {
+      setCerrandoSesion(false)
+    }
   }
 
   // ── Toolkit en la nube (toolkit-19) ──
@@ -1594,15 +1632,17 @@ function App() {
   const cuentaAjena = isConfigured && !!user && (guardadoEstaBloqueado() || (!!duenaLocal() && duenaLocal() !== user.id))
   const pantallaCarga = authLoading || cuentaAjena || revisandoAutorizaciones
   const pantallaBase = !pantallaCarga && !(isConfigured && !user) && !(isConfigured && recovering)
-  const pantallaAutorizacion = pantallaBase && !!pideAutorizacion
   const pantallaPrincipal = pantallaBase && onboarded && !pideAutorizacion
   const panicRef = useRef(null)
   const morningRef = useRef(null)
   const nightRef = useRef(null)
   const appModalRef = useRef(null)
-  // Si lo que abrió la Ayuda ya no está (un check-in que se cerró, una
-  // sección que se cambió), el foco vuelve al botón "Ayuda" del encabezado.
-  useDialog(panicRef, showPanic && (pantallaPrincipal || pantallaAutorizacion || pantallaCarga), cerrarAyuda,
+  // La Ayuda va en todas las pantallas, siempre en el mismo lugar (conAyuda,
+  // abajo): si la pantalla cambia con la Ayuda abierta, sigue abierta y con
+  // el teclado adentro. Si lo que la abrió ya no está (un check-in que se
+  // cerró, una sección que se cambió), el foco vuelve al botón "Ayuda"; si
+  // esa pantalla no lo tiene, el foco se queda donde está.
+  useDialog(panicRef, showPanic, cerrarAyuda,
     (previo) => (previo && previo.isConnected && previo !== document.body ? previo : document.getElementById('boton-ayuda')))
   useDialog(morningRef, showMorningCheckin && pantallaPrincipal, posponerCheckin)
   useDialog(nightRef, showNightCheckin && pantallaPrincipal, posponerCheckin)
@@ -3138,6 +3178,8 @@ function App() {
     }
 
     actualizar({ awaitingGuia: true, guiaFallo: false })
+    // Antes del corte de 20 s: la espera de la subida no se lo gasta.
+    if (!(await iaListaEnNube())) { actualizar({ awaitingGuia: false }); pedirIAComunidad(); return }
     // Pausa breve (se siente considerada), en paralelo con la petición: la
     // respuesta se guarda en cuanto termina, sin un setTimeout suelto después.
     // Es IA: responde rápido, sin fingir ser humana.
@@ -3650,6 +3692,7 @@ function App() {
     setAiCrisis(false)
     setAiStep(3)
     setAiError('')
+    if (!(await iaListaEnNube())) { setAiStep(1); return }
     try {
       const resp = await apiFetch('/api/generate-program', {
         method: 'POST',
@@ -3712,6 +3755,16 @@ function App() {
       return
     }
 
+    // Su «sí» recién dado tiene que estar en la nube antes de enviar. Si
+    // perdió con un «no» de otro teléfono, el mensaje vuelve al cuadro y
+    // aparece la tarjeta de la IA.
+    if (!(await iaListaEnNube())) {
+      setChatLoading(false)
+      setChatMessages(prev => prev.filter(m => m !== userMsg))
+      setChatInput(msg)
+      return
+    }
+
     // ── Build rich context from user state ──
     const todayChecked = Object.values(checked).filter(Boolean).length
     const totalHabits = habits.length
@@ -3725,8 +3778,10 @@ function App() {
     const avgMood = conAnimo.length > 0
       ? (conAnimo.reduce((s, e) => s + e.mood, 0) / conAnimo.length).toFixed(1)
       : null
-    // La última entrada del diario (sus primeros 200 caracteres, abajo).
-    const lastJournalNote = entries[0]?.text || null
+    // La última entrada del diario, como dicen la casilla de la IA y la
+    // política: los check-ins de la mañana y de la noche se quedan fuera (sus
+    // primeros 200 caracteres, abajo).
+    const lastJournalNote = ultimaEntradaDiario(entries)
 
     // Rutas activas, con el día en que va cada una (las creadas con la IA incluidas).
     const rutasEnCurso = Object.entries(activePrograms).map(([id, p]) => {
@@ -3917,7 +3972,7 @@ function App() {
                 {/* Escuchar la respuesta en voz. En crisis la voz va más pausada. */}
                 {msg.role === 'assistant' && voiceAvailable && msg.text && !msg.isProgram && (
                   <button
-                    onClick={() => speak(msg.text, { id: i, tone: msg.sos ? 'sos' : 'chat' })}
+                    onClick={async () => { if (await iaListaEnNube()) speak(msg.text, { id: i, tone: msg.sos ? 'sos' : 'chat' }) }}
                     aria-label={speechErrorId === i ? 'No pude reproducir la voz ahora. Toca para intentar de nuevo' : speakingId === i ? 'Silenciar' : 'Escuchar esta respuesta'}
                     style={{
                       marginTop: 10, padding: '5px 12px 5px 6px', borderRadius: 20,
@@ -4134,6 +4189,10 @@ function App() {
     </div>
   )
 
+  // «Lo que sé de ti» sale con algo de memoria o con una conversación (algo
+  // que ella escribió en Tu Ronda): ahí se borran las dos.
+  const memoriaConAlgo = memory.facts?.length > 0 || memory.patterns?.length > 0 || !!memory.summary
+  const hayConversacion = chatMessages.some(m => m.role === 'user')
   const perfilView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Avatar & Name card */}
@@ -4411,8 +4470,9 @@ function App() {
       {/* Tus datos y privacidad: autorizaciones, política y a quién escribir */}
       <TusAutorizaciones autorizaciones={autorizaciones} onCambiarIA={cambiarAutorizacionIA} />
 
-      {/* Lo que Ronda sabe de ti (memoria de Tu Ronda) */}
-      {(memory.facts?.length > 0 || memory.patterns?.length > 0 || memory.summary) && (
+      {/* Lo que Ronda sabe de ti (memoria de Tu Ronda). También con solo la
+          conversación: la política dice que ahí se borra. */}
+      {(memoriaConAlgo || hayConversacion) && (
         <div style={{ background: C.card, borderRadius: 18, padding: 22, border: `1px solid ${C.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div>
@@ -4426,7 +4486,7 @@ function App() {
             <button onClick={() => setAppModal({
               type: 'confirm',
               title: '¿Borrar lo que Ronda ha aprendido de ti?',
-              body: 'Se borra lo que Tu Ronda sabe de ti y también tu conversación con ella. Esta acción no se puede deshacer.',
+              body: 'Se borra lo que Tu Ronda sabe de ti y también tu conversación con ella. Es definitivo.',
               cta: 'Borrar',
               onConfirm: () => {
                 setMemory({ facts: [], patterns: [], preferences: {}, summary: '', lastUpdated: null, conversationCount: 0 })
@@ -4440,6 +4500,12 @@ function App() {
               Borrar
             </button>
           </div>
+
+          {!memoriaConAlgo && (
+            <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.55, marginBottom: 4 }}>
+              Tu conversación con Tu Ronda está guardada en este teléfono. Con «Borrar» la borras, junto con lo que recuerde de ti.
+            </div>
+          )}
 
           {memory.summary && (
             <div style={{ fontSize: 17, color: C.text, lineHeight: 1.6, marginBottom: 16, fontStyle: 'italic' }}>
@@ -4489,12 +4555,12 @@ function App() {
       {isConfigured && user && (
         <div style={{ textAlign: 'center', marginTop: 8 }}>
           <div style={{ fontSize: 20, color: C.subtle, marginBottom: 8 }}>{user.email}</div>
-          <button onClick={signOut} style={{
+          <button onClick={cerrarSesion} disabled={cerrandoSesion} style={{
             padding: '10px 28px', borderRadius: 12, border: `1.5px solid ${C.border}`,
             background: C.card, color: C.muted, fontSize: 20, fontWeight: 700,
-            cursor: 'pointer', fontFamily: 'inherit',
+            cursor: cerrandoSesion ? 'wait' : 'pointer', fontFamily: 'inherit',
           }}>
-            Cerrar sesión
+            {cerrandoSesion ? 'Cerrando sesión…' : 'Cerrar sesión'}
           </button>
         </div>
       )}
@@ -5027,9 +5093,15 @@ function App() {
      y mientras se leen sus autorizaciones de la nube (hasta 6 s; recién
      creada la cuenta y sin respuesta, un intento más). Ayuda y las líneas de
      crisis están a mano también aquí. */
+  /* Toda pantalla devuelve la misma forma: <>{pantalla}{panicModal}</>, con
+     la Ayuda siempre en el segundo lugar. Así, si la pantalla cambia con la
+     Ayuda abierta (termina "Cargando...", se cierra la sesión), React
+     conserva el mismo diálogo: sigue abierto, con la respiración corriendo y
+     el teclado adentro. Lo de atrás queda inerte mientras está abierta. */
+  const conAyuda = (pantalla) => <>{pantalla}{panicModal}</>
+
   if (pantallaCarga) {
-    return (
-      <>
+    return conAyuda(
         <div inert={showPanic} style={{
           maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -5051,14 +5123,13 @@ function App() {
             Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
           </p>
         </div>
-        {panicModal}
-      </>
     )
   }
 
-  /* ── Contraseña nueva: llegó desde el enlace de "¿Olvidaste tu contraseña?" ── */
+  /* ── Contraseña nueva: llegó desde el enlace de "¿Olvidaste tu contraseña?" ──
+     Como al crear la cuenta o entrar: Ayuda arriba y las líneas de crisis abajo. */
   if (isConfigured && user && recovering) {
-    return (
+    return conAyuda(
       <AuthScreen
         modoInicial="nueva"
         onUpdatePassword={updatePassword}
@@ -5067,26 +5138,33 @@ function App() {
           setAppModal({ type: 'success', title: 'Tu contraseña quedó lista', body: 'Desde ahora entras con tu contraseña nueva.' })
         }}
         onCancel={clearRecovering}
+        onAyuda={() => abrirAyuda('cuenta')}
+        inerte={showPanic}
       />
     )
   }
 
-  /* ── Auth screen (only if Supabase is configured and no user) ── */
+  /* ── Auth screen (only if Supabase is configured and no user) ──
+     También es donde termina «Rechazar la autorización» → «Cerrar sesión». */
   if (isConfigured && !user) {
-    return (
+    return conAyuda(
       <AuthScreen
         onSignInEmail={signInWithEmail}
         onSignUp={signUp}
         onResetPassword={resetPassword}
+        onAyuda={() => abrirAyuda('cuenta')}
+        inerte={showPanic}
       />
     )
   }
 
-  /* ── Onboarding screen ── (después de las autorizaciones, más abajo) */
+  /* ── Onboarding screen ── (después de las autorizaciones, más abajo)
+     Sin botón de Ayuda propio, pero si llega con la Ayuda abierta (desde
+     "Cargando..."), la Ayuda sigue encima y esto queda inerte. */
   if (!onboarded && !pideAutorizacion) {
     const ultimoPaso = onboardStep === onboardSlides.length - 1
-    return (
-      <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: FONT }}>
+    return conAyuda(
+      <div inert={showPanic} style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: FONT }}>
         {onboardSlides[onboardStep]}
 
         {/* Dots + Navigation. Barra de ancho completo con fondo propio: lo que
@@ -5380,8 +5458,7 @@ function App() {
      Antes de la bienvenida y de todo lo demás, y sin cerrarse hasta que
      responda. Ayuda queda arriba y abre encima, como en toda la app. */
   if (pideAutorizacion) {
-    return (
-      <>
+    return conAyuda(
         <PantallaAutorizacion
           key={pideAutorizacion}
           modo={pideAutorizacion}
@@ -5395,13 +5472,13 @@ function App() {
           }}
           onCerrarSesion={isConfigured && user ? rechazarYCerrarSesion : null}
         />
-        {panicModal}
-      </>
     )
   }
 
-  /* ── Render: telón morado arriba, hoja clara redondeada con el contenido ── */
-  return (
+  /* ── Render: telón morado arriba, hoja clara redondeada con el contenido ──
+     La Ayuda va fuera de esta raíz (conAyuda): es position: fixed y la raíz
+     no crea un contexto de apilamiento, así que se ve igual. */
+  return conAyuda(
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.morado, fontFamily: FONT }}>
       {header}
       <main inert={fondoInerte} style={{
@@ -5472,7 +5549,6 @@ function App() {
           <EnlacePolitica style={{ display: 'inline-block', padding: '8px 0', fontWeight: 600 }}>Cómo cuidamos tus datos</EnlacePolitica>
         </p>
       </main>
-      {panicModal}
       {bottomNav}
       {morningModal}
       {nightModal}

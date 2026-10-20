@@ -33,7 +33,7 @@ export function useDialog(ref, abierto, onCerrar, focoAlCerrar) {
     const yo = {}
     abiertos.push(yo)
 
-    const enfocables = () => [...dialogo.querySelectorAll(ENFOCABLES)].filter(el => el.getClientRects().length > 0)
+    const enfocables = (d) => [...d.querySelectorAll(ENFOCABLES)].filter(el => el.getClientRects().length > 0)
     const inicial = dialogo.querySelector('[data-autofocus]') || dialogo
     if (inicial === dialogo && !dialogo.hasAttribute('tabindex')) dialogo.setAttribute('tabindex', '-1')
     inicial.focus({ preventScroll: true })
@@ -48,12 +48,17 @@ export function useDialog(ref, abierto, onCerrar, focoAlCerrar) {
         return
       }
       if (e.key !== 'Tab') return
-      const lista = enfocables()
+      // El diálogo de ahora, no el de cuando se abrió: si React lo volvió a
+      // crear (cambió la pantalla de atrás), el viejo ya no está en el
+      // documento y el Tab quedaría atrapado en nada.
+      const d = ref.current
+      if (!d) return
+      const lista = enfocables(d)
       if (!lista.length) { e.preventDefault(); return }
       const primero = lista[0]
       const ultimo = lista[lista.length - 1]
       const actual = document.activeElement
-      if (!dialogo.contains(actual) || actual === dialogo) {
+      if (!d.contains(actual) || actual === d) {
         e.preventDefault()
         ;(e.shiftKey ? ultimo : primero).focus()
       } else if (e.shiftKey && actual === primero) {

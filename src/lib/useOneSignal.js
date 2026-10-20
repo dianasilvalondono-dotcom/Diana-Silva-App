@@ -99,7 +99,8 @@ export function useOneSignal() {
   })
 
   // Cargar el SDK dinámicamente. Cada intento espera como mucho 15 s.
-  const loadSDK = () => {
+  // useCallback: soltarCuenta (abajo) lo usa sin quedar con una versión vieja.
+  const loadSDK = useCallback(() => {
     if (sdkLoadedRef.current && window.OneSignal) return Promise.resolve(window.OneSignal)
     if (!cargaRef.current) {
       const carga = iniciarSDK()
@@ -107,7 +108,7 @@ export function useOneSignal() {
       carga.catch(() => { if (cargaRef.current === carga) cargaRef.current = null })
     }
     return conLimite(cargaRef.current, 15000, 'SDK load timeout')
-  }
+  }, [])
 
   // Verificar al montar si ya estaba suscrita en sesión previa
   useEffect(() => {
@@ -196,7 +197,27 @@ export function useOneSignal() {
     try { await window.OneSignal.login(userId) } catch {}
   }, [])
 
+  // Al cerrar sesión: el teléfono deja de estar unido a la cuenta (logout),
+  // y así los recordatorios de ella no le llegan a otra cuenta que entre en
+  // este teléfono. Con pausar, además deja de recibir notificaciones
+  // (optOut): tras rechazar la autorización, los recordatorios paran. Si el
+  // SDK nunca cargó y el navegador no dio permiso, no hay nada que soltar.
+  // permisoNativo y no Notification directo: en Safari de iPhone sin
+  // instalar Ronda, Notification no existe.
+  const soltarCuenta = useCallback(async ({ pausar = false } = {}) => {
+    if (!window.OneSignal && permisoNativo() !== 'granted') return
+    try {
+      const OS = await loadSDK()
+      if (pausar) {
+        await conLimite(OS.User.PushSubscription.optOut(), 10000, 'optOut timeout')
+        save(STATUS_KEY, 'idle')
+        setStatus('idle')
+      }
+      await conLimite(OS.logout(), 10000, 'logout timeout')
+    } catch { /* sin red o sin SDK: se intenta en el próximo cierre */ }
+  }, [loadSDK])
+
   // Sin setEmail: OneSignal no recibe el correo (minimización, Decreto 1377,
   // art. 4; textos-autorizacion-v1, P12).
-  return { status, subscribe, unsubscribe, setExternalUserId }
+  return { status, subscribe, unsubscribe, setExternalUserId, soltarCuenta }
 }

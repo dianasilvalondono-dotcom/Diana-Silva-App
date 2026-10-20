@@ -53,8 +53,8 @@ export async function exigirSesion(req, res) {
   return user
 }
 
-// Su fila de profiles: el plan y la autorización de la IA (con la versión
-// del texto que aceptó). Se lee con el token de ella (RLS: solo ve la suya) y
+// Su fila de profiles: el plan, la autorización de cuenta y la de la IA (con
+// la versión del texto que aceptó). Se lee con el token de ella (RLS: solo ve la suya) y
 // una sola vez por petición. Si las columnas de autorización aún no existen
 // (src/sql/consentimiento.sql sin aplicar), se lee solo el plan y la IA queda
 // sin autorizar. null si no se pudo leer.
@@ -72,7 +72,7 @@ async function leerPerfil(req, user) {
     return Array.isArray(filas) ? (filas[0] || null) : undefined
   }
   try {
-    const fila = await pedir('is_premium,premium_until,autorizacion_ia,autorizacion_version')
+    const fila = await pedir('is_premium,premium_until,autorizacion_cuenta,autorizacion_ia,autorizacion_version')
     if (fila !== undefined) return fila
     return (await pedir('is_premium,premium_until')) ?? null
   } catch {
@@ -107,11 +107,14 @@ export async function exigirRondaPlus(req, res, user) {
 // escribe (src/lib/autorizaciones.js): si la quitó en otro teléfono, aquí ya
 // no está. Y solo si lo dijo con los textos vigentes (autorizacion_version):
 // cuando cambie la versión, el «sí» de la anterior deja de valer hasta que
-// vuelva a responder. Sin respuesta, o si no se pudo leer, es no. También
-// para la administradora: es una autorización de datos, no un plan.
+// vuelva a responder. Además exige la autorización de cuenta: sin ella (por
+// ejemplo, tras «Rechazar la autorización» → «Cerrar sesión» en otro
+// teléfono) la IA también queda cerrada, aunque el «sí» a la IA siga ahí.
+// Sin respuesta, o si no se pudo leer, es no. También para la
+// administradora: es una autorización de datos, no un plan.
 export async function iaAutorizada(req, user) {
   const perfil = await perfilDe(req, user)
-  return perfil?.autorizacion_ia === true && perfil.autorizacion_version === VERSION_POLITICA
+  return perfil?.autorizacion_cuenta === true && perfil.autorizacion_ia === true && perfil.autorizacion_version === VERSION_POLITICA
 }
 
 // Sin la autorización de la IA corta con 403, antes de enviarle nada a

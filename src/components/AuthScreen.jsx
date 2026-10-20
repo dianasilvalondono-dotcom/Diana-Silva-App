@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { C } from '../constants/colors'
 import { FONT } from '../constants/tokens'
 import Button from './ui/Button'
+import LineaCrisis from './ui/LineaCrisis'
+import { BOTON_AYUDA } from '../utils/crisis'
 import { Casilla, EnlacePolitica, PROMESA } from './Autorizaciones'
 import { autorizacionesParaRegistro, URL_AVISO } from '../lib/autorizaciones'
 
@@ -48,10 +50,14 @@ function mensajeAuth(error, mode) {
 
 /* Modos: 'login', 'signup', 'reset' (pedir el enlace para recuperar la
    contraseña) y 'nueva' (crear la contraseña nueva al volver desde ese
-   enlace; lo abre App con modoInicial="nueva"). */
+   enlace; lo abre App con modoInicial="nueva").
+   Como en el resto de la app, arriba va Ayuda (onAyuda) y abajo las líneas
+   de crisis: aquí llega también quien rechaza el aviso y cierra sesión, y
+   quien ve un error en una casilla. Mientras la Ayuda está abierta, la
+   pantalla queda inerte (inerte). */
 export default function AuthScreen({
   onSignInEmail, onSignUp, onResetPassword, onUpdatePassword, onPasswordUpdated, onCancel,
-  modoInicial = 'login',
+  modoInicial = 'login', onAyuda, inerte,
 }) {
   const [mode, setMode] = useState(modoInicial)
   const [email, setEmail] = useState('')
@@ -149,12 +155,20 @@ export default function AuthScreen({
   }
 
   return (
-    <div style={{
+    <div inert={inerte || undefined} style={{
       maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
       fontFamily: FONT,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: 32, position: 'relative', overflow: 'hidden',
     }}>
+      {/* id: al cerrar la Ayuda, el foco vuelve aquí (useDialog en App). */}
+      {onAyuda && (
+        <button id="boton-ayuda" type="button" onClick={onAyuda} style={{
+          position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 10px)', right: 12,
+          background: 'none', border: 'none', cursor: 'pointer', padding: '12px 10px', minHeight: 44,
+          color: C.morado, fontSize: 15, fontWeight: 700, letterSpacing: '0.04em', fontFamily: 'inherit',
+        }}>{BOTON_AYUDA}</button>
+      )}
       {/* Logo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, position: 'relative' }}>
         <div style={{
@@ -305,6 +319,10 @@ export default function AuthScreen({
           )}
         </div>
       </div>
+
+      <p style={{ margin: '24px auto 0', maxWidth: 380, fontSize: 14, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
+        Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
+      </p>
 
       <div style={{ fontSize: 13, color: C.subtle, marginTop: 32, textAlign: 'center', lineHeight: 1.5, position: 'relative' }}>
         Tu compañera en cada etapa — en ronda, crecemos juntas.

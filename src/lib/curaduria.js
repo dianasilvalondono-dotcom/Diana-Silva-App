@@ -211,36 +211,8 @@ export async function enviarReporte(plan, texto, user) {
   }
 }
 
-/* Antes, lo que no llegaba al servidor se quedaba en 'ronda_reportes' y
-   nadie lo enviaba (rondas-1). Con sesión se envía una vez; lo que vuelva a
-   fallar se queda para la próxima. Los que no traen plan_id eran de planes
-   de ejemplo. */
-const PENDIENTES_KEY = 'ronda_reportes'
-let enviandoPendientes = null
-export function enviarReportesPendientes(user) {
-  if (!supabase || !user || enviandoPendientes) return enviandoPendientes
-  const pendientes = load(PENDIENTES_KEY, [])
-  if (!Array.isArray(pendientes) || !pendientes.length) return null
-  enviandoPendientes = (async () => {
-    const quedan = []
-    for (const r of pendientes) {
-      if (!r?.texto) continue
-      const fila = {
-        plan_id: r.plan_id || null,
-        texto: r.plan_id ? r.texto : `[Plan de ejemplo] ${r.texto}`,
-        user_id: user.id,
-        ...(r.created_at ? { created_at: r.created_at } : {}),
-      }
-      try {
-        if (!(await insertarReporte(fila))) quedan.push(r)
-      } catch {
-        quedan.push(r)
-      }
-    }
-    if (quedan.length) save(PENDIENTES_KEY, quedan)
-    else {
-      try { localStorage.removeItem(PENDIENTES_KEY) } catch { /* sin almacenamiento */ }
-    }
-  })().finally(() => { enviandoPendientes = null })
-  return enviandoPendientes
-}
+/* Antes, lo que no llegaba al servidor se quedaba en 'ronda_reportes'. Esos
+   mensajes ya no se envían solos: lo que ella cuenta sobre un plan puede
+   ser algo de su salud o de su intimidad, y solo se envía cuando ella toca
+   «Enviar» después de leer el aviso del diálogo (política, sección 3.2). Se
+   quedan en su teléfono. */
