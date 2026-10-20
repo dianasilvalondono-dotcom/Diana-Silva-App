@@ -11,7 +11,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { C } from '../../constants/colors'
 import { FONT_DISPLAY } from '../../constants/tokens'
-import { CIUDADES, SALAS, ACCESO, MODALIDAD } from '../../constants/curaduria'
+import { CIUDADES, SALAS, ACCESO, MODALIDAD, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from '../../constants/curaduria'
+import { load, save } from '../../utils/helpers'
 import { getPlanes, getReservasLocales, reservarCupo, enviarReporte } from '../../lib/curaduria'
 import { track } from '../../lib/analytics'
 import LineaCrisis from '../ui/LineaCrisis'
@@ -230,7 +231,8 @@ function HojaPlan({ plan, reservado, onCerrar, onReservar, onReportar, onIrAdent
 }
 
 export default function RondasView({ user, onIrAdentro }) {
-  const [ciudad, setCiudad] = useState('cartagena')
+  // La ciudad elegida se recuerda al recargar y al volver de Adentro (rondas-12).
+  const [ciudad, setCiudad] = useState(() => ciudadValida(load(CIUDAD_KEY, CIUDAD_POR_DEFECTO)))
   const [filtro, setFiltro] = useState('todas')
   const [data, setData] = useState(null)
   const [reservas, setReservas] = useState(() => getReservasLocales())
@@ -317,7 +319,7 @@ export default function RondasView({ user, onIrAdentro }) {
         <h1 style={{ margin: '0 0 12px', fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 36, lineHeight: 1.02, color: C.navy }}>
           Para ti, esta semana
         </h1>
-        <SelectorCiudad ciudad={ciudad} onChange={(c) => { setCiudad(c); setFiltro('todas') }} />
+        <SelectorCiudad ciudad={ciudad} onChange={(c) => { setCiudad(c); save(CIUDAD_KEY, c); setFiltro('todas') }} />
       </div>
 
       {cargando && (

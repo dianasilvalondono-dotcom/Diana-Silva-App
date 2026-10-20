@@ -8,7 +8,7 @@ import LineaCrisis from './components/ui/LineaCrisis'
 import HistoriaView from './components/views/HistoriaView'
 import DiarioView from './components/views/DiarioView'
 import RondasView from './components/views/RondasView'
-import { TEMPORADA } from './constants/curaduria'
+import { TEMPORADA, temporadaVigente, mesTemporada, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from './constants/curaduria'
 import {
   DIMS, DEFAULT_HABITS, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
@@ -1171,7 +1171,8 @@ function App() {
         }}>Cambiar</button>
       </div>
     )
-    if (view === 'rondas') return <div style={estiloTelon}>{TEMPORADA.mes} · {TEMPORADA.nombre}</div>
+    // La temporada solo mientras está vigente; después, el texto general (rondas-22).
+    if (view === 'rondas') return <div style={estiloTelon}>{temporadaVigente() ? `${mesTemporada()} · ${TEMPORADA.nombre}` : 'Tu ciudad'}</div>
     if (view === 'juntas') return <div style={estiloTelon}>Tu gente</div>
     if (view === 'perfil') return <div style={estiloTelon}>Tu perfil</div>
     if (view === 'ahora' && subTab) return (
@@ -1294,6 +1295,11 @@ function App() {
     track('module_viewed', { module: 'ahora', sub: id })
   }
 
+  // Libro de la temporada en Adentro: null si la temporada venció; si no,
+  // dónde se conversa en la ciudad elegida en Afuera ('' si no hay dato).
+  const libroDonde = temporadaVigente()
+    ? (TEMPORADA.libro.donde?.[ciudadValida(load(CIUDAD_KEY, CIUDAD_POR_DEFECTO))] || '')
+    : null
   const adentroView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <h1 style={{ margin: 0, fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 36, lineHeight: 1.02, color: C.navy }}>
@@ -1349,18 +1355,22 @@ function App() {
             </dd>
           </>}
         </div>
+        {/* El libro solo mientras la temporada está vigente, y el lugar es
+            el de la ciudad elegida en Afuera (rondas-22). */}
+        {libroDonde !== null && (
         <div style={{ padding: '14px 0', borderBottom: '1px solid rgba(20,24,51,0.12)' }}>
           <dt style={eyebrowAdentro}>Para llevar · Libro de la temporada</dt>
           <dd style={{ margin: '6px 0 0', fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 600, lineHeight: 1.15, color: C.navy }}>
             {TEMPORADA.libro.titulo}
           </dd>
           <dd style={{ margin: '4px 0 0', fontSize: 14, color: C.muted, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            {TEMPORADA.libro.autora} · {TEMPORADA.libro.donde}
+            {libroDonde ? `${TEMPORADA.libro.autora} · ${libroDonde}` : TEMPORADA.libro.autora}
             {TEMPORADA.libro.ejemplo && (
               <span style={{ fontSize: 12, fontWeight: 600, color: C.muted, border: `1px solid ${C.border}`, borderRadius: 10, padding: '2px 8px' }}>Ejemplo</span>
             )}
           </dd>
         </div>
+        )}
       </dl>
 
       <nav aria-label="Tus herramientas" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>

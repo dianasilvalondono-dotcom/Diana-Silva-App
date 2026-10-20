@@ -13,6 +13,12 @@ export const CIUDADES = [
   { id: 'bogota', label: 'Bogotá' },
 ]
 
+/* La ciudad elegida en Afuera se recuerda en este dispositivo (rondas-12).
+   Un valor que no está en CIUDADES (viejo o dañado) cae en Cartagena. */
+export const CIUDAD_KEY = 'ronda_ciudad'
+export const CIUDAD_POR_DEFECTO = 'cartagena'
+export const ciudadValida = (c) => (CIUDADES.some(x => x.id === c) ? c : CIUDAD_POR_DEFECTO)
+
 export const SALAS = [
   { id: 'salon', label: 'Salón', desc: 'Ideas y libros' },
   { id: 'mesa', label: 'Mesa', desc: 'Catas, cocina y sobremesa' },
@@ -40,18 +46,42 @@ export const ACCESO = {
   mixto: 'Mixto',
 }
 
+/* La temporada vale entre `desde` y `hasta` (fechas locales, ambas
+   incluidas). El mes del telón sale de `desde`. Cuando vence, el telón de
+   Afuera vuelve a su texto general y Adentro deja de mostrar el libro hasta
+   que la curadora publique la temporada siguiente aquí (rondas-22). */
 export const TEMPORADA = {
-  mes: 'Octubre',
+  desde: '2026-10-01',
+  hasta: '2026-10-31',
   nombre: 'Las que llegaron',
   texto: 'Este mes la curaduría mira a las mujeres que acaban de llegar a la ciudad.',
   /* "Para llevar": lo que se vive adentro durante la semana y se
-     conversa afuera. Ejemplo hasta que la curadora elija el real. */
+     conversa afuera. Ejemplo hasta que la curadora elija el real.
+     `donde` va por ciudad: cada una tiene su propio Salón. */
   libro: {
     titulo: 'Una habitación propia',
     autora: 'Virginia Woolf',
-    donde: 'Se conversa en el Salón del miércoles',
+    donde: {
+      cartagena: 'Se conversa en el Salón del miércoles',
+      bogota: 'Se conversa en la Tertulia de ensayo del martes',
+    },
     ejemplo: true,
   },
+}
+
+const claveDia = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+/* ¿La temporada está vigente hoy? */
+export function temporadaVigente(hoy = new Date()) {
+  const k = claveDia(hoy)
+  return k >= TEMPORADA.desde && k <= TEMPORADA.hasta
+}
+
+/* 'Octubre': el mes en que empieza la temporada, en español. */
+export function mesTemporada() {
+  const [anio, mes] = TEMPORADA.desde.split('-').map(Number)
+  const nombre = new Date(anio, mes - 1, 1).toLocaleDateString('es-CO', { month: 'long' })
+  return nombre.charAt(0).toUpperCase() + nombre.slice(1)
 }
 
 export const PLANES_EJEMPLO = [
