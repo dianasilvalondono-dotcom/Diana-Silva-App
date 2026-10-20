@@ -207,9 +207,16 @@ export const CRISIS_PATTERNS = [
   new RegExp(`\\bme (hice|he hecho|volvi a hacer|vuelvo a hacer) dano\\b${NO_ES_ACCIDENTE}`),
   /\bme (lastime|lastimo|corte|corto|queme|quemo|golpee|golpeo|pegue|pego|rasgune|rasguno|arane|arano|hice dano|hago dano)\b.{0,30}\ba proposito\b/,
   /\bme (quemo|queme|sigo quemando|estoy quemando|volvi a quemar)\b.{0,30}\b(cigarrillos?|cigarros?|encendedor|fosforos?|yesquero)\b/,
-  /\bme (rasguno|rasgune|arano|arane|rasco|pellizco|muerdo|golpeo|pego|corto|lastimo) .{0,20}hasta (sangrar|que (me )?sangre|hacerme sangre)\b/,
+  /\bme (rasguno|rasgune|arano|arane|rasco|pellizco|muerdo|golpeo|pego|corto|lastimo) .{0,20}hasta (sangrar|que (me )?sangr\w*|hacerme sangre)\b/,
   /\bme (pego|golpeo|lastimo|castigo|quemo|corto|hago dano) (yo )?a mi mism[ao]\b/,
   /\b(me golpeo|me pego|golpearme|pegarme) (la cabeza )?contra (la|las) parede?s?\b/,
+  // Dichas con sustantivos: "me hago cortes", "me hice heridas en los
+  // brazos", "recaí con las cortadas", "me rayo los brazos". No activan "me
+  // hice un corte de pelo", "me hice rayitos" ni "me hice heridas jugando".
+  new RegExp(`\\bme (hago|hice|he hecho|sigo haciendo|volvi a hacer|vuelvo a hacer|estoy haciendo) (\\w+ )?(cortes|cortaditas|cortadas|heridas)\\b(?! (de|en) (el |mi )?(pelo|cabello)\\b)${NO_ES_ACCIDENTE}`),
+  /\b(recai|recaigo|volvi|vuelvo) (con|a|en) (las |los )?(cortadas|cortes|cortaditas|autolesiones)\b(?! (de|en) (el |mi )?(pelo|cabello)\b)/,
+  /\bme (rayo|raye|rajo|raje) (los|las|mis) (brazos|piernas|munecas|muslos|antebrazos)\b(?! con (un |el |los )?(marcador|marcadores|lapicero|esfero|boligrafo|lapiz|pintura|henna)\b)/,
+  /\b(cortadas|cortes|cortaditas) (en|de) (las|los|mis) (munecas|brazos|piernas|muslos|antebrazos)\b/,
   // Abuso y amenaza: "me abusaron", "abusa de mí", "miedo de que me mate".
   /\bme (abusaron|abuso|abusa|abusan|abusaba|abusaban|ha abusado|han abusado|esta abusando|estan abusando)\b/,
   /\babus\w* (sexualmente )?de mi\b/,
