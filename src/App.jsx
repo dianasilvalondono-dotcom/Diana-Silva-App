@@ -1273,7 +1273,7 @@ function App() {
                   <button type="button" role="checkbox" aria-checked={!!checked[h.id]}
                     aria-label={streaks[h.id] > 0 ? `${h.name}, racha de ${streaks[h.id]} ${streaks[h.id] === 1 ? 'día' : 'días'}` : h.name}
                     onClick={() => toggleHabit(h.id)} style={{
-                    flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0 12px 14px', margin: 0,
+                    flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0 12px 14px', margin: 0,
                     background: 'none', border: 'none', borderRadius: 12, textAlign: 'left',
                     fontFamily: 'inherit', color: 'inherit', cursor: 'pointer',
                   }}>
@@ -1284,11 +1284,11 @@ function App() {
                     }}>
                       {checked[h.id] && UI_ICONS.check('white', 15)}
                     </span>
-                    <span style={{ fontSize: 19, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
+                    <span style={{ fontSize: 19, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
                       {h.name}
                     </span>
                     {streaks[h.id] > 0 && (
-                      <span aria-hidden="true" style={{ fontSize: 20, fontWeight: 700, color: C.coral, background: `${C.coral}12`, padding: '3px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      <span aria-hidden="true" style={{ fontSize: 20, fontWeight: 700, color: C.coral, background: `${C.coral}12`, padding: '3px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 C12 2 8 7 8 12 C8 16 10 18 12 20 C14 18 16 16 16 12 C16 7 12 2 12 2Z" fill={C.coral} opacity="0.8" /><path d="M12 8 C12 8 10 11 10 13 C10 15 11 16 12 17 C13 16 14 15 14 13 C14 11 12 8 12 8Z" fill="white" opacity="0.5" /></svg>
                         {streaks[h.id]}
                       </span>
@@ -1426,7 +1426,7 @@ function App() {
             }}>
               {/* Círculo, hora y texto son un solo control; ✎ y × quedan aparte */}
               <button type="button" role="checkbox" aria-checked={!!routineChecked[item.id]} onClick={() => toggleRoutine(item.id)} style={{
-                flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: editingRoutine ? '11px 0 11px 14px' : '11px 14px', margin: 0,
+                flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 10, padding: editingRoutine ? '11px 0 11px 14px' : '11px 14px', margin: 0,
                 background: 'none', border: 'none', borderRadius: 12, textAlign: 'left',
                 fontFamily: 'inherit', color: 'inherit', cursor: 'pointer',
               }}>
@@ -1440,7 +1440,7 @@ function App() {
                 <span style={{ width: 44, height: 44, borderRadius: '50%', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <span style={{ fontSize: 20, fontWeight: 700, color: color }}>{item.time}</span>
                 </span>
-                <span style={{ fontSize: 19, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1 }}>
+                <span style={{ fontSize: 19, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
                   {item.task}
                 </span>
               </button>
@@ -1477,7 +1477,7 @@ function App() {
             background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'white', fontSize: 20, flexShrink: 0,
           }}>{t.done && UI_ICONS.check('white', 13)}</span>
-          <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
+          <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none', flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{t.task}</span>
         </button>
       ))}
     </div>
@@ -3240,7 +3240,7 @@ function App() {
 
     /* Paso 2 — Un primer hábito. Que salga del onboarding habiendo HECHO algo. */
     onboardStepShell(2, <>
-      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10 }}>
+      <div style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 10, maxWidth: '100%', overflowWrap: 'anywhere' }}>
         {onboardName.trim() ? `${onboardName.trim()}, elige tu primer hábito` : 'Elige tu primer hábito'}
       </div>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 8, maxWidth: 320, lineHeight: 1.6 }}>
@@ -3494,7 +3494,7 @@ function App() {
                   }}>
                     {checked[h.id] && UI_ICONS.check('white', 13)}
                   </span>
-                  <span style={{ fontSize: 18, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
+                  <span style={{ fontSize: 18, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1, minWidth: 0, overflowWrap: 'anywhere',
                     textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
                     {h.name}
                   </span>
@@ -3561,7 +3561,7 @@ function App() {
                       width: 18, height: 18, borderRadius: 5, border: `2px solid ${DIMS[h.dim].color}`,
                       background: 'transparent', flexShrink: 0,
                     }} />
-                    <span style={{ fontSize: 19, color: C.text, fontWeight: 600 }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)} {h.name}</span>
+                    <span style={{ fontSize: 19, color: C.text, fontWeight: 600, minWidth: 0, overflowWrap: 'anywhere' }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)} {h.name}</span>
                   </button>
                 ))}
               </div>

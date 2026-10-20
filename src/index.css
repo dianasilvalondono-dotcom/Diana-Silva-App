@@ -58,7 +58,11 @@ input, textarea, select {
   font-size: 16px;
 }
 
-/* Evita quebrar palabras largas en móvil */
+/* Evita quebrar palabras largas en móvil.
+   Ojo: break-word no reduce el ancho mínimo de un hijo flex o grid. Los
+   textos que escribe la usuaria dentro de una fila flex llevan en línea
+   minWidth: 0 y overflowWrap: 'anywhere'. No se cambia aquí a 'anywhere':
+   partiría a la mitad horas, ánimos y fases que hoy caben. */
 p, div, span, h1, h2, h3, h4, h5, h6 {
   word-wrap: break-word;
   overflow-wrap: break-word;
