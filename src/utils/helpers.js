@@ -39,6 +39,38 @@ export const saveDay = (key, val) => {
   } catch { /* sin almacenamiento: no se guarda */ }
 }
 
+/* Historial de hábitos guardado: { 'AAAA-MM-DD': { [id]: true } } a partir de
+   las claves diana-checked-<día>. Las claves dañadas se saltan. */
+export function leerHistorialHabitos() {
+  const historial = {}
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith('diana-checked-')) continue
+      try {
+        const data = JSON.parse(localStorage.getItem(key))
+        if (data && typeof data === 'object') historial[key.slice('diana-checked-'.length)] = data
+      } catch { /* clave dañada: se salta */ }
+    }
+  } catch { /* sin almacenamiento */ }
+  return historial
+}
+
+/* Racha de un hábito: días seguidos con el hábito marcado que terminan en
+   `hoy`, o en ayer si hoy todavía no está marcado. Sale del historial, así
+   que sube como mucho 1 por día, baja si se desmarca y se rompe sola si pasa
+   un día sin cumplirlo. */
+export function rachaHabito(historial, id, hoy) {
+  const anterior = (key) => {
+    const d = new Date(`${key}T12:00:00`)
+    d.setDate(d.getDate() - 1)
+    return todayKey(d)
+  }
+  let dia = historial[hoy]?.[id] ? hoy : anterior(hoy)
+  let racha = 0
+  while (historial[dia]?.[id]) { racha++; dia = anterior(dia) }
+  return racha
+}
+
 const DAILY_PREFIXES = ['diana-checked-', 'diana-routine-', 'ronda-morning-', 'ronda-night-', 'ronda-tomorrow-']
 
 /* Limpieza (una vez por dispositivo): borra las claves diarias VACÍAS que

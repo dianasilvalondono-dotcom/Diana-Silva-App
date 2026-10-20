@@ -13,7 +13,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -301,7 +301,13 @@ function App() {
   // Habits
   const [habits, setHabits] = useState(() => load('diana-habits', []))
   const [checked, setChecked] = useState(() => load(`diana-checked-${diaApp}`, {}))
-  const [streaks, setStreaks] = useState(() => load('diana-streaks', {}))
+  // Días anteriores con hábitos marcados ({ 'AAAA-MM-DD': { id: true } }). Se
+  // lee una sola vez: durante la sesión solo cambia hoy, que sale de `checked`.
+  const [historialPrevio] = useState(() => {
+    const h = leerHistorialHabitos()
+    delete h[diaApp]
+    return h
+  })
 
   // Routines (editable by each user)
   const [morning, setMorning] = useState(() => load('diana-morning', DEFAULT_MORNING))
@@ -436,7 +442,6 @@ function App() {
   // Persist
   useEffect(() => { save('diana-habits', habits) }, [habits])
   useEffect(() => { saveDay(`diana-checked-${diaApp}`, checked) }, [checked, diaApp])
-  useEffect(() => { save('diana-streaks', streaks) }, [streaks])
   useEffect(() => { saveDay(`diana-routine-${diaApp}`, routineChecked) }, [routineChecked, diaApp])
   useEffect(() => { save('diana-journal', entries) }, [entries])
   useEffect(() => { save('diana-fav-quotes', favQuotes) }, [favQuotes])
@@ -508,23 +513,31 @@ function App() {
   const totalDone = Object.values(dimStats).reduce((s, d) => s + d.done, 0)
   const totalHabits = Object.values(dimStats).reduce((s, d) => s + d.total, 0)
 
-  // Monthly habit history
+  // Historial de hábitos con hoy tomado del estado: localStorage se escribe
+  // después del render, así que leerlo aquí iría un clic atrasado.
+  const historialHabitos = useMemo(() => ({ ...historialPrevio, [diaApp]: checked }), [historialPrevio, diaApp, checked])
+
+  // Racha de cada hábito, derivada del historial (no es un contador que sube
+  // en cada toque). Se sigue guardando en 'diana-streaks' con el mismo formato
+  // { id: días } para lo que la lee (sincronización con Supabase).
+  const streaks = useMemo(() => {
+    const r = {}
+    habits.forEach(h => { r[h.id] = rachaHabito(historialHabitos, h.id, diaApp) })
+    return r
+  }, [habits, historialHabitos, diaApp])
+  useEffect(() => { save('diana-streaks', streaks) }, [streaks])
+
+  // Hábitos cumplidos por día ({ 'AAAA-MM-DD': n }), de todo el historial.
+  // Solo cuentan los hábitos que existen: uno borrado no pinta el calendario.
   const monthlyHistory = useMemo(() => {
+    const ids = new Set(habits.map(h => String(h.id)))
     const history = {}
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('diana-checked-'))
-    keys.forEach(key => {
-      const date = key.replace('diana-checked-', '')
-      try {
-        const data = JSON.parse(localStorage.getItem(key))
-        const doneCount = Object.values(data).filter(Boolean).length
-        if (doneCount > 0) history[date] = doneCount
-      } catch (e) {}
+    Object.entries(historialHabitos).forEach(([date, data]) => {
+      const doneCount = Object.entries(data || {}).filter(([id, v]) => v && ids.has(id)).length
+      if (doneCount > 0) history[date] = doneCount
     })
     return history
-    // `checked` no se lee aqui: es el disparador. Al marcar un habito se
-    // reescribe localStorage, que es de donde sale este historial.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checked])
+  }, [historialHabitos, habits])
 
   // Texto escrito y sin guardar: una recarga lo borraría. El detector de
   // cambio de día lo lee por esta ref.
@@ -561,9 +574,8 @@ function App() {
     const next = { ...checked, [id]: !checked[id] }
     setChecked(next)
     if (next[id]) {
-      setStreaks(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }))
       track('habit_checked', {
-        streak: (streaks[id] || 0) + 1,
+        streak: rachaHabito({ ...historialHabitos, [diaApp]: next }, id, diaApp),
         checked_today: Object.values(next).filter(Boolean).length,
       })
     }
@@ -734,6 +746,14 @@ function App() {
 
   const removeHabit = (id) => {
     setHabits(prev => prev.filter(h => h.id !== id))
+    // Que no quede marcado hoy un hábito que ya no existe (su racha se va sola:
+    // se calcula solo para los hábitos de la lista).
+    setChecked(prev => {
+      if (!(id in prev)) return prev
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
   }
   // Antes de borrar un hábito se pregunta; si tiene racha, se dice que se pierde.
   const pedirQuitarHabito = (h) => {
@@ -2010,7 +2030,7 @@ function App() {
     // en memoria (localStorage se escribe después del render).
     daysActive: (() => {
       const dias = new Set(entries.map(e => e.date).filter(Boolean))
-      Object.keys(monthlyHistory).forEach(d => { if (d !== diaApp) dias.add(d) })
+      Object.entries(historialPrevio).forEach(([d, data]) => { if (Object.values(data || {}).some(Boolean)) dias.add(d) })
       try {
         Object.keys(localStorage).forEach(k => {
           const d = k.slice('diana-routine-'.length)
@@ -2021,7 +2041,8 @@ function App() {
       return dias.size
     })(),
     totalEntries: entries.length,
-    totalHabitsEver: Object.values(streaks).reduce((s, v) => s + v, 0),
+    // Marcas reales del historial (un hábito, un día), solo de hábitos que existen.
+    totalHabitsEver: Object.values(monthlyHistory).reduce((s, v) => s + v, 0),
     favQuotesCount: favQuotes.length,
     toolkitCount: toolkitItems.length,
   }
