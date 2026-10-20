@@ -4622,7 +4622,9 @@ function App() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
             {[
               { id: 'breathe', title: 'Respiración 4-7-8', sub: 'Calma tu sistema nervioso en 2 minutos', color: '#BFD5EB' },
-              { id: 'ground', title: 'Grounding 5-4-3-2-1', sub: 'Vuelve al presente con tus sentidos', color: '#E3E5D3' },
+              // El mismo nombre que en la ruta "Encontrar mi calma" (data.js), con el
+              // 5-4-3-2-1 que no se parte de renglón.
+              { id: 'ground', title: 'Tus sentidos: 5-\u20604-\u20603-\u20602-\u20601', sub: 'Vuelve al presente, aquí y ahora', color: '#E3E5D3' },
               { id: 'dbt', title: 'Habilidades DBT', sub: 'TIPP · STOP · Acción Opuesta · Aceptación Radical', color: '#D6BFDD' },
               { id: 'accept', title: 'Aceptación Radical', sub: 'Soltar la lucha. Abrazar lo que es.', color: '#141833' },
             ].map(opt => (

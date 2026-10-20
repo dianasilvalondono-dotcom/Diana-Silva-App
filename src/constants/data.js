@@ -114,7 +114,9 @@ export const PROGRAMAS = [
     desc: '7 días para recuperar tu centro, paso a paso', color: '#726D2D',
     days: [
       { day: 1, title: 'Respiración 4-7-8', task: 'Inhala 4s, sostén 7s, exhala 8s. Repite 3 veces. Tu sistema nervioso se calma.' },
-      { day: 2, title: 'Vuelve a tus sentidos: 5-4-3-2-1', task: '5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.' },
+      // El 5-4-3-2-1 lleva un \u2060 (unión invisible) tras cada guion: así no se
+      // parte en dos renglones ("5-4-" / "3-2-1") en el celular.
+      { day: 2, title: 'Tus sentidos: 5-\u20604-\u20603-\u20602-\u20601', task: '5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.' },
       { day: 3, title: 'Escribe tus miedos', task: 'Ponlos en papel. Al verlos escritos, pierden poder sobre ti.' },
       { day: 4, title: 'Meditación guiada', task: '5 minutos. Pon una meditación guiada y solo escucha.' },
       { day: 5, title: 'Desconexión digital', task: '1 hora sin celular. Lee, dibuja, respira. Tu mente necesita silencio.' },

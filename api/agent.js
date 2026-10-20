@@ -247,7 +247,7 @@ function respuestaDeRespaldo(message) {
   let sos = false
 
   if (hasWord('mal', 'fatal', 'triste', 'tristeza', 'ansiedad', 'ansiosa', 'crisis', 'no puedo', 'llorar', 'lloro', 'llorando')) {
-    reply = 'Lo que sientes es real y es válido. Ya diste un paso importante al contarlo. Puedo activar herramientas de bienestar para ti — respiración guiada, grounding, y técnicas de regulación emocional. Si necesitas acompañamiento más profundo, te oriento.'
+    reply = 'Lo que sientes es real y es válido. Ya diste un paso importante al contarlo. Puedo activar herramientas de bienestar para ti — respiración guiada, tus sentidos 5-4-3-2-1 y técnicas de regulación emocional. Si necesitas acompañamiento más profundo, te oriento.'
     sos = true
   } else if (hasWord('pareja', 'esposo', 'novio', 'separar', 'separarme', 'divorcio')) {
     reply = 'Las relaciones son complejas y lo que sientes tiene todo el sentido. Reconocerlo es poder. Si quieres, cuéntame más, o pregúntalo de forma anónima en la Comunidad: lo que vives lo viven muchas.'
