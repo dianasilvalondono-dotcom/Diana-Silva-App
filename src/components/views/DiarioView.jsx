@@ -5,6 +5,7 @@
    labels de ánimo) y recibe por props solo el estado y las acciones que
    viven en App (texto, ánimo, grabación, entradas, arranque de programa).
    Los emojis de dictado (🎙️ ⏹️ 🔴) quedan reemplazados por UI_ICONS. */
+import { useState, useRef } from 'react'
 import { C } from '../../constants/colors'
 import { SHADOW } from '../../constants/tokens'
 import { ICONS, MOOD_ICONS, UI_ICONS } from '../../constants/icons'
@@ -23,6 +24,18 @@ export default function DiarioView({
   activePrograms, startProgram, openModule,
 }) {
   const rec = MOOD_RECS[journalMood]
+  // "Guardar reflexión" se apaga al guardar: se anuncia que se guardó y, si
+  // se usó el teclado, el foco vuelve al cuadro (no se pierde en <body>).
+  const [guardada, setGuardada] = useState(false)
+  const cuadroRef = useRef(null)
+  const guardar = (e) => {
+    addJournalEntry()
+    setGuardada(true)
+    setTimeout(() => setGuardada(false), 4000)
+    // detail 0: lo activó el teclado (Enter o Espacio). Con el dedo no se
+    // enfoca el cuadro, que abriría el teclado del celular.
+    if (e.detail === 0) requestAnimationFrame(() => cuadroRef.current?.focus())
+  }
 
   const grouped = {}
   entries.forEach(e => {
@@ -51,7 +64,8 @@ export default function DiarioView({
           ))}
         </div>
         <div style={{ position: 'relative' }}>
-          <textarea value={journalText} onChange={e => setJournalText(e.target.value)}
+          <textarea ref={cuadroRef} value={journalText} onChange={e => { setJournalText(e.target.value); setGuardada(false) }}
+            aria-label="Tu reflexión del día"
             placeholder={isListening ? 'Escuchando... habla y tu voz se convierte en texto' : 'Escribe o habla tu reflexión del día...'}
             style={{
               width: '100%', minHeight: 100, padding: '14px 50px 14px 14px', borderRadius: 12,
@@ -84,7 +98,7 @@ export default function DiarioView({
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-          <button onClick={addJournalEntry} disabled={!journalText.trim()} style={{
+          <button onClick={guardar} disabled={!journalText.trim()} style={{
             flex: 1, padding: 12, borderRadius: 12, border: 'none',
             background: journalText.trim() ? C.teal : C.border,
             color: journalText.trim() ? 'white' : C.subtle,
@@ -92,6 +106,9 @@ export default function DiarioView({
           }}>
             Guardar reflexión
           </button>
+        </div>
+        <div role="status" style={{ fontSize: 17, fontWeight: 600, color: C.teal, marginTop: guardada ? 8 : 0, textAlign: 'center' }}>
+          {guardada ? 'Guardaste tu reflexión en tu histórico.' : ''}
         </div>
       </div>
 

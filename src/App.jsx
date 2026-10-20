@@ -34,6 +34,19 @@ import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA }
 // Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
 const BOARD_MAX = 2000
 
+/* Cuando un cambio se lleva el control que tenía el foco (un formulario que
+   se cierra o se abre en su lugar, un botón que se apaga), el foco pasa al
+   elemento `id` después del render, en vez de perderse en <body>. Con
+   centrar, además se trae a la vista. */
+function enfocarDespues(id, { centrar = false } = {}) {
+  requestAnimationFrame(() => {
+    const el = document.getElementById(id)
+    if (!el) return
+    el.focus({ preventScroll: true })
+    if (centrar) el.scrollIntoView({ block: 'center' })
+  })
+}
+
 /* ── Reusable components ── */
 function Bar({ value, color = C.rose, height = 6 }) {
   return (
@@ -1024,6 +1037,9 @@ function App() {
     setAvisoHabito('')
     setShowAddHabit(false)
     setHabitoNuevo({ id, name, dim: newHabitDim })
+    // El formulario se cierra: el foco vuelve a "+ Agregar hábito" (el aviso
+    // para lector de pantalla dice cuál se agregó).
+    enfocarDespues('habito-agregar')
   }
 
   const removeHabit = (id) => {
@@ -1094,10 +1110,18 @@ function App() {
     const boton = e?.currentTarget
     if (!boton) return
     const antes = boton.getBoundingClientRect().top
+    // El botón queda apagado ("Agregado") y luego se va: si tenía el foco
+    // (teclado), pasa al "+ Agregar" del sugerido siguiente o, si no queda
+    // ninguno, a "+ Agregar hábito". No se pierde en <body>.
+    const teniaFoco = document.activeElement === boton
     requestAnimationFrame(() => {
       if (!boton.isConnected) return
       const corrido = boton.getBoundingClientRect().top - antes
       if (corrido) window.scrollBy({ top: corrido, behavior: 'instant' })
+      if (!teniaFoco) return
+      const otros = [...document.querySelectorAll('[data-sugerido]:not([disabled])')]
+      const siguiente = otros.find(b => boton.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) || otros[otros.length - 1]
+      ;(siguiente || document.getElementById('habito-agregar'))?.focus({ preventScroll: true })
     })
   }
 
@@ -1157,6 +1181,8 @@ function App() {
     setNewToolCat('podcast')
     setLinkRecursoInvalido(false)
     setShowAddTool(false)
+    // El formulario se cierra: el foco vuelve a "+ Agregar recurso".
+    enfocarDespues('recurso-agregar')
   }
 
   const removeToolkitItem = (id) => {
@@ -1316,6 +1342,21 @@ function App() {
   const fondoInerte = showPanic || showMorningCheckin || showNightCheckin || !!appModal
   // Cada pantalla de la Ayuda empieza arriba (el contenedor que hace scroll se reutiliza).
   useEffect(() => { if (panicRef.current) panicRef.current.scrollTop = 0 }, [panicScreen, showPanic])
+  // Al cambiar de pantalla dentro de la Ayuda (entrar a una técnica,
+  // terminar la respiración o los sentidos, volver), el botón tocado se va:
+  // el foco pasa al título de la pantalla nueva, que el lector de pantalla
+  // lee. Al abrir no: ahí va a "Cerrar la ayuda" (useDialog).
+  const pantallaAyuda = !showPanic ? null
+    : panicScreen === 'breathe' ? `breathe-${!breatheActive && breatheCount > 0 ? 'fin' : 'guia'}`
+    : panicScreen === 'ground' ? `ground-${groundStep < 5 ? 'pasos' : 'fin'}`
+    : panicScreen
+  const pantallaAyudaRef = useRef(null)
+  useEffect(() => {
+    const antes = pantallaAyudaRef.current
+    pantallaAyudaRef.current = pantallaAyuda
+    if (!pantallaAyuda || !antes || antes === pantallaAyuda) return
+    panicRef.current?.querySelector('[data-titulo-ayuda]')?.focus({ preventScroll: true })
+  }, [pantallaAyuda])
   // Con la Ayuda abierta, la página de atrás no se mueve.
   useEffect(() => {
     if (!showPanic) return
@@ -1762,13 +1803,13 @@ function App() {
             }}>
               Agregar
             </button>
-            <button onClick={() => { setShowAddHabit(false); setAvisoHabito('') }} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
+            <button onClick={() => { setShowAddHabit(false); setAvisoHabito(''); enfocarDespues('habito-agregar') }} style={{ padding: '10px 16px', borderRadius: 10, border: `1px solid ${C.border}`, background: 'white', fontSize: 19, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: C.muted }}>
               Cancelar
             </button>
           </div>
         </div>
       ) : (
-        <button onClick={() => setShowAddHabit(true)} style={{
+        <button id="habito-agregar" onClick={() => setShowAddHabit(true)} style={{
           padding: 12, borderRadius: 12, border: `2px dashed ${C.contorno}`, background: 'transparent',
           color: C.rose, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         }}>
@@ -1797,7 +1838,7 @@ function App() {
                   <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{sh.name}</div>
                   <div style={{ fontSize: 19, color: DIMS[sh.dim].color, fontWeight: 600 }}>{DIMS[sh.dim].label}</div>
                 </div>
-                <button type="button" onClick={e => addSuggestedHabit(sh, e)} disabled={agregado}
+                <button type="button" data-sugerido onClick={e => addSuggestedHabit(sh, e)} disabled={agregado}
                   aria-label={agregado ? `Hábito ${sh.name} agregado` : `Agregar hábito ${sh.name}`} style={{
                   padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${DIMS[sh.dim].color}`,
                   background: agregado ? DIMS[sh.dim].color : 'transparent', color: agregado ? 'white' : DIMS[sh.dim].color, fontSize: 20, fontWeight: 700,
@@ -2500,7 +2541,7 @@ function App() {
           {/* Etiqueta visible: el placeholder desaparece al escribir */}
           <label htmlFor="recurso-nombre" style={{ display: 'block', fontSize: 17, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Nombre</label>
           <input id="recurso-nombre" value={newToolName} onChange={e => setNewToolName(e.target.value)} placeholder="Ej: Podcast de Jay Shetty"
-            onKeyDown={guardarRecursoConEnter}
+            autoFocus onKeyDown={guardarRecursoConEnter}
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box' }}
           />
 
@@ -2664,6 +2705,8 @@ function App() {
   // "Cancelar" lo descarta. Antes cada letra se guardaba al escribirla y los
   // dos botones hacían lo mismo (perfil-14).
   const [perfilBorrador, setPerfilBorrador] = useState(null)
+  // Confirmación de "Guardar" (se ve y se anuncia un momento).
+  const [perfilGuardado, setPerfilGuardado] = useState(false)
   const updateProfile = (field, value) => {
     setPerfilBorrador(prev => ({ ...(prev || profile), [field]: value }))
   }
@@ -2674,6 +2717,7 @@ function App() {
   }
   const abrirEdicionPerfil = () => {
     setPerfilBorrador({ name: profile.name || '', city: profile.city || '', bio: profile.bio || '', intention: profile.intention || '' })
+    setPerfilGuardado(false)
     setEditingProfile(true)
   }
   const cancelarEdicionPerfil = () => {
@@ -2696,6 +2740,11 @@ function App() {
     guardarPerfilEnLaNube({ ...profile, ...limpio })
     setPerfilBorrador(null)
     setEditingProfile(false)
+    // El formulario se cierra y la página se acorta: el foco y la vista
+    // vuelven a "Editar perfil", con la confirmación al lado.
+    setPerfilGuardado(true)
+    setTimeout(() => setPerfilGuardado(false), 4000)
+    enfocarDespues('perfil-editar', { centrar: true })
   }
   // Lo que muestra la tarjeta: sin espacios en los bordes (perfil-13) y con
   // la primera letra visible o el emoji entero como inicial, no medio emoji (perfil-12).
@@ -2867,6 +2916,7 @@ function App() {
     setBoardPosts(prev => [newPost, ...prev])
     setBoardNewText('')
     setBoardShowForm(false)
+    enfocarDespues('board-nueva')
     // Que la usuaria vea lo que acaba de publicar: si el filtro activo es de
     // otra categoría la publicación quedaría oculta, y en móvil cae debajo
     // del borde de la pantalla (juntas-2).
@@ -2950,7 +3000,7 @@ function App() {
 
       {/* New post button */}
       {!boardShowForm ? (
-        <button id="board-nueva" onClick={() => setBoardShowForm(true)} style={{
+        <button id="board-nueva" onClick={() => { setBoardShowForm(true); enfocarDespues('board-texto', { centrar: true }) }} style={{
           padding: '14px 18px', borderRadius: 16, border: `2px dashed ${C.roseLight}`,
           background: C.card, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
         }}>
@@ -3000,7 +3050,7 @@ function App() {
             Por ahora tu publicación se guarda solo en este dispositivo y te responde la Guía IA de Ronda.
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-            <button onClick={() => setBoardShowForm(false)} style={{
+            <button onClick={() => { setBoardShowForm(false); enfocarDespues('board-nueva') }} style={{
               flex: 1, padding: '10px 16px', borderRadius: 12, border: `1px solid ${C.border}`,
               background: 'none', color: C.muted, fontSize: 20, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
             }}>Cancelar</button>
@@ -3749,13 +3799,16 @@ function App() {
         <div style={{ fontSize: 24, fontWeight: 700, fontFamily: FONT }}>{nombrePerfil || 'Tu nombre'}</div>
         {profile.city?.trim() && <div style={{ fontSize: 20, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
         {profile.bio?.trim() && <div style={{ fontSize: 20, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio.trim()}"</div>}
-        <button onClick={editingProfile ? cancelarEdicionPerfil : abrirEdicionPerfil} style={{
+        <button id="perfil-editar" onClick={editingProfile ? cancelarEdicionPerfil : abrirEdicionPerfil} style={{
           marginTop: 14, padding: '8px 20px', borderRadius: 20, border: '2px solid rgba(255,255,255,0.5)',
           background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 19, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit',
         }}>
           {editingProfile ? 'Cancelar' : 'Editar perfil'}
         </button>
+        <div role="status" style={{ fontSize: 16, fontWeight: 600, marginTop: perfilGuardado ? 8 : 0 }}>
+          {perfilGuardado ? 'Tu perfil quedó guardado.' : ''}
+        </div>
       </div>
 
       {/* Edit form */}
@@ -4680,7 +4733,7 @@ function App() {
 
         {/* ── HOME: Main crisis menu ── */}
         {panicScreen === 'home' && <>
-          <div style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8 }}>
+          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 26, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 8, outline: 'none' }}>
             Estás a salvo.
           </div>
           <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 8 }}>
@@ -4749,7 +4802,7 @@ function App() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               marginBottom: 32,
             }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+              <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 22, fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.15em', outline: 'none' }}>
                 {breathePhase === 'inhale' ? 'Inhala' : breathePhase === 'hold' ? 'Sostén' : 'Exhala'}
               </div>
             </div>
@@ -4766,7 +4819,7 @@ function App() {
 
           {!breatheActive && breatheCount > 0 && (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8 }}>Lo hiciste.</div>
+              <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 20, fontWeight: 700, color: 'white', marginBottom: 8, outline: 'none' }}>Lo hiciste.</div>
               <div style={{ fontSize: 20, color: '#E3E5D3', marginBottom: 20 }}>Tu sistema nervioso se está calmando. Quédate aquí un momento.</div>
               <button onClick={() => { setBreatheCount(0); setBreatheActive(true); setBreathePhase('inhale') }} style={{
                 padding: '10px 24px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
@@ -4781,7 +4834,7 @@ function App() {
         {panicScreen === 'ground' && <>
           {groundStep < 5 ? (<>
             <div aria-hidden="true" style={{ fontSize: 64, marginBottom: 16 }}>{GROUND_STEPS[groundStep].icon}</div>
-            <div style={{ fontSize: 19, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>
+            <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 19, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, outline: 'none' }}>
               {GROUND_STEPS[groundStep].sense}
             </div>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.4, marginBottom: 24 }}>
@@ -4799,7 +4852,7 @@ function App() {
             </button>
           </>) : (<>
             <div style={{ fontSize: 56, marginBottom: 16 }}>💛</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 12 }}>
+            <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 12, outline: 'none' }}>
               Estás aquí. Estás presente.
             </div>
             <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
@@ -4822,7 +4875,7 @@ function App() {
 
         {/* ── DBT: menú de habilidades ── */}
         {panicScreen === 'dbt' && <>
-          <div style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 6 }}>
+          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 20, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 6, outline: 'none' }}>
             Habilidades DBT
           </div>
           <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24 }}>
@@ -4874,7 +4927,7 @@ function App() {
         {/* ── ACCEPT: Radical Acceptance guided ── */}
         {panicScreen === 'accept' && <>
           <div style={{ fontSize: 56, marginBottom: 16 }}>🙏</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 12 }}>
+          <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, lineHeight: 1.3, marginBottom: 12, outline: 'none' }}>
             Aceptación Radical
           </div>
           <div style={{ fontSize: 20, color: '#E3E5D3', textAlign: 'center', marginBottom: 32, lineHeight: 1.6 }}>
