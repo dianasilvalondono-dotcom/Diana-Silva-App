@@ -67,7 +67,7 @@ The app runs without any AI key — every function falls back to deterministic c
 ## Layout
 
 ```
-api/            Vercel serverless functions (AI + push)
+api/            Vercel serverless functions (AI + voice)
 src/
   components/   UI, split by view
   lib/          Supabase, auth, notifications, analytics, speech
