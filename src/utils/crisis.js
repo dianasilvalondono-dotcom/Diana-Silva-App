@@ -96,10 +96,17 @@ const NO_ES_ACCIDENTE = '(?!( (el|la|un|una|mi|con (el|la|un|una)|en (el|la|un|u
 const NO_ES_GRIPA = '(?! (la|una|un|el|los) (gripa|gripe|susto|virus|resfriado|resfrio|tos|chicle|moda|cancion|mania|costumbre|piojos|varicela|covid|sol|calor|frio|sereno|aire|guayabo|bajon|sueno|hambre|antojo)\\b)'
 
 // Lo que va antes de "me pega", "me golpea", "me patea" o "me da patadas"
-// cuando es una niña o un niño pequeño: "mi hijo me pega cuando hace
-// pataleta", "mi bebé me pega en la cara", "mi hija de 3 me da patadas".
-// "Mi hijo de 16 años me pega" o "mi hijo adolescente me golpea" sí activan.
-const NO_ES_NINO = '(?<!\\b(beb\\w*|nin[oa]s?|nene|nena|chiquit[oa]s?|hij[oa]s?)( (de )?(\\d|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve)( anos?| meses?)?| (pequen[oa]|chiquit[oa]|menor))? )'
+// cuando es una niña o un niño pequeño, dicho de forma explícita: "mi bebé me
+// pega en la cara", "mi nene me patea", "mi hija de 3 me da patadas", "mi hijo
+// de 2 años me pega", "mi niño pequeño me pega", y "mi hijo me pega cuando
+// hace pataleta", "un berrinche", "jugando", "cuando juega", "y me muerde",
+// "me patea dormida" o "cuando lo cambio". Sin esa señal, un hijo o una
+// hija que golpea sí activa ("mi hijo me pegó un puño en la cara", "mi hija me
+// pega y me insulta"), igual que "mi hijo de 16 años me pega" o "mi hijo
+// adolescente me golpea": ante la duda, ayuda.
+const EDAD_PEQUENA = '(de )?(\\d|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve)( anos?| meses?)?'
+const PATALETA = '(pataletas?|berrinches?|rabietas?|jugando|juega|juegan|jugamos|muerde|mordio|mordiendo|dormid[oa]|durmiendo|(cuando|mientras) duerme|(lo|la) (cambio|bano|visto)|cambiarl[oa]|banarl[oa]|panal(es)?|tetero)'
+const NO_ES_NINO = `(?<!\\b((beb\\w*|nene|nena|chiquit[oa]s?)( ${EDAD_PEQUENA}| (pequen[oa]|chiquit[oa]|menor))?|(nin[oa]s?|hij[oa]s?) (${EDAD_PEQUENA}|pequen[oa]|chiquit[oa])) )(?!(?<=\\b(nin[oa]s?|hij[oa]s?) )[^|]{0,50}\\b${PATALETA}\\b)(?<!\\b${PATALETA}\\b[^|]{0,40}\\b(nin[oa]s?|hij[oa]s?) )`
 
 // Lo que va antes de "me pegó" cuando lo que golpea es la vida: "la tusa me
 // pegó duro", "la noticia me pegó".
@@ -513,7 +520,7 @@ export const CRISIS_PATTERNS = [
   // "tengo miedo de que me haga algo", "no me deja salir de la casa y me quitó
   // el celular". No activan "la mala suerte me persigue", "me está siguiendo
   // en Instagram", "me acosan los cobradores" ni "recibo amenazas de despido".
-  new RegExp(`(?<!\\b(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|perro|perrito|gato|gatico|sombra|cancion|olor|idea|pensamiento|pensamientos|trabajo|deuda|deudas|fama|karma|estres|tusa|duda|dudas|cobradores?|bancos?) )${NO_ES_NINO}\\bme (persigue|perseguia|persiguen|perseguian|persiguio|persiguieron|esta persiguiendo|estan persiguiendo|acecha|acechaba|acechan|esta acechando|esta siguiendo|estan siguiendo|viene siguiendo|acosa|acosaba|acosan|acosaban|acoso|acosaron|esta acosando|estan acosando)\\b(?! ((la|el|los|las|ese|esa|este|esta|mi|mis) (\\w+ )?(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|idea|pensamiento|pensamientos|cancion|olor|fama|karma|estres|tusa|deuda|deudas|trabajo|duda|dudas|cobradores?|bancos?|llamadas|juego)|(en|por) (instagram|tiktok|redes|las redes|twitter|faceboo?k|ig|insta|youtube))\\b)`),
+  new RegExp(`(?<!\\b(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|perro|perrito|gato|gatico|sombra|cancion|olor|idea|pensamiento|pensamientos|trabajo|deuda|deudas|fama|karma|estres|tusa|duda|dudas|cobradores?|bancos?) )${NO_ES_NINO}\\bme (persigue|perseguia|persiguen|perseguian|persiguio|persiguieron|esta persiguiendo|estan persiguiendo|acecha|acechaba|acechan|esta acechando|esta siguiendo|estan siguiendo|viene siguiendo|acosa|acosaba|acosan|acosaban|acoso|acosaron|esta acosando|estan acosando)\\b(?!(?<=\\b(nin[oa]s?|hij[oa]s?) me (persigue|perseguia|persiguen)) (por|a) (toda la casa|todas partes|todos lados|todo lado)\\b)(?! ((la|el|los|las|ese|esa|este|esta|mi|mis) (\\w+ )?(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|idea|pensamiento|pensamientos|cancion|olor|fama|karma|estres|tusa|deuda|deudas|trabajo|duda|dudas|cobradores?|bancos?|llamadas|juego)|(en|por) (instagram|tiktok|redes|las redes|twitter|faceboo?k|ig|insta|youtube))\\b)`),
   /\borden(es)? de (alejamiento|restriccion|proteccion)\b/,
   /\b(me llegan|me llegaron|me han llegado|recibo|recibi|me mandan|me manda|me envia|me envian|estoy recibiendo|me hace|me hacen|me hizo) (\w+ )?amenazas\b(?! de (despido|demanda|desalojo|cobro|embargo|demandarme|despedirme)\b)/,
   /\b(miedo|temo|terror|panico) (de )?que (me|nos|le) (haga|hagan|vaya a hacer|vayan a hacer) (algo|dano)( malo|(?! malo))\b(?! (la|el|los|las) (vacuna|medicamento|medicina|pastilla|comida|operacion|cirugia|tratamiento|droga|inyeccion|anestesia)\b)/,
