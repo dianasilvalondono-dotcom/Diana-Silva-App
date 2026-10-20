@@ -1912,11 +1912,11 @@ function App() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
-                <button onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
+                <button aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  Empezar →
+                  Empezar <span aria-hidden="true">→</span>
                 </button>
               </div>
             </div>
@@ -1948,11 +1948,11 @@ function App() {
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
                 <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
-                <button onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
+                <button aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  Empezar →
+                  Empezar <span aria-hidden="true">→</span>
                 </button>
               </div>
             </div>
