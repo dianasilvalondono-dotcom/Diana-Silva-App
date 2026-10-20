@@ -14,7 +14,7 @@ import {
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
   AVATARS, PLAN_PAGO, PLAN_PRECIO,
 } from './constants/data'
-import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults } from './utils/helpers'
+import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, MOODS, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado } from './utils/helpers'
 
 // Migration corre UNA VEZ por dispositivo, antes de que React inicialice estados.
 // Limpia los hábitos/rutinas que eran de Diana — respeta lo que cada usuaria agregó.
@@ -28,7 +28,7 @@ import { useOneSignal } from './lib/useOneSignal'
 import { useSpeech } from './lib/useSpeech'
 import { useDialog } from './lib/useDialog'
 import AuthScreen from './components/AuthScreen'
-import { syncFromLocal, getUserProfile } from './lib/database'
+import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL } from './lib/database'
 import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
 
 // Largo máximo de una publicación en la Comunidad (api/guia.js valida lo mismo).
@@ -190,6 +190,25 @@ function unirMemoria(previos, nuevos, tope) {
   return lista.slice(-tope)
 }
 
+/* ── Toolkit en la nube ── */
+const claveRecurso = (t) => `${String(t?.name || '').trim().toLowerCase()}|${String(t?.url || '').trim()}|${t?.cat || ''}`
+// Une el toolkit de este dispositivo con el de la nube, sin repetir (mismo
+// nombre, enlace y categoría). Lo local va primero.
+function unirToolkit(locales, remotos) {
+  const base = Array.isArray(locales) ? locales : []
+  const vistos = new Set(base.map(claveRecurso))
+  const nuevos = []
+  for (const t of Array.isArray(remotos) ? remotos : []) {
+    if (!t || !t.name || vistos.has(claveRecurso(t))) continue
+    vistos.add(claveRecurso(t))
+    nuevos.push(t)
+  }
+  return nuevos.length ? [...base, ...nuevos] : base
+}
+// Huella del contenido (sin importar el orden): si no cambió, no se sube.
+const firmaToolkit = (lista) => JSON.stringify((Array.isArray(lista) ? lista : [])
+  .map(t => [t.name || '', t.url || '', t.cat || '', t.note || '', t.added || ''].join('\u0001')).sort())
+
 /* Une dos trozos de texto con un espacio, sin duplicarlo. */
 function juntarTexto(a, b) {
   if (!b) return a
@@ -255,6 +274,19 @@ function App() {
         is_premium: status.is_premium,
         premium_source: status.premium_source || 'free',
         is_founding_member: status.premium_source === 'founding_member',
+      })
+      // El perfil de la nube completa los campos vacíos de este dispositivo
+      // (lo escrito aquí manda). Solo si los datos locales son de esta cuenta.
+      if (guardadoEstaBloqueado() || duenaLocal() !== user.id) return
+      setProfile(prev => {
+        const next = { ...prev }
+        let cambio = false
+        for (const k of CAMPOS_PERFIL) {
+          const remoto = typeof profile[k] === 'string' ? profile[k] : ''
+          const local = typeof prev[k] === 'string' ? prev[k] : ''
+          if (remoto.trim() && !local.trim()) { next[k] = remoto; cambio = true }
+        }
+        return cambio ? next : prev
       })
     })
     return () => { cancelled = true }
@@ -547,13 +579,62 @@ function App() {
   // Sync localStorage → Supabase on first login + update profile name from auth
   useEffect(() => {
     if (user && isConfigured) {
+      // Antes que nada: ¿los datos de este dispositivo son de esta cuenta?
+      // Si eran de otra, se apartaron y la app se recarga limpia; si no hubo
+      // espacio para apartarlos, esta sesión se cierra sin ver nada (perfil-1).
+      const duena = asegurarDuenaLocal(user.id)
+      if (duena === 'recargar') { window.location.reload(); return }
+      if (duena === 'sin-espacio') {
+        console.error('Datos de otra cuenta en este dispositivo y sin espacio para apartarlos: se cierra la sesión.')
+        signOut()
+        return
+      }
       syncFromLocal(user.id)
       const authName = user.user_metadata?.name || user.user_metadata?.full_name
       if (authName) {
         setProfile(prev => (prev.name === authName ? prev : { ...prev, name: authName }))
       }
     }
-  }, [user, isConfigured])
+  }, [user, isConfigured, signOut])
+
+  // ── Toolkit en la nube (toolkit-19) ──
+  // Al entrar se trae el de la nube y se une con el local. Solo después de
+  // eso se guardan los cambios (con pausa): saveToolkitItems borra y vuelve a
+  // escribir todo, así que nunca se llama con lo local antes de unirlo.
+  const userId = user?.id || null
+  const [toolkitDe, setToolkitDe] = useState(null) // cuenta cuyo toolkit ya se trajo
+  const toolkitNubeRef = useRef(null)              // huella de lo que tiene la nube
+  const toolkitSubidaRef = useRef(Promise.resolve())
+  const toolkitHidratadoRef = useRef(false)        // se trajo en ESTA sesión
+  useEffect(() => {
+    toolkitHidratadoRef.current = false
+    if (!userId || !isConfigured) return
+    let cancelado = false
+    getToolkitItems(userId).then(remotos => {
+      // null = no se pudo leer: no se une ni se sube nada en esta sesión.
+      if (cancelado || !Array.isArray(remotos)) return
+      if (guardadoEstaBloqueado() || duenaLocal() !== userId) return
+      toolkitNubeRef.current = firmaToolkit(remotos)
+      toolkitHidratadoRef.current = true
+      setToolkitItems(prev => unirToolkit(prev, remotos))
+      setToolkitDe(userId)
+    })
+    return () => { cancelado = true }
+  }, [userId, isConfigured])
+  useEffect(() => {
+    if (!userId || !isConfigured || toolkitDe !== userId) return
+    const lista = toolkitItems
+    const t = setTimeout(() => {
+      if (!toolkitHidratadoRef.current || guardadoEstaBloqueado() || duenaLocal() !== userId) return
+      const firma = firmaToolkit(lista)
+      if (firma === toolkitNubeRef.current) return
+      // Una subida a la vez (borrar + insertar no se pueden cruzar).
+      toolkitSubidaRef.current = toolkitSubidaRef.current
+        .then(() => saveToolkitItems(userId, lista))
+        .then(ok => { if (ok) toolkitNubeRef.current = firma })
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [toolkitItems, userId, isConfigured, toolkitDe])
 
   // Stats
   const dimStats = useMemo(() => {
@@ -2112,6 +2193,11 @@ function App() {
   const updateProfile = (field, value) => {
     setProfile(prev => ({ ...prev, [field]: value }))
   }
+  // Al cerrar la edición del perfil (Guardar o Cerrar edición) se guarda
+  // también en la cuenta, para verlo en otros dispositivos (perfil-3).
+  const guardarPerfilEnLaNube = () => {
+    if (user && isConfigured && duenaLocal() === user.id) saveUserProfile(user.id, profile)
+  }
 
   /* ── Board categories ── */
   const BOARD_CATS = [
@@ -2988,7 +3074,7 @@ function App() {
         <div style={{ fontSize: 24, fontWeight: 700, fontFamily: FONT }}>{profile.name || 'Tu nombre'}</div>
         {profile.city && <div style={{ fontSize: 20, opacity: 0.8, marginTop: 4 }}>{profile.city}</div>}
         {profile.bio && <div style={{ fontSize: 20, opacity: 0.85, marginTop: 8, fontStyle: 'italic', lineHeight: 1.5 }}>"{profile.bio}"</div>}
-        <button onClick={() => setEditingProfile(!editingProfile)} style={{
+        <button onClick={() => { if (editingProfile) guardarPerfilEnLaNube(); setEditingProfile(!editingProfile) }} style={{
           marginTop: 14, padding: '8px 20px', borderRadius: 20, border: '2px solid rgba(255,255,255,0.5)',
           background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 19, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit',
@@ -3036,7 +3122,7 @@ function App() {
             style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 19, fontFamily: 'inherit', marginBottom: 8, boxSizing: 'border-box', minHeight: 60, resize: 'vertical', lineHeight: 1.5 }}
           />
 
-          <button onClick={() => setEditingProfile(false)} style={{
+          <button onClick={() => { guardarPerfilEnLaNube(); setEditingProfile(false) }} style={{
             width: '100%', padding: 12, borderRadius: 12, border: 'none',
             background: C.teal, color: 'white',
             fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 4,
@@ -3516,7 +3602,10 @@ function App() {
   ]
 
   /* ── Auth loading ── */
-  if (authLoading) {
+  // También mientras los datos de este dispositivo son de otra cuenta: no se
+  // muestra nada de ella mientras se apartan y la app se recarga (perfil-1).
+  const cuentaAjena = isConfigured && !!user && (guardadoEstaBloqueado() || (!!duenaLocal() && duenaLocal() !== user.id))
+  if (authLoading || cuentaAjena) {
     return (
       <div style={{
         maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,

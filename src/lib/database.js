@@ -1,14 +1,23 @@
 import { supabase } from './supabase'
 
 /* ── Profile ── */
+// Las columnas del perfil que escribe la app. Nunca las de premium.
+export const CAMPOS_PERFIL = ['name', 'city', 'bio', 'intention', 'emoji']
+
+// Guarda solo los campos de CAMPOS_PERFIL que vengan en `profile`.
+// Devuelve true si se guardó y null si no (sin Supabase o con error).
 export async function saveUserProfile(userId, profile) {
-  if (!supabase) return null
+  if (!supabase || !userId || !profile) return null
   try {
-    const { data, error } = await supabase
+    const campos = {}
+    for (const k of CAMPOS_PERFIL) {
+      if (typeof profile[k] === 'string') campos[k] = profile[k]
+    }
+    const { error } = await supabase
       .from('profiles')
-      .upsert({ id: userId, ...profile, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+      .upsert({ id: userId, ...campos, updated_at: new Date().toISOString() }, { onConflict: 'id' })
     if (error) throw error
-    return data
+    return true
   } catch (e) { console.error('saveUserProfile:', e); return null }
 }
 
@@ -192,52 +201,92 @@ export async function getStreaks(userId) {
   } catch (e) { console.error('getStreaks:', e); return null }
 }
 
-/* ── Sync localStorage → Supabase (one-time migration) ── */
+/* ── Sync localStorage → Supabase (migración inicial, una vez por usuaria) ──
+   La marca es por usuaria y por sección ('ronda-migrated-<id>'): una sección
+   queda hecha solo si su guardado salió bien, así lo que falló se reintenta
+   en el siguiente inicio de sesión. Quien ya migró con la marca vieja
+   ('ronda-migrated', del dispositivo) no vuelve a subir nada.
+   El toolkit no va aquí: se sincroniza siempre desde App (se trae de la nube
+   y se une con lo local antes de guardar). */
+const SECCIONES_MIGRACION = ['profile', 'habits', 'journal', 'favs', 'streaks', 'programs']
+
 export async function syncFromLocal(userId) {
-  if (!supabase) return false
+  if (!supabase || !userId) return false
+  const load = (key, fallback) => {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback } catch { return fallback }
+  }
+  if (load('ronda-migrated', false) === true) return false
+
+  const KEY = `ronda-migrated-${userId}`
+  const guardado = load(KEY, {})
+  const hecho = guardado && typeof guardado === 'object' ? guardado : {}
+  if (hecho.todo) return false
+  const guardarMarca = () => {
+    try { localStorage.setItem(KEY, JSON.stringify(hecho)) } catch { /* se reintenta la próxima vez */ }
+  }
+  const marcar = (seccion) => { hecho[seccion] = true; guardarMarca() }
+
   try {
-    const load = (key, fallback) => {
-      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback } catch { return fallback }
+    // Perfil: solo los campos con valor (un perfil vacío no pisa el de la nube).
+    if (!hecho.profile) {
+      const local = load('diana-profile', null) || {}
+      const campos = {}
+      for (const k of CAMPOS_PERFIL) {
+        if (typeof local[k] === 'string' && local[k].trim()) campos[k] = local[k]
+      }
+      if (!Object.keys(campos).length || await saveUserProfile(userId, campos)) marcar('profile')
     }
 
-    // Check if already migrated
-    const migrated = load('ronda-migrated', false)
-    if (migrated) return false
-
-    // Migrate profile
-    const profile = load('diana-profile', null)
-    if (profile) await saveUserProfile(userId, profile)
-
-    // Migrate habits
-    const habits = load('diana-habits', null)
-    if (habits) await saveHabits(userId, habits)
-
-    // Migrate journal
-    const entries = load('diana-journal', [])
-    for (const entry of entries) {
-      await saveJournalEntry(userId, entry)
+    if (!hecho.habits) {
+      const habits = load('diana-habits', null)
+      if (!Array.isArray(habits) || await saveHabits(userId, habits)) marcar('habits')
     }
 
-    // Migrate toolkit
-    const toolkit = load('diana-toolkit', [])
-    if (toolkit.length > 0) await saveToolkitItems(userId, toolkit)
+    // Diario: cada entrada subida se anota, así un reintento no la duplica.
+    if (!hecho.journal) {
+      const entries = load('diana-journal', [])
+      const subidas = new Set(Array.isArray(hecho.journalIds) ? hecho.journalIds : [])
+      let todas = true
+      for (const entry of Array.isArray(entries) ? entries : []) {
+        if (!entry) continue
+        const clave = String(entry.id ?? `${entry.date}|${entry.time}|${entry.text}`)
+        if (subidas.has(clave)) continue
+        if (await saveJournalEntry(userId, entry)) {
+          subidas.add(clave)
+          hecho.journalIds = [...subidas]
+          guardarMarca()
+        } else {
+          todas = false
+        }
+      }
+      if (todas) {
+        delete hecho.journalIds
+        marcar('journal')
+      }
+    }
 
-    // Migrate fav quotes
-    const favs = load('diana-fav-quotes', [])
-    if (favs.length > 0) await saveFavQuotes(userId, favs)
+    if (!hecho.favs) {
+      const favs = load('diana-fav-quotes', [])
+      if (!Array.isArray(favs) || !favs.length || await saveFavQuotes(userId, favs)) marcar('favs')
+    }
 
-    // Migrate streaks
-    const streaks = load('diana-streaks', {})
-    if (Object.keys(streaks).length > 0) await saveStreaks(userId, streaks)
+    if (!hecho.streaks) {
+      const streaks = load('diana-streaks', {})
+      if (!streaks || !Object.keys(streaks).length || await saveStreaks(userId, streaks)) marcar('streaks')
+    }
 
-    // Migrate active programs
-    const programs = load('diana-programs', {})
-    if (Object.keys(programs).length > 0) await saveActivePrograms(userId, programs)
+    // Programas: la app los guarda en 'ronda-programs' ('diana-programs' es la clave vieja).
+    if (!hecho.programs) {
+      const programs = load('ronda-programs', null) ?? load('diana-programs', {})
+      if (!programs || !Object.keys(programs).length || await saveActivePrograms(userId, programs)) marcar('programs')
+    }
 
-    // Mark as migrated
-    localStorage.setItem('ronda-migrated', JSON.stringify(true))
-    console.log('✅ Data migrated from localStorage to Supabase')
-    return true
+    if (SECCIONES_MIGRACION.every(sec => hecho[sec])) {
+      hecho.todo = true
+      guardarMarca()
+      return true
+    }
+    return false
   } catch (e) {
     console.error('syncFromLocal error:', e)
     return false

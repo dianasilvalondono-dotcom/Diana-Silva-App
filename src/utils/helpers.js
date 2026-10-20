@@ -19,7 +19,17 @@ export const load = (key, fallback) => {
   catch { return fallback }
 }
 
-export const save = (key, val) => localStorage.setItem(key, JSON.stringify(val))
+/* Mientras los datos de este dispositivo cambian de dueña (otra cuenta
+   inició sesión), nada de lo que quedó en memoria se vuelve a guardar: la
+   app se recarga enseguida. Ver asegurarDuenaLocal. */
+let guardadoBloqueado = false
+export const bloquearGuardado = () => { guardadoBloqueado = true }
+export const guardadoEstaBloqueado = () => guardadoBloqueado
+
+export const save = (key, val) => {
+  if (guardadoBloqueado) return
+  localStorage.setItem(key, JSON.stringify(val))
+}
 
 /* ¿Un valor diario está vacío? ({} sin ningún true, [], false o null) */
 const diaVacio = (val) => {
@@ -33,6 +43,7 @@ const diaVacio = (val) => {
    no dejar un registro vacío por cada día en que se abre la app. Las lecturas
    usan load(clave, vacío), así que la ausencia de la clave no cambia nada. */
 export const saveDay = (key, val) => {
+  if (guardadoBloqueado) return
   try {
     if (diaVacio(val)) localStorage.removeItem(key)
     else save(key, val)
@@ -222,3 +233,79 @@ export function runMigrationCleanDianaDefaults() {
   localStorage.setItem(FLAG, 'done')
   return true
 }
+
+/* ── Datos locales y cuenta (perfil-1) ──
+   Lo de la usuaria vive en este dispositivo con claves 'diana-*', 'ronda-*'
+   y 'ronda_*' que no llevan su id. 'ronda-owner' guarda de qué cuenta son.
+   Si inicia sesión otra cuenta, lo de la anterior se aparta (no se borra:
+   queda en 'ronda-apartado:<id>:<clave>') y, si la que entra tenía datos
+   apartados en este dispositivo, se recuperan. Así nunca se mezclan ni se
+   ven los datos de otra cuenta.
+   Qué hacer con los datos al cerrar sesión (borrarlos del teléfono o no)
+   está pendiente de decisión de producto. */
+const OWNER_KEY = 'ronda-owner'
+const APARTADO = 'ronda-apartado:'
+// Del dispositivo, no de la usuaria: se quedan donde están.
+const CLAVES_DEL_DISPOSITIVO = ['ronda_puerta', 'ronda-current-day', OWNER_KEY]
+const esDeLaUsuaria = (k) =>
+  (k.startsWith('diana-') || k.startsWith('ronda-') || k.startsWith('ronda_')) &&
+  !CLAVES_DEL_DISPOSITIVO.includes(k) &&
+  !k.startsWith('ronda-migration-') && // migraciones del dispositivo
+  !k.startsWith('ronda-migrated-') &&  // marcas de sincronización: ya llevan el id
+  !k.startsWith(APARTADO)
+
+/* Mueve claves de a una (copia y borra), así no hace falta espacio para
+   todo a la vez. Si una no cabe, deshace lo movido y devuelve false. */
+function moverClaves(pares) {
+  const hechos = []
+  try {
+    for (const [desde, hacia] of pares) {
+      const v = localStorage.getItem(desde)
+      if (v === null) continue
+      localStorage.setItem(hacia, v)
+      localStorage.removeItem(desde)
+      hechos.push([desde, hacia])
+    }
+    return true
+  } catch {
+    for (const [desde, hacia] of hechos.reverse()) {
+      try {
+        localStorage.setItem(desde, localStorage.getItem(hacia))
+        localStorage.removeItem(hacia)
+      } catch { /* queda apartada; se recupera cuando vuelva a entrar */ }
+    }
+    return false
+  }
+}
+
+/* ¿Los datos de este dispositivo son de esta cuenta?
+   'ok'          → sí (o no eran de nadie: desde ahora son suyos).
+   'recargar'    → eran de otra cuenta: se apartaron, se recuperaron los de
+                   esta (si había) y hay que recargar la app ya.
+   'sin-espacio' → eran de otra cuenta y no hubo espacio para apartarlos:
+                   siguen intactos y esta sesión no debe ver nada. */
+export function asegurarDuenaLocal(userId) {
+  let duena
+  try { duena = load(OWNER_KEY, null) } catch { return 'ok' }
+  if (!userId || duena === userId) return 'ok'
+  try {
+    if (!duena) {
+      localStorage.setItem(OWNER_KEY, JSON.stringify(userId))
+      return 'ok'
+    }
+    const deLaAnterior = Object.keys(localStorage).filter(esDeLaUsuaria)
+    if (!moverClaves(deLaAnterior.map(k => [k, `${APARTADO}${duena}:${k}`]))) return 'sin-espacio'
+    // Desde aquí, lo que la app tiene en memoria es de la otra cuenta.
+    bloquearGuardado()
+    const prefijo = `${APARTADO}${userId}:`
+    const suyas = Object.keys(localStorage).filter(k => k.startsWith(prefijo))
+    moverClaves(suyas.map(k => [k, k.slice(prefijo.length)]))
+    localStorage.setItem(OWNER_KEY, JSON.stringify(userId))
+    return 'recargar'
+  } catch {
+    return 'sin-espacio'
+  }
+}
+
+/* La dueña de los datos de este dispositivo (id de la cuenta), o null. */
+export const duenaLocal = () => load(OWNER_KEY, null)
