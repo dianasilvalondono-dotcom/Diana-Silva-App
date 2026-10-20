@@ -952,6 +952,25 @@ function seguidos(a, b) {
 function puertaDe(re) {
   const src = re.source
   let i = 0
+  // Lo de adentro de una excepción no se lee: se salta hasta su paréntesis.
+  function saltar() {
+    let d = 0
+    while (i < src.length) {
+      const c = src[i]
+      if (c === '\\') { i += 2; continue }
+      if (c === '[') {
+        i++
+        if (src[i] === '^') i++
+        if (src[i] === ']') i++
+        while (i < src.length && src[i] !== ']') i += src[i] === '\\' ? 2 : 1
+        i++
+        continue
+      }
+      if (c === '(') d++
+      else if (c === ')') { if (d === 0) return; d-- }
+      i++
+    }
+  }
   function atomo() {
     const c = src[i]
     if (c === '(') {
@@ -959,10 +978,10 @@ function puertaDe(re) {
       if (src[i + 1] === '?') {
         if (src[i + 2] === '=' || src[i + 2] === '!') { aserto = true; i += 3 } else if (src[i + 2] === '<') { aserto = true; i += 4 } else i += 3
       } else i++
-      const dentro = alternancia()
+      const dentro = aserto ? (saltar(), LEE_VACIO) : alternancia()
       if (src[i] !== ')') throw new Error('puerta: falta )')
       i++
-      return aserto ? LEE_VACIO : dentro
+      return dentro
     }
     if (c === '[') {
       let j = i + 1
@@ -1062,13 +1081,33 @@ function puertaDe(re) {
 // Se calculan la primera vez que se consulta (no al cargar la app).
 let PUERTAS = null
 
+// Dónde empieza en el fondo cada grupo de cuatro letras: un pedazo de puerta
+// (siempre de cuatro o más) se busca solo donde el fondo empieza igual que
+// él, y no en todo el texto. En un texto largo hay miles de pedazos que
+// buscar.
+function indiceDe(fondo) {
+  const indice = new Map()
+  for (let k = 0; k + PUERTA_LARGO <= fondo.length; k++) {
+    const q = fondo.slice(k, k + PUERTA_LARGO)
+    const pos = indice.get(q)
+    if (pos) pos.push(k)
+    else indice.set(q, [k])
+  }
+  return indice
+}
+
 export function isCrisis(content) {
   if (!PUERTAS) PUERTAS = CRISIS_PATTERNS.map(puertaDe)
   const { textos, fondo } = lecturas(content)
+  const indice = indiceDe(fondo)
   const visto = new Map()
   const esta = (s) => {
     let v = visto.get(s)
-    if (v === undefined) { v = fondo.includes(s); visto.set(s, v) }
+    if (v === undefined) {
+      const pos = indice.get(s.slice(0, PUERTA_LARGO))
+      v = !!pos && pos.some((k) => fondo.startsWith(s, k))
+      visto.set(s, v)
+    }
     return v
   }
   return CRISIS_PATTERNS.some((re, n) => (!PUERTAS[n] || PUERTAS[n].every((grupo) => grupo.some(esta))) && textos.some((t) => re.test(t)))
