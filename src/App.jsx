@@ -3859,10 +3859,10 @@ function App() {
 
         {view === 'juntas' && <>
           <h1 style={{ margin: '0 0 8px', fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 36, lineHeight: 1.02, color: C.navy }}>
-            Tus disponibles
+            Juntas
           </h1>
           <p style={{ margin: '0 0 20px', fontSize: 15, lineHeight: 1.5, color: C.muted }}>
-            Cuando vayas a un plan, aquí van a aparecer las mujeres que elijan seguir en contacto contigo.
+            Pregunta de forma anónima en la Comunidad o encuentra acompañamiento.
           </p>
           <SubTabs
             tabs={[
