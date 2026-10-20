@@ -1,7 +1,7 @@
 {
   "name": "Ronda — Tu compañera en cada etapa",
   "short_name": "Ronda",
-  "description": "Herramientas de bienestar para mujeres. Hábitos, diario de voz, programas y comunidad con guías verificadas.",
+  "description": "Herramientas de bienestar para mujeres. Hábitos, diario de voz, programas y una comunidad anónima con la Guía IA de Ronda.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#EEF3F9",
