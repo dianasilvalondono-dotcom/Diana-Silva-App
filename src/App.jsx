@@ -1904,13 +1904,25 @@ function App() {
   /* ── HISTORIA DE RONDA ── */
   const historiaView = <HistoriaView showFullStory={showFullStory} setShowFullStory={setShowFullStory} />
 
+  // Lleva a la tarjeta de una ruta en "Mis rutas activas" (recién empezada o
+  // ya en curso): queda arriba, bajo el encabezado fijo, con su Día 1 a la
+  // vista, y el foco pasa a su título. Con un aviso abierto el fondo es inerte:
+  // se mueve igual y el foco se queda en el aviso.
+  const irARutaActiva = (progId) => requestAnimationFrame(() => {
+    const tarjeta = document.getElementById(`ruta-activa-${progId}`)
+    if (!tarjeta) return
+    const alto = document.querySelector('header')?.offsetHeight || 0
+    window.scrollTo({ top: tarjeta.getBoundingClientRect().top + window.scrollY - alto - 12 })
+    tarjeta.querySelector('[data-titulo-ruta]')?.focus({ preventScroll: true })
+  })
+
   const programasView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
       <div style={{ background: C.morado, borderRadius: 20, padding: 22, color: 'white' }}>
         <div style={{ fontSize: 22, fontWeight: 700, fontFamily: FONT }}>Rutas</div>
         <div style={{ fontSize: 19, opacity: 0.85, marginTop: 4 }}>Caminos paso a paso para crecer y brillar</div>
-        <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>1 minuto al día. 7 días. Tu transformación.</div>
+        <div style={{ fontSize: 19, marginTop: 6, opacity: 0.7 }}>Una práctica al día. Tu transformación.</div>
       </div>
 
       {/* Active programs */}
@@ -1925,11 +1937,13 @@ function App() {
               if (!prog || !prog.days?.length) return null
               const completedCount = progress.completedDays.length
               const pct = Math.round((completedCount / prog.days.length) * 100)
+              // El primer día sin hacer muestra abierto su "Por qué funciona".
+              const diaSiguiente = prog.days.find(d => !progress.completedDays.includes(d.day))?.day
               return (
-                <div key={progId} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
+                <div key={progId} id={`ruta-activa-${progId}`} style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: `2px solid ${prog.color}25` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : <span aria-hidden="true" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: prog.color, verticalAlign: 'middle' }} />} {prog.title}</div>
+                      <div data-titulo-ruta tabIndex={-1} style={{ fontSize: 19, fontWeight: 800, color: C.text, outline: 'none' }}>{ICONS[prog.id] ? ICONS[prog.id](prog.color, 24) : <span aria-hidden="true" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: prog.color, verticalAlign: 'middle' }} />} {prog.title}</div>
                       <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{completedCount} de {prog.days.length} días · {pct}%</div>
                     </div>
                     <button type="button" aria-label={`Dejar la ruta ${prog.title}`} onClick={() => pedirDejarRuta(prog, completedCount)} style={{
@@ -1942,34 +1956,58 @@ function App() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 }}>
                     {prog.days.map(d => {
                       const isDone = progress.completedDays.includes(d.day)
+                      // Rutas de 21 días: el porqué (neuro) y la pregunta (prompt) de cada día.
+                      const porQue = typeof d.neuro === 'string' ? d.neuro.trim() : ''
+                      const pregunta = typeof d.prompt === 'string' ? d.prompt.trim() : ''
                       return (
-                        <button type="button" role="checkbox" aria-checked={isDone} key={d.day} onClick={() => completeProgDay(progId, d.day)} style={{
-                          display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+                        <div key={d.day} style={{
                           background: isDone ? `${prog.color}08` : C.cream, borderRadius: 14,
-                          cursor: 'pointer', border: `1px solid ${isDone ? `${prog.color}30` : C.border}`,
+                          border: `1px solid ${isDone ? `${prog.color}30` : C.border}`,
                           transition: 'all 0.15s',
-                          width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                         }}>
-                          <span aria-hidden="true" style={{
-                            width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
-                            background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
+                          <button type="button" role="checkbox" aria-checked={isDone} onClick={() => completeProgDay(progId, d.day)} style={{
+                            display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
+                            background: 'none', borderRadius: 14, cursor: 'pointer', border: 'none',
+                            width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                           }}>
-                            {isDone && UI_ICONS.check('white', 15)}
-                          </span>
-                          <span style={{ display: 'block', flex: 1 }}>
-                            <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: colorTexto(prog.color), textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                              Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
+                            <span aria-hidden="true" style={{
+                              width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
+                              background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
+                            }}>
+                              {isDone && UI_ICONS.check('white', 15)}
                             </span>
-                            <span style={{ display: 'block', fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
-                              textDecoration: isDone ? 'line-through' : 'none' }}>
-                              {d.title}
+                            <span style={{ display: 'block', flex: 1 }}>
+                              <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: colorTexto(prog.color), textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                                Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
+                              </span>
+                              <span style={{ display: 'block', fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
+                                textDecoration: isDone ? 'line-through' : 'none' }}>
+                                {d.title}
+                              </span>
+                              <span style={{ display: 'block', fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
+                                {d.task}
+                              </span>
                             </span>
-                            <span style={{ display: 'block', fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
-                              {d.task}
-                            </span>
-                          </span>
-                        </button>
+                          </button>
+                          {(porQue || pregunta) && (
+                            <details open={d.day === diaSiguiente} style={{ padding: '0 14px 12px 48px' }}>
+                              <summary style={{ fontSize: 19, fontWeight: 700, color: colorTexto(prog.color), cursor: 'pointer', padding: '8px 0' }}>
+                                {porQue ? 'Por qué funciona' : 'Para reflexionar'}
+                              </summary>
+                              {porQue && (
+                                <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.5, marginTop: 4, padding: '8px 10px', background: C.goldLight, borderRadius: 10 }}>
+                                  {porQue}
+                                </div>
+                              )}
+                              {pregunta && (
+                                <div style={{ fontSize: 19, color: C.text, lineHeight: 1.5, marginTop: 8, fontStyle: 'italic' }}>
+                                  {porQue && <span style={{ fontWeight: 700, fontStyle: 'normal' }}>Para reflexionar: </span>}{pregunta}
+                                </div>
+                              )}
+                            </details>
+                          )}
+                        </div>
                       )
                     })}
                   </div>
@@ -2010,12 +2048,12 @@ function App() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
-                <button onClick={() => startProgram(prog.id)} style={{
+                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
+                <button aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  Empezar →
+                  Empezar <span aria-hidden="true">→</span>
                 </button>
               </div>
             </div>
@@ -2046,12 +2084,12 @@ function App() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 20, fontWeight: 800, color: C.text }}>{prog.title}</div>
                 <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>{prog.desc}</div>
-                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · 1 minuto al día</div>
-                <button onClick={() => startProgram(prog.id)} style={{
+                <div style={{ fontSize: 20, color: C.subtle, marginTop: 4 }}>{prog.days.length} días · una práctica al día</div>
+                <button aria-label={`Empezar ${prog.title}`} onClick={() => { startProgram(prog.id); irARutaActiva(prog.id) }} style={{
                   marginTop: 10, padding: '8px 18px', borderRadius: 20, border: 'none',
                   background: prog.color, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                 }}>
-                  Empezar →
+                  Empezar <span aria-hidden="true">→</span>
                 </button>
               </div>
             </div>
@@ -2076,16 +2114,21 @@ function App() {
             <div style={{ fontSize: 19, fontWeight: 800, color: C.text, fontFamily: FONT, marginBottom: 6 }}>{prog.title}</div>
             <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 16 }}>{prog.desc}</div>
 
-            {/* 3 fases */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            {/* 3 fases: en columnas en escritorio; en el celular, una debajo de
+                otra (en tres columnas de ~90 px el rango y las palabras se partían) */}
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 8, marginBottom: 16 }}>
               {prog.phases.map((phase, i) => (
                 <div key={i} style={{
-                  flex: 1, background: C.card, borderRadius: 12, padding: '10px 8px', textAlign: 'center',
+                  flex: isMobile ? 'none' : '1 1 0', minWidth: 0, background: C.card, borderRadius: 12,
+                  padding: isMobile ? '10px 14px' : '10px 8px', textAlign: isMobile ? 'left' : 'center',
                   border: `1px solid ${C.border}`,
+                  ...(isMobile && { display: 'flex', alignItems: 'baseline', gap: 12 }),
                 }}>
-                  <div style={{ fontSize: 19, fontWeight: 800, color: C.gold, marginBottom: 2 }}>Días {phase.days}</div>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{phase.name}</div>
-                  <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{phase.desc}</div>
+                  <div style={{ fontSize: 19, fontWeight: 800, color: C.gold, marginBottom: 2, whiteSpace: 'nowrap', flexShrink: 0, minWidth: isMobile ? 100 : 0 }}>Días {phase.days}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 19, fontWeight: 700, color: C.text }}>{phase.name}</div>
+                    <div style={{ fontSize: 19, color: C.muted, marginTop: 2 }}>{phase.desc}</div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -2120,21 +2163,19 @@ function App() {
                   })
                   return
                 }
+                // Ya en curso: lleva a su tarjeta en "Mis rutas activas".
                 if (activePrograms[prog.id]) {
-                  setAppModal({
-                    type: 'info',
-                    title: 'Ya estás en esta ruta',
-                    body: `Sigues "${prog.title}". Continúa con tu día de hoy.`,
-                    cta: 'Listo',
-                  })
+                  irARutaActiva(prog.id)
                   return
                 }
                 startProgram(prog.id)
                 showFoundingPerk('p21', 'Rutas de 21 días')
+                // Detrás del aviso la página ya sube a la ruta: al cerrarlo, el Día 1 queda a la vista.
+                irARutaActiva(prog.id)
                 setAppModal({
                   type: 'success',
                   title: `¡Activaste "${prog.title}"!`,
-                  body: 'Mañana te llega la primera práctica del Día 1. Tu camino de 21 días empieza ahora. 💛',
+                  body: 'Tu Día 1 ya está listo en Mis rutas activas. Un paso al día, durante 21 días. 💛',
                   cta: 'Empezar mi camino',
                 })
               }} style={{
@@ -2143,7 +2184,7 @@ function App() {
                 color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(114,109,45,0.35)', letterSpacing: '0.02em',
               }}>
-                {isPremium ? 'Empezar esta ruta' : `Desbloquear con ${PLAN_PAGO}`}
+                {!isPremium ? `Desbloquear con ${PLAN_PAGO}` : activePrograms[prog.id] ? 'Continuar mi ruta' : 'Empezar esta ruta'}
               </button>
             </div>
           </div>
