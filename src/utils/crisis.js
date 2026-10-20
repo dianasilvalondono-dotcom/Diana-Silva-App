@@ -896,21 +896,182 @@ const CLAUSULAS_JUNTAS = 3
 // los dobles espacios y las coletillas ("no quiero vivir 😭 de verdad", "no
 // quiero vivir de verdad"). Las dos lecturas se suman: cortar de más nunca
 // quita una lectura que ya activaba.
+// También devuelve el fondo: el texto entero y las cláusulas de cada corte
+// unidas, separados por saltos de línea. Toda lectura es un pedazo del fondo.
 function lecturas(content) {
-  const todas = new Set([textoParaCrisis(content, false)])
-  for (const modo of [true, 'amplia']) {
-    const partes = textoParaCrisis(content, modo).split(' | ').filter(Boolean)
+  const entero = textoParaCrisis(content, false)
+  const todas = new Set([entero])
+  const fondo = [entero]
+  const porSignos = textoParaCrisis(content)
+  const amplia = textoParaCrisis(content, 'amplia')
+  for (const texto of amplia === porSignos ? [porSignos] : [porSignos, amplia]) {
+    const partes = texto.split(' | ').filter(Boolean)
     if (partes.length < 2) continue
+    fondo.push(partes.join(' '))
     for (let i = 0; i < partes.length; i++) {
       for (let k = 1; k <= CLAUSULAS_JUNTAS && i + k <= partes.length; k++) todas.add(partes.slice(i, i + k).join(' '))
     }
   }
-  return [...todas]
+  return { textos: [...todas], fondo: fondo.join('\n') }
 }
 
+// Puertas. V8 compila cada regex la primera vez que la usa, y con casi 400
+// patrones la primera consulta tardaba más de 100 ms en un texto largo. La
+// puerta de un patrón son grupos de pedazos de texto sacados del mismo
+// patrón, sin sus excepciones ((?! …) y (?<! …) no leen nada): de cada grupo
+// al menos un pedazo tiene que estar en todo lo que el patrón activa.
+// "\bme (quiero|quise) cortar\b(?!…)" exige "me quiero cortar" o "me quise
+// cortar". Si al fondo del texto le falta un grupo entero, el patrón no puede
+// activar y ni se prueba (ni se compila). Un patrón sin grupos que valgan la
+// pena, o que el análisis no entiende, se prueba siempre.
+const PUERTA_MAX = 32 // pedazos por grupo, a lo sumo
+const PUERTA_LARGO = 4 // el pedazo más corto de un grupo, al menos
+const PUERTA_GRUPOS = 3 // grupos por puerta, a lo sumo
+const LEE_VACIO = Object.freeze({ ex: [''], req: null })
+const LEE_ALGO = Object.freeze({ ex: null, req: null })
+function cortoDe(grupo) { let q = Infinity; for (const s of grupo) if (s.length < q) q = s.length; return q }
+// El grupo más útil: el de pedazos más largos y, si empatan, el de menos.
+function mejorGrupo(a, b) {
+  if (!a) return b
+  if (!b) return a
+  const qa = cortoDe(a), qb = cortoDe(b)
+  return qa > qb || (qa === qb && a.length <= b.length) ? a : b
+}
+const comoGrupo = (ex) => (ex && ex.length <= PUERTA_MAX && !ex.includes('') ? ex : null)
+function seguidos(a, b) {
+  if (a.length === 1 && b.length === 1) return [a[0] + b[0]]
+  if (a.length * b.length > PUERTA_MAX) return null
+  const c = []
+  for (const x of a) for (const y of b) c.push(x + y)
+  return c
+}
+// Lee la fuente de la regex (sin banderas, sin referencias atrás) y devuelve
+// por cada pedazo { ex, req, todas }: ex, los textos exactos que puede leer
+// (pocos; '' si puede no leer nada); req, un grupo del que siempre lee al menos
+// un pedazo; todas, más grupos así, todos obligatorios a la vez.
+function puertaDe(re) {
+  const src = re.source
+  let i = 0
+  function atomo() {
+    const c = src[i]
+    if (c === '(') {
+      let aserto = false
+      if (src[i + 1] === '?') {
+        if (src[i + 2] === '=' || src[i + 2] === '!') { aserto = true; i += 3 } else if (src[i + 2] === '<') { aserto = true; i += 4 } else i += 3
+      } else i++
+      const dentro = alternancia()
+      if (src[i] !== ')') throw new Error('puerta: falta )')
+      i++
+      return aserto ? LEE_VACIO : dentro
+    }
+    if (c === '[') {
+      let j = i + 1
+      let simple = true
+      if (src[j] === '^') { simple = false; j++ }
+      const letras = []
+      if (src[j] === ']') { letras.push(']'); j++ }
+      while (src[j] !== ']') {
+        if (j >= src.length) throw new Error('puerta: falta ]')
+        if (src[j] === '\\') { simple = false; j += 2; continue }
+        if (src[j + 1] === '-' && src[j + 2] !== ']') { simple = false; j += 3; continue }
+        letras.push(src[j]); j++
+      }
+      i = j + 1
+      return simple && letras.length <= 10 ? { ex: letras, req: null } : LEE_ALGO
+    }
+    if (c === '\\') {
+      const d = src[i + 1]
+      i += 2
+      if (d === 'b' || d === 'B') return LEE_VACIO
+      if (/[a-zA-Z0-9]/.test(d)) return LEE_ALGO
+      return { ex: [d], req: null }
+    }
+    i++
+    if (c === '.') return LEE_ALGO
+    if (c === '^' || c === '$') return LEE_VACIO
+    return { ex: [c], req: null }
+  }
+  function cuantificado() {
+    const a = atomo()
+    let min = 1, max = 1
+    const q = src[i]
+    if (q === '?') { min = 0; i++ } else if (q === '*') { min = 0; max = Infinity; i++ } else if (q === '+') { max = Infinity; i++ } else if (q === '{') {
+      const m = /^\{(\d+)(,(\d*))?\}/.exec(src.slice(i, i + 12))
+      if (m) { min = +m[1]; max = m[2] ? (m[3] === '' ? Infinity : +m[3]) : min; i += m[0].length }
+    }
+    if (q && '?*+{'.includes(q) && src[i] === '?') i++
+    if (min === 1 && max === 1) return a
+    if (min === 0) return { ex: max === 1 && a.ex && a.ex.length < PUERTA_MAX ? [...a.ex, ''] : null, req: null }
+    return { ex: null, req: mejorGrupo(a.req, comoGrupo(a.ex)), todas: a.todas }
+  }
+  function secuencia() {
+    let corrida = [''], exacta = true, req = null
+    const todas = []
+    const anota = (g) => { if (g) { todas.push(g); req = mejorGrupo(req, g) } }
+    while (i < src.length && src[i] !== '|' && src[i] !== ')') {
+      const a = cuantificado()
+      if (a.ex) {
+        const c = seguidos(corrida, a.ex)
+        if (c) corrida = c
+        else { anota(comoGrupo(corrida)); corrida = a.ex; exacta = false }
+      } else {
+        anota(comoGrupo(corrida)); anota(a.req)
+        if (a.todas) for (const g of a.todas) anota(g)
+        corrida = ['']; exacta = false
+      }
+    }
+    anota(comoGrupo(corrida))
+    return { ex: exacta ? corrida : null, req, todas }
+  }
+  function alternancia() {
+    const primera = secuencia()
+    if (src[i] !== '|') return primera
+    const ramas = [primera]
+    while (src[i] === '|') { i++; ramas.push(secuencia()) }
+    let ex = []
+    for (const r of ramas) { if (!r.ex || ex.length + r.ex.length > PUERTA_MAX) { ex = null; break } ex.push(...r.ex) }
+    let req = []
+    for (const r of ramas) {
+      const g = mejorGrupo(r.req, comoGrupo(r.ex))
+      if (!g || req.length + g.length > PUERTA_MAX) { req = null; break }
+      req.push(...g)
+    }
+    return { ex, req: mejorGrupo(req, comoGrupo(ex)) }
+  }
+  try {
+    if (re.flags) return null
+    const r = alternancia()
+    if (i !== src.length) return null
+    const candidatos = [...(r.todas || [])]
+    const final = mejorGrupo(r.req, comoGrupo(r.ex))
+    if (final) candidatos.push(final)
+    const puerta = []
+    const vistos = new Set()
+    for (const g of candidatos.filter((g) => g.length <= PUERTA_MAX && cortoDe(g) >= PUERTA_LARGO).sort((a, b) => a.length - b.length || cortoDe(b) - cortoDe(a))) {
+      // Basta el pedazo más corto: si "me pega" está, "me pegaron" sobra.
+      const unico = [...new Set(g)].filter((x, _, todo) => !todo.some((o) => o !== x && x.includes(o)))
+      const clave = unico.join('|')
+      if (!vistos.has(clave)) { vistos.add(clave); puerta.push(unico) }
+      if (puerta.length === PUERTA_GRUPOS) break
+    }
+    return puerta.length ? puerta : null
+  } catch {
+    return null
+  }
+}
+// Se calculan la primera vez que se consulta (no al cargar la app).
+let PUERTAS = null
+
 export function isCrisis(content) {
-  const textos = lecturas(content)
-  return CRISIS_PATTERNS.some((re) => textos.some((t) => re.test(t)))
+  if (!PUERTAS) PUERTAS = CRISIS_PATTERNS.map(puertaDe)
+  const { textos, fondo } = lecturas(content)
+  const visto = new Map()
+  const esta = (s) => {
+    let v = visto.get(s)
+    if (v === undefined) { v = fondo.includes(s); visto.set(s, v) }
+    return v
+  }
+  return CRISIS_PATTERNS.some((re, n) => (!PUERTAS[n] || PUERTAS[n].every((grupo) => grupo.some(esta))) && textos.some((t) => re.test(t)))
 }
 
 // Nombre del botón que abre las herramientas de crisis, tal como se ve en el
