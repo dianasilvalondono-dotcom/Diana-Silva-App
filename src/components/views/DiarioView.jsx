@@ -11,11 +11,15 @@ import { ICONS, MOOD_ICONS, UI_ICONS } from '../../constants/icons'
 import { MOOD_RECS } from '../../constants/data'
 import { formatDayKey, MOOD_LABELS, MOOD_COLORS } from '../../utils/helpers'
 
+/* Nombre visible de cada tipo de recomendación. item.type es la clave interna
+   (sin tildes, la usa ICONS para el ícono): no se muestra tal cual. */
+const TYPE_LABELS = { podcast: 'Pódcast', musica: 'Música', habito: 'Hábito', libro: 'Libro', tedtalk: 'Charla TED' }
+
 export default function DiarioView({
   journalMood, setJournalMood,
   journalText, setJournalText,
   isListening, toggleVoiceInput,
-  addJournalEntry, entries,
+  addJournalEntry, pedirBorrarEntrada, entries,
   activePrograms, startProgram, openModule,
 }) {
   const rec = MOOD_RECS[journalMood]
@@ -31,13 +35,17 @@ export default function DiarioView({
       {/* New entry */}
       <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: SHADOW.sm }}>
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10, color: C.text }}>¿Cómo te sientes hoy?</div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14, justifyContent: 'center' }}>
+        {/* Gap y padding justos para que los cinco quepan en 375px; el wrap es la
+            red si una fuente sale más ancha. Solo la carita elegida se agranda:
+            si creciera el botón entero, la palabra chocaría con la de al lado. */}
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 14, justifyContent: 'center' }}>
           {MOOD_ICONS.map((icon, i) => (
-            <button key={i} onClick={() => setJournalMood(i)} style={{
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              transition: 'all 0.15s', transform: journalMood === i ? 'scale(1.2)' : 'scale(1)', padding: 4,
+            <button key={i} type="button" aria-pressed={journalMood === i} onClick={() => setJournalMood(i)} style={{
+              background: 'transparent', border: 'none', cursor: 'pointer', minWidth: 44, padding: '4px 2px',
             }}>
-              {icon(36, journalMood === i)}
+              <span style={{ display: 'inline-flex', transition: 'transform 0.15s', transform: journalMood === i ? 'scale(1.2)' : 'scale(1)' }}>
+                {icon(36, journalMood === i)}
+              </span>
               <div style={{ fontSize: 19, fontWeight: 700, color: MOOD_COLORS[i], marginTop: 2 }}>{MOOD_LABELS[i]}</div>
             </button>
           ))}
@@ -103,10 +111,10 @@ export default function DiarioView({
                 {ICONS[item.type] ? ICONS[item.type](rec.color, 22) : <span style={{ fontSize: 22, flexShrink: 0 }}>{item.emoji}</span>}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 20, fontWeight: 700, color: C.text }}>{item.title}</div>
-                  <div style={{ fontSize: 19, color: C.subtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{item.type}</div>
+                  <div style={{ fontSize: 19, color: C.subtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{TYPE_LABELS[item.type] || item.type}</div>
                 </div>
                 {item.url && (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" style={{
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label={`Abrir ${item.title} (se abre en otra pestaña)`} style={{
                     fontSize: 20, color: rec.color, fontWeight: 700, textDecoration: 'none',
                     padding: '4px 10px', borderRadius: 20, border: `1px solid ${rec.color}40`,
                     flexShrink: 0,
@@ -146,8 +154,19 @@ export default function DiarioView({
                     <div key={e.id} style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                         <span style={{ fontSize: 19, fontWeight: 700, color: C.muted }}>{e.time}</span>
-                        {/* Carita solo si la entrada tiene un ánimo elegido (la intención de la mañana no lo tiene) */}
-                        {Number.isInteger(e.mood) && e.type !== 'morning' && (MOOD_ICONS[e.mood] ? MOOD_ICONS[e.mood](22, true) : <span style={{ fontSize: 20, fontWeight: 700, color: MOOD_COLORS[e.mood] }}>{MOOD_LABELS[e.mood]}</span>)}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {/* Carita solo si la entrada tiene un ánimo elegido (la intención de la mañana no lo tiene) */}
+                          {Number.isInteger(e.mood) && e.type !== 'morning' && (MOOD_ICONS[e.mood]
+                            ? <span role="img" aria-label={`Ánimo: ${MOOD_LABELS[e.mood]}`} title={MOOD_LABELS[e.mood]} style={{ display: 'inline-flex' }}>{MOOD_ICONS[e.mood](22, true)}</span>
+                            : <span style={{ fontSize: 20, fontWeight: 700, color: MOOD_COLORS[e.mood] }}>{MOOD_LABELS[e.mood]}</span>)}
+                          {pedirBorrarEntrada && (
+                            <button type="button" aria-label={e.time ? `Borrar entrada de las ${e.time}` : 'Borrar entrada'} onClick={() => pedirBorrarEntrada(e)} style={{
+                              background: 'none', border: 'none', color: C.coral, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
+                              minWidth: 44, minHeight: 44, margin: '-11px -10px -11px 0',
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            }}><span aria-hidden="true">×</span></button>
+                          )}
+                        </div>
                       </div>
                       <div style={{ fontSize: 19, color: C.text, lineHeight: 1.6 }}>{e.text}</div>
                     </div>

@@ -772,8 +772,9 @@ function App() {
   const togglePlannedTask = toggleTaskIn(setPlannedToday)
 
   const addJournalEntry = () => {
-    if (!journalText.trim()) return
-    const entry = { id: Date.now(), date: todayKey(), text: journalText, mood: journalMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) }
+    const text = journalText.trim()
+    if (!text) return
+    const entry = { id: Date.now(), date: todayKey(), text, mood: journalMood, time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) }
     setEntries([entry, ...entries])
     // Primero se apaga el dictado: si no, el reconocedor vuelve a escribir
     // en el cuadro el texto que se acaba de guardar.
@@ -783,6 +784,15 @@ function App() {
     // Sin el texto del diario: solo la senal, nunca el contenido.
     track('journal_created', { mood: journalMood })
   }
+  // Por id; una entrada sin id (dato viejo o dañado) se quita solo a ella misma.
+  const removeJournalEntry = (entry) => setEntries(prev => prev.filter(e => entry.id != null ? e.id !== entry.id : e !== entry))
+  const pedirBorrarEntrada = (entry) => setAppModal({
+    type: 'confirm',
+    title: '¿Borrar esta entrada de tu diario?',
+    body: 'Después no la podrás recuperar.',
+    cta: 'Borrar entrada',
+    onConfirm: () => removeJournalEntry(entry),
+  })
 
   // Voice journaling — Web Speech API
   // Apaga el dictado de verdad: suelta los handlers (para que nada más
@@ -1813,6 +1823,7 @@ function App() {
       isListening={isListening}
       toggleVoiceInput={toggleVoiceInput}
       addJournalEntry={addJournalEntry}
+      pedirBorrarEntrada={pedirBorrarEntrada}
       entries={entries}
       activePrograms={activePrograms}
       startProgram={startProgram}
