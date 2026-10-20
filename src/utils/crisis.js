@@ -16,14 +16,40 @@ export function normalize(s) {
 // morirrr") y las abreviaturas de chat más comunes ("kiero", "q", "x").
 // También la ortografía de chat de las palabras de crisis: "kero", "qero" y
 // "quero" (quiero), "mequiero", "bivir" y "bida" (vivir, vida).
+// Y los errores más comunes al escribir rápido: las letras dobles ("me
+// quieroo morir", "moriir", "matarr", "pastillass"), las palabras pegadas
+// ("noquiero", "yanoquiero", "quieromorir", "mevoy"), "boy", "voi" y "voa"
+// (voy a), "me va matar", la r final que se cae ("me quiero mori", "me voy a
+// mata"), la b por la v ("bibir", "me bolvi", "me biolaron", "benas"), "golpió"
+// (golpeó), "pejó" (pegó), "abuzaron", "ahorkar" y "aorcar", "desapareser",
+// "segir" y "pastiyas".
 function textoParaCrisis(content) {
   return ` ${normalize(content)} `
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .replace(/(\p{L})\1{2,}/gu, '$1')
-    .replace(/ me(?=[kq]u?i?ero )/g, ' me ')
+    .replace(/([aiou])\1/g, '$1')
+    .replace(/(\p{L})\1(?= )/gu, '$1')
+    .replace(/ ya(?=no[kq]u?i?ero)/g, ' ya ')
+    .replace(/ (me|no)(?=[kq]u?i?ero)/g, ' $1 ')
+    .replace(/ me(?=(voy|boy|voi) )/g, ' me ')
+    .replace(/ ([kq]u?i?ero)(?=(morir|matar|vivir|seguir|suicidar|desaparecer|ahorcar|cortar|existir|estar|dormir|irme))/g, ' $1 ')
     .replace(/ [kq](?=[ei])/g, ' qu')
     .replace(/ quero(?= )/g, ' quiero')
-    .replace(/ b(?=(ivir|iviendo|ida|iva|ivo) )/g, ' v')
+    .replace(/ (boy|voi|vy)(?= a )/g, ' voy')
+    .replace(/ voa /g, ' voy a ')
+    .replace(/ ba(?= a )/g, ' va')
+    .replace(/ (voy|va|vas|van|iba|ba) (?=(matar|suicidar|ahorcar|envenenar|cortar|tirar|lanzar|botar|colgar|disparar|quitar))/g, (m, v) => ` ${v === 'ba' ? 'va' : v} a `)
+    .replace(/ (quiero|voy a|va a|vas a|quiere|quieren|quisiera|ganas de) (mori|mata|suicida|ahorca|envenena)(?= )/g, ' $1 $2r')
+    .replace(/ morime /g, ' morirme ')
+    .replace(/ b(?=(i[bv](ir|iendo|ia|o|a|e)|ida|iol\p{L}*|olv\p{L}*|uelv\p{L}*|enas|enen\p{L}*|ez) )/gu, ' v')
+    .replace(/ vib(?=(ir|iendo|ia|o|a|e) )/g, ' viv')
+    .replace(/ golpi(?=(o|a|aba|aban|aron|an|ar) )/g, ' golpe')
+    .replace(/ pej(?=(o|a|aron|aba|aban|an) )/g, ' peg')
+    .replace(/ abuz/g, ' abus')
+    .replace(/ (ahork|aorc|aork)/g, ' ahorc')
+    .replace(/ desapare[sz](?=er)/g, ' desaparec')
+    .replace(/ seg(?=ir )/g, ' segu')
+    .replace(/ pastiy?a(?=s? )/g, ' pastilla')
     .replace(/ (q|k) /g, ' que ').replace(/ (q|k) /g, ' que ')
     .replace(/ (xq|pq|porq) /g, ' porque ')
     .replace(/ x /g, ' por ').replace(/ x /g, ' por ')
@@ -73,7 +99,7 @@ const NO_ES_ALGO = '(?! (con|en|de|haciendo|trabajando|estudiando|siendo|pensand
 
 // Lo que viene después de "desaparecer" cuando no es una crisis: "de las
 // redes", "del grupo", "de la vergüenza".
-const NO_ES_REDES = '(?! (de|del) (las |los |mi |mis |el |la )?(redes|instagram|whatsapp|facebook|tiktok|internet|celular|grupo|chat|verguenza|risa|pena ajena)\\b)'
+const NO_ES_REDES = '(?! (de|del) (las |los |mi |mis |el |la )?(redes|instagram|whatsapp?|faceboo?k|tiktok|internet|celular|grupo|chat|verguenza|risa|pena ajena)\\b)'
 
 // Lo que viene después de "terminar con mi vida" o "ponerle fin a mi vida"
 // cuando habla de una etapa y no de una crisis: "con mi vida social", "mi
@@ -120,7 +146,7 @@ const PASTILLAS = '(pastillas|pepas|pildoras|medicinas|medicamentos|tabletas|cap
 
 // Señales de crisis de alto riesgo.
 export const CRISIS_PATTERNS = [
-  /\bsu(i[cs]|c)id/, /\bquitar(me|se)? la vida\b/, new RegExp(`matarme\\b${NO_ES_ESFUERZO}`), new RegExp(`me quiero morir${NO_ES_RISA}`),
+  /\b[sz]u(i[csz]|[csz])id/, /\bquitar(me|se)? la vida\b/, new RegExp(`matarme\\b${NO_ES_ESFUERZO}`), new RegExp(`me quiero morir${NO_ES_RISA}`),
   new RegExp(`quiero morir${NO_ES_RISA}`), /no quiero (vivir|seguir viviendo|seguir aca|seguir aqui)/,
   /mejor no estar/, /acabar con todo/, /hacerme dano/, /lastimarme/, new RegExp(`cortarme\\b${NO_ES_PELO}`),
   /\bautolesion/, /me estoy cortando/,
@@ -186,7 +212,7 @@ export const CRISIS_PATTERNS = [
   // No activan "esta es mi despedida de soltera", "les dejo todo listo a mis
   // hijos" ni "cuiden a mis hijos cuando yo no esté en casa".
   /\b(les|le) dejo todo a (mis|mi) (hijos|hijas|hijo|hija|hermanos?|hermanas?|mama|papa|familia|esposo|pareja|sobrinos?|sobrinas?)\b(?! (mientras|hasta|para (el|la|que (lo|la) (cuiden|cuide|organicen))|cuando (viaje|salga|vuelva))\b)/,
-  /\besta es mi (carta de )?despedida\b(?! (de|del) (soltera|soltero|trabajo|la oficina|la empresa|grupo|este grupo|colegio|la universidad|la ciudad|pais|instagram|las redes|redes|whatsapp|facebook|tiktok|la comunidad)\b)/,
+  /\besta es mi (carta de )?despedida\b(?! (de|del) (soltera|soltero|trabajo|la oficina|la empresa|grupo|este grupo|colegio|la universidad|la ciudad|pais|instagram|las redes|redes|whatsapp?|faceboo?k|tiktok|la comunidad)\b)/,
   /\bcuando (ustedes )?lean esto ya no (voy a estar|estare|existo|estoy|voy a existir)\b/,
   /\bperdon(enme|en|ame|eme|a)? por lo que voy a hacer\b/,
   /\bcuiden a mis hijos (cuando|si) (yo )?(ya )?no (este|estoy)\b(?! (en (casa|la casa)|aqui|de viaje|trabajando|disponible)\b)/,
@@ -225,7 +251,7 @@ export const CRISIS_PATTERNS = [
   // cortar", "me sigo cortando", "me hice daño", "a propósito".
   new RegExp(`\\bme (corte|cortaba|volvi a cortar|sigo cortando|segui cortando|he cortado|he vuelto a cortar|estuve cortando)\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`),
   new RegExp(`\\bme (hice|he hecho|volvi a hacer|vuelvo a hacer) dano\\b${NO_ES_ACCIDENTE}`),
-  /\bme (lastime|lastimo|corte|corto|queme|quemo|golpee|golpeo|pegue|pego|rasgune|rasguno|arane|arano|hice dano|hago dano)\b.{0,30}\ba proposito\b/,
+  /\bme (lastime|lastimo|corte|corto|queme|quemo|golpee?|golpeo|pegue|pego|rasgune|rasguno|arane|arano|hice dano|hago dano)\b.{0,30}\ba proposito\b/,
   /\bme (quemo|queme|sigo quemando|estoy quemando|volvi a quemar)\b.{0,30}\b(cigarrillos?|cigarros?|encendedor|fosforos?|yesquero)\b/,
   /\bme (rasguno|rasgune|arano|arane|rasco|pellizco|muerdo|golpeo|pego|corto|lastimo) .{0,20}hasta (sangrar|que (me )?sangr\w*|hacerme sangre)\b/,
   /\bme (pego|golpeo|lastimo|castigo|quemo|corto|hago dano) (yo )?a mi mism[ao]\b/,
