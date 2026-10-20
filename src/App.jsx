@@ -1263,32 +1263,41 @@ function App() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {dimHabits.map(h => (
-                <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
-                  background: C.card, borderRadius: 12, padding: '12px 14px',
-                  display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                <div key={h.id} style={{
+                  background: C.card, borderRadius: 12, paddingRight: 4,
+                  display: 'flex', alignItems: 'center',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.04)', borderLeft: `3px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
                   transition: 'all 0.15s', opacity: checked[h.id] ? 0.65 : 1,
                 }}>
-                  <div style={{
-                    width: 24, height: 24, borderRadius: 7, border: `2px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
-                    background: checked[h.id] ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                  {/* La fila se marca con un solo botón (Tab + Espacio/Enter); la X queda aparte */}
+                  <button type="button" role="checkbox" aria-checked={!!checked[h.id]}
+                    aria-label={streaks[h.id] > 0 ? `${h.name}, racha de ${streaks[h.id]} ${streaks[h.id] === 1 ? 'día' : 'días'}` : h.name}
+                    onClick={() => toggleHabit(h.id)} style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 0 12px 14px', margin: 0,
+                    background: 'none', border: 'none', borderRadius: 12, textAlign: 'left',
+                    fontFamily: 'inherit', color: 'inherit', cursor: 'pointer',
                   }}>
-                    {checked[h.id] && UI_ICONS.check('white', 15)}
-                  </div>
-                  <span style={{ fontSize: 19, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
-                    {h.name}
-                  </span>
-                  {streaks[h.id] > 0 && (
-                    <span style={{ fontSize: 20, fontWeight: 700, color: C.coral, background: `${C.coral}12`, padding: '3px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 C12 2 8 7 8 12 C8 16 10 18 12 20 C14 18 16 16 16 12 C16 7 12 2 12 2Z" fill={C.coral} opacity="0.8" /><path d="M12 8 C12 8 10 11 10 13 C10 15 11 16 12 17 C13 16 14 15 14 13 C14 11 12 8 12 8Z" fill="white" opacity="0.5" /></svg>
-                      {streaks[h.id]}
+                    <span aria-hidden="true" style={{
+                      width: 24, height: 24, borderRadius: 7, border: `2px solid ${checked[h.id] ? C.greenDone : cfg.color}`,
+                      background: checked[h.id] ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, transition: 'all 0.2s',
+                    }}>
+                      {checked[h.id] && UI_ICONS.check('white', 15)}
                     </span>
-                  )}
-                  <button type="button" aria-label={`Eliminar hábito ${h.name}`} onClick={(e) => { e.stopPropagation(); pedirQuitarHabito(h) }} style={{
+                    <span style={{ fontSize: 19, fontWeight: 600, textDecoration: checked[h.id] ? 'line-through' : 'none', color: checked[h.id] ? C.subtle : C.text, flex: 1 }}>
+                      {h.name}
+                    </span>
+                    {streaks[h.id] > 0 && (
+                      <span aria-hidden="true" style={{ fontSize: 20, fontWeight: 700, color: C.coral, background: `${C.coral}12`, padding: '3px 8px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2 C12 2 8 7 8 12 C8 16 10 18 12 20 C14 18 16 16 16 12 C16 7 12 2 12 2Z" fill={C.coral} opacity="0.8" /><path d="M12 8 C12 8 10 11 10 13 C10 15 11 16 12 17 C13 16 14 15 14 13 C14 11 12 8 12 8Z" fill="white" opacity="0.5" /></svg>
+                        {streaks[h.id]}
+                      </span>
+                    )}
+                  </button>
+                  <button type="button" aria-label={`Eliminar hábito ${h.name}`} onClick={() => pedirQuitarHabito(h)} style={{
                     background: 'none', border: 'none', fontSize: 20, color: C.subtle, cursor: 'pointer', padding: 0, lineHeight: 1,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    minWidth: 44, minHeight: 44, flexShrink: 0, margin: -10,
+                    minWidth: 44, minHeight: 44, flexShrink: 0,
                   }}>{UI_ICONS.close(C.subtle, 16)}</button>
                 </div>
               ))}
@@ -1410,32 +1419,39 @@ function App() {
             </div>
           ) : (
             <div key={item.id} style={{
-              background: C.card, borderRadius: 12, padding: '11px 14px',
-              display: 'flex', alignItems: 'center', gap: 10,
+              background: C.card, borderRadius: 12, paddingRight: editingRoutine ? 4 : 0,
+              display: 'flex', alignItems: 'center',
               boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
               opacity: routineChecked[item.id] ? 0.55 : 1, transition: 'all 0.15s',
             }}>
-              <div onClick={() => toggleRoutine(item.id)} style={{
-                width: 22, height: 22, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.greenDone : C.roseLight}`,
-                background: routineChecked[item.id] ? C.greenDone : 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 19, flexShrink: 0, cursor: 'pointer',
+              {/* Círculo, hora y texto son un solo control; ✎ y × quedan aparte */}
+              <button type="button" role="checkbox" aria-checked={!!routineChecked[item.id]} onClick={() => toggleRoutine(item.id)} style={{
+                flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: editingRoutine ? '11px 0 11px 14px' : '11px 14px', margin: 0,
+                background: 'none', border: 'none', borderRadius: 12, textAlign: 'left',
+                fontFamily: 'inherit', color: 'inherit', cursor: 'pointer',
               }}>
-                {routineChecked[item.id] && UI_ICONS.check('white', 14)}
-              </div>
-              <div onClick={() => toggleRoutine(item.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
-                <span style={{ fontSize: 20, fontWeight: 700, color: color }}>{item.time}</span>
-              </div>
-              <span onClick={() => toggleRoutine(item.id)} style={{ fontSize: 19, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1, cursor: 'pointer' }}>
-                {item.task}
-              </span>
+                <span aria-hidden="true" style={{
+                  width: 22, height: 22, borderRadius: '50%', border: `2px solid ${routineChecked[item.id] ? C.greenDone : C.contorno}`,
+                  background: routineChecked[item.id] ? C.greenDone : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 19, flexShrink: 0,
+                }}>
+                  {routineChecked[item.id] && UI_ICONS.check('white', 14)}
+                </span>
+                <span style={{ width: 44, height: 44, borderRadius: '50%', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <span style={{ fontSize: 20, fontWeight: 700, color: color }}>{item.time}</span>
+                </span>
+                <span style={{ fontSize: 19, fontWeight: 600, color: routineChecked[item.id] ? C.subtle : C.text, textDecoration: routineChecked[item.id] ? 'line-through' : 'none', flex: 1 }}>
+                  {item.task}
+                </span>
+              </button>
               {editingRoutine && <>
                 <button type="button" aria-label={`Editar ${item.task}`} onClick={() => setEditingRoutineItem({ sectionKey, id: item.id, time: item.time, task: item.task, emoji: item.emoji })} style={{
                   background: 'none', border: 'none', color: C.gold, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
-                  minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: -10,
+                  minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}><span aria-hidden="true">✎</span></button>
                 <button type="button" aria-label={`Quitar ${item.task} de la rutina`} onClick={() => pedirQuitarRutina(sectionKey, item)} style={{
                   background: 'none', border: 'none', color: C.coral, fontSize: 20, cursor: 'pointer', padding: 0, flexShrink: 0,
-                  minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', margin: '0 -14px 0 -10px',
+                  minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}><span aria-hidden="true">×</span></button>
               </>}
             </div>
@@ -1451,17 +1467,18 @@ function App() {
   const renderTaskList = (tasks, onToggle) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {tasks.map(t => (
-        <div key={t.id} onClick={() => onToggle(t.id)} style={{
+        <button type="button" role="checkbox" aria-checked={!!t.done} key={t.id} onClick={() => onToggle(t.id)} style={{
           display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: C.cream,
-          borderRadius: 10, cursor: 'pointer',
+          borderRadius: 10, cursor: 'pointer', border: 'none', margin: 0, width: '100%', textAlign: 'left',
+          fontFamily: 'inherit', color: 'inherit',
         }}>
-          <div style={{
-            width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.roseLight}`,
+          <span aria-hidden="true" style={{
+            width: 20, height: 20, borderRadius: '50%', border: `2px solid ${t.done ? C.greenDone : C.contorno}`,
             background: t.done ? C.greenDone : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'white', fontSize: 20, flexShrink: 0,
-          }}>{t.done && UI_ICONS.check('white', 13)}</div>
+          }}>{t.done && UI_ICONS.check('white', 13)}</span>
           <span style={{ fontSize: 20, color: t.done ? C.subtle : C.text, textDecoration: t.done ? 'line-through' : 'none' }}>{t.task}</span>
-        </div>
+        </button>
       ))}
     </div>
   )
@@ -1634,32 +1651,33 @@ function App() {
                     {prog.days.map(d => {
                       const isDone = progress.completedDays.includes(d.day)
                       return (
-                        <div key={d.day} onClick={() => completeProgDay(progId, d.day)} style={{
+                        <button type="button" role="checkbox" aria-checked={isDone} key={d.day} onClick={() => completeProgDay(progId, d.day)} style={{
                           display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px',
                           background: isDone ? `${prog.color}08` : C.cream, borderRadius: 14,
                           cursor: 'pointer', border: `1px solid ${isDone ? `${prog.color}30` : C.border}`,
                           opacity: isDone ? 0.7 : 1, transition: 'all 0.15s',
+                          width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                         }}>
-                          <div style={{
+                          <span aria-hidden="true" style={{
                             width: 24, height: 24, borderRadius: 7, border: `2px solid ${isDone ? C.green : prog.color}`,
                             background: isDone ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             color: 'white', fontSize: 19, fontWeight: 700, flexShrink: 0, marginTop: 2,
                           }}>
                             {isDone && UI_ICONS.check('white', 15)}
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 20, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                          </span>
+                          <span style={{ display: 'block', flex: 1 }}>
+                            <span style={{ display: 'block', fontSize: 20, fontWeight: 700, color: prog.color, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                               Día {d.day} {ICONS[d.icon] ? ICONS[d.icon](d.color, 16) : ''}
-                            </div>
-                            <div style={{ fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
+                            </span>
+                            <span style={{ display: 'block', fontSize: 19, fontWeight: 700, color: isDone ? C.subtle : C.text, marginTop: 2,
                               textDecoration: isDone ? 'line-through' : 'none' }}>
                               {d.title}
-                            </div>
-                            <div style={{ fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
+                            </span>
+                            <span style={{ display: 'block', fontSize: 19, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>
                               {d.task}
-                            </div>
-                          </div>
-                        </div>
+                            </span>
+                          </span>
+                        </button>
                       )
                     })}
                   </div>
@@ -3461,24 +3479,25 @@ function App() {
             {habits.slice(0, 6).map(h => {
               const dim = DIMS[h.dim]
               return (
-                <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
+                <button type="button" role="checkbox" aria-checked={!!checked[h.id]} key={h.id} onClick={() => toggleHabit(h.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
                   background: checked[h.id] ? `${C.green}12` : C.cream, borderRadius: 10,
                   cursor: 'pointer', transition: 'all 0.15s',
                   border: checked[h.id] ? `1px solid ${C.green}40` : `1px solid ${C.border}`,
+                  width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                 }}>
-                  <div style={{
+                  <span aria-hidden="true" style={{
                     width: 20, height: 20, borderRadius: 5, border: `2px solid ${checked[h.id] ? C.green : dim.color}`,
                     background: checked[h.id] ? C.green : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'white', fontSize: 18, fontWeight: 700, flexShrink: 0,
                   }}>
                     {checked[h.id] && UI_ICONS.check('white', 13)}
-                  </div>
+                  </span>
                   <span style={{ fontSize: 18, fontWeight: 600, color: checked[h.id] ? C.subtle : C.text, flex: 1,
                     textDecoration: checked[h.id] ? 'line-through' : 'none' }}>
                     {h.name}
                   </span>
-                </div>
+                </button>
               )
             })}
             {habits.length > 6 && (
@@ -3532,16 +3551,17 @@ function App() {
               <div style={{ fontSize: 20, color: C.muted, fontWeight: 600, marginBottom: 6 }}>Puedes completar aún:</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {habits.filter(h => !checked[h.id]).map(h => (
-                  <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
+                  <button type="button" role="checkbox" aria-checked={!!checked[h.id]} key={h.id} onClick={() => toggleHabit(h.id)} style={{
                     display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
                     background: C.card, borderRadius: 10, cursor: 'pointer', border: `1px solid ${C.border}`,
+                    width: '100%', margin: 0, textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
                   }}>
-                    <div style={{
+                    <span aria-hidden="true" style={{
                       width: 18, height: 18, borderRadius: 5, border: `2px solid ${DIMS[h.dim].color}`,
                       background: 'transparent', flexShrink: 0,
                     }} />
                     <span style={{ fontSize: 19, color: C.text, fontWeight: 600 }}>{ICONS[DIMS[h.dim].icon](DIMS[h.dim].color, 14)} {h.name}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -3552,9 +3572,9 @@ function App() {
         <div style={{ fontSize: 20, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>
           ¿Cómo te sientes?
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 2, marginBottom: 18 }}>
+        <div role="group" aria-label="¿Cómo te sientes?" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 2, marginBottom: 18 }}>
           {MOOD_ICONS.map((icon, i) => (
-            <button key={i} onClick={() => setNightMood(i)} style={{
+            <button key={i} type="button" aria-pressed={nightMood === i} onClick={() => setNightMood(i)} style={{
               background: 'transparent', border: 'none', cursor: 'pointer', minWidth: 0,
               padding: '4px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', fontFamily: 'inherit',
             }}>
