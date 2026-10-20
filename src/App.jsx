@@ -4868,7 +4868,9 @@ function App() {
       {header}
       <main inert={fondoInerte} style={{
         background: C.hoja, borderRadius: '24px 24px 0 0',
-        minHeight: 'calc(100vh - 110px)',
+        // La hoja llena lo que deja el encabezado (124 px + la muesca): con
+        // 110 px toda pantalla corta tenía 14 px de scroll sobrante.
+        minHeight: 'calc(100vh - 124px - env(safe-area-inset-top, 0px))',
         padding: isMobile ? '24px 16px 110px' : '28px 24px 110px',
       }}>
         {view === 'rondas' && (
