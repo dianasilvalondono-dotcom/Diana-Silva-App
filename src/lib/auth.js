@@ -20,8 +20,27 @@ export async function signUp(email, password, name) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { name } },
+    // El enlace del correo de confirmación vuelve a la app (bienvenida-11).
+    options: { data: { name }, emailRedirectTo: window.location.origin },
   })
+  return { data, error }
+}
+
+/* "¿Olvidaste tu contraseña?": envía el correo con el enlace. Al abrirlo,
+   la app recibe el evento PASSWORD_RECOVERY (useAuth) y pide la contraseña
+   nueva (bienvenida-12). La URL debe estar en Auth > URL Configuration >
+   Redirect URLs del panel de Supabase. */
+export async function resetPassword(email) {
+  if (!supabase) return { error: 'Supabase not configured' }
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin,
+  })
+  return { data, error }
+}
+
+export async function updatePassword(password) {
+  if (!supabase) return { error: 'Supabase not configured' }
+  const { data, error } = await supabase.auth.updateUser({ password })
   return { data, error }
 }
 

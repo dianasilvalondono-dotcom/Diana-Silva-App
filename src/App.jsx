@@ -235,7 +235,7 @@ function puertaInicial() {
 
 function App() {
   // Auth
-  const { user, loading: authLoading, isConfigured, signInWithEmail, signUp, signOut } = useAuth()
+  const { user, loading: authLoading, isConfigured, signInWithEmail, signUp, signOut, resetPassword, updatePassword, recovering, clearRecovering } = useAuth()
   useNotifications()
 
   const [puerta] = useState(puertaInicial)
@@ -1090,7 +1090,7 @@ function App() {
   /* ── Diálogos: foco adentro, Tab atrapado, Escape cierra y el foco vuelve.
      Mientras hay uno abierto, el encabezado, el contenido y el menú quedan
      inertes (ni el teclado ni el lector de pantalla llegan ahí). ── */
-  const pantallaPrincipal = !authLoading && !(isConfigured && !user) && onboarded
+  const pantallaPrincipal = !authLoading && !(isConfigured && !user) && !(isConfigured && recovering) && onboarded
   const panicRef = useRef(null)
   const morningRef = useRef(null)
   const nightRef = useRef(null)
@@ -3645,12 +3645,28 @@ function App() {
     )
   }
 
+  /* ── Contraseña nueva: llegó desde el enlace de "¿Olvidaste tu contraseña?" ── */
+  if (isConfigured && user && recovering) {
+    return (
+      <AuthScreen
+        modoInicial="nueva"
+        onUpdatePassword={updatePassword}
+        onPasswordUpdated={() => {
+          clearRecovering()
+          setAppModal({ type: 'success', title: 'Tu contraseña quedó lista', body: 'Desde ahora entras con tu contraseña nueva.' })
+        }}
+        onCancel={clearRecovering}
+      />
+    )
+  }
+
   /* ── Auth screen (only if Supabase is configured and no user) ── */
   if (isConfigured && !user) {
     return (
       <AuthScreen
         onSignInEmail={signInWithEmail}
         onSignUp={signUp}
+        onResetPassword={resetPassword}
       />
     )
   }
