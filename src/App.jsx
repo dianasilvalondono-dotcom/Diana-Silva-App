@@ -2791,10 +2791,20 @@ function App() {
     setBoardShowForm(true)
   }
 
-  const chatRef = { current: null }
+  // La conversación baja al final solo cuando llega un mensaje, aparece o se
+  // va el "escribiendo…" o se abre el chat. Escuchar o escribir no mueven la lectura.
+  const chatRef = useRef(null)
+  const chatAbierto = view === 'ahora' && subTab === 'ai' && isPremium && chatMode === 'chat'
+  useEffect(() => {
+    const el = chatRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [chatMessages.length, chatLoading, chatAbierto])
 
+  // El chat cabe en la pantalla sin que la página se desplace: arriba el
+  // encabezado (124) y el margen de la hoja; abajo el aviso legal (32 + ~86
+  // en móvil, ~50 en escritorio) y el espacio de la barra inferior (110).
   const aiAgentView = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 240px)', maxHeight: 600 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: `calc(100dvh - env(safe-area-inset-top, 0px) - ${isMobile ? 376 : 344}px)`, minHeight: 280, maxHeight: 600 }}>
       {/* Mode toggle */}
       <div role="group" aria-label="Modo de Tu Ronda" style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
         {[{ id: 'chat', label: 'Habla conmigo' }, { id: 'create', label: 'Crea tu programa' }].map(m => (
@@ -2829,8 +2839,8 @@ function App() {
           </div>
         )}
         {/* Messages */}
-        <div ref={el => { chatRef.current = el; if (el) el.scrollTop = el.scrollHeight }}
-          style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
+        <div ref={chatRef}
+          style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
           {chatMessages.map((msg, i) => (msg.role === 'assistant' && !msg.text && !msg.connect && !msg.sos) ? null : (
             <div key={i} style={{
               display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
@@ -2957,7 +2967,7 @@ function App() {
 
       {/* ── CREATE PROGRAM MODE ── */}
       {chatMode === 'create' && (
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Step 0: Intro / Examples */}
           {aiStep === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
