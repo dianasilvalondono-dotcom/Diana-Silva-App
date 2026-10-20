@@ -89,11 +89,13 @@ export default function DiarioView({
             {isListening ? UI_ICONS.stop('currentColor', 18) : UI_ICONS.mic('currentColor', 18)}
           </button>
         </div>
-        {/* El dictado usa la Web Speech API: el reconocimiento de voz lo hace el
-            navegador con su propio servicio (en Chrome, Google; en Safari,
-            Apple). A la app llega solo el texto, que se queda en el teléfono. */}
+        {/* El dictado usa la Web Speech API: la voz viaja al servicio de voz de
+            la empresa del navegador (Google en Android y en Chrome, Apple en
+            iPhone y en Safari), que la devuelve como texto. A la app llega
+            solo el texto, que se queda en el teléfono. Es el texto P10 de
+            textos-autorizacion-v1.md y la sección 3.2 de la política. */}
         <div id="diario-nota-dictado" style={{ fontSize: 15, color: C.muted, lineHeight: 1.5, marginTop: 6 }}>
-          Al dictar, tu navegador convierte tu voz en texto con su propio servicio. A tu diario llega solo el texto, y se guarda en tu teléfono.
+          Al dictar, tu voz viaja al servicio de voz de tu navegador (Google en Android y en Chrome de computador, Apple en iPhone y en Safari) y vuelve como texto. A tu diario llega solo el texto, y se guarda en tu teléfono. Si prefieres que tu voz se quede en tu teléfono, escribe con el teclado.
         </div>
         {isListening && (
           <div style={{
