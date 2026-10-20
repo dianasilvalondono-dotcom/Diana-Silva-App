@@ -3133,7 +3133,6 @@ function App() {
   )
 
   /* ── Directorio / Marketplace ── */
-  const SEED_DIRECTORIO = []
   const directorioView = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
@@ -3144,12 +3143,6 @@ function App() {
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
           Mujeres que te acompañan en el camino
         </div>
-        {/* La verificación solo se anuncia cuando haya a quién mostrar. */}
-        {SEED_DIRECTORIO.length > 0 && (
-          <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
-            Profesionales verificadas por Ronda ✓
-          </div>
-        )}
       </div>
 
       {/* Coming soon */}

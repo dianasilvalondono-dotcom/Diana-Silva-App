@@ -6,39 +6,10 @@ export const DIMS = {
   mental:     { icon: 'mental',     color: '#141833', label: 'Mental' },
 }
 
-/* ── Default habits ── */
-// Cada usuaria empieza con todo vacío y construye su propia vida.
-// Hay un módulo de SUGGESTED_HABITS abajo si quiere inspiración.
-export const DEFAULT_HABITS = []
-
 /* ── Rutinas vacías por defecto — cada mujer arma la suya ── */
 export const DEFAULT_MORNING = []
 export const DEFAULT_MIDDAY = []
 export const DEFAULT_NIGHT = []
-
-/* ── Quotes collection ── */
-export const QUOTES = [
-  { text: 'Dios concédeme serenidad para aceptar todo aquello que no puedo cambiar, valor para cambiar lo que soy capaz de cambiar y sabiduría para entender la diferencia.', author: 'Oración de Serenidad', cat: 'espiritual' },
-  { text: 'Quiero a quien me quiera y dejo ir lo que tiene que irse.', author: 'Marta Botero', cat: 'serenidad' },
-  { text: 'La paz viene de adentro. No la busques afuera.', author: 'Anónimo', cat: 'sabiduria' },
-  { text: 'Cada mañana nacemos de nuevo. Lo que hacemos hoy es lo que más importa.', author: 'Anónimo', cat: 'espiritual' },
-  { text: 'La felicidad no es algo hecho. Viene de tus propias acciones.', author: 'Anónimo', cat: 'sabiduria' },
-  { text: 'La disciplina es el puente entre metas y logros.', author: 'Jim Rohn', cat: 'motivacional' },
-  { text: 'La oración no cambia a Dios, pero cambia a quien ora.', author: 'Søren Kierkegaard', cat: 'espiritual' },
-  { text: 'El agua no lucha. Fluye. Y al fluir, es poderosa.', author: 'Inspirada en el Tao Te Ching', cat: 'sabiduria' },
-  { text: 'Eres más fuerte de lo que crees y más valiente de lo que imaginas.', author: 'Anónimo', cat: 'motivacional' },
-  { text: 'Tu cuerpo escucha todo lo que tu mente dice.', author: 'Naomi Judd', cat: 'sanacion' },
-  { text: 'No eres lo que te pasó. Eres lo que decides ser.', author: 'Anónimo', cat: 'motivacional' },
-  { text: 'La vulnerabilidad es nuestra medida más precisa de coraje.', author: 'Brené Brown', cat: 'sabiduria' },
-  { text: 'Donde hay una mujer, hay magia.', author: 'Ntozake Shange', cat: 'motivacional' },
-  { text: 'La sanación toma tiempo, y pedir ayuda es un paso valiente.', author: 'Mariska Hargitay', cat: 'sanacion' },
-  { text: 'Inhala el futuro, exhala el pasado.', author: 'Anónimo', cat: 'serenidad' },
-]
-
-export function getDayQuote() {
-  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000)
-  return QUOTES[dayOfYear % QUOTES.length]
-}
 
 /* ── Toolkit categories ── */
 export const TOOLKIT_CATS = [
@@ -308,27 +279,3 @@ export const SUGGESTED_HABITS = [
   { name: 'Skincare mañana y noche', dim: 'fisico' },
   { name: 'No celular 1 hora antes de dormir', dim: 'mental' },
 ]
-
-/* ── Intro de módulo — se muestra una sola vez, la primera vez que la usuaria
-   abre cada módulo. El onboarding solo enseña "Ahora"; el resto se descubre
-   a medida que ella llega. ── */
-export const MODULE_INTROS = {
-  rondas: {
-    title: 'Ronda, curadora',
-    body: 'Elegimos lugares, planes y compañía para mujeres en tu barrio. Cada plan trae su cédula: por qué está aquí, para quién es y cómo llegas.',
-    cta: 'Ver la curaduría',
-  },
-  crecer: {
-    title: 'Crecer, a tu ritmo',
-    body: 'Programas de 7 y 21 días construidos sobre neurociencia. Elige uno, avanza un día a la vez, y la app te acompaña.',
-    cta: 'Ver programas',
-  },
-  juntas: {
-    title: 'Nunca sola',
-    body: 'Publica de forma anónima, lee a otras mujeres que están donde tú estás, y encuentra profesionales verificadas.',
-    cta: 'Entrar',
-  },
-}
-
-export const CATS = ['todas', 'espiritual', 'sanacion', 'serenidad', 'motivacional', 'sabiduria']
-export const CAT_LABELS = { todas: 'Todas', espiritual: 'Espiritual', sanacion: 'Sanación', serenidad: 'Serenidad', motivacional: 'Motivacional', sabiduria: 'Sabiduría' }

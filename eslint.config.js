@@ -4,8 +4,31 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
+/* no-unused-vars de ESLint no cuenta como uso aparecer en JSX (<Badge />).
+   En vez de esconder todo nombre con mayúscula (lo que tapaba componentes y
+   constantes muertas, salud-global-17), esta regla marca como usadas las
+   variables que aparecen como etiqueta JSX. Es lo mismo que hace
+   react/jsx-uses-vars, sin sumar una dependencia. */
+const ronda = {
+  rules: {
+    'jsx-uses-vars': {
+      meta: { type: 'problem', schema: [] },
+      create(context) {
+        return {
+          JSXOpeningElement(node) {
+            let nombre = node.name
+            while (nombre.type === 'JSXMemberExpression') nombre = nombre.object
+            if (nombre.type === 'JSXIdentifier') context.sourceCode.markVariableAsUsed(nombre.name, node)
+          },
+        }
+      },
+    },
+  },
+}
+
 export default defineConfig([
-  globalIgnores(['dist']),
+  // .claude: copias de trabajo de otras sesiones, no son código de la app.
+  globalIgnores(['dist', '.claude']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -22,8 +45,11 @@ export default defineConfig([
         sourceType: 'module',
       },
     },
+    plugins: { ronda },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', caughtErrors: 'none' }],
+      'ronda/jsx-uses-vars': 'error',
+      // Solo se ignora lo que empieza por guion bajo (a propósito sin usar).
+      'no-unused-vars': ['error', { varsIgnorePattern: '^_', caughtErrors: 'none' }],
       // Los catch vacios son deliberados: si algo secundario falla (analytics,
       // push, storage), la app sigue. No queremos ruido por eso.
       'no-empty': ['error', { allowEmptyCatch: true }],
