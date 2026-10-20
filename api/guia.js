@@ -12,7 +12,7 @@
 // Patrones y respuesta de crisis: compartidos con la app (la app también
 // detecta crisis antes de llamar aquí, para abrir Ayuda aunque esto falle).
 import { isCrisis, CRISIS_TEXT, BOTON_AYUDA } from '../src/utils/crisis.js'
-import { exigirSesion, exigirRondaPlus } from './_auth.js'
+import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA } from './_auth.js'
 
 const GUIA_IA = { name: 'Emilia', title: 'Guía IA de Ronda' }
 
@@ -54,8 +54,10 @@ export default async function handler(req, res) {
     })
   }
 
-  // Escribir en la Comunidad es de Ronda+, como en la app (después de la crisis).
+  // Escribir en la Comunidad es de Ronda+, como en la app (después de la
+  // crisis), y la Guía IA solo lee con la autorización de la IA (Ley 1581, art. 6).
   if (!(await exigirRondaPlus(req, res, user))) return
+  if (!(await exigirAutorizacionIA(req, res, user))) return
 
   if (content.length > MAX_CONTENT) return res.status(413).json({ error: 'El mensaje es demasiado largo' })
   if (!CATEGORIAS.includes(cat)) return res.status(400).json({ error: 'Categoría no válida' })

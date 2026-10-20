@@ -3,7 +3,7 @@
 // Sin ELEVENLABS_API_KEY la funcion responde 503 y el cliente simplemente
 // no muestra el boton de audio: la app sigue funcionando en texto.
 
-import { exigirSesion, exigirRondaPlus } from './_auth.js'
+import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA } from './_auth.js'
 
 const MAX_CHARS = 1200
 
@@ -60,8 +60,10 @@ export default async function handler(req, res) {
   // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).
   const user = await exigirSesion(req, res)
   if (!user) return
-  // La voz de Tu Ronda es de Ronda+, como el chat.
+  // La voz de Tu Ronda es de Ronda+, como el chat, y solo con la
+  // autorización de la IA: ElevenLabs recibe el texto (Ley 1581, art. 6).
   if (!(await exigirRondaPlus(req, res, user))) return
+  if (!(await exigirAutorizacionIA(req, res, user))) return
 
   const { text, tone } = req.body
   if (!text) return res.status(400).json({ error: 'Text is required' })

@@ -1,6 +1,6 @@
 // Patrones y respuesta de crisis: los mismos de la Guía IA y de la app.
 import { normalize, isCrisis, CRISIS_TEXT_CHAT, BOTON_AYUDA } from '../src/utils/crisis.js'
-import { exigirSesion, exigirRondaPlus } from './_auth.js'
+import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA } from './_auth.js'
 
 // Largo máximo de cada turno del historial que se le pasa al modelo.
 const MAX_TURNO = 4000
@@ -54,8 +54,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply: CRISIS_TEXT_CHAT, sos: true, crisis: true, connect: null, memoryUpdate: null })
   }
 
-  // Tu Ronda es de Ronda+, como en la app (después de la crisis).
+  // Tu Ronda es de Ronda+, como en la app (después de la crisis), y solo con
+  // la autorización «Usar la IA de Ronda» (Ley 1581, art. 6).
   if (!(await exigirRondaPlus(req, res, user))) return
+  if (!(await exigirAutorizacionIA(req, res, user))) return
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 
