@@ -10,8 +10,10 @@
 //   • Solo arranca con la autorización de cuenta (Decreto 1377, art. 5):
 //     App llama initAnalytics() cuando ella ya la dio. Antes de eso, todo lo
 //     que se mande aquí se descarta (ni se encola).
-//   • Sin grabación de sesiones: grabaría en pantalla el diario y el chat, y
-//     la política promete que PostHog nunca recibe lo que escribes.
+//   • Sin grabación de sesiones, sin autocaptura, sin mapas de calor, sin
+//     clics muertos, sin errores automáticos y sin encuestas: todo eso puede
+//     llevar texto de la pantalla (el diario, el chat), y la política promete
+//     que PostHog nunca recibe lo que escribes.
 //
 // Para activarlo:
 //   1. Crea cuenta gratis en https://posthog.com (free: 1M eventos/mes).
@@ -44,9 +46,27 @@ export function initAnalytics() {
         // App de una sola pantalla (PWA): usamos eventos propios, no pageviews.
         capture_pageview: false,
         capture_pageleave: false,
+        // Solo los eventos propios de la app (track): nada se captura solo.
         autocapture: false,
+        rageclick: false,
+        capture_dead_clicks: false,
+        capture_heatmaps: false,
+        // Un error puede llevar en su mensaje texto de la pantalla.
+        capture_exceptions: false,
+        capture_performance: false,
+        // Por si algo se prendiera: ni el texto ni los atributos de la pantalla.
+        mask_all_text: true,
+        mask_all_element_attributes: true,
+        // Sin la parte de la URL después de # (ahí pueden ir tokens de la sesión).
+        disable_capture_url_hashes: true,
         // Aunque alguien la prenda en el panel de PostHog, aquí queda apagada.
         disable_session_recording: true,
+        disable_surveys: true,
+        // Ni grabación, ni encuestas, ni nada que el panel quiera cargar.
+        disable_external_dependency_loading: true,
+        // La IP: en posthog-js 1.415 la opción `ip` del cliente ya no hace
+        // nada. Se descarta en el panel del proyecto («Discard client IP
+        // data»): acción pendiente de Diana.
       })
       ph = posthog
       // Desahogar lo que ocurrió mientras cargaba, en orden.
