@@ -36,10 +36,10 @@ const NO_ES_PELO = '(?!( (el|la|los|las|mi|mis|un|una))? (pelo|cabello|unas|flec
 
 // Lo que viene después de "morir(me)" cuando es una exageración cómica y no
 // una crisis: "me quiero morir de (la) risa", "quiero morirme de la
-// vergüenza", "de la pena ajena". Solo esas: "morirme de amor" ("me quiero
-// morir de amor, no puedo más"), "de tristeza", "de pena" o "de dolor" sí
-// activan ayuda. Ante la duda, se activa.
-const NO_ES_RISA = '(?!(me)? de (la )?(risa|verguenza|pena ajena)\\b)'
+// vergüenza", "de la pena ajena", "del oso". Solo esas: "morirme de amor"
+// ("me quiero morir de amor, no puedo más"), "de tristeza", "de pena" o "de
+// dolor" sí activan ayuda. Ante la duda, se activa.
+const NO_ES_RISA = '(?!(me)? (de (la )?(risa|verguenza|pena ajena)|del oso)\\b)'
 
 // Lo que viene después de "matar(me)" cuando exagera el esfuerzo: "me voy a
 // matar estudiando", "matarme en el gym".
@@ -239,7 +239,8 @@ export const CRISIS_PATTERNS = [
   /\b(cortadas|cortes|cortaditas) (en|de) (las|los|mis) (munecas|brazos|piernas|muslos|antebrazos)\b/,
   // Abuso y amenaza: "me abusaron", "abusa de mí", "miedo de que me mate".
   /\bme (abusaron|abuso|abusa|abusan|abusaba|abusaban|ha abusado|han abusado|esta abusando|estan abusando)\b/,
-  /\babus\w* (sexualmente )?de mi\b/,
+  // "Se abusó de mi confianza" o "el banco abusó de mí con los intereses" no.
+  /(?<!\b(banco|bancos|empresa|tienda|almacen|operador|aseguradora|eps|entidad|gobierno|arrendador|casero) )\babus\w* (sexualmente )?de mi\b(?! (confianza|buena fe|buena voluntad|paciencia|amabilidad|generosidad|bondad|nobleza|tiempo|tarjeta|dinero|plata)\b)/,
   /\bque me (mate|maten|vaya a matar|quiera matar|viole|violen)\b/, /\bme (quiere|quieren|quiso|intento|trato de) matar\b/,
   // Amenazas: "dice que si lo dejo me mata", "me tiene amenazada", "temo por
   // mi vida", "nos va a matar". No activan "si como eso me mata la gastritis",
