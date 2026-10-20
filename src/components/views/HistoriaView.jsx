@@ -21,7 +21,8 @@ export default function HistoriaView({ showFullStory, setShowFullStory }) {
         <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14, fontWeight: 600 }}>
           Cada mujer que Dios me ha puesto en el camino me ha enseñado algo. Y sé que a ti también te ha pasado: alguien te sostuvo cuando no podías más.
         </div>
-        {showFullStory && <>
+        {/* Siempre en el DOM (oculto si está cerrado) para que aria-controls apunte a algo */}
+        <div id="historia-completa" hidden={!showFullStory}>
           <div style={{ fontSize: 19, color: C.text, lineHeight: 1.8, marginBottom: 14 }}>
             Pasé años con diagnósticos que no eran míos. Desde los 16 me nombraron de muchas maneras y ninguna encajaba, hasta que una neuropsicóloga puso la palabra correcta: altas capacidades cognitivas. Entenderlo me cambió la vida — no porque arreglara nada, sino porque por fin supe cómo funciono. En ese camino aprendí las herramientas que hoy son Ronda: DBT, regulación, respiración. Me certifiqué como profesora de yoga. Me fui 35 días a Grecia con 20 mujeres. Ahí vi el potencial: mujeres creciendo juntas. Eso tenía que ser una plataforma.
           </div>
@@ -34,19 +35,21 @@ export default function HistoriaView({ showFullStory, setShowFullStory }) {
           <div style={{ fontSize: 19, color: C.rose, lineHeight: 1.8, fontWeight: 600, fontStyle: 'italic', marginBottom: 14 }}>
             Ronda es mi forma de devolver todo lo que recibí. No es mi historia — es la historia de todas las mujeres que me construyeron. Y yo solo quiero ser puente para que tú también tengas esa red, esas herramientas, esa ronda de mujeres que te acompaña.
           </div>
-        </>}
-        <button onClick={() => setShowFullStory(!showFullStory)} style={{
+        </div>
+        <button type="button" onClick={() => setShowFullStory(!showFullStory)}
+          aria-expanded={showFullStory} aria-controls="historia-completa" style={{
           background: 'none', border: 'none', color: C.rose, fontSize: 19, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+          minHeight: 44, display: 'inline-flex', alignItems: 'center',
         }}>
           {showFullStory ? 'Leer menos ↑' : 'Leer la historia completa →'}
         </button>
         <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 48, height: 48, borderRadius: '50%', background: `${C.teal}`,
+            width: 48, height: 48, flexShrink: 0, borderRadius: '50%', background: `${C.teal}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20, fontWeight: 700,
           }}>D</div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 19, fontWeight: 800, color: C.text }}>Diana Silva</div>
             <div style={{ fontSize: 19, color: C.muted }}>Fundadora de Ronda · Puente de miles de mujeres</div>
           </div>
