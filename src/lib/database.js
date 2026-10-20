@@ -75,35 +75,11 @@ export async function getChecked(userId, date) {
   } catch (e) { console.error('getChecked:', e); return null }
 }
 
-/* ── Journal ── */
-export async function saveJournalEntry(userId, entry) {
-  if (!supabase) return null
-  try {
-    const { error } = await supabase.from('journal_entries').insert({
-      user_id: userId,
-      date: entry.date,
-      text: entry.text,
-      mood: entry.mood,
-      time: entry.time,
-      entry_type: entry.type || 'manual',
-    })
-    if (error) throw error
-    return true
-  } catch (e) { console.error('saveJournalEntry:', e); return null }
-}
-
-export async function getJournalEntries(userId) {
-  if (!supabase) return null
-  try {
-    const { data, error } = await supabase
-      .from('journal_entries')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    return data?.map(e => ({ id: e.id, date: e.date, text: e.text, mood: e.mood, time: e.time, type: e.entry_type })) || []
-  } catch (e) { console.error('getJournalEntries:', e); return null }
-}
+/* ── Diario ──
+   El diario, los check-ins y el ánimo son datos sensibles y se quedan solo
+   en el teléfono, para todas (textos-autorizacion-v1, condición P3): la app
+   ya no los sube a journal_entries. La copia que subió la migración de antes
+   se borra del servidor (lo hace Diana a los 30 días del aviso único). */
 
 /* ── Toolkit ── */
 export async function saveToolkitItems(userId, items) {
@@ -207,8 +183,10 @@ export async function getStreaks(userId) {
    en el siguiente inicio de sesión. Quien ya migró con la marca vieja
    ('ronda-migrated', del dispositivo) no vuelve a subir nada.
    El toolkit no va aquí: se sincroniza siempre desde App (se trae de la nube
-   y se une con lo local antes de guardar). */
-const SECCIONES_MIGRACION = ['profile', 'habits', 'journal', 'favs', 'streaks', 'programs']
+   y se une con lo local antes de guardar).
+   El diario ('diana-journal') tampoco: no sale del teléfono (ver arriba).
+   Quien tenía pendiente solo el diario queda con la migración terminada. */
+const SECCIONES_MIGRACION = ['profile', 'habits', 'favs', 'streaks', 'programs']
 
 export async function syncFromLocal(userId) {
   if (!supabase || !userId) return false
@@ -240,29 +218,6 @@ export async function syncFromLocal(userId) {
     if (!hecho.habits) {
       const habits = load('diana-habits', null)
       if (!Array.isArray(habits) || await saveHabits(userId, habits)) marcar('habits')
-    }
-
-    // Diario: cada entrada subida se anota, así un reintento no la duplica.
-    if (!hecho.journal) {
-      const entries = load('diana-journal', [])
-      const subidas = new Set(Array.isArray(hecho.journalIds) ? hecho.journalIds : [])
-      let todas = true
-      for (const entry of Array.isArray(entries) ? entries : []) {
-        if (!entry) continue
-        const clave = String(entry.id ?? `${entry.date}|${entry.time}|${entry.text}`)
-        if (subidas.has(clave)) continue
-        if (await saveJournalEntry(userId, entry)) {
-          subidas.add(clave)
-          hecho.journalIds = [...subidas]
-          guardarMarca()
-        } else {
-          todas = false
-        }
-      }
-      if (todas) {
-        delete hecho.journalIds
-        marcar('journal')
-      }
     }
 
     if (!hecho.favs) {
