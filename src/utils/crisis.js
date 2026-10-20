@@ -5,9 +5,27 @@
 
    Ante la duda, preferimos activar ayuda real. */
 
+import { isCrisisBasico, patronesBasicos, textoBasico } from './crisisBasico.js'
+
 // Normaliza para detectar crisis sin importar acentos ni mayúsculas.
 export function normalize(s) {
   return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+}
+
+// Compila una regex desde su fuente en texto; null si este motor no la
+// compila. Las que usan lookbehind ((?<= y (?<!) van siempre así, en texto, y
+// nunca como regex literal: Safari lo conoce solo desde 16.4, y antes una
+// regex literal con lookbehind es un error de sintaxis al cargar el archivo
+// (la app entera queda en blanco), y un new RegExp con lookbehind lanza al
+// construirse. Compiladas aquí, con try/catch y la primera vez que se
+// consulta, la que no compila solo se salta (isCrisis suma entonces la
+// detección básica).
+function compilar(fuente, banderas) {
+  try {
+    return new RegExp(fuente, banderas)
+  } catch {
+    return null
+  }
 }
 
 // El texto tal como lo leen los patrones: normalizado, con los signos, los
@@ -32,7 +50,20 @@ export function normalize(s) {
 // con…", "acabar con todo lo…", "desaparecer un día…") lea la palabra que
 // viene después de la coma ("no quiero vivir, de verdad"). Con clausulas en
 // false, los signos son un espacio más, como antes.
-const SEPARADORES = /(?<!\d)[.,]|[.,](?!\d)|[;:!?¡¿…\n\r]|\s[-–—]+\s|[–—]/g
+// El punto y la coma no separan entre dos cifras ("3.5", "1,000"). Eso se
+// dice con un lookbehind, así que va en texto (ver compilar). Si este motor
+// no lo compila, SEPARADORES_SIN_LOOKBEHIND parte igual: deja "cifra + punto
+// o coma" cuando sigue otra cifra, y separa cualquier otro punto o coma.
+const SEPARADORES = '(?<!\\d)[.,]|[.,](?!\\d)|[;:!?¡¿…\\n\\r]|\\s[-–—]+\\s|[–—]'
+const SEPARADORES_SIN_LOOKBEHIND = /(\d[.,])(?=\d)|[.,;:!?¡¿…\n\r]|\s[-–—]+\s|[–—]/g
+let SEPARAR = null
+function separar(t) {
+  if (!SEPARAR) {
+    const re = compilar(SEPARADORES, 'g')
+    SEPARAR = re ? (s) => s.replace(re, ' | ') : (s) => s.replace(SEPARADORES_SIN_LOOKBEHIND, (m, cifras) => cifras || ' | ')
+  }
+  return SEPARAR(t)
+}
 // Con clausulas en 'amplia', también parten la frase lo que muchas escriben
 // en lugar de la coma: un emoji ("no quiero vivir 😭 de verdad"), un doble
 // espacio, y las coletillas que no completan lo anterior aunque vayan sin
@@ -44,7 +75,7 @@ const COLETILLAS = / (?=(de verdad|de veras|en serio|en verdad|por favor|porfa|p
 function textoParaCrisis(content, clausulas = true) {
   const t = ` ${normalize(content)} `
   const s = (clausulas
-    ? (clausulas === 'amplia' ? t.replace(SEPARADORES, ' | ').replace(SEPARADORES_AMPLIOS, ' | ') : t.replace(SEPARADORES, ' | '))
+    ? (clausulas === 'amplia' ? separar(t).replace(SEPARADORES_AMPLIOS, ' | ') : separar(t))
       .replace(/[^\p{L}\p{N}|]+/gu, ' ').replace(/ ?(\| ?)+/g, ' | ')
     : t.replace(/[^\p{L}\p{N}]+/gu, ' '))
     .replace(/(\p{L})\1{2,}/gu, '$1')
@@ -296,43 +327,45 @@ const AGRESOR = '(esposo|marido|pareja|novio|ex|exesposo|expareja|exnovio|compan
 // Una niña, un niño o alguien de la familia (para "mi padrastro toca a mi hija").
 const MENOR = '(hij[oa]s?|hijastr[oa]s?|nin[oa]s?|nen[ae]s?|bebes?|niet[oa]s?|sobrin[oa]s?|hermanit[oa]s?|herman[oa]s? (menor|pequen[oa]|chiquit[oa])|chiquit[oa]s?|pequen[oa]s?|alumn[oa]s?|estudiantes?|princesa|ahijad[oa])'
 
-// Señales de crisis de alto riesgo.
-export const CRISIS_PATTERNS = [
-  /\b[sz]u(i[csz]|[csz])id/, /\bquitar(me|se)? la vida\b/, new RegExp(`matarme\\b${NO_ES_ESFUERZO}`), new RegExp(`me quiero morir${NO_ES_RISA}`),
+// Señales de crisis de alto riesgo. Cada una es una regex literal o su fuente
+// en texto, que se compila la primera vez que se consulta (crisisPatterns):
+// las que usan lookbehind van siempre en texto (ver compilar).
+const PATRONES = [
+  /\b[sz]u(i[csz]|[csz])id/, /\bquitar(me|se)? la vida\b/, `matarme\\b${NO_ES_ESFUERZO}`, `me quiero morir${NO_ES_RISA}`,
   // "No quiero vivir con ansiedad" o "no quiero seguir aquí en este trabajo"
   // no; "no quiero vivir así", "sin él", "en este mundo" o "en este infierno",
   // sí.
-  new RegExp(`quiero morir${NO_ES_RISA}`), /no quiero (vivir|seguir viviendo|seguir aca|seguir aqui)\b(?! (con|en (?!(este|esta) (mundo|vida|infierno)\b)|para|de|del|por|pendiente|bajo|a medias|al dia|a la|al|preocupada|estresada|angustiada|corriendo|apurada)\b)/,
-  /mejor no estar/, new RegExp(`acabar con todo\\b${NO_ES_PENDIENTE}`), /hacerme dano/, /lastimarme/, new RegExp(`cortarme\\b${NO_ES_PELO}`),
+  `quiero morir${NO_ES_RISA}`, /no quiero (vivir|seguir viviendo|seguir aca|seguir aqui)\b(?! (con|en (?!(este|esta) (mundo|vida|infierno)\b)|para|de|del|por|pendiente|bajo|a medias|al dia|a la|al|preocupada|estresada|angustiada|corriendo|apurada)\b)/,
+  /mejor no estar/, `acabar con todo\\b${NO_ES_PENDIENTE}`, /hacerme dano/, /lastimarme/, `cortarme\\b${NO_ES_PELO}`,
   /\bautolesion/, /me estoy cortando/,
-  /me viol/, /abuso sexual/, /me esta pegando/, new RegExp(`${NO_ES_NINO}me pega\\w*\\b${NO_ES_GRIPA}`), new RegExp(`${NO_ES_NINO}me golpea`), /me maltrata/,
-  /estoy en peligro/, new RegExp(`${NO_ES_COSA}\\bme (va|van|iba|iban) a matar\\b${NO_ES_REGANO}`), /amenazas? de muerte/,
+  /me viol/, /abuso sexual/, /me esta pegando/, `${NO_ES_NINO}me pega\\w*\\b${NO_ES_GRIPA}`, `${NO_ES_NINO}me golpea`, /me maltrata/,
+  /estoy en peligro/, `${NO_ES_COSA}\\bme (va|van|iba|iban) a matar\\b${NO_ES_REGANO}`, /amenazas? de muerte/,
   // Formas frecuentes que no caían en las de arriba (ia-5): "me quiero
   // matar/cortar", "me voy a matar", "tengo ganas de morirme", "me hago
   // daño", "quisiera estar muerta". Cortar(se) no cuenta cuando es el pelo,
   // las uñas o el fleco.
-  new RegExp(`${ME_QUIERO} (matar|suicidar|ahorcar|envenenar|lastimar|hacer dano)\\b${NO_ES_ESFUERZO}`),
-  new RegExp(`${ME_QUIERO} cortar\\b${NO_ES_PELO}`),
-  new RegExp(`\\bme corto\\b${NO_ES_PELO}${NO_ES_RUPTURA}`),
+  `${ME_QUIERO} (matar|suicidar|ahorcar|envenenar|lastimar|hacer dano)\\b${NO_ES_ESFUERZO}`,
+  `${ME_QUIERO} cortar\\b${NO_ES_PELO}`,
+  `\\bme corto\\b${NO_ES_PELO}${NO_ES_RUPTURA}`,
   /\b(cortar(me)?|abrir(me)?|me (abro|abri|abrire|abriria)) (las|mis) venas/,
-  new RegExp(`ganas de (morir(me)?\\b${NO_ES_RISA}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|no despertar|no existir)`),
+  `ganas de (morir(me)?\\b${NO_ES_RISA}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|no despertar|no existir)`,
   /\b(quiero|quisiera|prefiero|preferiria|me gustaria|desearia|ojala|deseo) (estar |estuviera |estuviese )?muert[ao]s?\b/,
-  new RegExp(`\\b(quiero|quisiera|queria|quise|prefiero|preferiria|me gustaria|desearia|deseo|deseaba|provoca) morir(me)?\\b${NO_ES_RISA}`),
+  `\\b(quiero|quisiera|queria|quise|prefiero|preferiria|me gustaria|desearia|deseo|deseaba|provoca) morir(me)?\\b${NO_ES_RISA}`,
   /\bojala (no despertar|no despierte|no amanecer)(?! con (guayabo|resaca|ratabo|dolor de cabeza|ojeras|hambre|frio|sueno|la alarma|el despertador|ruido|bulla)\b| (tan |muy )?temprano\b)/,
-  /\bme (hago|estoy haciendo|sigo haciendo) dano\b/, new RegExp(`\\bme lastimo\\b${NO_ES_ACCIDENTE}`),
+  /\bme (hago|estoy haciendo|sigo haciendo) dano\b/, `\\bme lastimo\\b${NO_ES_ACCIDENTE}`,
   /no vale la pena (vivir|seguir)/, /estarian mejor sin mi/,
   // Formas que no caían (verificación final, unas 60 de 142 frases reales).
   // Quitarse la vida, desaparecer, no existir, no despertar, no seguir:
-  new RegExp(`${ME_QUIERO} quitar la vida`),
-  new RegExp(`\\b(quiero|quisiera|me gustaria|desearia|deseo|ojala pudiera|ganas de|me provoca|pienso en|pensando en|pensado en) desaparecer(me)?\\b${NO_ES_REDES}${NO_ES_UN_RATO}`),
+  `${ME_QUIERO} quitar la vida`,
+  `\\b(quiero|quisiera|me gustaria|desearia|deseo|ojala pudiera|ganas de|me provoca|pienso en|pensando en|pensado en) desaparecer(me)?\\b${NO_ES_REDES}${NO_ES_UN_RATO}`,
   /\bdejar de existir\b/, /\bno (quiero|quisiera|deseo) existir\b/,
   /\bir(me)? de este mundo\b/,
   /\b(me quiero ir|quiero irme|me voy a ir|me gustaria irme|quisiera irme|(lo mejor (es|seria)|mejor|decidi|ya decidi|he decidido|es hora de) irme) para siempre\b(?! (a|al)\b| de (?!esta vida|este mundo))/,
-  new RegExp(`dormir(me)? y no (volver a )?despertar(me)?\\b${NO_ES_SUENO}`),
-  new RegExp(`\\b(no (quiero|quisiera|deseo)|(me gustaria|quisiera|desearia|preferiria|prefiero|ojala) no) (volver a )?despertar(me)?\\b${NO_ES_SUENO}`),
-  new RegExp(`\\bdejar de vivir\\b${NO_ES_VIVIR_CON}`),
+  `dormir(me)? y no (volver a )?despertar(me)?\\b${NO_ES_SUENO}`,
+  `\\b(no (quiero|quisiera|deseo)|(me gustaria|quisiera|desearia|preferiria|prefiero|ojala) no) (volver a )?despertar(me)?\\b${NO_ES_SUENO}`,
+  `\\bdejar de vivir\\b${NO_ES_VIVIR_CON}`,
   /\bno quiero estar (mas )?(aqui|aca)\b(?! (en (?!(este|esta) (mundo|vida|tierra)\b)|con|de|del|trabajando|estudiando|esperando|sentada|encerrada)\b)/, /\bno quiero estar (mas )?(en este mundo|viva|vivo)\b/,
-  new RegExp(`\\b(ya no quiero seguir|no quiero seguir mas)\\b${NO_ES_ALGO}`),
+  `\\b(ya no quiero seguir|no quiero seguir mas)\\b${NO_ES_ALGO}`,
   // "Ojalá que todo se termine bien" o "que se acabe todo el mal rato" no.
   /\bque (se acabe|se termine) todo\b(?! (bien|lo|el|la|los|las|pronto|rapido|a tiempo)\b)/, /\bque todo (se acabe|se termine)\b(?! (bien|pronto|rapido|como|para|en|con|antes|a tiempo)\b)/,
   // Sin el "se": "quiero que todo termine", "que acabe todo", "que esto se
@@ -341,8 +374,8 @@ export const CRISIS_PATTERNS = [
   /\bque todo (termine|acabe)\b(?! (bien|pronto|rapido|como|para|en|con|antes|a tiempo)\b)/,
   /\bque (termine|acabe) todo\b(?! (bien|lo|el|la|los|las|pronto|rapido|a tiempo)\b)/,
   /\bque esto (se )?(acabe|termine) para siempre\b/,
-  new RegExp(`\\bmejor (me muero|me muera|morirme)\\b${NO_ES_RISA}`), /\bmejor (estar|estaria) muert[ao]/,
-  new RegExp(ME_MATO),
+  `\\bmejor (me muero|me muera|morirme)\\b${NO_ES_RISA}`, /\bmejor (estar|estaria) muert[ao]/,
+  ME_MATO,
   /\bno me importa(ria)? (si me muero|si muero|morir(me)?)\b/,
   // Desearse la muerte en subjuntivo, la indiferencia ante morir, "para qué
   // sigo viviendo" y no ver otra salida: "ojalá me pase algo y me muera",
@@ -350,17 +383,17 @@ export const CRISIS_PATTERNS = [
   // salida es la muerte", "mejor desaparezco". No activan "ojalá me muriera de
   // la risa", "no sé para qué vivo en esta ciudad tan cara", "no hay otra
   // salida que pagar" ni "la vida no vale la pena sin amigos".
-  new RegExp(`\\bojala (\\w+ ){0,4}me (muera|muriera|muriese)\\b${NO_ES_RISA}`),
-  new RegExp(`\\bmejor si (yo )?(me muero|me muera|me muriera|muriera|no existiera|no hubiera nacido)\\b${NO_ES_RISA}(?! (el|la|los|las|un|una|eso|esto|ese|esa|este|esta)\\b)`),
-  new RegExp(`\\bme (da|daria|daba) (igual|lo mismo) (vivir o morir|morir o vivir|si (me muero|muero|vivo o (me )?muero)|morir(me)?\\b${NO_ES_RISA})`),
+  `\\bojala (\\w+ ){0,4}me (muera|muriera|muriese)\\b${NO_ES_RISA}`,
+  `\\bmejor si (yo )?(me muero|me muera|me muriera|muriera|no existiera|no hubiera nacido)\\b${NO_ES_RISA}(?! (el|la|los|las|un|una|eso|esto|ese|esa|este|esta)\\b)`,
+  `\\bme (da|daria|daba) (igual|lo mismo) (vivir o morir|morir o vivir|si (me muero|muero|vivo o (me )?muero)|morir(me)?\\b${NO_ES_RISA})`,
   /\bsi me muero (a )?nadie\b/,
-  new RegExp(`\\bpara que (sigo viviendo|sigo viva|sigo vivo|estoy viva|estoy vivo|vivo|existo)\\b${NO_ES_VIVIR_CON}(?! (aqui|aca|alla|sola|solo|lejos|tan|cerca)\\b)`),
-  new RegExp(`\\bde que sirve (vivir|seguir viviendo|seguir con vida|estar viva|estar vivo|existir)\\b${NO_ES_VIVIR_CON}`),
+  `\\bpara que (sigo viviendo|sigo viva|sigo vivo|estoy viva|estoy vivo|vivo|existo)\\b${NO_ES_VIVIR_CON}(?! (aqui|aca|alla|sola|solo|lejos|tan|cerca)\\b)`,
+  `\\bde que sirve (vivir|seguir viviendo|seguir con vida|estar viva|estar vivo|existir)\\b${NO_ES_VIVIR_CON}`,
   /\bsalida (es|seria|que veo es) (la muerte|morir(me)?|matarme|suicidarme)\b/,
   /\botra salida (que|mas que|distinta a|aparte de) (la muerte|morir(me)?|matarme|suicidarme)\b/,
-  new RegExp(`\\bmejor (me )?desaparezco\\b${NO_ES_REDES}${NO_ES_UN_RATO}`),
+  `\\bmejor (me )?desaparezco\\b${NO_ES_REDES}${NO_ES_UN_RATO}`,
   /\b(la|mi) vida no vale la pena\b(?! (sin|si no|cuando)\b)/,
-  new RegExp(`\\bno (le )?(veo|encuentro|tiene|hay) (ningun )?sentido (a |de |en )?(la |mi )?(vida|vivir|seguir${NO_ES_ALGO})\\b`),
+  `\\bno (le )?(veo|encuentro|tiene|hay) (ningun )?sentido (a |de |en )?(la |mi )?(vida|vivir|seguir${NO_ES_ALGO})\\b`,
   /\b(mi|la) vida no tiene (ningun )?sentido\b/, /\bya nada tiene sentido\b/,
   /\bcarta de despedida\b/,
   // Despedidas y legado: "les dejo todo a mis hijos", "esta es mi despedida",
@@ -374,57 +407,57 @@ export const CRISIS_PATTERNS = [
   /\bcuiden a mis hijos (cuando|si) (yo )?(ya )?no (este|estoy)\b(?! (en (casa|la casa)|aqui|de viaje|trabajando|disponible)\b)/,
   // Los métodos: tirarse de un lugar alto o a un vehículo, pastillas o
   // veneno, colgarse, un tiro. "Colgarse con los pagos" es atrasarse.
-  new RegExp(`${TIRARME} (con (el|la|mi) (carro|moto|auto|camioneta) )?${LUGAR_ALTO}`),
+  `${TIRARME} (con (el|la|mi) (carro|moto|auto|camioneta) )?${LUGAR_ALTO}`,
   /\b(ojala|quiero que|quisiera que) me (atropelle|atropellen|pise)\b/, /\b(quiero|quisiera|deseo|me gustaria) que (un|una|el|la|algun|alguna) (\w+ ){0,2}me (atropelle|atropellen)\b/, /\bojala me (mate|maten)\b/,
   // El lugar antes del verbo ("estoy en la terraza y quiero saltar", "me subí
   // al puente y me voy a tirar"), dejarse caer, atravesarse en la vía y "ojalá
   // un carro me atropelle". No activan "estoy en la terraza y quiero tirar la
   // basura", "me voy a lanzar a hacer yoga" ni "me dejé caer en el sofá".
-  new RegExp(`\\b(estoy|ando|sigo|me subi|subi) (en|a|al) (el |la |un |una |lo alto de(l)? (el |la )?)?${SITIO_ALTO}\\b(?! festivo).{0,60}${TIRARME}\\b(?! (en|la|el|los|las|un|una|a (la|el) (cama|piscina|sofa|hamaca|agua|mar)|a \\w+(ar|er|ir))\\b)`),
-  new RegExp(`(\\bdejarme|\\bme (\\w+ ){0,2}dej(ar|o|e|are|aria)) caer ${LUGAR_ALTO}`),
-  new RegExp(`\\b(estoy|ando|sigo|me (subi|pare|sente)) (\\w+ )?(en|sobre) (el borde|la orilla|la baranda|la cornisa|el filo) (de|del) (la |el )?${SITIO_ALTO}\\b`),
-  new RegExp(`(${ME_QUIERO} atravesar|\\batravesarme|\\bme atravieso) (en|a|frente a|delante de) (la |el |un |una |los )?(autopista|via|carretera|calle|avenida|carros?|bus|buses|camion|tractomula|tren|metro|transmilenio)\\b`),
+  `\\b(estoy|ando|sigo|me subi|subi) (en|a|al) (el |la |un |una |lo alto de(l)? (el |la )?)?${SITIO_ALTO}\\b(?! festivo).{0,60}${TIRARME}\\b(?! (en|la|el|los|las|un|una|a (la|el) (cama|piscina|sofa|hamaca|agua|mar)|a \\w+(ar|er|ir))\\b)`,
+  `(\\bdejarme|\\bme (\\w+ ){0,2}dej(ar|o|e|are|aria)) caer ${LUGAR_ALTO}`,
+  `\\b(estoy|ando|sigo|me (subi|pare|sente)) (\\w+ )?(en|sobre) (el borde|la orilla|la baranda|la cornisa|el filo) (de|del) (la |el )?${SITIO_ALTO}\\b`,
+  `(${ME_QUIERO} atravesar|\\batravesarme|\\bme atravieso) (en|a|frente a|delante de) (la |el |un |una |los )?(autopista|via|carretera|calle|avenida|carros?|bus|buses|camion|tractomula|tren|metro|transmilenio)\\b`,
   /\bojala (?!(\w+ ){0,2}no )(\w+ ){1,3}me (atropelle|atropellen|pise|pisen|mate|maten)\b/,
   // Pastillas en cantidad o veneno: "todas las pastillas", "3 tiras de
   // rivotril", "más de la cuenta de pastillas", "un poco de veneno", "cianuro",
   // "soda cáustica". "Todas las pastillas del antibiótico" no.
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todas (las|mis)|un frasco de|un tarro de|una caja de|un monton de|un punado de|muchas|varias cajas de|una caja entera de|un frasco entero de|mas de la cuenta de|una tira de|toda la tira de|(\\d+|dos|tres|cuatro|cinco|varios|varias) (cajas|frascos|tarros|blisters|tiras|sobres|laminas) de) ${PASTILLAS}\\b(?! (del|de la|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b)`),
+  `\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todas (las|mis)|un frasco de|un tarro de|una caja de|un monton de|un punado de|muchas|varias cajas de|una caja entera de|un frasco entero de|mas de la cuenta de|una tira de|toda la tira de|(\\d+|dos|tres|cuatro|cinco|varios|varias) (cajas|frascos|tarros|blisters|tiras|sobres|laminas) de) ${PASTILLAS}\\b(?! (del|de la|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b)`,
   // "He tomado muchas pastillas y me siento mareada" ("he tomado muchas
   // pastillas para el dolor este mes" no).
-  new RegExp(`\\b(he tomado|me he tomado|acabo de tomar(me)?|me acabo de tomar) (muchas|demasiadas|todas (las|mis)|un frasco de|una caja de|[1-9]\\d+) ${PASTILLAS}\\b(?! (para|en|durante|este|esta|desde|cada)\\b)`),
+  `\\b(he tomado|me he tomado|acabo de tomar(me)?|me acabo de tomar) (muchas|demasiadas|todas (las|mis)|un frasco de|una caja de|[1-9]\\d+) ${PASTILLAS}\\b(?! (para|en|durante|este|esta|desde|cada)\\b)`,
   /\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago|beber(me)?|bebo|bebi|bebere|bebido) (el |la |un |una |un poco de |algo de )?(veneno|raticida|matarratas|cloro|varsol|insecticida|cianuro|soda caustica|acido (muriatico|sulfurico)|creolina|thinner|tiner|gasolina|lejia|blanqueador)\b/,
   // Los preparativos: juntar pastillas, comprar el veneno, tenerlas listas.
   // No activan "estoy guardando las pastillas en el botiquín", "juntando
   // pastillas de vitaminas", "tengo las pastillas listas para el viaje" ni
   // "compré veneno para las cucarachas".
-  new RegExp(`\\b(juntando|guardando|acumulando|ahorrando|recogiendo|junte|guarde|acumule|junto|guardo|acumulo) (mis |muchas |varias |todas (las |mis )?)?${PASTILLAS}\\b(?! (en|dentro|bajo|lejos|fuera|arriba|del|de la|de los|de mi|de mis|de (vitaminas?|colageno|hierro|calcio|magnesio|omega|biotina|zinc|probioticos)|para (el|la|los|las|mi|mis|que no))\\b)`),
-  new RegExp(`\\b(junte|guarde|acumule|consegui) (las|mis|todas (las|mis)) ${PASTILLAS} (que (necesito|necesitaba|me hacen falta)|suficientes|necesarias)\\b(?! para (el|la|los|las|mi|mis) (viaje|tratamiento|semana|mes)\\b)`),
-  new RegExp(`\\b(tengo|ya tengo|tengo ya) (las|mis|todas (las|mis)|un frasco de|una caja de|un monton de|muchas) ${PASTILLAS} (listas|preparadas|contadas|al lado|en la mano)\\b(?! (para|en|de|del|por)\\b)`),
+  `\\b(juntando|guardando|acumulando|ahorrando|recogiendo|junte|guarde|acumule|junto|guardo|acumulo) (mis |muchas |varias |todas (las |mis )?)?${PASTILLAS}\\b(?! (en|dentro|bajo|lejos|fuera|arriba|del|de la|de los|de mi|de mis|de (vitaminas?|colageno|hierro|calcio|magnesio|omega|biotina|zinc|probioticos)|para (el|la|los|las|mi|mis|que no))\\b)`,
+  `\\b(junte|guarde|acumule|consegui) (las|mis|todas (las|mis)) ${PASTILLAS} (que (necesito|necesitaba|me hacen falta)|suficientes|necesarias)\\b(?! para (el|la|los|las|mi|mis) (viaje|tratamiento|semana|mes)\\b)`,
+  `\\b(tengo|ya tengo|tengo ya) (las|mis|todas (las|mis)|un frasco de|una caja de|un monton de|muchas) ${PASTILLAS} (listas|preparadas|contadas|al lado|en la mano)\\b(?! (para|en|de|del|por)\\b)`,
   /\b(compre|consegui) (el |un )?veneno\b(?! (contra|para (las |los |el |la |mis |mi )?(ratas|ratones|cucarachas|hormigas|plagas|moscas|zancudos|pulgas|garrapatas|maleza|jardin|finca|matas|plantas)))/,
   /\bsobredosis\b/,
-  /\bahorcarme\b/, new RegExp(`(${ME_QUIERO} colgar|\\bcolgarme)\\b(?! ((\\w+ ){0,3}(con|en)|otra vez|de nuevo|este mes|esta semana|este ano|(el|la|los|las|mi|mis|un|una) (\\w+ )?(mochila|morral|bolso|bolsa|cartera|medalla|maleta|toalla|ropa|chaqueta|hamaca|camara|guitarra|collar|aretes))\\b)`),
+  /\bahorcarme\b/, `(${ME_QUIERO} colgar|\\bcolgarme)\\b(?! ((\\w+ ){0,3}(con|en)|otra vez|de nuevo|este mes|esta semana|este ano|(el|la|los|las|mi|mis|un|una) (\\w+ )?(mochila|morral|bolso|bolsa|cartera|medalla|maleta|toalla|ropa|chaqueta|hamaca|camara|guitarra|collar|aretes))\\b)`,
   // Colgarse en un lugar o con una cuerda ("me voy a colgar en el baño",
   // "colgarme mañana de una viga"), aunque diga "en": "me colgué en los
   // pagos" no.
-  new RegExp(`(${ME_QUIERO} colgar|\\bcolgarme|\\bme (cuelgo|colgue|colgare|colgaria)) (\\w+ ){0,3}(en|de|del) (el |la |una |un |mi )?(bano|closet|armario|cuarto|habitacion|techo|viga|arbol|ducha|baranda|lampara|ventilador)\\b`),
-  new RegExp(`(${ME_QUIERO} colgar|\\bcolgarme|\\bme (cuelgo|colgare|colgaria)) (\\w+ ){0,4}con (una |un |la |el |mi )?(cuerda|soga|correa|cinturon|sabana|lazo|cable)\\b`),
+  `(${ME_QUIERO} colgar|\\bcolgarme|\\bme (cuelgo|colgue|colgare|colgaria)) (\\w+ ){0,3}(en|de|del) (el |la |una |un |mi )?(bano|closet|armario|cuarto|habitacion|techo|viga|arbol|ducha|baranda|lampara|ventilador)\\b`,
+  `(${ME_QUIERO} colgar|\\bcolgarme|\\bme (cuelgo|colgare|colgaria)) (\\w+ ){0,4}con (una |un |la |el |mi )?(cuerda|soga|correa|cinturon|sabana|lazo|cable)\\b`,
   /\b(tengo|ya tengo) (la|una) (cuerda|soga) (lista|amarrada|preparada|colgada)\b/, /\b(tengo|ya tengo|compre|ya compre|consegui|ya consegui) (la|una) soga\b(?! (para|de|del|en)\b)/,
   // Un cuchillo o una cuchilla: "me voy a enterrar el cuchillo", "tengo la
   // cuchilla en la mano", "estoy en el baño con una cuchilla", "pienso en
   // usarla contra mí".
-  new RegExp(`(${ME_QUIERO} (clavar|enterrar)|\\b(clavarme|enterrarme)) (el|un|una|la) (cuchillo|navaja|cuchilla|tijeras|punal)\\b`),
+  `(${ME_QUIERO} (clavar|enterrar)|\\b(clavarme|enterrarme)) (el|un|una|la) (cuchillo|navaja|cuchilla|tijeras|punal)\\b`,
   /\b(tengo|estoy con|ando con|sigo con) (la|una) (cuchilla|navaja|hoja de afeitar) (en la mano|en las manos|al lado)\b/,
   /\bestoy en (el|mi) (bano|cuarto|habitacion) con (una|la|el|un) (cuchilla|navaja|cuchillo|soga|cuerda|pistola|arma|bisturi)\b/,
   /\b(pienso|pensando|pense|pensado|quiero|voy a|ganas de) (en )?usar(la|lo)? contra mi( misma)?(?= (y|o|pero|porque|que|ya|ahora|hoy|esta|si)\b|$)/,
   // Un tiro, también "meterse un tiro" ("un tiro de 3 horas" es un viaje largo).
   /(\bdarme|\bpegarme|\bmeterme|\bme (\w+ ){0,2}(dar|pegar|meter|pego|doy|di|pegue|meto|meti)) un (tiro|balazo|disparo)\b(?! (de (\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|media|varias|muchas|esquina)|libre|penal|al arco|a gol|a puerta)\b)/,
-  /\bvolarme (la cabeza|los sesos)\b/, new RegExp(`${ME_QUIERO} volar (la cabeza|los sesos)\\b`),
+  /\bvolarme (la cabeza|los sesos)\b/, `${ME_QUIERO} volar (la cabeza|los sesos)\\b`,
   // Ahogarse en el río o el mar ("tengo miedo de ahogarme en el mar" no).
-  new RegExp(`(${ME_QUIERO} ahogar|(?<!\\b(miedo|panico|terror) (de|a) )\\bahogarme) (en|al|a la) (el |la )?(rio|mar|lago|laguna|represa|oceano|tina|banera)\\b`),
+  `(${ME_QUIERO} ahogar|(?<!\\b(miedo|panico|terror) (de|a) )\\bahogarme) (en|al|a la) (el |la )?(rio|mar|lago|laguna|represa|oceano|tina|banera)\\b`,
   // Autolesiones ya hechas o que se repiten: "me corté", "me volví a
   // cortar", "me sigo cortando", "me hice daño", "a propósito".
-  new RegExp(`\\bme (corte|cortaba|volvi a cortar|sigo cortando|segui cortando|he cortado|he vuelto a cortar|estuve cortando)\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`),
-  new RegExp(`\\bme (hice|he hecho|volvi a hacer|vuelvo a hacer) dano\\b${NO_ES_ACCIDENTE}`),
+  `\\bme (corte|cortaba|volvi a cortar|sigo cortando|segui cortando|he cortado|he vuelto a cortar|estuve cortando)\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`,
+  `\\bme (hice|he hecho|volvi a hacer|vuelvo a hacer) dano\\b${NO_ES_ACCIDENTE}`,
   /\bme (lastime|lastimo|corte|corto|queme|quemo|golpee?|golpeo|pegue|pego|rasgune|rasguno|arane|arano|hice dano|hago dano)\b.{0,30}\ba proposito\b/,
   /\bme (quemo|queme|sigo quemando|estoy quemando|volvi a quemar)\b.{0,30}\b(cigarrillos?|cigarros?|encendedor|fosforos?|yesquero)\b/,
   /\bme (rasguno|rasgune|arano|arane|rasco|pellizco|muerdo|golpeo|pego|corto|lastimo|arranco|arranque|arrancaba|jalo|halo) .{0,20}hasta (sangrar|que (me )?sangr\w*|hacerme sangre|(sacarme|sacar|hacerme salir) (la )?sangre|hacerme sangrar|que (me )?(salen|sale|salgan|quedan|queden|dejo|hago) (heridas|sangre|marcas|moretones|morados|cicatrices))\b/,
@@ -434,20 +467,20 @@ export const CRISIS_PATTERNS = [
   // Dichas con sustantivos: "me hago cortes", "me hice heridas en los
   // brazos", "recaí con las cortadas", "me rayo los brazos". No activan "me
   // hice un corte de pelo", "me hice rayitos" ni "me hice heridas jugando".
-  new RegExp(`\\bme (hago|hice|he hecho|sigo haciendo|volvi a hacer|vuelvo a hacer|estoy haciendo) (\\w+ )?(cortes|cortaditas|cortadas|heridas)\\b(?! (de|en) (el |mi )?(pelo|cabello)\\b)${NO_ES_ACCIDENTE}`),
+  `\\bme (hago|hice|he hecho|sigo haciendo|volvi a hacer|vuelvo a hacer|estoy haciendo) (\\w+ )?(cortes|cortaditas|cortadas|heridas)\\b(?! (de|en) (el |mi )?(pelo|cabello)\\b)${NO_ES_ACCIDENTE}`,
   /\b(recai|recaigo|volvi|vuelvo) (con|a|en) (las |los )?(cortadas|cortes|cortaditas|autolesiones)\b(?! (de|en) (el |mi )?(pelo|cabello)\b)/,
   /\bme (rayo|raye|rajo|raje) (los|las|mis) (brazos|piernas|munecas|muslos|antebrazos)\b(?! con (un |el |los )?(marcador|marcadores|lapicero|esfero|boligrafo|lapiz|pintura|henna)\b)/,
   /\b(cortadas|cortes|cortaditas) (en|de) (las|los|mis) (munecas|brazos|piernas|muslos|antebrazos)\b/,
   // Abuso y amenaza: "me abusaron", "abusa de mí", "miedo de que me mate".
   /\bme (abusaron|abuso|abusa|abusan|abusaba|abusaban|ha abusado|han abusado|esta abusando|estan abusando)\b(?! de (mi |la )?(confianza|buena fe)\b)/,
   // "Se abusó de mi confianza" o "el banco abusó de mí con los intereses" no.
-  /(?<!\b(banco|bancos|empresa|tienda|almacen|operador|aseguradora|eps|entidad|gobierno|arrendador|casero) )\babus\w* (sexualmente )?de mi\b(?! (confianza|buena fe|buena voluntad|paciencia|amabilidad|generosidad|bondad|nobleza|tiempo|tarjeta|dinero|plata)\b)/,
+  '(?<!\\b(banco|bancos|empresa|tienda|almacen|operador|aseguradora|eps|entidad|gobierno|arrendador|casero) )\\babus\\w* (sexualmente )?de mi\\b(?! (confianza|buena fe|buena voluntad|paciencia|amabilidad|generosidad|bondad|nobleza|tiempo|tarjeta|dinero|plata)\\b)',
   /\bque me (mate|maten|vaya a matar|quiera matar|viole|violen)\b/, /\bme (quiere|quieren|quiso|intento|trato de) matar\b/,
   // Amenazas: "dice que si lo dejo me mata", "si lo dejaba me mataba", "me
   // tiene amenazada", "temo por mi vida", "nos va a matar". No activan "si
   // como eso me mata la gastritis", "si llego tarde mi mamá me mata", "estoy
   // amenazada de despido" ni "temo por mi vida social".
-  new RegExp(`\\bsi (?!(llego tarde|${SI_REGANO}) (\\w+ ){0,2}(mi|la|el) (mama|mami|papa|papi|jefe|jefa|profe|profesora|profesor|abuela|suegra) me\\b)(\\w+ ){1,5}me (mata|matan|mataba|mataban|mataria|matarian|matara|va a matar|van a matar|iba a matar|iban a matar)\\b(?! (el|la|los|las|un|una|de)\\b)`),
+  `\\bsi (?!(llego tarde|${SI_REGANO}) (\\w+ ){0,2}(mi|la|el) (mama|mami|papa|papi|jefe|jefa|profe|profesora|profesor|abuela|suegra) me\\b)(\\w+ ){1,5}me (mata|matan|mataba|mataban|mataria|matarian|matara|va a matar|van a matar|iba a matar|iban a matar)\\b(?! (el|la|los|las|un|una|de)\\b)`,
   // Contra los hijos, con un arma, con ácido o fuego, y lo que "dijo que me
   // iba a hacer": "dijo que va a matar a mis hijos", "amenazó con quemar la
   // casa", "me amenaza con el machete", "me dijo que me iba a picar". No
@@ -457,50 +490,50 @@ export const CRISIS_PATTERNS = [
   /\b(va|van|iba|iban) a matar a (mis|mi|los|las|nuestros|nuestras) (hijos|hijas|hijo|hija|bebe|bebes|ninos|ninas|nino|nina|familia|mama|papa)\b(?!.{0,20}\b(cuando|si) (vea|ve|sepa|se entere|descubra)\b)(?! (de (la )?(risa|susto|emocion)|del susto)\b)/,
   /\b(amenaza|amenazo|amenazaba|amenazan|amenazaron|amenazando) con (matar|matarme|matarnos|matarlos|matarla|hacerme dano|hacerle dano|hacernos dano|quemar(me|nos)?|echarme\b(?! (si|del (trabajo|colegio|grupo|equipo|curso|salon|puesto)|de (la )?(empresa|oficina|clase|universidad|u))\b)|tirarme|lanzarme|desaparecer(me|nos)?|picarme|rajarme\b(?! (en|el|del|la (materia|nota|clase|asignatura|evaluacion|tesis))\b)|desfigurarme|pegarme|golpearme|llevarse a (mis|los) (hijos|ninos)|quitarme a (mis|los) (hijos|ninos)|matarse|suicidarse)\b(?! (el|la) (tiempo|rato)\b)/,
   /\btiene (un|una) (arma|pistola|revolver|machete|escopeta|cuchillo|navaja) y me (amenaza|amenazo|amenazaba|apunta|apunto)\b/,
-  new RegExp(`\\b(dijo|dice|decia|amenazo|amenaza|amenazaba|jura|juro|grito|escribio) que me (va|iba) a (matar|picar|rajar|desaparecer|desfigurar|quemar|apunalar|acuchillar|degollar|descuartizar|enterrar|golpear|cascar|hacer dano|pegar|ahorcar)\\b${NO_ES_GRIPA}`),
+  `\\b(dijo|dice|decia|amenazo|amenaza|amenazaba|jura|juro|grito|escribio) que me (va|iba) a (matar|picar|rajar|desaparecer|desfigurar|quemar|apunalar|acuchillar|degollar|descuartizar|enterrar|golpear|cascar|hacer dano|pegar|ahorcar)\\b${NO_ES_GRIPA}`,
   /\b(me tiene|me tienen|me tenia|me tenian|estoy|vivo|me siento) amenazad[ao]\b(?! (de|con) (despido|despedirme|echarme|demanda|demandarme|multa|sacarme del|quitarme el (puesto|trabajo)|(el |la |los |las )?(arriendo|cobros?|deudas?|cuentas?|factura|banco|datacredito|embargo|desalojo|tarjeta|cuotas?|intereses|recibos?)\b))/,
-  new RegExp(`\\b(miedo|temo|temor|temer) por mi vida\\b${NO_ES_ETAPA}`),
+  `\\b(miedo|temo|temor|temer) por mi vida\\b${NO_ES_ETAPA}`,
   /\bnos (va|van|iba|iban|quiere|quieren) a matar\b/,
   // Revisión sistemática (verbos, tiempos y formas con y sin "me").
   // Terminar, acabar, quitar o ponerle fin a la propia vida: "quiero terminar
   // con mi vida", "me quito la vida", "le voy a poner fin a mi vida".
-  new RegExp(`\\b(acab|termin)\\w* (con )?mi (propia )?(vida|existencia)\\b${NO_ES_ETAPA}`),
-  new RegExp(`${PONER_FIN} a mi (propia )?vida\\b${NO_ES_ETAPA}`),
+  `\\b(acab|termin)\\w* (con )?mi (propia )?(vida|existencia)\\b${NO_ES_ETAPA}`,
+  `${PONER_FIN} a mi (propia )?vida\\b${NO_ES_ETAPA}`,
   /\bme (\w+ ){0,3}quit(o|e|are|aria|aba|ar) la vida\b/,
-  new RegExp(`\\b(terminar|termino|terminare|terminaria|acabo|acabare|acabaria) con todo\\b${NO_ES_PENDIENTE}`),
-  new RegExp(`${PONER_FIN} a todo\\b${NO_ES_PENDIENTE}`),
+  `\\b(terminar|termino|terminare|terminaria|acabo|acabare|acabaria) con todo\\b${NO_ES_PENDIENTE}`,
+  `${PONER_FIN} a todo\\b${NO_ES_PENDIENTE}`,
   // Morir con "me" delante y en pasado: "me quisiera morir", "me quería morir".
-  new RegExp(`\\bme (quise|queria|quisiera|dan ganas de|daban ganas de|provoca|provocaba|gustaria) morir(me)?\\b${NO_ES_RISA}`),
+  `\\bme (quise|queria|quisiera|dan ganas de|daban ganas de|provoca|provocaba|gustaria) morir(me)?\\b${NO_ES_RISA}`,
   // Futuro y condicional: "me mataré", "me suicidaría", "me cortaré".
-  new RegExp(`\\bme (matare|mataria|suicidare|suicidaria|ahorcare|ahorcaria|envenenare|envenenaria|disparare|dispararia|lastimare|lastimaria)\\b${NO_ES_ESFUERZO}`),
-  new RegExp(`\\bme (cortare|cortaria)\\b${NO_ES_PELO}`),
-  /\b(envenenarme|dispararme)\b/, new RegExp(`${ME_QUIERO} disparar\\b`),
+  `\\bme (matare|mataria|suicidare|suicidaria|ahorcare|ahorcaria|envenenare|envenenaria|disparare|dispararia|lastimare|lastimaria)\\b${NO_ES_ESFUERZO}`,
+  `\\bme (cortare|cortaria)\\b${NO_ES_PELO}`,
+  /\b(envenenarme|dispararme)\b/, `${ME_QUIERO} disparar\\b`,
   // En presente o pasado con "me": "me disparo en la cabeza", "me disparé",
   // "me enveneno", "me envenené", "salto del puente", "me voy a quitar del
   // medio". No activan "se me disparó la ansiedad", "me envenené con
   // mariscos", "me enveneno con pensamientos negativos", "un salto al vacío",
   // "el salto del puente fue increíble" ni "me quito del medio para que
   // hablen".
-  /(?<!\bse )\bme (disparo|dispare|dispararon)\b(?! ((la|el|los|las) (ansiedad|presion|azucar|glucosa|tension|precios?|alarma|estres|ritmo|corazon|pulso|flash|cuenta|factura)|en el pie)\b)/,
-  /(?<!\bse )\bme (enveneno|envenene|envenenaron)\b(?! ((con|de) (la |el |algo que )?(comida|mariscos|pescado|pollo|comi|almuerzo|pensamientos)|( (la|el|mi|mis))? (mente|cabeza|pensamientos|alma|corazon|vida))\b)/,
-  new RegExp(`(?<!\\b(un|el|ese|este|mi|su|otro|primer|gran|ultimo|del|al) )\\bsalto (de|del|desde|por) ((el|la|los|las|un|una|este|esta|ese|esa|mi|lo alto de|lo alto del) )?${SITIO_ALTO}\\b`),
-  new RegExp(`(${ME_QUIERO} quitar|\\bquitarme|\\bme (quito|quitare|quitaria)) del medio\\b(?! (para que (hablen|pasen|puedan|arreglen|conversen)|de (la|esa|esta) (pelea|discusion)|un rato)\\b)`),
+  '(?<!\\bse )\\bme (disparo|dispare|dispararon)\\b(?! ((la|el|los|las) (ansiedad|presion|azucar|glucosa|tension|precios?|alarma|estres|ritmo|corazon|pulso|flash|cuenta|factura)|en el pie)\\b)',
+  '(?<!\\bse )\\bme (enveneno|envenene|envenenaron)\\b(?! ((con|de) (la |el |algo que )?(comida|mariscos|pescado|pollo|comi|almuerzo|pensamientos)|( (la|el|mi|mis))? (mente|cabeza|pensamientos|alma|corazon|vida))\\b)',
+  `(?<!\\b(un|el|ese|este|mi|su|otro|primer|gran|ultimo|del|al) )\\bsalto (de|del|desde|por) ((el|la|los|las|un|una|este|esta|ese|esa|mi|lo alto de|lo alto del) )?${SITIO_ALTO}\\b`,
+  `(${ME_QUIERO} quitar|\\bquitarme|\\bme (quito|quitare|quitaria)) del medio\\b(?! (para que (hablen|pasen|puedan|arreglen|conversen)|de (la|esa|esta) (pelea|discusion)|un rato)\\b)`,
   /\bdejarme (atropellar|pisar)\b/,
   // Pastillas: diez o más (también "como 20", "unas 20", "más de 10", "20
   // ibuprofenos"), "todo el frasco", "el blíster de rivotril", "la caja de
   // sertralina", "me las voy a tomar todas", "las de mi abuela, todas".
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (como |unas |unos |mas de |casi |al menos |cerca de |hasta )?([1-9]\\d+|diez|quince|veinte|treinta|cuarenta|cincuenta|cien|demasiadas|toda la caja de|todo el frasco de|el frasco de|la caja de|el blister de|la tira de|las tiras de) ${PASTILLAS}\\b`),
+  `\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (como |unas |unos |mas de |casi |al menos |cerca de |hasta )?([1-9]\\d+|diez|quince|veinte|treinta|cuarenta|cincuenta|cien|demasiadas|toda la caja de|todo el frasco de|el frasco de|la caja de|el blister de|la tira de|las tiras de) ${PASTILLAS}\\b`,
   /\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (todo el (frasco|tarro|blister)|toda la caja|el (frasco|tarro|blister) (entero|completo)|la caja (entera|completa))\b(?! de (chocolate|chocolatina|panela|yogurt|yogur|kumis|avena|leche|jugo|vino|cerveza|aguardiente|ron|gaseosa|agua|cafe|te|aromatica|colada|proteina|helado|suero|electrolitos|sopa|caldo|vitaminas?|colageno|tinto|mermelada|arequipe|miel|galletas|dulces|gomitas|chicles?|mani|chocolates|bocadillo)\b)/,
   /\bme las (\w+ ){0,2}(tomar|tome|tomo|tragar|trague|trago) todas\b/,
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (las|mis) ${PASTILLAS}( de (mi|mis|la|el|los) \\w+| (de|para) dormir)? todas\\b(?! (las|los)\\b)`),
+  `\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (las|mis) ${PASTILLAS}( de (mi|mis|la|el|los) \\w+| (de|para) dormir)? todas\\b(?! (las|los)\\b)`,
   // Sin ganas de vivir: "estoy cansada de vivir", "perdí las ganas de vivir",
   // "para qué seguir viviendo", "no quiero seguir con vida".
-  new RegExp(`\\b(cansada|cansado|harta|harto|agotada|agotado|aburrida|aburrido) de (vivir|estar viva|estar vivo|existir|la vida)\\b${NO_ES_VIVIR_CON}`),
-  new RegExp(`\\bme (canse|harte|aburri) de (vivir|existir|la vida)\\b${NO_ES_VIVIR_CON}`),
-  new RegExp(`\\b(no tengo|ya no tengo|sin|perdi las|no me quedan|se me fueron las|se me acabaron las) (ganas|razones|motivos|fuerzas) (de|para) (vivir|seguir viviendo|seguir con vida|seguir viva|seguir vivo|estar viva|estar vivo|existir)\\b${NO_ES_VIVIR_CON}`),
+  `\\b(cansada|cansado|harta|harto|agotada|agotado|aburrida|aburrido) de (vivir|estar viva|estar vivo|existir|la vida)\\b${NO_ES_VIVIR_CON}`,
+  `\\bme (canse|harte|aburri) de (vivir|existir|la vida)\\b${NO_ES_VIVIR_CON}`,
+  `\\b(no tengo|ya no tengo|sin|perdi las|no me quedan|se me fueron las|se me acabaron las) (ganas|razones|motivos|fuerzas) (de|para) (vivir|seguir viviendo|seguir con vida|seguir viva|seguir vivo|estar viva|estar vivo|existir)\\b${NO_ES_VIVIR_CON}`,
   /\bno tengo (por|para) que (vivir|seguir)\b/,
-  new RegExp(`(^|\\b(y|pero|entonces|no se|me pregunto|pienso|preguntando) )para que (vivir|seguir viviendo|seguir con vida|existir|sigo viva|sigo vivo)\\b${NO_ES_VIVIR_CON}`),
-  new RegExp(`\\bno aguanto (mas )?(vivir|la vida|esta vida|seguir viviendo|seguir con vida|existir)\\b${NO_ES_VIVIR_CON}`),
+  `(^|\\b(y|pero|entonces|no se|me pregunto|pienso|preguntando) )para que (vivir|seguir viviendo|seguir con vida|existir|sigo viva|sigo vivo)\\b${NO_ES_VIVIR_CON}`,
+  `\\bno aguanto (mas )?(vivir|la vida|esta vida|seguir viviendo|seguir con vida|existir)\\b${NO_ES_VIVIR_CON}`,
   /\bno quiero seguir con vida\b/,
   /\bdormir(me)? para siempre\b/,
   /\bno (quiero|quisiera|deseo) (volver a )?amanecer\b(?! (tan|muy|cansada|agotada|con|de|en|sin|temprano|trasnochada)\b)/,
@@ -513,7 +546,7 @@ export const CRISIS_PATTERNS = [
   // tanto dulce" ni "quisiera no haber nacido en esta época".
   /\b(estarian|estaria|seria|serian|vivirian|viviria) (\w+ ){0,3}(mejor|mas felices|mas feliz|mas tranquil[oa]s?|en paz)( para (todos|todas|ellos|ellas|mi familia|mis hijos))? sin mi(?= (y|pero|porque|que|todos|ya|lo|asi|de verdad|seguro|nadie|no|me|eso|esto|la verdad|en serio|creo|se)\b|$)/,
   /\b(estarian|estaria|seria|serian|vivirian|viviria) (\w+ ){0,3}(mejor|mas facil|mas felices|mas feliz|mas tranquil[oa]s?|en paz)( para (todos|todas|ellos|ellas|mi familia|mis hijos))? si yo no (existiera|estuviera|hubiera nacido)\b(?! (en (la|el|esta|este) \w+|\w+ando|\w+iendo)\b)/,
-  new RegExp(`\\bno merezco (vivir|estar viva|estar vivo|existir|seguir viva|seguir vivo|seguir viviendo)\\b${NO_ES_VIVIR_CON}(?! (asi|esto|esta|como)\\b)`),
+  `\\bno merezco (vivir|estar viva|estar vivo|existir|seguir viva|seguir vivo|seguir viviendo)\\b${NO_ES_VIVIR_CON}(?! (asi|esto|esta|como)\\b)`,
   /\bno (deberia|debi|debo) (estar viva|estar vivo|existir|haber nacido|nacer|seguir viva|seguir vivo|seguir viviendo)\b(?! (el|la|los|las|un|una|eso|esto|ese|esa|tanta|tanto|tantas|tantos|gente|personas|nadie|asi|en)\b)/,
   /\b(quisiera|ojala|preferiria|me gustaria|desearia|deseo|hubiera preferido) no haber nacido\b(?! en (esta|este|esa|ese|otra|otro) (epoca|siglo|pais|ciudad|generacion|decada|era)\b)/,
   /\bojala (no|nunca) (hubiera|hubiese) nacido\b(?! en (esta|este|esa|ese|otra|otro) (epoca|siglo|pais|ciudad|generacion|decada|era)\b)/,
@@ -530,8 +563,8 @@ export const CRISIS_PATTERNS = [
   /\b(pienso|pense|pensando|pensado|penso|pensar) (\w+ ){0,3}en (morir(me)?|la muerte|no (despertar|existir|estar))\b(?! de (la )?(risa|verguenza|pena ajena|mi|mis|su|sus|el|la|los|las|un|una|alguien)\b)/,
   // Violencia: "mi esposo me pegó", "me golpearon", "me tiene encerrada",
   // "me obliga a tener sexo", "me amenaza con…", "le tengo miedo a mi pareja".
-  new RegExp(`${NO_ES_NINO}${NO_ES_TUSA}\\bme (pego|pegaron|pegaban)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}${NO_ES_MUEBLE}`),
-  new RegExp(`${NO_ES_NINO}${NO_ES_TUSA}\\bme (golpeo|golpearon|golpeaba|golpeaban|golpean)\\b${NO_ES_NOTICIA}${NO_ES_MUEBLE}`),
+  `${NO_ES_NINO}${NO_ES_TUSA}\\bme (pego|pegaron|pegaban)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}${NO_ES_MUEBLE}`,
+  `${NO_ES_NINO}${NO_ES_TUSA}\\bme (golpeo|golpearon|golpeaba|golpeaban|golpean)\\b${NO_ES_NOTICIA}${NO_ES_MUEBLE}`,
   /\bme (ahorco|ahorque|ahorcaron|estrangula|estrangulo|estrangularon|cachetea|cacheteo|cachetearon|abofeteo|violaron|encerro|encerraron)\b/,
   /\bme (tiene|tienen|tenia|tenian) encerrada\b/,
   // Más formas de violencia física: empujar, patear, la cachetada, levantar
@@ -539,19 +572,19 @@ export const CRISIS_PATTERNS = [
   // cuchillo en el cuello. No activan "me empujó a estudiar", "el bebé me
   // patea", "me dio una cachetada de realidad", "el gym me dio una paliza" ni
   // "el brasier me ahorca".
-  /(?<!\b(lo que|viento|brisa|corriente|ola|olas|marea|gente|multitud|destino|vida) )\bme (empujo|empujaron|empuja|empujaba|empujan|empujaban)\b(?! (a \w+(ar|er|ir)(me|la|lo)?|jugando|sin querer|mucho|bastante|para (que|ser|seguir|crecer)|hacia (adelante|arriba|el|la|mis|mi)|(el|la) (viento|brisa|corriente|ola|marea|gente|multitud|destino|vida))\b)/,
+  '(?<!\\b(lo que|viento|brisa|corriente|ola|olas|marea|gente|multitud|destino|vida) )\\bme (empujo|empujaron|empuja|empujaba|empujan|empujaban)\\b(?! (a \\w+(ar|er|ir)(me|la|lo)?|jugando|sin querer|mucho|bastante|para (que|ser|seguir|crecer)|hacia (adelante|arriba|el|la|mis|mi)|(el|la) (viento|brisa|corriente|ola|marea|gente|multitud|destino|vida))\\b)',
   // Patear: en pasado siempre ("me pateó la barriga"), en presente no cuando
   // es el bebé en la barriga ("me patea la vejiga"). Con el agresor delante,
   // siempre ("mi esposo me patea la barriga"). "Me patea el hígado" o "la
   // loncha" es fastidiar.
-  new RegExp(`(?<!\\bbeb\\w* (\\w+ )?)${NO_ES_NINO}\\bme (pateo|patearon|pateaban)\\b(?! ((la|mi) (vejiga|costillas?)|el higado|la loncha|jugando)\\b)`),
-  new RegExp(`(?<!\\bbeb\\w* (\\w+ )?)${NO_ES_NINO}\\bme (patea|pateaba)\\b(?! ((la|mi) (barriga|panza|pancita|vejiga|costillas?)|el higado|la loncha|jugando)\\b)`),
+  `(?<!\\bbeb\\w* (\\w+ )?)${NO_ES_NINO}\\bme (pateo|patearon|pateaban)\\b(?! ((la|mi) (vejiga|costillas?)|el higado|la loncha|jugando)\\b)`,
+  `(?<!\\bbeb\\w* (\\w+ )?)${NO_ES_NINO}\\bme (patea|pateaba)\\b(?! ((la|mi) (barriga|panza|pancita|vejiga|costillas?)|el higado|la loncha|jugando)\\b)`,
   /\b(esposo|marido|pareja|novio|ex|exesposo|expareja|exnovio|papa|padre|padrastro|madrastra|suegro|cunado) (\w+ ){0,2}me (patea|pateo|patearon|pateaba|pateaban)\b/,
   /\bme (casca|casco|cascan|cascaron|cascaba|zarandea|zarandeo|jalonea|jaloneo|jaloneaba)\b/,
-  new RegExp(`(?<!\\b(vida|gym|gimnasio|entreno|entrenamiento|partido|examen|parcial|rutina|clase|semana|equipo) )${NO_ES_NINO}\\bme (dio|da|daba|dieron|daban|pego|pegaba|metio|metieron|mete|metia|zampo) (una |un |unas |unos )?(cachetadas?|bofetadas?|palizas?|golpizas?|punos?|punetazos?|patadas?|golpes|trompadas?)\\b(?! (de (realidad|calor|suerte|nostalgia|ahogado)|en (el |la )?(partido|juego|torneo|tenis|futbol|fut|microfutbol|basquet|baloncesto|voleibol|voley|padel|squash|ajedrez|parques|cartas|domino|clase|entreno|entrenamiento|gym|gimnasio|karate|taekwondo|boxeo|crossfit|carrera|competencia)|jugando)\\b)`),
+  `(?<!\\b(vida|gym|gimnasio|entreno|entrenamiento|partido|examen|parcial|rutina|clase|semana|equipo) )${NO_ES_NINO}\\bme (dio|da|daba|dieron|daban|pego|pegaba|metio|metieron|mete|metia|zampo) (una |un |unas |unos )?(cachetadas?|bofetadas?|palizas?|golpizas?|punos?|punetazos?|patadas?|golpes|trompadas?)\\b(?! (de (realidad|calor|suerte|nostalgia|ahogado)|en (el |la )?(partido|juego|torneo|tenis|futbol|fut|microfutbol|basquet|baloncesto|voleibol|voley|padel|squash|ajedrez|parques|cartas|domino|clase|entreno|entrenamiento|gym|gimnasio|karate|taekwondo|boxeo|crossfit|carrera|competencia)|jugando)\\b)`,
   /\bme (levanto|levanta|levantaba|levantaron|ha levantado|volvio a levantar) la mano\b(?! (para (saludar|despedir)|en (clase|la clase|la reunion)))/,
-  new RegExp(`${NO_ES_ROPA}\\bme (agarro|agarra|agarraba|agarraron|apreto|apretaba|apretaron|cogio|cogia) (\\w+ )?(del|el|por el) cuello\\b`),
-  new RegExp(`${NO_ES_ROPA}\\bme (ahorca|ahorcaba|ahorcan|ahorcaban|intento ahorcar|quiso ahorcar)\\b(?! (el|la|los|las|esta|este|esa|ese|mi|mis) (presupuesto|plata|deuda|deudas|cuentas|arriendo|trabajo|camisa|corbata|ropa|brasier|blusa|vestido|jean|pantalon|tiempo|estres|calor|cuello|collar|bufanda|hipoteca|tarjeta|cuota|cuotas)\\b)`),
+  `${NO_ES_ROPA}\\bme (agarro|agarra|agarraba|agarraron|apreto|apretaba|apretaron|cogio|cogia) (\\w+ )?(del|el|por el) cuello\\b`,
+  `${NO_ES_ROPA}\\bme (ahorca|ahorcaba|ahorcan|ahorcaban|intento ahorcar|quiso ahorcar)\\b(?! (el|la|los|las|esta|este|esa|ese|mi|mis) (presupuesto|plata|deuda|deudas|cuentas|arriendo|trabajo|camisa|corbata|ropa|brasier|blusa|vestido|jean|pantalon|tiempo|estres|calor|cuello|collar|bufanda|hipoteca|tarjeta|cuota|cuotas)\\b)`,
   /\bme (rompio|rompieron|partio|partieron|fracturo|revento|reventaron) (la|el|los) (nariz|boca|labio|cara|costillas?|ceja|dientes?|brazo|mandibula|ojo|frente|pomulo|tabique|clavicula|pierna|mano|dedos?|craneo)\b/,
   /\bme (encierra|encierran|encerraba) (con llave|en (el|la|su|mi))\b(?!.{0,30}\b(tristeza|ansiedad|miedo|depresion|pereza|nostalgia)\b)/,
   /\bme (puso|pusieron|pone|ponia) (un|el|una|su) (cuchillo|arma|pistola|revolver|machete|navaja|tijeras) (en|contra|sobre)\b/,
@@ -562,16 +595,16 @@ export const CRISIS_PATTERNS = [
   // pegar la gripa", "mi bebé me jala del pelo", "me dejó plantada", "sufrí
   // violencia obstétrica" ni "sufro maltrato laboral".
   // "Me dio una pela" (mi mamá cuando era niña, no).
-  /(?<!\b(mama|mami|papa|papi|abuela|abuelo|madre|padre) )\bme (dio|da|daba|dieron|daban|metio|metieron|pego|pegaba) (una |unas )?pelas?\b/,
+  '(?<!\\b(mama|mami|papa|papi|abuela|abuelo|madre|padre) )\\bme (dio|da|daba|dieron|daban|metio|metieron|pego|pegaba) (una |unas )?pelas?\\b',
   /\bme (agarro|agarraron|agarra|agarraba|agarran|cogio|cogieron|cogia) a (golpes|patadas|punos|punetazos|cachetadas|bofetadas|correazos|palo|palazos|machete|machetazos|garrote|trompadas)\b/,
-  new RegExp(`(?<!\\bse )${NO_ES_TUSA}\\bme (volvio|volvieron|vuelve|vuelven) a (pegar|golpear|cascar|ahorcar|empujar|patear|violar|maltratar|amenazar|forzar|abusar)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}`),
+  `(?<!\\bse )${NO_ES_TUSA}\\bme (volvio|volvieron|vuelve|vuelven) a (pegar|golpear|cascar|ahorcar|empujar|patear|violar|maltratar|amenazar|forzar|abusar)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}`,
   /\bme (tira|tiro|tiraron|tiraba|estrella|estrello|estrellaron|estrellaba|empuja|empujo|empujaron|empujaba|lanza|lanzo|lanzaron|avienta|avento|bota|boto|azota|azoto) contra (la|el|las|los) (pared|paredes|piso|suelo|muro|puerta|mesa|carro|nevera|closet|cama|esquina|escaparate|mueble|muebles|armario|vitrina|ventana|espejo|lavamanos|estufa|reja|baranda|escalera|escaleras|cocina|silla|televisor|inodoro|ducha|columna|poste|lavadero|meson|comedor|peinador|tocador)\b/,
-  new RegExp(`${NO_ES_NINO}\\bme (jalo|jala|jalaba|jalaron|jalan|halo|hala|halaba|arrastro|arrastra|arrastraba|arrastraron|agarro|agarra|agarraba|cogio) (del|por el|de los|por los) (pelo|cabello|pelos)\\b`),
-  /(?<!\b(puerta|caida|golpe|vacuna|inyeccion|aguja|examen|cama|mesa|silla|pelota|balon) )\bme (dejo|dejaron|deja|dejaba) (\w+ ){0,2}(morad[ao]s?|moretones|marcas de (golpes|dedos))\b(?! de (la |tanta |tanto )?(risa|reir|frio)\b)/,
+  `${NO_ES_NINO}\\bme (jalo|jala|jalaba|jalaron|jalan|halo|hala|halaba|arrastro|arrastra|arrastraba|arrastraron|agarro|agarra|agarraba|cogio) (del|por el|de los|por los) (pelo|cabello|pelos)\\b`,
+  '(?<!\\b(puerta|caida|golpe|vacuna|inyeccion|aguja|examen|cama|mesa|silla|pelota|balon) )\\bme (dejo|dejaron|deja|dejaba) (\\w+ ){0,2}(morad[ao]s?|moretones|marcas de (golpes|dedos))\\b(?! de (la |tanta |tanto )?(risa|reir|frio)\\b)',
   /\b(moretones|morados|marcas) (\w+ ){0,4}(de|por) (los|sus|tantos) (golpes|punos|patadas|cachetadas|correazos)\b/,
   /\bme (tumbo|tumbaron|tumba|tumbaba) (al piso |al suelo )?(de|a) (un|una) (golpe|puno|punetazo|cachetada|bofetada|patada|empujon|trompada)\b/,
   /\bme (quiso|intento|trato de|quisieron|intentaron) (ahogar|asfixiar|estrangular|quemar|apunalar|acuchillar|envenenar|atropellar)\b/,
-  new RegExp(`${NO_ES_NINO}\\bme (lanzo|lanzaron|tiro|tiraron|avento|aventaron|arrojo|arrojaron|boto|botaron) (un|una|el|la) (plato|vaso|taza|botella|silla|zapato|piedra|ladrillo|cuchillo|olla|celular|control|cenicero|plancha|tabla|palo|martillo) (en|a|contra|por) (la|mi) (cara|cabeza|frente|espalda|boca)\\b`),
+  `${NO_ES_NINO}\\bme (lanzo|lanzaron|tiro|tiraron|avento|aventaron|arrojo|arrojaron|boto|botaron) (un|una|el|la) (plato|vaso|taza|botella|silla|zapato|piedra|ladrillo|cuchillo|olla|celular|control|cenicero|plancha|tabla|palo|martillo) (en|a|contra|por) (la|mi) (cara|cabeza|frente|espalda|boca)\\b`,
   /\b(vivo|sufro|sufri|sufriendo|viviendo|vivi|padezco|soy victima de|fui victima de|victima de) (violencia|maltrato|abuso|(una )?violacion\b(?! (de|a) (los |mis |mi |la |sus |su )?(datos|privacidad|derechos|ley|contrato|normas?|seguridad|transito|cuenta|correo)\b)|agresion sexual|incesto)\b(?! (obstetrica|laboral|academic[oa]|escolar|institucional|politica|en (las|los|la|el) (noticias|series|peliculas|redes|novelas|calles|pais|ciudad|barrio))\b)/,
   /\b(es|se pone|se vuelve|ha sido|se ha puesto|se puso|esta|era) (muy )?(violento|violenta) conmigo\b/,
   // Armas, ácido y agua hirviendo: "me apuntó con una pistola", "me encañonó",
@@ -621,7 +654,7 @@ export const CRISIS_PATTERNS = [
   // "tengo miedo de que me haga algo", "no me deja salir de la casa y me quitó
   // el celular". No activan "la mala suerte me persigue", "me está siguiendo
   // en Instagram", "me acosan los cobradores" ni "recibo amenazas de despido".
-  new RegExp(`(?<!\\b(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|perro|perrito|gato|gatico|sombra|cancion|olor|idea|pensamiento|pensamientos|trabajo|deuda|deudas|fama|karma|estres|tusa|duda|dudas|cobradores?|bancos?) )${NO_ES_NINO}\\bme (persigue|perseguia|persiguen|perseguian|persiguio|persiguieron|esta persiguiendo|estan persiguiendo|acecha|acechaba|acechan|esta acechando|esta siguiendo|estan siguiendo|viene siguiendo|acosa|acosaba|acosan|acosaban|acoso|acosaron|esta acosando|estan acosando)\\b(?!(?<=\\b(nin[oa]s?|hij[oa]s?) me (persigue|perseguia|persiguen)) (por|a) (toda la casa|todas partes|todos lados|todo lado)\\b)(?! ((la|el|los|las|ese|esa|este|esta|mi|mis) (\\w+ )?(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|idea|pensamiento|pensamientos|cancion|olor|fama|karma|estres|tusa|deuda|deudas|trabajo|duda|dudas|cobradores?|bancos?|llamadas|juego)|(en|por) (instagram|tiktok|redes|las redes|twitter|faceboo?k|ig|insta|youtube))\\b)`),
+  `(?<!\\b(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|perro|perrito|gato|gatico|sombra|cancion|olor|idea|pensamiento|pensamientos|trabajo|deuda|deudas|fama|karma|estres|tusa|duda|dudas|cobradores?|bancos?) )${NO_ES_NINO}\\bme (persigue|perseguia|persiguen|perseguian|persiguio|persiguieron|esta persiguiendo|estan persiguiendo|acecha|acechaba|acechan|esta acechando|esta siguiendo|estan siguiendo|viene siguiendo|acosa|acosaba|acosan|acosaban|acoso|acosaron|esta acosando|estan acosando)\\b(?!(?<=\\b(nin[oa]s?|hij[oa]s?) me (persigue|perseguia|persiguen)) (por|a) (toda la casa|todas partes|todos lados|todo lado)\\b)(?! ((la|el|los|las|ese|esa|este|esta|mi|mis) (\\w+ )?(suerte|recuerdo|recuerdos|pasado|culpa|ansiedad|tristeza|miedo|miedos|fantasma|idea|pensamiento|pensamientos|cancion|olor|fama|karma|estres|tusa|deuda|deudas|trabajo|duda|dudas|cobradores?|bancos?|llamadas|juego)|(en|por) (instagram|tiktok|redes|las redes|twitter|faceboo?k|ig|insta|youtube))\\b)`,
   /\borden(es)? de (alejamiento|restriccion|proteccion)\b/,
   /\b(me llegan|me llegaron|me han llegado|recibo|recibi|me mandan|me manda|me envia|me envian|estoy recibiendo|me hace|me hacen|me hizo) (\w+ )?amenazas\b(?! de (despido|demanda|desalojo|cobro|embargo|demandarme|despedirme)\b)/,
   /\b(miedo|temo|terror|panico) (de )?que (me|nos|le) (haga|hagan|vaya a hacer|vayan a hacer) (algo|dano)( malo|(?! malo))\b(?! (la|el|los|las) (vacuna|medicamento|medicina|pastilla|comida|operacion|cirugia|tratamiento|droga|inyeccion|anestesia)\b)/,
@@ -631,12 +664,12 @@ export const CRISIS_PATTERNS = [
   // su padrastro", "a mi vecina le pega su esposo". No activan "mi hija se
   // quiere morir de la risa", "se quiere matar estudiando", "mi abuela se va a
   // morir", "mi hija se corta el pelo" ni "mi papá le pegó la gripa".
-  new RegExp(`\\b(mi|una|la|el) (hija|hijo|amiga|amigo|hermana|hermano|prima|primo|sobrina|sobrino|nieta|nieto|alumna|alumno|mama|papa|madre|padre|esposo|esposa|marido|novio|novia|pareja|companera|vecina|cunada|tia|ex|exnovio|exnovia|exesposo|expareja) (\\w+ ){0,4}se (quiere|queria|quiso|quisiera|piensa|intento|trato de|ha intentado|esta intentando) (matar|suicidar|morir|quitar la vida|ahorcar|envenenar|tirar (de|del|desde|por))\\b${NO_ES_ESFUERZO}${NO_ES_RISA}`),
-  new RegExp(`\\b(mi|una|la|el) (hija|hijo|amiga|amigo|hermana|hermano|prima|primo|sobrina|sobrino|nieta|nieto|alumna|alumno|mama|papa|madre|padre|esposo|esposa|marido|novio|novia|pareja|companera|vecina|cunada|tia|ex|exnovio|exnovia|exesposo|expareja) (\\w+ ){0,4}se (va|iba) a (matar|suicidar|quitar la vida|ahorcar|envenenar|tirar (de|del|desde|por))\\b${NO_ES_ESFUERZO}(?! (en|con) (esa|ese|la|el|una|un) (moto|carro|bici|bicicleta|patineta)\\b)`),
-  new RegExp(`\\b(mi|una|la) (hija|hijo|amiga|amigo|hermana|hermano|prima|primo|sobrina|sobrino|nieta|nieto|alumna|alumno|pareja|novia|novio) (\\w+ ){0,3}se (corta|cortaba|esta cortando|sigue cortando|ha cortado|volvio a cortar|autolesiona|hace cortes)\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`),
-  /(?<!\btoca(r|ba)? )\b(la|lo) (viola|violaba|violo|violaron|violan|abusa|abusaba|abuso|abusaron|manosea|manoseaba) (su|el|un|una|mi|sus)\b/,
-  new RegExp(`\\ble (pega|pegaba|pego|golpea|golpeaba|golpeo|maltrata|maltrataba|viola|violo|violaba) (su|el) (esposo|marido|novio|pareja|ex|papa|padrastro|exesposo|expareja|exnovio)\\b`),
-  new RegExp(`\\b(su|mi) (esposo|marido|novio|pareja|ex|papa|padrastro|exesposo|expareja|exnovio) (\\w+ ){0,2}le (pega|pegaba|pego|golpea|golpeaba|golpeo|maltrata|maltrataba|viola|violo|violaba)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}(?! (un|unos) (grito|gritos|regano)\\b)`),
+  `\\b(mi|una|la|el) (hija|hijo|amiga|amigo|hermana|hermano|prima|primo|sobrina|sobrino|nieta|nieto|alumna|alumno|mama|papa|madre|padre|esposo|esposa|marido|novio|novia|pareja|companera|vecina|cunada|tia|ex|exnovio|exnovia|exesposo|expareja) (\\w+ ){0,4}se (quiere|queria|quiso|quisiera|piensa|intento|trato de|ha intentado|esta intentando) (matar|suicidar|morir|quitar la vida|ahorcar|envenenar|tirar (de|del|desde|por))\\b${NO_ES_ESFUERZO}${NO_ES_RISA}`,
+  `\\b(mi|una|la|el) (hija|hijo|amiga|amigo|hermana|hermano|prima|primo|sobrina|sobrino|nieta|nieto|alumna|alumno|mama|papa|madre|padre|esposo|esposa|marido|novio|novia|pareja|companera|vecina|cunada|tia|ex|exnovio|exnovia|exesposo|expareja) (\\w+ ){0,4}se (va|iba) a (matar|suicidar|quitar la vida|ahorcar|envenenar|tirar (de|del|desde|por))\\b${NO_ES_ESFUERZO}(?! (en|con) (esa|ese|la|el|una|un) (moto|carro|bici|bicicleta|patineta)\\b)`,
+  `\\b(mi|una|la) (hija|hijo|amiga|amigo|hermana|hermano|prima|primo|sobrina|sobrino|nieta|nieto|alumna|alumno|pareja|novia|novio) (\\w+ ){0,3}se (corta|cortaba|esta cortando|sigue cortando|ha cortado|volvio a cortar|autolesiona|hace cortes)\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`,
+  '(?<!\\btoca(r|ba)? )\\b(la|lo) (viola|violaba|violo|violaron|violan|abusa|abusaba|abuso|abusaron|manosea|manoseaba) (su|el|un|una|mi|sus)\\b',
+  `\\ble (pega|pegaba|pego|golpea|golpeaba|golpeo|maltrata|maltrataba|viola|violo|violaba) (su|el) (esposo|marido|novio|pareja|ex|papa|padrastro|exesposo|expareja|exnovio)\\b`,
+  `\\b(su|mi) (esposo|marido|novio|pareja|ex|papa|padrastro|exesposo|expareja|exnovio) (\\w+ ){0,2}le (pega|pegaba|pego|golpea|golpeaba|golpeo|maltrata|maltrataba|viola|violo|violaba)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}(?! (un|unos) (grito|gritos|regano)\\b)`,
   // Pensar en hacerle daño a su bebé o a sus hijos (también después del
   // parto). "No quiero hacerle daño a mis hijos con el divorcio" no.
   /\b(pienso|pense|pensado|pensando|pensamientos|ganas|impulsos?) (\w+ ){0,2}(de|en) (hacerle(s)? dano|lastimar|danar|matar|ahogar|asfixiar|sacudir) (a )?(mi|mis|el|la|los) (bebe|bebes|hijo|hija|hijos|hijas|nino|nina|ninos|recien nacid[oa]|chiquit[oa])\b/,
@@ -661,14 +694,14 @@ export const CRISIS_PATTERNS = [
   // triste", "es mejor desaparecer de su vida", "sería mejor no despertar a la
   // bebé", "es mejor morir de pie", "la muerte de mi abuela fue un alivio para
   // ella" ni "sueño con morir de viejita".
-  new RegExp(`\\b(seria|es|sera|resulta|resultaria) (mas facil|mas sencillo|mejor|lo mejor|lo mas facil|un alivio)( para (todos|todas|ellos|ellas|mi familia|mis hijos))? ${FIN}`),
-  new RegExp(`\\blo (mas facil|mas sencillo|mejor|unico que (quiero|me queda|puedo hacer)) (seria|es|sera) ${FIN}`),
+  `\\b(seria|es|sera|resulta|resultaria) (mas facil|mas sencillo|mejor|lo mejor|lo mas facil|un alivio)( para (todos|todas|ellos|ellas|mi familia|mis hijos))? ${FIN}`,
+  `\\blo (mas facil|mas sencillo|mejor|unico que (quiero|me queda|puedo hacer)) (seria|es|sera) ${FIN}`,
   /\b(la muerte|morir(me)?|matarme|suicidarme|no despertar|no existir|dejar de existir) (seria|sera|va a ser|es (mi|la)( unica)?) (un |una |el |la |mi )?(alivio|descanso|liberacion|bendicion|salida|solucion|opcion|escape)\b(?! (para|de) (ella|el|ellos|ellas|los|las|su|sus|mi (abuel|mama|papa|tia|tio|perr|gat|herman)\w*)\b)/,
-  new RegExp(`\\b(unica|ultima) (salida|opcion|solucion|alternativa) (que (me )?(queda|veo|tengo|encuentro|hay) )?(es|seria|sera) (la muerte|${FIN})`),
+  `\\b(unica|ultima) (salida|opcion|solucion|alternativa) (que (me )?(queda|veo|tengo|encuentro|hay) )?(es|seria|sera) (la muerte|${FIN})`,
   /\bno (veo|hay|tengo|encuentro|le veo) (otra |ninguna )?salida\b.{0,25}\b(solo|sino|mas que|excepto|aparte de) (la muerte|morir(me)?|matarme|suicidarme)\b/,
   /\bsolo (la muerte|morir(me)?|matarme) (me )?((va|van) a |puede |podria |podra )?(me )?(liber\w*|salv\w*|dar(me)? paz|da paz|quit\w*|alivi\w*|ayud\w*)/,
-  new RegExp(`\\b(quisiera|quiero|ojala|desearia|me gustaria) (que )?me (de|diera|diese|pase|pasara|pasase) algo (y|para) (no (volver a )?despertar(me)?\\b${NO_ES_SUENO}|${MORIR_FIN}|me muera|me muriera)`),
-  new RegExp(`\\b(fantaseo|fantaseando|fantaseaba|fantasear|sueno|sonando|sonaba|imagino|imaginando|imaginaba) con (${MORIR_FIN}|(la|mi) muerte\\b(?! (de|del)\\b)|matarme|suicidarme|quitarme la vida|mi funeral|no (existir|despertar)\\b${NO_ES_SUENO})`),
+  `\\b(quisiera|quiero|ojala|desearia|me gustaria) (que )?me (de|diera|diese|pase|pasara|pasase) algo (y|para) (no (volver a )?despertar(me)?\\b${NO_ES_SUENO}|${MORIR_FIN}|me muera|me muriera)`,
+  `\\b(fantaseo|fantaseando|fantaseaba|fantasear|sueno|sonando|sonaba|imagino|imaginando|imaginaba) con (${MORIR_FIN}|(la|mi) muerte\\b(?! (de|del)\\b)|matarme|suicidarme|quitarme la vida|mi funeral|no (existir|despertar)\\b${NO_ES_SUENO})`,
   // "Si no fuera por mis hijos ya me hubiera matado" o "ya no estaría aquí",
   // "mis hijos son lo único que me detiene", "lo único que me mantiene viva".
   // No activan "si no fuera por el casco me hubiera matado" ni "si no fuera
@@ -688,17 +721,17 @@ export const CRISIS_PATTERNS = [
   // tina y ahogarme". No activan "no quiero ahogarme", "tengo miedo de
   // ahogarme", "siento que me voy a ahogar" ni "me quiero ahogar en
   // chocolate".
-  /(?<!\bno )(\bme (quiero|quisiera|quise|queria|dan ganas de|daban ganas de|provoca|intente|trate de|he intentado) ahogar|\b(quiero|quisiera|quise|queria|ganas de|intente|trate de|pienso|pensando en|me provoca|me gustaria) ahogarme)\b(?! (en (un vaso de agua|un mar de|tus|tu|sus|su|el trabajo|trabajo|deudas|tareas|pendientes|problemas|chocolate|helado|comida|vino|cerveza|lagrimas|llanto|mis lagrimas|el llanto|cosas|oficios)|de (risa|calor|tanto|la risa)|con (tanto|tanta|el|la|los|las|mis|este|esta|tantas|tantos|comida|agua)|comiendo|tomando)\b)/,
+  '(?<!\\bno )(\\bme (quiero|quisiera|quise|queria|dan ganas de|daban ganas de|provoca|intente|trate de|he intentado) ahogar|\\b(quiero|quisiera|quise|queria|ganas de|intente|trate de|pienso|pensando en|me provoca|me gustaria) ahogarme)\\b(?! (en (un vaso de agua|un mar de|tus|tu|sus|su|el trabajo|trabajo|deudas|tareas|pendientes|problemas|chocolate|helado|comida|vino|cerveza|lagrimas|llanto|mis lagrimas|el llanto|cosas|oficios)|de (risa|calor|tanto|la risa)|con (tanto|tanta|el|la|los|las|mis|este|esta|tantas|tantos|comida|agua)|comiendo|tomando)\\b)',
   /\b(tina|banera|rio|mar|piscina|lago|laguna|represa|quebrada|agua) (\w+ ){0,2}(y|para|hasta) ahogarme\b/,
   // Pastillas o veneno "para morirme" o "para no despertar", "media caja de
   // acetaminofén", "pensé en hacerlo… ya tengo las pastillas" y las pastillas
   // escondidas. No activan "tomo pastillas para no despertarme en la noche",
   // "me tomé media caja de dolex en la semana" ni "tengo las pastillas
   // escondidas de los niños".
-  new RegExp(`\\b(${PASTILLAS}|pastilla|pepa|veneno|raticida|matarratas|cianuro) (\\w+ ){0,3}(para|pa) (${MORIR_FIN}|matarme|suicidarme|quitarme la vida|no (volver a )?despertar(me)?\\b${NO_ES_SUENO}|dormir(me)? para siempre|no existir|acabar con (todo|mi vida))`),
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (media caja|medio frasco|medio tarro|media tira|medio blister|media botella) de ${PASTILLAS}\\b(?! (en|durante|esta|este|cada|por|para (el|la|los|las|mi|un|una))\\b)`),
-  new RegExp(`\\b(pensar|pienso|pense|pensando|pensado|penso) (\\w+ ){0,2}en hacerlo\\b.{0,100}\\b(${PASTILLAS}|soga|cuerda|cuchilla|navaja|veneno|pistola|revolver)\\b${NO_ES_PLANIFICAR}|\\b(${PASTILLAS}|soga|cuerda|cuchilla|navaja|veneno|pistola|revolver)\\b${NO_ES_PLANIFICAR}.{0,100}\\b(pensar|pienso|pense|pensando|pensado|penso) (\\w+ ){0,2}en hacerlo\\b`),
-  new RegExp(`\\b(tengo|ya tengo|tengo ya|guarde|escondi) (las|mis|unas|todas (las|mis)|muchas|varias) ${PASTILLAS} (escondidas|guardadas para (eso|cuando|el dia|hacerlo))\\b(?! (de|para que (no|los))\\b)`),
+  `\\b(${PASTILLAS}|pastilla|pepa|veneno|raticida|matarratas|cianuro) (\\w+ ){0,3}(para|pa) (${MORIR_FIN}|matarme|suicidarme|quitarme la vida|no (volver a )?despertar(me)?\\b${NO_ES_SUENO}|dormir(me)? para siempre|no existir|acabar con (todo|mi vida))`,
+  `\\b(tomar(me)?|tome|tomo|tragar(me)?|trague|trago) (media caja|medio frasco|medio tarro|media tira|medio blister|media botella) de ${PASTILLAS}\\b(?! (en|durante|esta|este|cada|por|para (el|la|los|las|mi|un|una))\\b)`,
+  `\\b(pensar|pienso|pense|pensando|pensado|penso) (\\w+ ){0,2}en hacerlo\\b.{0,100}\\b(${PASTILLAS}|soga|cuerda|cuchilla|navaja|veneno|pistola|revolver)\\b${NO_ES_PLANIFICAR}|\\b(${PASTILLAS}|soga|cuerda|cuchilla|navaja|veneno|pistola|revolver)\\b${NO_ES_PLANIFICAR}.{0,100}\\b(pensar|pienso|pense|pensando|pensado|penso) (\\w+ ){0,2}en hacerlo\\b`,
+  `\\b(tengo|ya tengo|tengo ya|guarde|escondi) (las|mis|unas|todas (las|mis)|muchas|varias) ${PASTILLAS} (escondidas|guardadas para (eso|cuando|el dia|hacerlo))\\b(?! (de|para que (no|los))\\b)`,
   // Más violencia dicha de otra forma: "me tiró por las escaleras", "llevo
   // años aguantando golpes", "me agarró duro del brazo y me dejó marcas",
   // "tuvimos relaciones sin mi consentimiento", "me tocó mis partes", "me
@@ -710,16 +743,16 @@ export const CRISIS_PATTERNS = [
   // "mi mamá no me deja salir y me quitó el celular".
   /\bme (tiro|tiraron|tiraba|empujo|empujaron|empujaba|lanzo|lanzaron|boto|botaron|avento|aventaron|arrojo|arrojaron|tumbo|tumbaron) (\w+ )?(por|de|desde) (las|la) escaleras?\b/,
   /\b(aguantando|aguanto|aguante|aguantaba|soportando|soporto|soporte|soportaba|aguantar|soportar) (sus |los |tantos |muchos |esos |mas )?(golpes|palizas|maltratos?|cachetadas|patadas|punos|punetazos|correazos)\b(?! (de la vida|del destino|de la suerte|bajos|en (el|la) (boxeo|ring|entreno|entrenamiento|gym|gimnasio|clase|partido|cancha))\b)/,
-  new RegExp(`${NO_ES_NINO}\\bme (agarro|agarra|agarraba|apreto|apretaba|cogio|cogia|jalo|jaloneo|zarandeo|sacudio|torcio|pellizco) (\\w+ ){0,3}(del|el|los|las|de los|de las|por el|por los|de la) (brazos?|munecas?|cuello|hombros?|piernas?|cara|mandibula|pelo|cabello)\\b.{0,40}\\bme (dejo|dejaron|deja|dejaba) (\\w+ ){0,2}(marcas|moretones|morad[ao]s?|rojo|roja|marcad[ao]s?)\\b`),
-  new RegExp(`${NO_ES_NINO}\\bme (agarro|agarra|agarraba|agarraron|apreto|apretaba|cogio|cogia|jalo|jaloneo|zarandeo|sacudio|torcio) (duro|fuerte|con fuerza|a la fuerza|bruscamente|violentamente) (del|de los|por el|por los|de la|el|los|la) (brazos?|munecas?|cuello|pelo|cabello|cara|mandibula)\\b`),
+  `${NO_ES_NINO}\\bme (agarro|agarra|agarraba|apreto|apretaba|cogio|cogia|jalo|jaloneo|zarandeo|sacudio|torcio|pellizco) (\\w+ ){0,3}(del|el|los|las|de los|de las|por el|por los|de la) (brazos?|munecas?|cuello|hombros?|piernas?|cara|mandibula|pelo|cabello)\\b.{0,40}\\bme (dejo|dejaron|deja|dejaba) (\\w+ ){0,2}(marcas|moretones|morad[ao]s?|rojo|roja|marcad[ao]s?)\\b`,
+  `${NO_ES_NINO}\\bme (agarro|agarra|agarraba|agarraron|apreto|apretaba|cogio|cogia|jalo|jaloneo|zarandeo|sacudio|torcio) (duro|fuerte|con fuerza|a la fuerza|bruscamente|violentamente) (del|de los|por el|por los|de la|el|los|la) (brazos?|munecas?|cuello|pelo|cabello|cara|mandibula)\\b`,
   /\b(relaciones|sexo|intimidad) (\w+ ){0,4}sin (mi )?(consentimiento|permiso|que yo (quisiera|queria))\b/,
   /\bme (toca|toco|tocan|tocaron|tocaba|tocaban|manosea|manoseo|manosearon|manoseaba) (mis|las|sus) (partes( intimas| privadas)?|zonas intimas|genitales|vagina|parte intima)\b(?! (y|cuando|para|al) (me )?(arde|ardia|duele|dolia|pica|picaba|revisar(me)?|lavar(me)?|limpiar(me)?|siento (un|una|bolitas|algo))\b)/,
   /\b(agred|atac|violent)\w* sexualmente\b/,
   /\bme ((va|van|iba|iban) a |(quiere|quieren|quiso|quisieron|intento|trato de) )(echar|tirar|lanzar|botar|vaciar) (\w+ )?(acido|agua hirviendo|aceite hirviendo|gasolina|acpm)\b(?! (hialuronico|salicilico|glicolico|folico|retinoico|ascorbico|mandelico|azelaico|lactico|kojico|tranexamico|al|a la|en el|en la)\b)/,
-  new RegExp(`\\b(dice|dijo|decia|amenaza|amenazo|amenazaba|jura|juro|escribio|grita|grito) que (si (\\w+ ){1,5})?se (va|iba) a (matar|suicidar|quitar la vida|ahorcar|envenenar|tirar (de|del|desde|por))\\b${NO_ES_ESFUERZO}(?! (en|con) (esa|ese|la|el|una|un) (moto|carro|bici|bicicleta|patineta)\\b)`),
+  `\\b(dice|dijo|decia|amenaza|amenazo|amenazaba|jura|juro|escribio|grita|grito) que (si (\\w+ ){1,5})?se (va|iba) a (matar|suicidar|quitar la vida|ahorcar|envenenar|tirar (de|del|desde|por))\\b${NO_ES_ESFUERZO}(?! (en|con) (esa|ese|la|el|una|un) (moto|carro|bici|bicicleta|patineta)\\b)`,
   /\bsi (no )?(vuelvo|regreso|lo dejo|lo deje|lo dejaba|termino|terminamos|me voy|me separo|lo perdono|me caso|estoy|estamos|lo busco|le contesto|le hablo|lo denuncio)\b (\w+ ){0,4}se (mata|suicida|mataria|suicidaria|va a matar|va a suicidar|quita la vida|va a quitar la vida)\b/,
-  new RegExp(`\\b${PAREJA}\\b.{0,40}\\bno me deja(ba|n)? salir\\b.{0,40}\\bme (quito|quita|quitaba|esconde|escondio|escondia|rompio|revisa|reviso) (el|mi|los|mis) (celular|telefono|documentos|pasaporte|cedula|plata|dinero|llaves|tarjetas?)\\b`),
-  new RegExp(`\\b${PAREJA}\\b.{0,40}\\bme (quito|quita|quitaba|esconde|escondio|escondia|rompio) (el|mi|los|mis) (celular|telefono|documentos|pasaporte|cedula|plata|dinero|llaves|tarjetas?)\\b.{0,40}\\bno me deja(ba|n)? salir\\b`),
+  `\\b${PAREJA}\\b.{0,40}\\bno me deja(ba|n)? salir\\b.{0,40}\\bme (quito|quita|quitaba|esconde|escondio|escondia|rompio|revisa|reviso) (el|mi|los|mis) (celular|telefono|documentos|pasaporte|cedula|plata|dinero|llaves|tarjetas?)\\b`,
+  `\\b${PAREJA}\\b.{0,40}\\bme (quito|quita|quitaba|esconde|escondio|escondia|rompio) (el|mi|los|mis) (celular|telefono|documentos|pasaporte|cedula|plata|dinero|llaves|tarjetas?)\\b.{0,40}\\bno me deja(ba|n)? salir\\b`,
   // Despedidas, carga y legado: "adiós para siempre", "ya no voy a estar más
   // para molestar", "ya no voy a molestar más a nadie", "van a estar mejor
   // cuando yo no esté", "cuiden a mi perrito cuando ya no esté", "para qué
@@ -737,12 +770,12 @@ export const CRISIS_PATTERNS = [
   /\bpara que sigo (aqui|aca|en este mundo|con vida)\b(?! (en (el|la|este|esta|ese|esa) (trabajo|empresa|ciudad|pais|relacion|casa|grupo|oficina|universidad|colegio|barrio|chat|app|aplicacion)|con (el|ella|este|esta|ese|esa)|trabajando|esperando|estudiando|pagando)\b)/,
   /\bno (veo|se|encuentro) (para que|por que|por que razon) seguir\b(?! (con|en|estudiando|trabajando|intentando|insistiendo|pagando|esperando|aqui)\b)/,
   /\b(manana|pronto|esta noche|hoy|en unos dias) ya no (voy a estar|estare)( (aqui|mas|para nadie))?(?=$| (y|pero|perdon|perdonen|perdonenme|los quiero|las quiero|gracias|adios)\b)/,
-  /(?<!\b((en|por) (ese|esa|este|esta|el|la|esos|esas|esa|ese)( \w+)?|ahi|alla|aca|aqui) )\b(no|nunca( mas)?) me (van|vas|volveran|volveras|vuelven) a (volver a )?ver( (nunca|nunca mas|mas|jamas))?(?=$| (y|pero|perdon|los quiero|las quiero|gracias|adios)\b)/,
+  '(?<!\\b((en|por) (ese|esa|este|esta|el|la|esos|esas|esa|ese)( \\w+)?|ahi|alla|aca|aqui) )\\b(no|nunca( mas)?) me (van|vas|volveran|volveras|vuelven) a (volver a )?ver( (nunca|nunca mas|mas|jamas))?(?=$| (y|pero|perdon|los quiero|las quiero|gracias|adios)\\b)',
   /\b(ya )?(regale|reparti|done|di) (todas )?(mis cosas|todo lo que tengo|todo lo que tenia|mis pertenencias)\b(?! (de|del|viejas|que no|a la fundacion|para la mudanza|porque me (mudo|voy a mudar|cambio))\b)/,
   /\bno (aguanto|puedo|soporto) mas\b.{0,40}\bquiero que (esto|todo esto|todo|ya todo) (se acabe|se termine|termine|acabe)\b(?! (bien|pronto|rapido|para poder)\b)/,
   /\bquiero que (esto|todo esto|todo|ya todo) (se acabe|se termine|termine|acabe)\b(?! (bien|pronto|rapido|para poder)\b).{0,40}\bno (aguanto|puedo|soporto) mas\b/,
   /\b(dejare|voy a dejar|dejaria) de ser (una carga|un estorbo|un problema|una molestia)( para (nadie|todos|todas|ustedes|ellos|ellas|mi familia))?(?=$| (y|pero|ya|pronto)\b)/,
-  new RegExp(`\\bno (puedo|aguanto|soporto) mas con (mi|esta) vida\\b${NO_ES_ETAPA}`),
+  `\\bno (puedo|aguanto|soporto) mas con (mi|esta) vida\\b${NO_ES_ETAPA}`,
   // Amenazas en gerundio y las del conflicto: "me están amenazando (de
   // muerte)", "me llegó un panfleto amenazándome", "salí en un panfleto", "me
   // declararon objetivo militar", "me dieron 24 horas para irme del barrio",
@@ -759,9 +792,9 @@ export const CRISIS_PATTERNS = [
   /\b(me|nos|soy|somos|quede|quedamos|estoy|estamos) (\w+ ){0,3}objetivos? militar(es)?\b/,
   /\b(me|nos) (dieron|dio|dan|han dado|habian dado|daban) (\w+ ){0,2}(horas|dias|minutos) (para|pa) (irme|irnos|salir|salirme|salirnos|largarme|largarnos|abandonar|desocupar|desaparecer)\b(?=.{0,40}\b(barrio|pueblo|vereda|municipio|ciudad|region|zona|pais|territorio|finca|comuna|sector|o (me|nos) (matan|mataban|desaparecen|van a matar))\b|$| (y|o|porque|si no|sino|de aqui|de aca|de la casa|de mi casa|ya)\b)/,
   /\b(irme|irnos|salir|largarme|largarnos|pagar|pague|pagamos|vender|desocupar|fuera|fueramos|vaya|vayamos|largara|largaramos|saliera|salieramos|pagara|pagaramos|vendiera|desocupara|callara|callaramos) (\w+ ){0,5}o (si no |sino )?(me|nos) (matan|mataban|mataria|matarian|mataba|van a matar|iban a matar|desaparecen|desaparecian|van a desaparecer|iban a desaparecer|pelan|pelaban|quiebran|quebraban|pican|picaban)\b/,
-  new RegExp(`\\b(me|nos) (va|van|iba|iban|quiere|quieren|queria|querian|piensan|pensaban|amenazan con|amenazaron con)( a)? desaparecer\\b${NO_ES_REDES}${NO_ES_UN_RATO}(?! (el|la|los|las|mis|mi|esas|esos|estas|estos|ese|esa|este|esta|tu|tus|su|sus)\\b| de (la|el|los|las) (nomina|lista|planilla|empresa|base de datos|sistema|programa|proyecto|equipo|turno|horario|convocatoria)\\b)`),
-  new RegExp(`\\b${ARMADOS} (\\w+ ){0,4}(me|nos|lo|la|los|las|le|les) (amenaz\\w*|tienen amenazad\\w*|quieren matar|van a matar|iban a matar|desplazaron|quieren reclutar|reclutaron|cobran vacuna|piden vacuna|extorsion\\w*)\\b(?! con (no|contarle|decirle|demandarme|despedirme|sacarme|echarme del (trabajo|grupo))\\b)`),
-  new RegExp(`\\bme (amenaz\\w*|quieren matar|extorsion\\w*|reclutaron|quieren reclutar|desplazaron|sacaron) (\\w+ ){0,2}${ARMADOS}\\b`),
+  `\\b(me|nos) (va|van|iba|iban|quiere|quieren|queria|querian|piensan|pensaban|amenazan con|amenazaron con)( a)? desaparecer\\b${NO_ES_REDES}${NO_ES_UN_RATO}(?! (el|la|los|las|mis|mi|esas|esos|estas|estos|ese|esa|este|esta|tu|tus|su|sus)\\b| de (la|el|los|las) (nomina|lista|planilla|empresa|base de datos|sistema|programa|proyecto|equipo|turno|horario|convocatoria)\\b)`,
+  `\\b${ARMADOS} (\\w+ ){0,4}(me|nos|lo|la|los|las|le|les) (amenaz\\w*|tienen amenazad\\w*|quieren matar|van a matar|iban a matar|desplazaron|quieren reclutar|reclutaron|cobran vacuna|piden vacuna|extorsion\\w*)\\b(?! con (no|contarle|decirle|demandarme|despedirme|sacarme|echarme del (trabajo|grupo))\\b)`,
+  `\\bme (amenaz\\w*|quieren matar|extorsion\\w*|reclutaron|quieren reclutar|desplazaron|sacaron) (\\w+ ){0,2}${ARMADOS}\\b`,
   /\b(me|nos) (estan |esta |siguen |sigue )?(extorsionando|extorsionan|extorsiono|extorsionaron|extorsiona|cobrando vacuna|pidiendo vacuna|exigiendo vacuna|cobran vacuna|cobraban vacuna|piden vacuna|pidieron vacuna|exigen vacuna)\b(?! con (el|la|los|las) (precio|precios|arriendo|cuenta|factura|matricula|cuota|intereses|cobros|multas)\b)/,
   // El plan con día: "el viernes me mato", "este fin de semana me mato", "en
   // navidad me mato", "el 31 me mato", "cuando se vayan todos me mato". Y los
@@ -770,29 +803,29 @@ export const CRISIS_PATTERNS = [
   // mato estudiando", "el sábado me mato en el gym", "el viernes me mató el
   // tráfico", "ya tengo el veneno para las cucarachas" ni "busco cómo matar
   // las cucarachas".
-  new RegExp(`\\b(${CUANDO_PLAN}) (yo )?me (mato|suicido)\\b${NO_ES_ME_MATO}${NO_ES_AJETREO}(?! de (la )?risa\\b)`),
+  `\\b(${CUANDO_PLAN}) (yo )?me (mato|suicido)\\b${NO_ES_ME_MATO}${NO_ES_AJETREO}(?! de (la )?risa\\b)`,
   /\b(ya (tengo|consegui|compre)|tengo (listo|preparado|guardado|escondido)) (el|un|una|la) (veneno|raticida|matarratas|cianuro|soda caustica)\b(?! (para|contra) (las |los |el |la |mis |mi )?(ratas|ratones|cucarachas|hormigas|plagas|moscas|zancudos|pulgas|garrapatas|maleza|jardin|finca|matas|plantas|perro|gato|casa|cocina)\b)/,
   /\b(busque|busco|buscando|buscar|buscaba|averigue|averiguo|averiguando|averiguar|investigue|investigando|investigar|gogle|gogleando|pregunte|preguntando|vi videos|viendo videos|lei|leyendo) (\w+ ){0,6}(formas?|maneras?|metodos?|como|tutoriales?) (de |para |se puede )?(morir(me|se)?|matarme|matarse|suicidarme|suicidarse|ahorcarme|ahorcarse|envenenarme|envenenarse|quitarme la vida|quitarse la vida|cortarme las venas|cortarse las venas|no despertar|hacer un nudo de horca)\b(?! de (la )?(risa|verguenza)\b| en (la|el) (antiguedad|edad media|historia|guerra|serie|pelicula|libro|juego|videojuego)\b)/,
   /\b(tomarmelas|tragarmelas|tomarmelos|tragarmelos) tod[ao]s\b(?! (en|durante|este|esta|cada|por|antes|despues|segun|como|al)\b)/,
   // Límpido y Clorox, y el veneno en vaso, frasco o botella: "me voy a tomar
   // el límpido", "tomé clorox", "me tomé un vaso de cloro". No activan "limpié
   // el baño con límpido" ni "tomo el límpido de la repisa y lo echo".
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tomado|tomaria|tomare|tragar(me)?|trague|trago|beber(me)?|bebo|bebi|bebere|beberia|bebido) ${CUANTO_VENENO}${VENENOS}\\b${NO_ES_ASEO}`),
+  `\\b(tomar(me)?|tome|tomo|tomado|tomaria|tomare|tragar(me)?|trague|trago|beber(me)?|bebo|bebi|bebere|beberia|bebido) ${CUANTO_VENENO}${VENENOS}\\b${NO_ES_ASEO}`,
   // Pastillas en cantidad, dicho como se dice en Colombia: "el tarro de
   // pastas", "una tableta entera", "toda la tira", "un blíster de rivotril",
   // "un poconón de pastillas", "el doble de pastillas", "a propósito". No
   // activan "me tomé dos tabletas de acetaminofén", "me tomé un sobre de
   // acetaminofén" ni "me tomé toda la tableta de chocolate".
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago|me meti|meterme) ((el|un|todo el) (tarro|frasco|blister|paquete|pastillero)( entero| completo)?|(el|un|todo el) (sobre|empaque) (entero|completo)|toda la (tableta|tira|lamina|caja|cajita|bolsa|bolsita)|(una|la) (tableta|tira|lamina|caja|cajita|bolsa|bolsita) (entera|completa)|(una|la) (lamina|cajita|bolsa|bolsita)|(\\d+|dos|tres|cuatro|cinco|varias|muchas) (tabletas|laminas|tiras|blisters|frascos|tarros|cajas) (enteras|completas|enteros|completos)|(un|una) (poconon|pocoton|jurgo|jurgonon|mononton|montonon|mundo|pilo|pila|manotada|sarta|cantidad|bolsa|punadito|punado)|(el|la) (doble|triple|cuadruple)) de (la )?${PASTILLAS}\\b(?! (del|de la|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b)`),
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago) (toda la (tableta|tira|lamina)|(la|una) (tableta|tira|lamina) (entera|completa)|(el|un) (tarro|frasco|blister|paquete|pastillero) (entero|completo)|todo el (paquete|pastillero)|(el|la) (doble|triple) de la dosis)\\b${NO_ES_COMIDA}`),
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago) (\\w+ ){0,5}(${PASTILLAS}|pastilla|pepas?|${VENENOS}) (\\w+ ){0,3}a proposito\\b`),
+  `\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago|me meti|meterme) ((el|un|todo el) (tarro|frasco|blister|paquete|pastillero)( entero| completo)?|(el|un|todo el) (sobre|empaque) (entero|completo)|toda la (tableta|tira|lamina|caja|cajita|bolsa|bolsita)|(una|la) (tableta|tira|lamina|caja|cajita|bolsa|bolsita) (entera|completa)|(una|la) (lamina|cajita|bolsa|bolsita)|(\\d+|dos|tres|cuatro|cinco|varias|muchas) (tabletas|laminas|tiras|blisters|frascos|tarros|cajas) (enteras|completas|enteros|completos)|(un|una) (poconon|pocoton|jurgo|jurgonon|mononton|montonon|mundo|pilo|pila|manotada|sarta|cantidad|bolsa|punadito|punado)|(el|la) (doble|triple|cuadruple)) de (la )?${PASTILLAS}\\b(?! (del|de la|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b)`,
+  `\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago) (toda la (tableta|tira|lamina)|(la|una) (tableta|tira|lamina) (entera|completa)|(el|un) (tarro|frasco|blister|paquete|pastillero) (entero|completo)|todo el (paquete|pastillero)|(el|la) (doble|triple) de la dosis)\\b${NO_ES_COMIDA}`,
+  `\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago) (\\w+ ){0,5}(${PASTILLAS}|pastilla|pepas?|${VENENOS}) (\\w+ ){0,3}a proposito\\b`,
   // Un lugar alto con la postura o con "por": "estoy parada en el puente
   // pensando en tirarme", "ando por el puente de la 80 pensando en tirarme",
   // "estoy sentada en la terraza pensando en saltar"; la carrilera, la azotea,
   // el gas, el carro encendido y dejarse morir. No activan "estoy parada en
   // el puente esperando el bus", "estoy en la azotea colgando la ropa", "abrí
   // el gas para cocinar" ni "voy a dejar de comer harinas".
-  new RegExp(`\\b(estoy|ando|sigo|me subi|subi|me pare|me sente|me monte|me trepe|me asome)( (parad[ao]|sentad[ao]|montad[ao]|subid[ao]|trepad[ao]|asomad[ao]|sol[ao]|aqui|aca|ahora|ya|otra vez))? (en|a|al|por|sobre|encima de|encima del|arriba de|arriba del|al borde de|al borde del|en el borde de|en el borde del|en la orilla de|en la orilla del|en la baranda de|en la baranda del|en la punta de|en la punta del) (el |la |un |una |lo alto de(l)? (el |la )?)?${SITIO_ALTO}\\b(?! festivo).{0,60}${TIRARME}\\b(?! (en|la|el|los|las|un|una|a (la|el) (cama|piscina|sofa|hamaca|agua|mar)|a \\w+(ar|er|ir))\\b)`),
+  `\\b(estoy|ando|sigo|me subi|subi|me pare|me sente|me monte|me trepe|me asome)( (parad[ao]|sentad[ao]|montad[ao]|subid[ao]|trepad[ao]|asomad[ao]|sol[ao]|aqui|aca|ahora|ya|otra vez))? (en|a|al|por|sobre|encima de|encima del|arriba de|arriba del|al borde de|al borde del|en el borde de|en el borde del|en la orilla de|en la orilla del|en la baranda de|en la baranda del|en la punta de|en la punta del) (el |la |un |una |lo alto de(l)? (el |la )?)?${SITIO_ALTO}\\b(?! festivo).{0,60}${TIRARME}\\b(?! (en|la|el|los|las|un|una|a (la|el) (cama|piscina|sofa|hamaca|agua|mar)|a \\w+(ar|er|ir))\\b)`,
   /\b(estoy|ando|sigo|me subi|subi)( (parad[ao]|sentad[ao]|montad[ao]|subid[ao]|sol[ao]))? (en|a) (la |el )?(azotea|cornisa|techo)( de(l)? (el |la )?(edificio|torre|puente|hospital|centro comercial|conjunto|universidad|colegio|clinica|hotel|casa))?(?=$| (y (no|nadie|me quiero|quiero|voy a (tirar|saltar|lanzar)|pienso|estoy pensando)|pensando|mirando (hacia |para )?(abajo|el vacio)|viendo (hacia |para )?(abajo|el vacio)|ya no (puedo|aguanto)|de verdad|en serio|ahora|otra vez|de nuevo|sola|solo|llorando)\b)/,
   /\b(carrilera|carrileras|rieles|riel|via del tren|vias del tren|via del metro|linea del tren|linea del metro|via ferrea|paso a nivel)\b.{0,40}\b((esperando|espero|a esperar|esperar|hasta que (pase|venga|llegue)|a que (pase|venga|llegue)|que pase) (\w+ ){0,3}(tren|metro)|(esperando|espero|a esperar) (a )?que (pase|venga|llegue))\b/,
   /\b(me (voy a |quiero |pienso )?(acostar|acoste|acuesto|tirar|tire|tiro|echar|eche|parar|pare|sentar|sente|quedar|quede)|acostarme|tirarme|echarme|pararme|sentarme|quedarme) (en|sobre|entre) (la|los|las|el) (carrilera|rieles|via del tren|vias del tren|via del metro|via ferrea|linea del tren)\b(?! a (tomar|sacar|hacer) (fotos?|videos?|una foto|selfies?)\b)/,
@@ -800,24 +833,24 @@ export const CRISIS_PATTERNS = [
   /\b(abri|abro|he abierto|ya abri) (el|la|las|los) (gas|llaves? del gas|perillas? del gas)(?=$| (y (me|nos) (encerre|encierro|acoste|acuesto|dormi|duermo)|ya|para (no|morir|matarme|dormir(me)? para siempre)|sin prender|toda la noche)\b)/,
   /\b(voy a|quiero|pienso|me provoca|ganas de) dejar (el|la|las) (gas|llaves? del gas) abiert[oa]s?\b/,
   /\b(encerrar(me)?|me (\w+ ){0,2}encerrar|me encerre|me encierro|encerrarnos|nos encerramos)\b.{0,40}\b(gas (abierto|prendido|encendido)|el gas|motor (prendido|encendido|andando|en marcha)|carro (prendido|encendido)|carbon (prendido|encendido)|brasero|monoxido)\b/,
-  new RegExp(`(\\bdejarme|\\bme (\\w+ ){0,2}dej(ar|o|e|are|aria)) morir\\b(?! de (la )?(risa|ternura|verguenza)\\b)${NO_ES_ESFUERZO}`),
+  `(\\bdejarme|\\bme (\\w+ ){0,2}dej(ar|o|e|are|aria)) morir\\b(?! de (la )?(risa|ternura|verguenza)\\b)${NO_ES_ESFUERZO}`,
   /\b(dejar de comer|deje de comer|dejo de comer|dejando de comer|no (voy a )?(comer|tomar agua|beber agua)( nada| mas)?|matarme de hambre|ayunar)\b.{0,20}\b(hasta|para) (morir(me)?|que me muera|que me muriera|matarme|desaparecer)\b/,
   // Miedo a que la mate la pareja o un hijo: "tengo miedo de que mi esposo me
   // mate", "me da miedo que mi novio me mate", "tengo miedo que mi ex me haga
   // algo", "le tengo miedo a mi propio hijo", "un día de estos me mata". No
   // activan "tengo miedo de que mi esposo me deje", "le tengo miedo a las
   // cucarachas" ni "le tengo miedo a mi jefe".
-  new RegExp(`\\b(miedo|temo|temor|terror|panico|me aterra|me asusta) (de )?que (\\w+ ){0,3}(mi |el |ese |este |su )?(propi[oa] )?${AGRESOR} (\\w+ ){0,2}me (mate|maten|vaya a matar|vayan a matar|quiera matar|haga algo|hagan algo|haga dano|hagan dano|lastime|pegue|golpee?|viole|ahorque|ataque|desaparezca|queme|eche acido|vuelva a (pegar|golpear|violar|tocar|lastimar|hacer dano|ahorcar|atacar|buscar))\\b(?! (con|en) (mentiras|chismes|rumores|comentarios|palabras|redes|lo que (dice|diga)|eso|la (custodia|demanda|plata))\\b| (la|el) (vida imposible|gripa|gripe|covid)\\b)${NO_ES_REGANO}`),
-  new RegExp(`\\b(miedo|temo|terror|panico|me aterra) (de )?que (me|nos) (vuelva|vuelvan) a (pegar|golpear|violar|tocar|lastimar|hacer dano|ahorcar|atacar|encerrar|amenazar|maltratar)\\b${NO_ES_GRIPA}`),
+  `\\b(miedo|temo|temor|terror|panico|me aterra|me asusta) (de )?que (\\w+ ){0,3}(mi |el |ese |este |su )?(propi[oa] )?${AGRESOR} (\\w+ ){0,2}me (mate|maten|vaya a matar|vayan a matar|quiera matar|haga algo|hagan algo|haga dano|hagan dano|lastime|pegue|golpee?|viole|ahorque|ataque|desaparezca|queme|eche acido|vuelva a (pegar|golpear|violar|tocar|lastimar|hacer dano|ahorcar|atacar|buscar))\\b(?! (con|en) (mentiras|chismes|rumores|comentarios|palabras|redes|lo que (dice|diga)|eso|la (custodia|demanda|plata))\\b| (la|el) (vida imposible|gripa|gripe|covid)\\b)${NO_ES_REGANO}`,
+  `\\b(miedo|temo|terror|panico|me aterra) (de )?que (me|nos) (vuelva|vuelvan) a (pegar|golpear|violar|tocar|lastimar|hacer dano|ahorcar|atacar|encerrar|amenazar|maltratar)\\b${NO_ES_GRIPA}`,
   /\b(miedo|terror|panico|temor) (de|a) (mi|mis) (propi[oa]s? )?(hij[oa]s?|hijastr[oa]|herman[oa]|cunad[oa]|suegr[oa]|tio|tia|primo|abuel[oa]|papa|padre|mama|madre|padrastro|madrastra|niet[oa]|yerno|nuera|vecino|exesposo|exnovio|expareja|esposa|novia|companero)\b(?! (se|le|lo|la|no|pierda|vaya|salga|caiga|enferme|repruebe|pase|quede|sufra|muera|entere|sepa|descubra|maneje|conduzca)\b)/,
-  new RegExp(`${NO_ES_COSA}\\b(un|algun|cualquier) dia( de estos)? ((mi|el|ese|este) ${AGRESOR} |el |ella |ellos )?me (mata|matan|termina matando|acaba matando|va a terminar matando)\\b(?! (el|la|los|las|este|esta|ese|esa|mi|mis|tanto|tanta) \\w+| (de|del|con) (un |una |la |el |tanto |tanta |sus |tus |esos |esas |esa |ese )?(susto|risa|pena|verguenza|preocupacion|angustia|disgusto|rabia|colera|ira|estres|ternura|amor|nervios|oso|trabajo|cansancio|chistes?|ocurrencias?|cuentos?|bromas?|historias?|comentarios?|regalos?|detalles?|besos?|abrazos?)\\b| (estudiando|trabajando|corriendo|haciendo)\\b)`),
+  `${NO_ES_COSA}\\b(un|algun|cualquier) dia( de estos)? ((mi|el|ese|este) ${AGRESOR} |el |ella |ellos )?me (mata|matan|termina matando|acaba matando|va a terminar matando)\\b(?! (el|la|los|las|este|esta|ese|esa|mi|mis|tanto|tanta) \\w+| (de|del|con) (un |una |la |el |tanto |tanta |sus |tus |esos |esas |esa |ese )?(susto|risa|pena|verguenza|preocupacion|angustia|disgusto|rabia|colera|ira|estres|ternura|amor|nervios|oso|trabajo|cansancio|chistes?|ocurrencias?|cuentos?|bromas?|historias?|comentarios?|regalos?|detalles?|besos?|abrazos?)\\b| (estudiando|trabajando|corriendo|haciendo)\\b)`,
   // Violencia sexual contra una hija o un niño, y lo que la obligaron a
   // hacerle: "mi padrastro toca a mi hija", "un señor tocó a mi hija", "su tío
   // la toca", "le tocó las partes a mi hija", "violaron a mi hija", "me obligó
   // a hacerle cosas sexuales". No activan "mi hija toca el piano", "le toca a
   // mi hija lavar los platos", "mi tío toca la guitarra con mi hija" ni "me
   // obliga a hacerle el almuerzo".
-  new RegExp(`(?<!\\b(me|te|le|les|nos|se) )\\b(toca|toco|tocaba|tocaban|tocan|tocaron|ha tocado|esta tocando|manosea|manoseo|manoseaba|manosean|manosearon|abusa|abuso|abusaba|abusan|abusaron|ha abusado|esta abusando|viola|violo|violaba|violan|violaron|ha violado) a (mi|mis|una|nuestra|nuestro|nuestras|nuestros|su|sus|la|el) (\\w+ )?${MENOR}\\b(?! (\\w+ )?\\w+(ar|er|ir)(la|lo|las|los|le|les)?\\b| (la|el) (guitarra|piano|cancion|musica|puerta|timbre|turno|tema|bateria|violin|tambor|frente)\\b| (en|por|de) (el|la|los|las) (hombros?|brazos?|manos?|cabeza|frente|espalda)\\b)`),
+  `(?<!\\b(me|te|le|les|nos|se) )\\b(toca|toco|tocaba|tocaban|tocan|tocaron|ha tocado|esta tocando|manosea|manoseo|manoseaba|manosean|manosearon|abusa|abuso|abusaba|abusan|abusaron|ha abusado|esta abusando|viola|violo|violaba|violan|violaron|ha violado) a (mi|mis|una|nuestra|nuestro|nuestras|nuestros|su|sus|la|el) (\\w+ )?${MENOR}\\b(?! (\\w+ )?\\w+(ar|er|ir)(la|lo|las|los|le|les)?\\b| (la|el) (guitarra|piano|cancion|musica|puerta|timbre|turno|tema|bateria|violin|tambor|frente)\\b| (en|por|de) (el|la|los|las) (hombros?|brazos?|manos?|cabeza|frente|espalda)\\b)`,
   /\b(padrastro|tio|primo|abuelo|cunado|suegro|vecino|hermanastro|profesor|profe|entrenador|papa|padre|esposo|marido|novio|pareja|senor|hombre|man|tipo|(novio|esposo|pareja|marido) de (mi|su) (mama|madre|abuela|tia|hermana)) (\w+ ){0,2}(la|lo|las|los) (toca|tocaba|toco|tocan|tocaban|manosea|manoseaba|manoseo|viola|violaba|violo|abusa|abusaba|abuso)\b(?! (muy |tan )?(bien|mal|bonito|lindo|precioso|duro|suave|seguido)\b| (en|para) (clase|la iglesia|el concierto|misa|la banda|la orquesta|navidad)\b| con (la|el) (guitarra|piano|violin|flauta)\b)/,
   /\b(le|les) (toca|toco|tocaba|tocaban|tocan|tocaron|manosea|manoseo|manoseaba|manosearon|agarra|agarro|agarraba|mostro|muestra|mostraba|ensena|ensenaba|enseno) (las|sus|los|el|la) (partes( intimas| privadas)?|zonas intimas|genitales|vagina|pene|senos|pechos|nalgas|colita|chimba|cuca|totona|pipi|cosita)\b/,
   /\bme (\w+ )?(obliga|obligo|obligan|obligaron|obligaba|obligaban|fuerza|forza|forzo|forzaron|forzaba|presiona|presiono|presionaba) a ((hacerle|hacerles) (cosas|eso|sexo oral)\b(?! (de (la casa|comer|oficio|aseo|cocina)|como (la|el)|para (la|el) (casa|comida))\b)|tocarle|tocarlo|tocarla|chuparle|chuparsela|mamarle|mamarsela|tener sexo oral|hacerle sexo oral|ver porno|ver pornografia|(mandarle|enviarle) fotos (intimas|desnuda)|mostrarle mis partes)/,
@@ -829,26 +862,26 @@ export const CRISIS_PATTERNS = [
   // unas cervezas y no responde el celular", "mi mamá se tomó las pastillas de
   // la presión", "mi hija no quiere vivir en Bogotá", "casi se mata en la
   // moto", "se hace daño cuando se cae" ni "mi hijo le pega a su hermanito".
-  new RegExp(`\\bse (tomo|trago|bebio|ha tomado|acaba de tomar|tomaron|tragaron|tomaba|metio) (todas (las|sus|mis)|muchas|demasiadas|un monton de|un punado de|un frasco de|una caja de|el frasco de|la caja de|el tarro de|un tarro de|un blister de|el blister de|toda la (tira|caja|tableta) de|[1-9]\\d+|veinte|treinta|cuarenta|cincuenta|cien|como [1-9]\\d+|unas [1-9]\\d+) ${PASTILLAS}\\b(?! (del|de la|de su|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b| (de (hoy|la manana|la noche|la tarde|esta semana|la semana)|del dia|a tiempo|como (le|se) (dijo|dijeron|indico|indicaron|mando|mandaron|recetaron|receto))\\b)`),
-  new RegExp(`\\bse (tomo|trago|bebio|ha tomado|acaba de tomar|tomaron|tomaba) ${CUANTO_VENENO}${VENENOS}\\b${NO_ES_ASEO}`),
-  new RegExp(`\\bse (tomo|trago|metio|ha tomado|acaba de tomar|tomaron) (\\w+ ){0,3}(${PASTILLAS}|pastilla|pepas?)\\b.{0,50}\\b(no (responde|reacciona|despierta|contesta|abre los ojos|respira)|esta (inconsciente|desmayad[ao]|morad[ao]|convulsionando|como muert[ao])|se desmayo|convulsion\\w*|se esta muriendo)\\b|\\b(no (responde|reacciona|despierta|contesta|abre los ojos|respira)|esta (inconsciente|desmayad[ao]|convulsionando))\\b.{0,50}\\bse (tomo|trago|metio|ha tomado|acaba de tomar|tomaron) (\\w+ ){0,3}(${PASTILLAS}|pastilla|pepas?)\\b`),
+  `\\bse (tomo|trago|bebio|ha tomado|acaba de tomar|tomaron|tragaron|tomaba|metio) (todas (las|sus|mis)|muchas|demasiadas|un monton de|un punado de|un frasco de|una caja de|el frasco de|la caja de|el tarro de|un tarro de|un blister de|el blister de|toda la (tira|caja|tableta) de|[1-9]\\d+|veinte|treinta|cuarenta|cincuenta|cien|como [1-9]\\d+|unas [1-9]\\d+) ${PASTILLAS}\\b(?! (del|de la|de su|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b| (de (hoy|la manana|la noche|la tarde|esta semana|la semana)|del dia|a tiempo|como (le|se) (dijo|dijeron|indico|indicaron|mando|mandaron|recetaron|receto))\\b)`,
+  `\\bse (tomo|trago|bebio|ha tomado|acaba de tomar|tomaron|tomaba) ${CUANTO_VENENO}${VENENOS}\\b${NO_ES_ASEO}`,
+  `\\bse (tomo|trago|metio|ha tomado|acaba de tomar|tomaron) (\\w+ ){0,3}(${PASTILLAS}|pastilla|pepas?)\\b.{0,50}\\b(no (responde|reacciona|despierta|contesta|abre los ojos|respira)|esta (inconsciente|desmayad[ao]|morad[ao]|convulsionando|como muert[ao])|se desmayo|convulsion\\w*|se esta muriendo)\\b|\\b(no (responde|reacciona|despierta|contesta|abre los ojos|respira)|esta (inconsciente|desmayad[ao]|convulsionando))\\b.{0,50}\\bse (tomo|trago|metio|ha tomado|acaba de tomar|tomaron) (\\w+ ){0,3}(${PASTILLAS}|pastilla|pepas?)\\b`,
   /\bse (corto|corta|cortaba|ha cortado|esta cortando|abrio|abre|quiso cortar|intento cortar|va a cortar) (las|sus) venas\b/,
-  new RegExp(`\\b(esta|estan|sigue|anda|se subio|se fue|se paro|se sento|se monto)( (parad[ao]|sentad[ao]|montad[ao]|subid[ao]|sol[ao]))? (en|a|al|por|sobre|encima de|encima del|en el borde de|en el borde del|en la orilla de|en la orilla del|en la baranda de|en la baranda del) (el |la |un |una |lo alto de(l)? (el |la )?)?${SITIO_ALTO}\\b(?! festivo).{0,60}(\\bse (\\w+ ){0,2}(tir|lanz|bot|avent|arroj|ech|salt)(ar|a|o|e|ara|aria)|\\b(tirarse|lanzarse|botarse|aventarse|arrojarse|saltar|brincar))\\b(?! (en|la|el|los|las|un|una|a (la|el) (cama|piscina|sofa|hamaca|agua|mar)|a \\w+(ar|er|ir))\\b)`),
+  `\\b(esta|estan|sigue|anda|se subio|se fue|se paro|se sento|se monto)( (parad[ao]|sentad[ao]|montad[ao]|subid[ao]|sol[ao]))? (en|a|al|por|sobre|encima de|encima del|en el borde de|en el borde del|en la orilla de|en la orilla del|en la baranda de|en la baranda del) (el |la |un |una |lo alto de(l)? (el |la )?)?${SITIO_ALTO}\\b(?! festivo).{0,60}(\\bse (\\w+ ){0,2}(tir|lanz|bot|avent|arroj|ech|salt)(ar|a|o|e|ara|aria)|\\b(tirarse|lanzarse|botarse|aventarse|arrojarse|saltar|brincar))\\b(?! (en|la|el|los|las|un|una|a (la|el) (cama|piscina|sofa|hamaca|agua|mar)|a \\w+(ar|er|ir))\\b)`,
   /\b(no quiere|ya no quiere|no quiso) (vivir|seguir viviendo|seguir viva|seguir vivo|existir|estar viva|estar vivo|seguir con vida)\b(?! (con|en (?!(este|esta) (mundo|vida)\b)|para|de|del|por|pendiente|bajo|a medias|al dia|a la|al|preocupada|estresada|angustiada|corriendo|apurada|sola|solo|lejos|cerca|alla|aqui|aca|afuera|adentro|juntos|juntas|conmigo|contigo|ahi|tan)\b)/,
-  new RegExp(`\\b(quiere|queria|quisiera|quiso|desea|piensa en|esta pensando en|anda pensando en|pensando en|ha pensado en|penso en|intento|intenta|trato de|trata de|ha intentado|esta intentando|amenaza con|amenazo con|habla de|hablaba de) (morirse|matarse|suicidarse|quitarse la vida|ahorcarse|envenenarse|cortarse las venas|tirarse (de|del|desde|por|al vacio|a la via|al metro|al rio)|lanzarse (de|del|desde|por|al vacio|a la via|al metro|al rio)|dejarse morir|desaparecer para siempre)\\b${NO_ES_ESFUERZO}${NO_ES_RISA}`),
-  new RegExp(`\\b(dice que|dijo que|decia que) (va|iba) a (matarse|suicidarse|quitarse la vida|ahorcarse|envenenarse|cortarse las venas)\\b${NO_ES_ESFUERZO}`),
-  /(?<!\bcasi )\bse (ahorco|ahorcaba|suicido|quito la vida|colgo (de|del|en) (un|una|el|la) (viga|arbol|techo|ventilador|lampara|baranda|cuerda|soga)|mato\b(?! (estudiando|trabajando|entrenando|corriendo|haciendo|en (un|una|el|la) (accidente|choque|moto|carro|carretera|curva|bici|bicicleta)|de (la )?risa|a punta de)\b)|disparo en la cabeza|pego un tiro|tiro (de|del|desde) (el |la )?(puente|edificio|balcon|terraza|ventana|piso|techo|azotea))/,
+  `\\b(quiere|queria|quisiera|quiso|desea|piensa en|esta pensando en|anda pensando en|pensando en|ha pensado en|penso en|intento|intenta|trato de|trata de|ha intentado|esta intentando|amenaza con|amenazo con|habla de|hablaba de) (morirse|matarse|suicidarse|quitarse la vida|ahorcarse|envenenarse|cortarse las venas|tirarse (de|del|desde|por|al vacio|a la via|al metro|al rio)|lanzarse (de|del|desde|por|al vacio|a la via|al metro|al rio)|dejarse morir|desaparecer para siempre)\\b${NO_ES_ESFUERZO}${NO_ES_RISA}`,
+  `\\b(dice que|dijo que|decia que) (va|iba) a (matarse|suicidarse|quitarse la vida|ahorcarse|envenenarse|cortarse las venas)\\b${NO_ES_ESFUERZO}`,
+  '(?<!\\bcasi )\\bse (ahorco|ahorcaba|suicido|quito la vida|colgo (de|del|en) (un|una|el|la) (viga|arbol|techo|ventilador|lampara|baranda|cuerda|soga)|mato\\b(?! (estudiando|trabajando|entrenando|corriendo|haciendo|en (un|una|el|la) (accidente|choque|moto|carro|carretera|curva|bici|bicicleta)|de (la )?risa|a punta de)\\b)|disparo en la cabeza|pego un tiro|tiro (de|del|desde) (el |la )?(puente|edificio|balcon|terraza|ventana|piso|techo|azotea))',
   /\bse (esta haciendo|hace|hizo|ha hecho|sigue haciendo|volvio a hacer|ha estado haciendo) dano\b(?! (cuando (se cae|juega|corre|monta)|al (caer|jugar|correr)|jugando|sin querer|por accidente|con (el|la|los|las|un|una) (juguete|tijeras|patineta|bicicleta|bici|silla)|pensando|comiendo|fumando|tomando|con (esa|ese|esas|esos) (relacion|man|tipo|amistades|pensamientos))\b)/,
-  new RegExp(`\\b(la|lo|le|las|los|les) (golpea|golpeaba|golpeo|golpean|golpeaban|pega|pegaba|pego|pegan|pegaban|maltrata|maltrataba|maltrato|viola|violaba|violo|casca|cascaba|casco|patea|pateaba|pateo|ahorca|ahorcaba|ahorco|amenaza|amenazaba|amenazo|encierra|encerraba) (el|su|la) (marido|esposo|novio|pareja|ex|exesposo|expareja|exnovio|companero|papa|padre|padrastro|mama|madre|madrastra|hermano|cunado|suegro|suegra|tio|abuelo)\\b${NO_ES_GRIPA}`),
-  new RegExp(`\\b(marido|esposo|novio|pareja|ex|exesposo|expareja|exnovio|companero|papa|padre|padrastro|mama|madre|madrastra|cunado|suegro|suegra|tio|abuelo) de (mi|una|la|su) (\\w+ )?(vecina|hermana|amiga|mama|madre|hija|prima|tia|cunada|sobrina|companera|nieta|abuela|hermano|amigo|hijo|sobrino|primo|nieto|vecino|suegra) (\\w+ ){0,2}(la|lo|le|les|las|los) (golpea|golpeaba|golpeo|golpean|pega|pegaba|pego|pegan|maltrata|maltrataba|maltrato|viola|violo|violaba|casca|cascaba|casco|patea|pateaba|pateo|ahorca|ahorcaba|ahorco|amenaza|amenazo|amenazaba|encierra|encerro|tiene encerrada|quiere matar|va a matar)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}(?! (un|unos) (grito|gritos|regano)\\b)`),
-  new RegExp(`\\b(mi|su|el|la) (esposo|marido|pareja|novio|ex|exesposo|expareja|exnovio|companero|papa|padre|padrastro|mama|madre|madrastra|cunado|cunada|suegro|suegra|tio|tia|abuelo|vecino|yerno|nuera|padrino) (\\w+ ){0,2}(golpea|golpeaba|golpeo|golpean|maltrata|maltrataba|maltrato|viola|violo|violaba|casca|cascaba|casco|patea|pateaba|pateo|ahorca|ahorcaba|ahorco|amenaza|amenazo|amenazaba|encierra|encerro|pega|pegaba|pego) a (mi|su|una|la|el|mis|sus) (\\w+ )?(herman[oa]|hermanit[oa]|mama|madre|hij[oa]s?|prim[oa]|tia|tio|cunad[oa]|sobrin[oa]|nieta|nieto|abuel[oa]|amig[oa]|vecin[oa]|esposa|mujer|novia|pareja|nin[oa]s?|bebe|papa|padre|suegra)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}(?! (\\w+ )?(jugando|sin querer|en el (juego|partido))\\b)`),
-  new RegExp(`\\b(mi|su|el) (herman[oa]|hij[oa]|hijastr[oa]|niet[oa]|sobrin[oa]|primo) (\\w+ ){0,2}(golpea|golpeaba|golpeo|maltrata|maltrataba|maltrato|casca|cascaba|patea|pateaba|ahorca|ahorcaba|amenaza|amenazo|pega|pegaba|pego) a (mi|su|nuestra|nuestro) (mama|madre|papa|padre|abuel[oa]|esposa|mujer|novia)\\b${NO_ES_GRIPA}`),
+  `\\b(la|lo|le|las|los|les) (golpea|golpeaba|golpeo|golpean|golpeaban|pega|pegaba|pego|pegan|pegaban|maltrata|maltrataba|maltrato|viola|violaba|violo|casca|cascaba|casco|patea|pateaba|pateo|ahorca|ahorcaba|ahorco|amenaza|amenazaba|amenazo|encierra|encerraba) (el|su|la) (marido|esposo|novio|pareja|ex|exesposo|expareja|exnovio|companero|papa|padre|padrastro|mama|madre|madrastra|hermano|cunado|suegro|suegra|tio|abuelo)\\b${NO_ES_GRIPA}`,
+  `\\b(marido|esposo|novio|pareja|ex|exesposo|expareja|exnovio|companero|papa|padre|padrastro|mama|madre|madrastra|cunado|suegro|suegra|tio|abuelo) de (mi|una|la|su) (\\w+ )?(vecina|hermana|amiga|mama|madre|hija|prima|tia|cunada|sobrina|companera|nieta|abuela|hermano|amigo|hijo|sobrino|primo|nieto|vecino|suegra) (\\w+ ){0,2}(la|lo|le|les|las|los) (golpea|golpeaba|golpeo|golpean|pega|pegaba|pego|pegan|maltrata|maltrataba|maltrato|viola|violo|violaba|casca|cascaba|casco|patea|pateaba|pateo|ahorca|ahorcaba|ahorco|amenaza|amenazo|amenazaba|encierra|encerro|tiene encerrada|quiere matar|va a matar)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}(?! (un|unos) (grito|gritos|regano)\\b)`,
+  `\\b(mi|su|el|la) (esposo|marido|pareja|novio|ex|exesposo|expareja|exnovio|companero|papa|padre|padrastro|mama|madre|madrastra|cunado|cunada|suegro|suegra|tio|tia|abuelo|vecino|yerno|nuera|padrino) (\\w+ ){0,2}(golpea|golpeaba|golpeo|golpean|maltrata|maltrataba|maltrato|viola|violo|violaba|casca|cascaba|casco|patea|pateaba|pateo|ahorca|ahorcaba|ahorco|amenaza|amenazo|amenazaba|encierra|encerro|pega|pegaba|pego) a (mi|su|una|la|el|mis|sus) (\\w+ )?(herman[oa]|hermanit[oa]|mama|madre|hij[oa]s?|prim[oa]|tia|tio|cunad[oa]|sobrin[oa]|nieta|nieto|abuel[oa]|amig[oa]|vecin[oa]|esposa|mujer|novia|pareja|nin[oa]s?|bebe|papa|padre|suegra)\\b${NO_ES_GRIPA}${NO_ES_NOTICIA}(?! (\\w+ )?(jugando|sin querer|en el (juego|partido))\\b)`,
+  `\\b(mi|su|el) (herman[oa]|hij[oa]|hijastr[oa]|niet[oa]|sobrin[oa]|primo) (\\w+ ){0,2}(golpea|golpeaba|golpeo|maltrata|maltrataba|maltrato|casca|cascaba|patea|pateaba|ahorca|ahorcaba|amenaza|amenazo|pega|pegaba|pego) a (mi|su|nuestra|nuestro) (mama|madre|papa|padre|abuel[oa]|esposa|mujer|novia)\\b${NO_ES_GRIPA}`,
   // Tirarla al piso o arrastrarla: "mi hijo me tiró al piso", "me botó al
   // piso", "me tumbó al suelo", "me arrastró por el piso". No activan "el
   // perro me tumbó al piso de la emoción", "mi sobrino me tiró al piso
   // jugando" ni "me botó al piso el celular".
-  new RegExp(`(?<!\\b(perro|perrito|perra|gato|gatico|caballo|vaca|ola|olas|viento|bebe|bebito|cachorro)( \\w+)? )${NO_ES_NINO}\\bme (tiro|tiraron|tira|tiraba|boto|botaron|bota|botaba|tumbo|tumbaron|tumba|tumbaba|lanzo|lanzaron|lanza|lanzaba|empujo|empujaron|empuja|empujaba|avento|aventaron|arrojo|arrojaron|estrello|estrellaron|derribo|derribaron) (al|en el|sobre el|contra el) (piso|suelo)\\b(?! (jugando|de (la )?(emocion|alegria|felicidad)|sin querer|por accidente|accidentalmente|(la|el|los|las|mi|mis|un|una|unos|unas|todo|toda|todos|todas|su|sus) \\w+|a \\w+(ar|er|ir)(me|la|lo|nos)?)\\b)`),
-  new RegExp(`(?<!\\b(perro|perrito|perra|gato|caballo|bebe|cachorro)( \\w+)? )${NO_ES_NINO}\\bme (arrastro|arrastraron|arrastra|arrastraba|arrastraban) (por|en|contra) (el|la) (piso|suelo|calle|casa|cuarto|patio|escalera|escaleras)\\b(?! (jugando|de (la )?(emocion|alegria)|\\w+(ando|iendo))\\b)`),
+  `(?<!\\b(perro|perrito|perra|gato|gatico|caballo|vaca|ola|olas|viento|bebe|bebito|cachorro)( \\w+)? )${NO_ES_NINO}\\bme (tiro|tiraron|tira|tiraba|boto|botaron|bota|botaba|tumbo|tumbaron|tumba|tumbaba|lanzo|lanzaron|lanza|lanzaba|empujo|empujaron|empuja|empujaba|avento|aventaron|arrojo|arrojaron|estrello|estrellaron|derribo|derribaron) (al|en el|sobre el|contra el) (piso|suelo)\\b(?! (jugando|de (la )?(emocion|alegria|felicidad)|sin querer|por accidente|accidentalmente|(la|el|los|las|mi|mis|un|una|unos|unas|todo|toda|todos|todas|su|sus) \\w+|a \\w+(ar|er|ir)(me|la|lo|nos)?)\\b)`,
+  `(?<!\\b(perro|perrito|perra|gato|caballo|bebe|cachorro)( \\w+)? )${NO_ES_NINO}\\bme (arrastro|arrastraron|arrastra|arrastraba|arrastraban) (por|en|contra) (el|la) (piso|suelo|calle|casa|cuarto|patio|escalera|escaleras)\\b(?! (jugando|de (la )?(emocion|alegria)|\\w+(ando|iendo))\\b)`,
   // Despedidas: "ya no van a saber más de mí", "cuiden mucho a mi mamá cuando
   // yo no esté", "díganle a mis hijos que los amo", "quiero que sepan que no
   // fue culpa de nadie", "ya no estaré para el cumpleaños de mi hija",
@@ -886,7 +919,7 @@ export const CRISIS_PATTERNS = [
   /\bno (le )?(veo|encuentro|hallo) (ningun )?sentido a nada\b(?! (de|del|en|que|con|lo)\b)/,
   /\b(ya )?nada tiene (caso|sentido)\b(?! (de|del|en|con|si|para (el|la|los|las|mi))\b)/,
   /\bya no tiene (caso|sentido) (seguir|vivir|nada|seguir viviendo|luchar|intentarlo)\b(?! (con|en|estudiando|trabajando|intentando|insistiendo|esperando|aqui|pagando|haciendo|por|para|de)\b)/,
-  new RegExp(`\\bme (rindo|rendi|he rendido|voy a rendir|rendire|estoy rindiendo) con (la|mi|esta) vida\\b${NO_ES_ETAPA}(?! (fitnes|saludable|sana|sano|healthy|de (gym|dieta|soltera)))`),
+  `\\bme (rindo|rendi|he rendido|voy a rendir|rendire|estoy rindiendo) con (la|mi|esta) vida\\b${NO_ES_ETAPA}(?! (fitnes|saludable|sana|sano|healthy|de (gym|dieta|soltera)))`,
   /\b(dios|diosito|dios mio|senor|senor mio|virgen|virgencita|papito dios|jesus|jesusito|cristo)\b.{0,30}\b(llevame|recogeme|llevenme|recojeme|me (lleve|recoja|llame|lleves|recojas|llames|quite la vida))\b(?! (a (mi|la|el|casa|salvo|bien|un|una|tiempo|trabajar|estudiar)|al (trabajo|colegio|aeropuerto|medico|hospital)|hasta|con bien|sana|sano|de (vuelta|regreso|viaje|paseo)|bien|por (buen|el buen) camino|en (el|su|tu) (carro|taxi|moto)|de la mano)\b)/,
   /\b(mejor|preferible|ojala|seria mejor) no (existir|haber nacido|seguir viviendo|seguir viva|seguir vivo)\b(?! (en|de|del|para|con|tan|asi|aqui|aca|alla|ahi)\b)/,
   /\b(quiero|quisiera|deseo|desearia|me gustaria|ojala|ruego|pido) que (un|una|el|la|algun|alguna) (\w+ ){0,2}me (atropellara|atropellaran|atropellase|pisara|pisaran|matara|mataran|cayera encima|aplastara|llevara por delante)\b/,
@@ -909,8 +942,8 @@ export const CRISIS_PATTERNS = [
   // agrede cuando toma", "me agreden", "me volvió a agredir". No activan "me
   // agredió verbalmente en la reunión", "el comentario me agredió" ni "me
   // agrede la luz del sol" ("mi esposo me agredió verbalmente" sí).
-  /(?<!\b(comentario|comentarios|ruido|bulla|luz|sol|olor|musica|frase|palabra|palabras|mensaje|tono|critica|criticas|noticia|pregunta|chiste)( \w+)? )\bme (agredio|agrede|agreden|agredieron|agredia|agredian|ha agredido|han agredido|habia agredido|volvio a agredir|volvieron a agredir|vuelve a agredir|esta agrediendo|estan agrediendo|sigue agrediendo|vive agrediendo|quiso agredir|intento agredir|trato de agredir)\b(?! (verbalmente|con (palabras|sus palabras|comentarios|sus comentarios|su comentario|lo que dijo|insultos|groserias|gritos|la mirada|indirectas))\b| (la|el) (luz|sol|ruido|bulla|olor|musica)\b)/,
-  new RegExp(`\\b${PAREJA} (\\w+ ){0,3}me (agredio|agrede|agreden|agredieron|agredia|ha agredido|volvio a agredir|vuelve a agredir|esta agrediendo|sigue agrediendo)\\b`),
+  '(?<!\\b(comentario|comentarios|ruido|bulla|luz|sol|olor|musica|frase|palabra|palabras|mensaje|tono|critica|criticas|noticia|pregunta|chiste)( \\w+)? )\\bme (agredio|agrede|agreden|agredieron|agredia|agredian|ha agredido|han agredido|habia agredido|volvio a agredir|volvieron a agredir|vuelve a agredir|esta agrediendo|estan agrediendo|sigue agrediendo|vive agrediendo|quiso agredir|intento agredir|trato de agredir)\\b(?! (verbalmente|con (palabras|sus palabras|comentarios|sus comentarios|su comentario|lo que dijo|insultos|groserias|gritos|la mirada|indirectas))\\b| (la|el) (luz|sol|ruido|bulla|olor|musica)\\b)',
+  `\\b${PAREJA} (\\w+ ){0,3}me (agredio|agrede|agreden|agredieron|agredia|ha agredido|volvio a agredir|vuelve a agredir|esta agrediendo|sigue agrediendo)\\b`,
   // Golpes con un objeto, la puñalada dicha en colombiano, sacarla a
   // patadas, quemarla, rociarla con gasolina, tenerla secuestrada o no
   // dejarla salir: "me dio con el palo de la escoba", "me dio con la correa",
@@ -924,17 +957,17 @@ export const CRISIS_PATTERNS = [
   // playa", "me quemé con la plancha alisándome el pelo", "el trabajo me
   // tiene secuestrada", "me secuestraron mis amigas para la despedida" ni "mi
   // mamá no me deja salir de la casa de noche".
-  /(?<!\b(mama|mami|papa|papi|abuela|abuelo|madre|padre) )\bme (dio|dieron|da|daba|daban|pego|pegaba|pegaron|pegan) con (el|la|un|una|su|sus|unos|unas) (chancla|chancleta)\b(?!.{0,40}\b(sin querer|por accidente|accidentalmente|jugando)\b)/,
+  '(?<!\\b(mama|mami|papa|papi|abuela|abuelo|madre|padre) )\\bme (dio|dieron|da|daba|daban|pego|pegaba|pegaron|pegan) con (el|la|un|una|su|sus|unos|unas) (chancla|chancleta)\\b(?!.{0,40}\\b(sin querer|por accidente|accidentalmente|jugando)\\b)',
   /\bme (dio|dieron|da|daba|daban|pego|pegaba|pegaron|pegan) con (el|la|un|una|su|sus|unos|unas) (palo|palos|escoba|trapeadora|correa|correas|cinturon|rejo|tabla|zapato|bota|bate|machete|peinilla|martillo|botella|plancha|olla|sarten|cable|manguera|varilla|tubo|silla|piedra|ladrillo|garrote|cuchillo|hebilla|vara|regla|totuma|tenedor|celular|control|puno|punos|candado|cadena|llave|destornillador|hacha|pala|rula)\b(?!.{0,40}\b(sin querer|por accidente|accidentalmente|jugando)\b)/,
   /\bme (dio|dieron|daba|daban|metio|metieron|pego|pegaron|zampo|mando|mandaron) (una |un |unas |unos )?(punaladas?|machetazos?|correazos?|rejo|planazos?|garrotazos?|palazos?|batazos?|botellazos?|cuchilladas?|chuzones?|balazos?|machete|garrote|plomo|bala|chumbimba)\b(?! (por la espalda|trapera|al corazon|en el (corazon|alma)|de (realidad|amor|la vida|la noticia)|en (el|la) (partido|juego|cancha|clase|entreno|torneo|futbol|micro)|jugando)\b)/,
-  /(?<!\b(medico|medica|doctor|doctora|enfermera|enfermero|abeja|avispa|zancudo|mosquito|espina|aguja|bebe|nino|nina|gato|perro|alacran|hormiga|cactus|bacteriologa|bacteriologo)( \w+)? )\bme (punaleo|punalearon|punalea|apunaleo|apunalearon|apunalea|chuzo|chuzaron|chuza|chuzan|chuzaba|chucearon|chuceo)\b(?! ((el|la|los|las|un|una) (dedo|abeja|avispa|espina|aguja|medico|medica|doctor|doctora|enfermera|enfermero|zancudo|alacran|bebe|nino|nina|gato|perro|hormiga|cactus)|(con|en) (el|la|un|una|su) (dedo|aguja|jeringa|alfiler|lapiz|codo|vacuna)|para (la|el|una|un|sacarme|ponerme|hacerme) (vacuna|examen|prueba|sangre|citologia|inyeccion|suero)|jugando|para que me (despertara|despierte|callara|calle|fijara)|(el|la|los|las|mi|mis) (telefono|celular|cel|linea|correo|cuenta|whatsapp?|computador|wifi))\b)/,
+  '(?<!\\b(medico|medica|doctor|doctora|enfermera|enfermero|abeja|avispa|zancudo|mosquito|espina|aguja|bebe|nino|nina|gato|perro|alacran|hormiga|cactus|bacteriologa|bacteriologo)( \\w+)? )\\bme (punaleo|punalearon|punalea|apunaleo|apunalearon|apunalea|chuzo|chuzaron|chuza|chuzan|chuzaba|chucearon|chuceo)\\b(?! ((el|la|los|las|un|una) (dedo|abeja|avispa|espina|aguja|medico|medica|doctor|doctora|enfermera|enfermero|zancudo|alacran|bebe|nino|nina|gato|perro|hormiga|cactus)|(con|en) (el|la|un|una|su) (dedo|aguja|jeringa|alfiler|lapiz|codo|vacuna)|para (la|el|una|un|sacarme|ponerme|hacerme) (vacuna|examen|prueba|sangre|citologia|inyeccion|suero)|jugando|para que me (despertara|despierte|callara|calle|fijara)|(el|la|los|las|mi|mis) (telefono|celular|cel|linea|correo|cuenta|whatsapp?|computador|wifi))\\b)',
   /\bme (saco|sacaron|saca|sacaba|echo|echaron|echa|echaba|bajo|bajaron|baja|bajaba|boto|botaron|bota|botaba|tiro|tiraron|levanto|levantaron|desperto|despertaron|trata|trato|trataba|recibio|recibe|recibieron|corrio|corrieron) (\w+ ){0,4}a (patadas|golpes|punos|punetazos|empujones|correazos|palo|planazos|machetazos|cachetadas|trompadas|bofetadas|garrote|garrotazos|bala|tiros|plomo)\b(?! (del|de la|de los|de las) (partido|juego|torneo|cancha|equipo|grupo|competencia|trabajo|empresa|oficina|seleccion)\b)(?!.{0,30}\b(el|la) (arbitro|tecnico|entrenador|profe|jefe|jefa)\b)/,
-  /(?<!\b(sol|aji|picante|cafe|tinto|te|sopa|caldo|crema|cera|tinte|laser|agua|aceite|olla|estufa|plancha|horno|chocolate|comida|frio|hielo|acido|producto|depilacion|peluquera|peluquero|estilista|manicurista|esteticista|blower|secador|vapor|fogon)( \w+){0,2} )(?<!\b(siempre|a veces|cada rato|seguido|casi siempre|yo|tambien|nunca|todavia|aun|como) )\bme (quemo|quemaron|quemaba|quemaban|ha quemado|volvio a quemar) (el|la|los|las|mis|mi) (brazos?|cara|manos?|piernas?|espalda|pecho|cuello|ojos?|boca|labios?|senos|barriga|panza|cuerpo|piel|pies?|dedos?|nalgas|muslos?|hombros?)\b(?! (\w+ ){0,2}(el|la) (sol|crema|aji|cafe|tinto|sopa|cera|tinte|laser|estufa|olla|alisadora|blower|depilacion)\b)(?!.{0,40}\b(cocinando|planchando|alisando\w*|friendo|sin querer|por accidente|accidentalmente|en la (playa|piscina|cocina)|al sol|con el sol|del sol|cuando (cocino|plancho|me aliso)|(cada vez|siempre) que|depilando\w*)\b)/,
-  /(?<!\b(peluquera|peluquero|estilista|manicurista|esteticista|dermatologa|dermatologo|doctora|doctor|medico|medica)( \w+){0,2} )(?<!\b(siempre|a veces|cada rato|seguido|casi siempre|yo|tambien|nunca|todavia|aun|como) )\bme (quemo|quemaron|quemaba|quemaban|ha quemado|volvio a quemar) (\w+ ){0,3}con (el |la |un |una |agua |aceite )?(plancha|cigarrillo|cigarro|encendedor|yesquero|candela|fuego|agua (caliente|hirviendo)|aceite (caliente|hirviendo)|olla|cuchara|hierro|varilla|fosforos?|vela|tenedor|cuchillo caliente)\b(?! (del|de|para el) (pelo|cabello)\b| (de|para) (alisar|el pelo|el cabello)\b)(?!.{0,40}\b(cocinando|planchando|alisando\w*|friendo|sin querer|por accidente|accidentalmente|cuando (cocino|plancho|me aliso)|(cada vez|siempre) que)\b)/,
+  '(?<!\\b(sol|aji|picante|cafe|tinto|te|sopa|caldo|crema|cera|tinte|laser|agua|aceite|olla|estufa|plancha|horno|chocolate|comida|frio|hielo|acido|producto|depilacion|peluquera|peluquero|estilista|manicurista|esteticista|blower|secador|vapor|fogon)( \\w+){0,2} )(?<!\\b(siempre|a veces|cada rato|seguido|casi siempre|yo|tambien|nunca|todavia|aun|como) )\\bme (quemo|quemaron|quemaba|quemaban|ha quemado|volvio a quemar) (el|la|los|las|mis|mi) (brazos?|cara|manos?|piernas?|espalda|pecho|cuello|ojos?|boca|labios?|senos|barriga|panza|cuerpo|piel|pies?|dedos?|nalgas|muslos?|hombros?)\\b(?! (\\w+ ){0,2}(el|la) (sol|crema|aji|cafe|tinto|sopa|cera|tinte|laser|estufa|olla|alisadora|blower|depilacion)\\b)(?!.{0,40}\\b(cocinando|planchando|alisando\\w*|friendo|sin querer|por accidente|accidentalmente|en la (playa|piscina|cocina)|al sol|con el sol|del sol|cuando (cocino|plancho|me aliso)|(cada vez|siempre) que|depilando\\w*)\\b)',
+  '(?<!\\b(peluquera|peluquero|estilista|manicurista|esteticista|dermatologa|dermatologo|doctora|doctor|medico|medica)( \\w+){0,2} )(?<!\\b(siempre|a veces|cada rato|seguido|casi siempre|yo|tambien|nunca|todavia|aun|como) )\\bme (quemo|quemaron|quemaba|quemaban|ha quemado|volvio a quemar) (\\w+ ){0,3}con (el |la |un |una |agua |aceite )?(plancha|cigarrillo|cigarro|encendedor|yesquero|candela|fuego|agua (caliente|hirviendo)|aceite (caliente|hirviendo)|olla|cuchara|hierro|varilla|fosforos?|vela|tenedor|cuchillo caliente)\\b(?! (del|de|para el) (pelo|cabello)\\b| (de|para) (alisar|el pelo|el cabello)\\b)(?!.{0,40}\\b(cocinando|planchando|alisando\\w*|friendo|sin querer|por accidente|accidentalmente|cuando (cocino|plancho|me aliso)|(cada vez|siempre) que)\\b)',
   /\bme (rocio|rociaron|rocia|rociaba|bano|banaron|empapo|empaparon|echo encima|echaron encima) (\w+ ){0,2}(con|de|en) (gasolina|acpm|thinner|tiner|acido|petroleo|varsol|cocinol|kerosene|agua hirviendo|aceite hirviendo|cloro|limpido)\b(?! (hialuronico|salicilico|glicolico|folico|retinoico|ascorbico|mandelico|azelaico|lactico|kojico|tranexamico)\b)/,
-  /(?<!\b(trabajo|serie|novela|libro|celular|juego|oficina|tareas?|bebe|tesis|universidad|netflix|cama|cobija|pereza|lluvia|aguacero|gripa|nieta|nieto|lectura|proyecto|jefe|jefa|empresa|bebes|ninos|hijos|perro|gato)( \w+){0,2} )\b(me|nos) (tiene|tienen|tenia|tenian|tuvo|tuvieron) (\w+ )?secuestrad[ao]s?\b(?! (el|la|los|las|este|esta|ese|esa) (trabajo|serie|novela|libro|celular|juego|oficina|tareas?|bebe|tesis|universidad)\b)/,
+  '(?<!\\b(trabajo|serie|novela|libro|celular|juego|oficina|tareas?|bebe|tesis|universidad|netflix|cama|cobija|pereza|lluvia|aguacero|gripa|nieta|nieto|lectura|proyecto|jefe|jefa|empresa|bebes|ninos|hijos|perro|gato)( \\w+){0,2} )\\b(me|nos) (tiene|tienen|tenia|tenian|tuvo|tuvieron) (\\w+ )?secuestrad[ao]s?\\b(?! (el|la|los|las|este|esta|ese|esa) (trabajo|serie|novela|libro|celular|juego|oficina|tareas?|bebe|tesis|universidad)\\b)',
   /\b(me|nos) (secuestraron|secuestro|secuestran|secuestra|quieren secuestrar|van a secuestrar|intentaron secuestrar|iban a secuestrar|querian secuestrar)\b(?! ((el|la|los|las|mi|mis|un|una) \w+|(mis|las|unas) (amigas|primas|hermanas|companeras)|para (una|la|el|un|ir) \w+|un rato|jugando)\b)(?!.{0,40}\b(despedida|cumpleanos|sorpresa|paseo|fiesta|rumba|jugando)\b)/,
-  /(?<!\b(aguacero|lluvia|gripa|gripe|pereza|trabajo|frio|calor|dolor|pandemia|cuarentena|bebe|nina|nino|tareas|enfermedad|fiebre|tos|covid|virus|rodilla|pierna|espalda|ansiedad|miedo|depresion|tristeza|policia|mama|mami|papa|papi|abuela|abuelo|madre|padre|toque de queda|trancon|trafico|paro|bloqueo|cansancio|guayabo|jefe|jefa)( \w+){0,2} )\bno me (deja|dejan|dejaba|dejaban|ha dejado|han dejado|quiere dejar|quieren dejar) salir (de la casa|de casa|de mi casa|de su casa|del cuarto|de la pieza|del apartamento|ni a la (puerta|tienda|esquina)|sola|a ningun lado|a ninguna parte|para nada)\b(?! (de noche|en la noche|por la noche|tan tarde|tarde|a fiestas?|a la fiesta|a rumbas?|a bailar|con (mis amigas|mis amigos|el novio|mi novio|ese man|ese tipo|amigas|amigos)|sin (chaqueta|saco|abrigo|desayunar|comer|permiso|avisar|terminar|paraguas|sombrilla)|hasta|entre semana|los fines de semana|el fin de semana|por (el|la) (lluvia|frio|aguacero|pandemia|gripa|tareas|trabajo)|mientras (llueva|este enferma|tenga))\b)/,
+  '(?<!\\b(aguacero|lluvia|gripa|gripe|pereza|trabajo|frio|calor|dolor|pandemia|cuarentena|bebe|nina|nino|tareas|enfermedad|fiebre|tos|covid|virus|rodilla|pierna|espalda|ansiedad|miedo|depresion|tristeza|policia|mama|mami|papa|papi|abuela|abuelo|madre|padre|toque de queda|trancon|trafico|paro|bloqueo|cansancio|guayabo|jefe|jefa)( \\w+){0,2} )\\bno me (deja|dejan|dejaba|dejaban|ha dejado|han dejado|quiere dejar|quieren dejar) salir (de la casa|de casa|de mi casa|de su casa|del cuarto|de la pieza|del apartamento|ni a la (puerta|tienda|esquina)|sola|a ningun lado|a ninguna parte|para nada)\\b(?! (de noche|en la noche|por la noche|tan tarde|tarde|a fiestas?|a la fiesta|a rumbas?|a bailar|con (mis amigas|mis amigos|el novio|mi novio|ese man|ese tipo|amigas|amigos)|sin (chaqueta|saco|abrigo|desayunar|comer|permiso|avisar|terminar|paraguas|sombrilla)|hasta|entre semana|los fines de semana|el fin de semana|por (el|la) (lluvia|frio|aguacero|pandemia|gripa|tareas|trabajo)|mientras (llueva|este enferma|tenga))\\b)',
   // Amenazas del conflicto y de muerte dichas como se dicen en Colombia: la
   // corona fúnebre, "me van a picar", "me van a quemar la casa", la lista de
   // limpieza social, "tengo los días contados", "me van a dar plomo", "me
@@ -949,20 +982,20 @@ export const CRISIS_PATTERNS = [
   // grupo de whatsapp", "estoy sentenciada a lavar los platos", "me tiraron
   // una bomba de agua", "me desplazaron del puesto", "reclutaron a mi hijo
   // para el equipo de fútbol" ni "se llevaron a mi hijo al paseo".
-  /(?<!\b(velorio|funeral|entierro|sepelio|murio|fallecio|pesame|condolencias?|difunt\w*)\b.{0,60})\b(me|nos) (\w+ ){0,2}(dejaron|dejo|mandaron|mando|enviaron|envio|llego|llegaron|pusieron|puso|tiraron|trajeron|hicieron llegar) (\w+ ){0,2}coronas? (funebres?|de (muerto|difunto|flores de muerto))\b(?!.{0,60}\b(velorio|funeral|entierro|sepelio|cementerio|misa|murio|fallecio|difunt\w*|condolencias?|pesame)\b)/,
+  '(?<!\\b(velorio|funeral|entierro|sepelio|murio|fallecio|pesame|condolencias?|difunt\\w*)\\b.{0,60})\\b(me|nos) (\\w+ ){0,2}(dejaron|dejo|mandaron|mando|enviaron|envio|llego|llegaron|pusieron|puso|tiraron|trajeron|hicieron llegar) (\\w+ ){0,2}coronas? (funebres?|de (muerto|difunto|flores de muerto))\\b(?!.{0,60}\\b(velorio|funeral|entierro|sepelio|cementerio|misa|murio|fallecio|difunt\\w*|condolencias?|pesame)\\b)',
   /\bcoronas? funebres? (en|a|frente a) (la|mi|nuestra) (puerta|casa|ventana|carro|negocio|tienda|finca|reja)\b/,
-  /(?<!\b(zancudos?|mosquitos?|abejas?|avispas?|hormigas?|pulgas?|bichos?|alacran|alacranes|aranas?|culebras?|serpientes?|perros?|gatos?|chinches?|jejenes|plaga|piojos?|garrapatas?|ojos?|nariz|garganta|piel|lengua|boca|ropa|saco|sueter|lana|cebolla|aji)( \w+)? )\b(me|nos|le|les) (va|van|iba|iban|quiere|quieren|queria|querian) a picar(?=$| (y|si|porque|que|con (machete|motosierra|cuchillo|hacha)|en (pedazos|pedacitos|trocitos)|como|vivos?|viva|a mi|a mis|a todos|ya|pronto|esta|hoy|manana)\b)/,
-  new RegExp(`\\b(dijo|dijeron|dice|dicen|decia|decian|amenazo|amenazaron|amenaza|amenazan|juro|juraron|grito|gritaron|escribio|escribieron|mando a decir|mandaron a decir|mandaron (un )?mensaje|mando (un )?mensaje|llamaron a decir(me|nos)?|llamo a decir(me|nos)?|advirtieron|advirtio) (\\w+ ){0,2}que (me|nos) (va|van|iba|iban) a (picar|rajar|desaparecer|desfigurar|quemar|apunalar|acuchillar|degollar|descuartizar|golpear|cascar|hacer dano|ahorcar|dar (plomo|bala|chumbimba)|secuestrar|violar|tirar al rio|echar acido|chuzar|balear|torturar)\\b${NO_ES_GRIPA}${NO_ES_REDES}${NO_ES_UN_RATO}(?! (el|la|los|las) (pastel|torta|arroz|comida|cd|disco|archivo|video|carro|celular|pelo|cabello)\\b)`),
+  '(?<!\\b(zancudos?|mosquitos?|abejas?|avispas?|hormigas?|pulgas?|bichos?|alacran|alacranes|aranas?|culebras?|serpientes?|perros?|gatos?|chinches?|jejenes|plaga|piojos?|garrapatas?|ojos?|nariz|garganta|piel|lengua|boca|ropa|saco|sueter|lana|cebolla|aji)( \\w+)? )\\b(me|nos|le|les) (va|van|iba|iban|quiere|quieren|queria|querian) a picar(?=$| (y|si|porque|que|con (machete|motosierra|cuchillo|hacha)|en (pedazos|pedacitos|trocitos)|como|vivos?|viva|a mi|a mis|a todos|ya|pronto|esta|hoy|manana)\\b)',
+  `\\b(dijo|dijeron|dice|dicen|decia|decian|amenazo|amenazaron|amenaza|amenazan|juro|juraron|grito|gritaron|escribio|escribieron|mando a decir|mandaron a decir|mandaron (un )?mensaje|mando (un )?mensaje|llamaron a decir(me|nos)?|llamo a decir(me|nos)?|advirtieron|advirtio) (\\w+ ){0,2}que (me|nos) (va|van|iba|iban) a (picar|rajar|desaparecer|desfigurar|quemar|apunalar|acuchillar|degollar|descuartizar|golpear|cascar|hacer dano|ahorcar|dar (plomo|bala|chumbimba)|secuestrar|violar|tirar al rio|echar acido|chuzar|balear|torturar)\\b${NO_ES_GRIPA}${NO_ES_REDES}${NO_ES_UN_RATO}(?! (el|la|los|las) (pastel|torta|arroz|comida|cd|disco|archivo|video|carro|celular|pelo|cabello)\\b)`,
   /\b(me|nos) (va|van|iba|iban|quiere|quieren|amenazan con|amenazaron con|amenazo con|amenaza con) (a )?(quemar|incendiar|volar|balear|tirar una (granada|bomba) a|meter candela a) (la|mi|nuestra|el|nuestro) (casa|finca|rancho|negocio|tienda|carro|local|ranchito|casita)\b(?! (de|del) (los )?(nervios|risa|susto|estres|tanto)\b)/,
   /\blimpieza social\b/,
   /\b(tengo|tenemos|tienes) los dias contados\b(?! (en|para|de|del|con|hasta|aqui|aca|como)\b)/,
   /\b(me|nos) (va|van|iba|iban|quiere|quieren|queria|querian) a (dar|pegar|meter|echar) (plomo|bala|chumbimba|tiros?)\b(?! (en|con|al|a la) (el |la |los |las )?(examen|parcial|partido|juego|gym|gimnasio|entreno|clase|trabajo|oficina|tareas?|ejercicio|rutina|fiesta|rumba|baile)\b)/,
   /\b(me|nos) (dieron|dio|metieron|echaron|pegaron|daban) (plomo|bala|chumbimba)\b(?! (en|con|al|a la) (el |la |los |las )?(examen|parcial|partido|juego|gym|gimnasio|entreno|clase|trabajo|oficina|tareas?|ejercicio|rutina|fiesta|rumba|baile)\b)/,
-  /(?<!\bse )\b(me|nos) (balearon|baleo|balean|abalearon|abaleo|abalean|dispararon|disparo|disparan|echaron bala|van a balear|quieren balear|iban a balear|intentaron balear)\b(?! ((la|el|los|las) (ansiedad|presion|azucar|glucosa|tension|precios?|alarma|estres|ritmo|corazon|pulso|flash|cuenta|factura|fotos?)|en el pie|fotos?)\b)/,
+  '(?<!\\bse )\\b(me|nos) (balearon|baleo|balean|abalearon|abaleo|abalean|dispararon|disparo|disparan|echaron bala|van a balear|quieren balear|iban a balear|intentaron balear)\\b(?! ((la|el|los|las) (ansiedad|presion|azucar|glucosa|tension|precios?|alarma|estres|ritmo|corazon|pulso|flash|cuenta|factura|fotos?)|en el pie|fotos?)\\b)',
   /\b(me|nos|le|les) (hicieron|hizo|hacen|van a hacer|quieren hacer|intentaron hacer|iban a hacer) (un|otro) atentado\b(?! (contra|a) (la|mi|el) (dieta|paciencia|salud mental|autoestima|bolsillo|economia|figura|higado|ego|vista|oido|buen gusto)\b)/,
   /\batentado (contra (mi|nosotros|mi vida|mi familia|mis hijos|mi casa|mi esposo)|en mi (casa|finca|negocio))\b(?! (dieta|paciencia|autoestima|bolsillo)\b)/,
   /\ba punta de (fusil|fusiles|pistola|revolver|bala|plomo|machete|cuchillo|arma|armas|tiros|disparos|metralleta|escopeta|changon|amenazas|fierro|fierros)\b/,
-  /(?<!\b(profe|profesora|profesor|jefe|jefa|suegra|suegro|mama|mami|papa|papi|coordinador|coordinadora|rector|rectora|directora|director|supervisor|supervisora|entrenador|entrenadora)( \w+){0,2} )\b(me|nos) (tienen|tiene|tenian|tenia|pusieron|puso|ponen) (en la mira|fichad[ao]s?)\b(?! (para|de|del|en|por) (el |la |los |las )?(ascenso|trabajo|empresa|gimnasio|gym|colegio|universidad|oficina|banco|datacredito|proyecto|seleccion|equipo|concurso|beca|puesto|cargo|evaluacion|tienda|almacen|supermercado|iglesia|peluqueria|conjunto|edificio|parqueadero|chisme)\b)/,
+  '(?<!\\b(profe|profesora|profesor|jefe|jefa|suegra|suegro|mama|mami|papa|papi|coordinador|coordinadora|rector|rectora|directora|director|supervisor|supervisora|entrenador|entrenadora)( \\w+){0,2} )\\b(me|nos) (tienen|tiene|tenian|tenia|pusieron|puso|ponen) (en la mira|fichad[ao]s?)\\b(?! (para|de|del|en|por) (el |la |los |las )?(ascenso|trabajo|empresa|gimnasio|gym|colegio|universidad|oficina|banco|datacredito|proyecto|seleccion|equipo|concurso|beca|puesto|cargo|evaluacion|tienda|almacen|supermercado|iglesia|peluqueria|conjunto|edificio|parqueadero|chisme)\\b)',
   /\b(me|nos) (boletearon|boleteo|boletean|boleteaban|esta boleteando|estan boleteando|tienen boletead[ao]s?|tiene boletead[ao]s?)\b(?! ((en|por) (el|la|los|las|un|una|redes|instagram|whatsapp?|faceboo?k|tiktok|todo|toda)\b|con (esa|ese|la|el|una|un|mis|las|los|sus|su)\b|(la|el|una|un) (foto|video|chisme|historia|estado)\b))/,
   /\b(me|nos) (\w+ ){0,2}(llego|llegaron|dejaron|dejo|mandaron|mando|enviaron|envio|tiraron|tiro|pusieron) (\w+ ){0,2}(boletas?|cartas?|mensajes?|razon|panfletos?|sufragios?) (\w+ ){0,3}(de|del|de la|de los|de las) (guerrilla|guerrilleros|farc|eln|elenos|paras|paracos|paramilitares|autodefensas|disidencias?|clan del golfo|gaitanistas|urabenos|rastrojos|bacrim|grupo armado|grupos armados|armados|pandilla|pandilleros|sicarios|narcos|banda|bandas|combo|combos|extorsionistas)\b/,
   /\bboletas? (extorsiv\w*|de extorsion|amenazante\w*|de amenaza\w*)\b/,
@@ -974,10 +1007,10 @@ export const CRISIS_PATTERNS = [
   /\b(nos|me) (tenemos|tengo|toco|toca|tuvimos|tuve) (que )?(ir|salir|huir|volar|desplazar|largar)(nos|me)? (\w+ )?(del|de la|de mi|de nuestra) (pueblo|vereda|barrio|finca|tierra|municipio|region|comuna|ciudad|zona|casa)\b.{0,50}\b(amenaz\w*|matar\w*|mataron|guerrilla|paras|paracos|armados|grupo armado|disidencias|bandas?|combos?|desplaz\w*|vacuna|boleta\w*|extorsi\w*)\b/,
   /\b(amenaz\w*|mataron|guerrilla|paras|paracos|armados|grupo armado|disidencias|bandas?|combos?|vacuna|boleta\w*|extorsi\w*)\b.{0,50}\b(nos|me) (tenemos|tengo|toco|toca|tuvimos|tuve) (que )?(ir|salir|huir|volar|desplazar|largar)(nos|me)? (\w+ )?(del|de la|de mi|de nuestra) (pueblo|vereda|barrio|finca|tierra|municipio|region|comuna|ciudad|zona)\b/,
   /\b(amenazan|amenazaron|amenazo|amenaza|amenazaba|amenazaban|estan amenazando|esta amenazando|han amenazado|ha amenazado) a (mis|mi|nuestros|nuestras|nuestro|nuestra) (hijos|hijas|hijo|hija|ninos|ninas|nino|nina|familia|esposo|marido|mama|papa|nietos?|nietas?|bebes?)\b(?! con (no|quitar\w*|castigar\w*|expulsar\w*|sacar\w*|dejar\w*|echar\w*|regan\w*|rajar\w*|perder|bajar\w*|llamar\w*|contar\w*|decir\w*|denunciar\w*|demandar\w*|quitarle\w*|suspender\w*|reprobar\w*|citar\w*)\b)/,
-  new RegExp(`\\b(desaparecieron|secuestraron|secuestro|reclutaron|recluto|raptaron|rapto|se llevaron|se robaron|mataron|asesinaron) a (mi|mis|nuestra|nuestro|nuestros|nuestras) (\\w+ )?(hij[oa]s?|nin[oa]s?|bebes?|niet[oa]s?|herman[oa]s?|espos[oa]|marido|mama|papa|sobrin[oa]s?|pareja|companero|famili\\w*)\\b(?! (\\w+ ){0,2}(paseo|colegio|finca|parque|fiesta|cine|centro comercial|piscina|playa|viaje|campamento|excursion|equipo|seleccion|coro|banda|club|iglesia|grupo|futbol|partido|torneo|concurso|programa|novela|serie|pelicula|juego|videojuego|universidad|hospital|medico|clinica|urgencias|ambulancia|bano|vacaciones|almorzar|comer|cenar)\\b| (hace|en (el|la) (ano|decada|epoca|violencia|guerra)|cuando (yo )?(era|tenia|estaba (chiquita|pequena|nina)))\\b)`),
+  `\\b(desaparecieron|secuestraron|secuestro|reclutaron|recluto|raptaron|rapto|se llevaron|se robaron|mataron|asesinaron) a (mi|mis|nuestra|nuestro|nuestros|nuestras) (\\w+ )?(hij[oa]s?|nin[oa]s?|bebes?|niet[oa]s?|herman[oa]s?|espos[oa]|marido|mama|papa|sobrin[oa]s?|pareja|companero|famili\\w*)\\b(?! (\\w+ ){0,2}(paseo|colegio|finca|parque|fiesta|cine|centro comercial|piscina|playa|viaje|campamento|excursion|equipo|seleccion|coro|banda|club|iglesia|grupo|futbol|partido|torneo|concurso|programa|novela|serie|pelicula|juego|videojuego|universidad|hospital|medico|clinica|urgencias|ambulancia|bano|vacaciones|almorzar|comer|cenar)\\b| (hace|en (el|la) (ano|decada|epoca|violencia|guerra)|cuando (yo )?(era|tenia|estaba (chiquita|pequena|nina)))\\b)`,
   /\b(tienen|tiene|tengo) (a )?(mi|mis|nuestra|nuestro) (\w+ )?(hij[oa]s?|nin[oa]s?|bebes?|niet[oa]s?|herman[oa]s?|espos[oa]|marido|mama|papa) secuestrad[ao]s?\b|\b(tienen|tiene) secuestrad[ao]s? a (mi|mis|nuestra|nuestro) /,
-  new RegExp(`\\ba (mi|mis|nuestra|nuestro) (\\w+ )?(hij[oa]s?|nin[oa]s?|niet[oa]s?|herman[oa]s?|espos[oa]|marido|mama|papa|sobrin[oa]s?) (lo|la|los|las) (reclutaron|recluto|secuestraron|secuestro|desaparecieron|desaparecio|raptaron|rapto|mataron|asesinaron|se llevaron)\\b(?! (\\w+ ){0,2}(paseo|colegio|finca|parque|fiesta|cine|equipo|seleccion|coro|banda|club|futbol|partido|torneo|concurso|programa|novela|serie|pelicula|juego|universidad|hospital|medico|clinica|urgencias)\\b)`),
-  new RegExp(`\\b(me|nos) (va|van|iba|iban|quiere|quieren|queria|querian|piensan|pensaban)( a)? desaparecer ${LO_QUE_PASA_EN_CASA}`),
+  `\\ba (mi|mis|nuestra|nuestro) (\\w+ )?(hij[oa]s?|nin[oa]s?|niet[oa]s?|herman[oa]s?|espos[oa]|marido|mama|papa|sobrin[oa]s?) (lo|la|los|las) (reclutaron|recluto|secuestraron|secuestro|desaparecieron|desaparecio|raptaron|rapto|mataron|asesinaron|se llevaron)\\b(?! (\\w+ ){0,2}(paseo|colegio|finca|parque|fiesta|cine|equipo|seleccion|coro|banda|club|futbol|partido|torneo|concurso|programa|novela|serie|pelicula|juego|universidad|hospital|medico|clinica|urgencias)\\b)`,
+  `\\b(me|nos) (va|van|iba|iban|quiere|quieren|queria|querian|piensan|pensaban)( a)? desaparecer ${LO_QUE_PASA_EN_CASA}`,
   // El plan dicho de otras formas: "compro las pastillas y me mato", "voy a
   // la represa y me tiro", "voy a ir al puente a tirarme", "ya escogí el
   // puente donde me voy a tirar", "ya sé desde qué piso me voy a tirar",
@@ -987,13 +1020,13 @@ export const CRISIS_PATTERNS = [
   // piscina y me tiro", "voy a la represa y me tiro al agua con los niños",
   // "mañana voy a estar muerta del cansancio", "no voy a estar viva para
   // verlo" ni "ya sé desde qué piso se ve el mar".
-  new RegExp(`(?<!\\bme mato )\\by (yo )?me (mato|suicido)\\b${NO_ES_ME_MATO}${NO_ES_AJETREO}(?! de (la )?risa\\b| y me mato\\b)`),
-  new RegExp(`\\b(voy|vamos|ire|iria|me voy|ir|llego|subo|me subo|me paro|me monto|camino)( a ir)? (\\w+ ){0,2}(a|al|hasta|para|hacia) (el |la |los |las )?(\\w+ ){0,2}${LUGAR_PLAN}\\b.{0,40}\\b(y (me (tiro|lanzo|boto|aviento|arrojo|dejo caer|ahogo|mato)|tirarme|lanzarme)|a (tirarme|lanzarme|botarme|aventarme|arrojarme|dejarme caer|ahogarme|matarme|morir(me)?|suicidarme)|para (tirarme|lanzarme|botarme|aventarme|arrojarme|dejarme caer|ahogarme|matarme|morir(me)?|suicidarme|no volver))\\b(?! (a (nadar|banar\\w*|jugar|pescar|refrescar\\w*|chapotear|flotar|bucear|tomar \\w+)|al agua\\b(?! (para|y) (no (salir|volver)|morir\\w*|ahogarme|matarme))|(un|una) (clavado|chapuzon|piscinazo|pique|foto|selfie)|(en|de|con|haciendo|desde) (el |un |una |la )?(paseo|bungee?|puenting|parapente|paracaidas|tirolina|tirolesa|neumatico|flotador|kayak|lancha|bote|tobogan|inflable|rodadero|clavados?|lazo|cuerda)|con (los ninos|mis hijos|mi hija|mi hijo|el perro|mis amigas|ellos))\\b)`),
-  new RegExp(`\\b(${LUGAR_PLAN}|piso|altura|sitio|lugar) (\\w+ ){0,3}(donde|desde donde|de donde|del que|de la que|desde el que|desde la que|en el que|en la que) (me (voy a|pienso|quiero|tengo que|iba a) (tirar|lanzar|botar|aventar|arrojar|colgar|ahorcar|matar|suicidar|dejar caer)|(voy|pienso|quiero|tengo que) (tirarme|lanzarme|botarme|colgarme|ahorcarme|matarme|suicidarme|dejarme caer)|hay que (tirarse|lanzarse|botarse))\\b(?! (a (ver|dormir|descansar|leer|tomar|broncear\\w*|asolear\\w*|nadar|jugar)|en (la|el) (cama|sofa|hamaca|piscina|pasto|arena)|un rato|la siesta)\\b)`),
+  `(?<!\\bme mato )\\by (yo )?me (mato|suicido)\\b${NO_ES_ME_MATO}${NO_ES_AJETREO}(?! de (la )?risa\\b| y me mato\\b)`,
+  `\\b(voy|vamos|ire|iria|me voy|ir|llego|subo|me subo|me paro|me monto|camino)( a ir)? (\\w+ ){0,2}(a|al|hasta|para|hacia) (el |la |los |las )?(\\w+ ){0,2}${LUGAR_PLAN}\\b.{0,40}\\b(y (me (tiro|lanzo|boto|aviento|arrojo|dejo caer|ahogo|mato)|tirarme|lanzarme)|a (tirarme|lanzarme|botarme|aventarme|arrojarme|dejarme caer|ahogarme|matarme|morir(me)?|suicidarme)|para (tirarme|lanzarme|botarme|aventarme|arrojarme|dejarme caer|ahogarme|matarme|morir(me)?|suicidarme|no volver))\\b(?! (a (nadar|banar\\w*|jugar|pescar|refrescar\\w*|chapotear|flotar|bucear|tomar \\w+)|al agua\\b(?! (para|y) (no (salir|volver)|morir\\w*|ahogarme|matarme))|(un|una) (clavado|chapuzon|piscinazo|pique|foto|selfie)|(en|de|con|haciendo|desde) (el |un |una |la )?(paseo|bungee?|puenting|parapente|paracaidas|tirolina|tirolesa|neumatico|flotador|kayak|lancha|bote|tobogan|inflable|rodadero|clavados?|lazo|cuerda)|con (los ninos|mis hijos|mi hija|mi hijo|el perro|mis amigas|ellos))\\b)`,
+  `\\b(${LUGAR_PLAN}|piso|altura|sitio|lugar) (\\w+ ){0,3}(donde|desde donde|de donde|del que|de la que|desde el que|desde la que|en el que|en la que) (me (voy a|pienso|quiero|tengo que|iba a) (tirar|lanzar|botar|aventar|arrojar|colgar|ahorcar|matar|suicidar|dejar caer)|(voy|pienso|quiero|tengo que) (tirarme|lanzarme|botarme|colgarme|ahorcarme|matarme|suicidarme|dejarme caer)|hay que (tirarse|lanzarse|botarse))\\b(?! (a (ver|dormir|descansar|leer|tomar|broncear\\w*|asolear\\w*|nadar|jugar)|en (la|el) (cama|sofa|hamaca|piscina|pasto|arena)|un rato|la siesta)\\b)`,
   /\b(desde|de) (que|cual|cuantos?|cuantas?) (\w+ )?(piso|pisos|altura|puente|edificio|torre|metros) (\w+ ){0,2}(me voy a (tirar|lanzar|botar|aventar)|me (tiro|lanzo|boto)|hay que (tirarse|lanzarse|botarse)|tengo que (tirarme|lanzarme)|(tirarse|tirarme|lanzarse|lanzarme)|se (muere|mata) (uno|una|la gente))\b/,
   /\b(manana|pronto|esta noche|hoy|el (lunes|martes|miercoles|jueves|viernes|sabado|domingo)|a esta hora|para (manana|esta hora|el (lunes|martes|miercoles|jueves|viernes|sabado|domingo))|ya|en (unos|pocos|dos|tres) (dias|horas)|dentro de (\w+ ){1,2}(dias|horas))( \w+){0,4} (voy a estar|estare) muert[ao]\b(?! (de|del|con|por|despues|luego|cuando|si|para|toda la|todo el|en|al|tras)\b)/,
   /\b(ya no|no) (voy a estar|estare|voy a seguir|seguire|voy a amanecer|amanecere) (viva|vivo|con vida)\b(?! (para (ver|cuando|el|la|los|las|tanto)|cuando|si|tanto tiempo|mucho tiempo|tantos anos|hasta)\b)/,
-  new RegExp(`\\b(compre|consegui|tengo|ya tengo|guarde|escondi|traje|mande a comprar) (\\w+ ){0,3}(${VENENOS} (\\w+ ){0,4}(para|pa) (tomarmel[oa]s?|tragarmel[oa]s?|bebermel[oa]s?)|(${PASTILLAS}|pastilla|pepas?) (\\w+ ){0,4}(para|pa) (tomarmel[oa]s?|tragarmel[oa]s?) tod[oa]s)\\b`),
+  `\\b(compre|consegui|tengo|ya tengo|guarde|escondi|traje|mande a comprar) (\\w+ ){0,3}(${VENENOS} (\\w+ ){0,4}(para|pa) (tomarmel[oa]s?|tragarmel[oa]s?|bebermel[oa]s?)|(${PASTILLAS}|pastilla|pepas?) (\\w+ ){0,4}(para|pa) (tomarmel[oa]s?|tragarmel[oa]s?) tod[oa]s)\\b`,
   // Lo que ya está listo, o dónde está ella: "ya tengo la soga en el patio",
   // "ya tengo la cuerda y la viga escogida", "esta noche lo hago, ya tengo
   // todo listo", "ya dejé escrita la carta para mis hijos", "ya estoy en el
@@ -1015,7 +1048,7 @@ export const CRISIS_PATTERNS = [
   // para hacer el almuerzo", "voy a prender carbón para el asado", "me voy a
   // inyectar la insulina antes del almuerzo", "me guindé en la hamaca" ni "me
   // voy a guindar del árbol a coger mangos".
-  new RegExp(`\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago|me meti|meterme) (todo el|toda la|todos los|todas las|el frasco de|un frasco de|el frasquito de|un frasquito de|el tarro de|el tarrito de|la cajita de|el blister de|el paquete de|el sobre de|la bolsa de|la bolsita de) ${PASTILLAS}\\b(?! (del|de la|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b)`),
+  `\\b(tomar(me)?|tome|tomo|tomado|tragar(me)?|trague|trago|me meti|meterme) (todo el|toda la|todos los|todas las|el frasco de|un frasco de|el frasquito de|un frasquito de|el tarro de|el tarrito de|la cajita de|el blister de|el paquete de|el sobre de|la bolsa de|la bolsita de) ${PASTILLAS}\\b(?! (del|de la|de mi) (antibiotico|tratamiento|formula|receta|desparasitante)\\b)`,
   /\bme (tome|trague|meti) (el|la|los|las|mis) (clonazepam|rivotril|alprazolam|lorazepam|diazepam|zolpidem|tramadol|quetiapina|amitriptilina|trazodona|valium|xanax)(e?s)?(?=$| (y (ya|no|nadie|me (voy a morir|quiero morir|siento (mal|mareada|rara)))|ya no|no se|a proposito|enteros?|enteras?|completos?|completas?|tod[oa]s?|para (no (despertar|volver a despertar)|morir(me)?|matarme))\b)/,
   /\b(voy a (abrir|dejar abierta|soltar)|abrire|abriria|quiero abrir|pienso abrir|ganas de abrir) (toda |todo )?(la|el) (pipeta|cilindro|llave de la pipeta)( de(l)? gas)?(?=$)/,
   /\b(abrir|abri|abro|abrire|abriria|dejar|deje|dejo|soltar|solte|suelto) (toda |todo )?(la|el) (pipeta|cilindro|llave de la pipeta)( de(l)? gas)?\b(?= (y (me|nos) (encierro|encerre|acuesto|acoste|duermo|dormi|quedo|voy a (encerrar|dormir|acostar))|y (cierro|cerre|tapo|tape) (todo|las ventanas|la puerta|puertas)|de una vez|toda la noche|sin prender|abiert[ao] (toda la noche|y)|para (no (despertar|volver a despertar|amanecer)|morir(me)?|matarme|dormir(me)? para siempre|acabar con todo|que (me|nos) (mate|maten|muera|muramos)))\b)/,
@@ -1023,8 +1056,8 @@ export const CRISIS_PATTERNS = [
   /\b(inyectar(me)?|inyecte|inyecto|meter(me)?|meti|aplicar(me)?|aplique|ponerme|me puse) (toda la|todo el (frasco|tarro|vial|lapicero|pen) de|todas las (dosis|unidades|jeringas) de|un frasco (entero )?de|el frasco (entero )?de|una sobredosis de|demasiada|muchisima|toda mi|el doble de|el triple de|varias (dosis|jeringas|plumas) de|(varios|muchos) (frascos|lapiceros|viales) de) (la |mi )?insulina\b/,
   /\bme (voy a|quiero|pienso) inyectar insulina(?=$| (y (ya|me|no)|para (morir|matarme|no despertar|dormir(me)? para siempre)|de una vez|a proposito|toda|todo)\b)/,
   /\binsulina\b.{0,40}\b(para|pa) (morir(me)?|matarme|suicidarme|no (volver a )?despertar|dormir(me)? para siempre|quitarme la vida)\b/,
-  new RegExp(`(${ME_QUIERO} guindar|\\bguindarme|\\bme (guindo|guinde|guindare|guindaria)) (\\w+ ){0,3}(de|del|en) (el |la |una |un |mi )?(arbol|viga|techo|bano|closet|armario|cuarto|ducha|baranda|lampara|ventilador|palo|rama|puente|soga|cuerda|lazo|reja)\\b(?! (a|para) (coger|bajar|recoger|tumbar|alcanzar|arreglar|limpiar|colgar|pintar|cambiar|jugar|columpiar\\w*|mecer\\w*)\\b)`),
-  new RegExp(`(${ME_QUIERO} guindar|\\bguindarme|\\bme (guindo|guindare|guindaria)) (\\w+ ){0,4}con (una |un |la |el |mi )?(cuerda|soga|correa|cinturon|sabana|lazo|cable)\\b`),
+  `(${ME_QUIERO} guindar|\\bguindarme|\\bme (guindo|guinde|guindare|guindaria)) (\\w+ ){0,3}(de|del|en) (el |la |una |un |mi )?(arbol|viga|techo|bano|closet|armario|cuarto|ducha|baranda|lampara|ventilador|palo|rama|puente|soga|cuerda|lazo|reja)\\b(?! (a|para) (coger|bajar|recoger|tumbar|alcanzar|arreglar|limpiar|colgar|pintar|cambiar|jugar|columpiar\\w*|mecer\\w*)\\b)`,
+  `(${ME_QUIERO} guindar|\\bguindarme|\\bme (guindo|guindare|guindaria)) (\\w+ ){0,4}con (una |un |la |el |mi )?(cuerda|soga|correa|cinturon|sabana|lazo|cable)\\b`,
   /\b(me (quiero|quisiera|dan ganas de|provoca) guindar|(quiero|quisiera|ganas de|pienso en) guindarme)(?=$| (y (ya|se acaba|nadie)|ya|de una vez|hoy|esta noche|porque|que)\b)/,
   // Ideación con las construcciones de todos los días: "ya no deseo vivir",
   // "lo que quiero es morirme", "me provoca es morirme", "tengo pensamientos
@@ -1032,11 +1065,11 @@ export const CRISIS_PATTERNS = [
   // esta vida". No activan "ya no deseo vivir en esta ciudad", "lo que quiero
   // es morirme de la risa", "me provoca es dormir", "tengo pensamientos de
   // muerte de mi mamá" ni "me quiero ir de esta vida de estrés".
-  new RegExp(`\\bno deseo (vivir|seguir viviendo|seguir viva|seguir vivo|estar viva|estar vivo|seguir con vida)\\b(?! (con|en (?!(este|esta) (mundo|vida)\\b)|para|de|del|por|pendiente|bajo|a medias|al dia|a la|al|preocupada|estresada|angustiada|corriendo|apurada|asi de|tan|sola|solo|lejos|cerca|alla|aqui|aca|afuera)\\b)`),
-  new RegExp(`\\b(lo (unico )?que (yo )?(quiero|quisiera|deseo|necesito)|(me|te) provoca|(me|te) dan ganas|ganas tengo) es (${MORIR_FIN}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|quitarme la vida|desaparecer(me)?\\b${NO_ES_REDES}${NO_ES_UN_RATO}(?! (el|la|los|las|mis|mi)\\b)|no (existir|despertar(me)?\\b${NO_ES_SUENO})|estar muert[ao]|dormir(me)? para siempre)`),
+  `\\bno deseo (vivir|seguir viviendo|seguir viva|seguir vivo|estar viva|estar vivo|seguir con vida)\\b(?! (con|en (?!(este|esta) (mundo|vida)\\b)|para|de|del|por|pendiente|bajo|a medias|al dia|a la|al|preocupada|estresada|angustiada|corriendo|apurada|asi de|tan|sola|solo|lejos|cerca|alla|aqui|aca|afuera)\\b)`,
+  `\\b(lo (unico )?que (yo )?(quiero|quisiera|deseo|necesito)|(me|te) provoca|(me|te) dan ganas|ganas tengo) es (${MORIR_FIN}|matarme\\b${NO_ES_ESFUERZO}|suicidarme|quitarme la vida|desaparecer(me)?\\b${NO_ES_REDES}${NO_ES_UN_RATO}(?! (el|la|los|las|mis|mi)\\b)|no (existir|despertar(me)?\\b${NO_ES_SUENO})|estar muert[ao]|dormir(me)? para siempre)`,
   /\b(tengo|tenia|he tenido|vuelvo a tener|volvi a tener|me llegan|me vienen|me dan|sigo con|ando con|tuve|me persiguen|no se me quitan|no me dejan) (\w+ ){0,2}(pensamientos|ideas|ideaciones) (de muerte|de morir(me)?|de matarme|de quitarme la vida|de desaparecer|de no (existir|despertar)|de hacerme dano|de lastimarme|de cortarme)\b(?! (de|del) (mi|mis|la|el|los|las|su|sus|alguien|otra|otro) \w+)/,
   /\bir(me)? de esta vida\b(?! (de|tan|llena|asi|como|con)\b)/,
-  new RegExp(`\\b(ya )?no (le )?(quiero|puedo|voy a) seguir(le)? dando (a )?(esta|la|mi) vida\\b${NO_ES_ETAPA}`),
+  `\\b(ya )?no (le )?(quiero|puedo|voy a) seguir(le)? dando (a )?(esta|la|mi) vida\\b${NO_ES_ETAPA}`,
   // Autolesión: clavarse las uñas, pincharse, golpearse "yo misma", darse
   // contra la pared, lastimarse los brazos con un vidrio, clavarse un
   // cuchillo. No activan "me clavé una espina", "me pinché con la aguja
@@ -1046,9 +1079,9 @@ export const CRISIS_PATTERNS = [
   /\bme (rasguno|rasgune|rasgunaba|arano|arane|aranaba|rasco|rasque|pellizco|pellizque|muerdo|mordi|golpeo|golpee|pego|pegue|corto|corte|lastimo|lastime|arranco|arranque|arrancaba|jalo|halo|clavo|clave|clavaba|entierro|enterre|pincho|pinche|rayo|raye|quemo|queme) .{0,40}hasta (sangrar|que (me )?sangr\w*|hacerme sangre|(sacarme|sacar|hacerme salir) (la )?sangre|hacerme sangrar|que (me )?(salen|sale|salgan|quedan|queden|dejo|hago) (heridas|sangre|marcas|moretones|morados|cicatrices)|quedar morad[ao])\b(?!.{0,20}\b(sin querer|jugando|de la risa)\b)/,
   /\bme (doy|daba|estoy dando|sigo dando|golpeo|pego|estrello|estrellaba) (la cabeza |duro |fuerte )?contra (la|las|el|los) (pared|paredes|muro|muros|espejo)\b(?=$| (y|hasta|yo misma|a proposito|porque|para|de (la )?(rabia|ira|desesperacion|impotencia|angustia))\b)/,
   /\bme (di|he dado|golpee|pegue|estrelle) (la cabeza |duro |fuerte )?contra (la|las|el|los) (pared|paredes|muro|muros|espejo)\b(?= (hasta|yo misma|a proposito|porque me (odio|odiaba)|para castigarme|de (la )?(rabia|ira|desesperacion|impotencia|angustia))\b)/,
-  new RegExp(`\\bme (pegue|golpee|golpie|golpe|lastime|corte|queme|rasgune|arane|pellizque|mordi|castigue|hice dano|pego|golpeo|lastimo|corto|quemo|rasguno|arano|pellizco|muerdo|castigo|hago dano|pegaba|golpeaba|lastimaba|cortaba|quemaba|di golpes|doy golpes|di punos|doy punos)\\b${NO_ES_PELO} (\\w+ ){0,5}(yo (misma|mismo|sola|solita)|a mi mism[ao])\\b(?! (\\w+ )?(el|la|los|las) (chicle|pelo|cabello|curita|parche|tinte|mascarilla|crema|unas|pestanas|extensiones|tatuaje|piercing|boton|fleco|cerquillo|puntas|cejas|vacuna|inyeccion)\\b)(?!.{0,40}\\b(sin querer|por accidente|accidentalmente|jugando|cocinando|planchando|alisando\\w*|cosiendo|limpiando|lavando|con la puerta|de la risa|en la cocina|el pelo|las unas|el fleco)\\b)`),
+  `\\bme (pegue|golpee|golpie|golpe|lastime|corte|queme|rasgune|arane|pellizque|mordi|castigue|hice dano|pego|golpeo|lastimo|corto|quemo|rasguno|arano|pellizco|muerdo|castigo|hago dano|pegaba|golpeaba|lastimaba|cortaba|quemaba|di golpes|doy golpes|di punos|doy punos)\\b${NO_ES_PELO} (\\w+ ){0,5}(yo (misma|mismo|sola|solita)|a mi mism[ao])\\b(?! (\\w+ )?(el|la|los|las) (chicle|pelo|cabello|curita|parche|tinte|mascarilla|crema|unas|pestanas|extensiones|tatuaje|piercing|boton|fleco|cerquillo|puntas|cejas|vacuna|inyeccion)\\b)(?!.{0,40}\\b(sin querer|por accidente|accidentalmente|jugando|cocinando|planchando|alisando\\w*|cosiendo|limpiando|lavando|con la puerta|de la risa|en la cocina|el pelo|las unas|el fleco)\\b)`,
   /\bme (pinche|pincho|pinchaba|clave|clavo|clavaba|chuce|raye|rayo|rasque|rasco|mordi|muerdo|pellizque|pellizco|arranque|arranco|enterre|entierro|di golpes|doy golpes|di punos|doy punos|di cachetadas|doy cachetadas) .{0,40}\ba proposito\b/,
-  new RegExp(`\\bme (lastime|lastimo|lastimaba|corte|corto|cortaba|raye|rayo|rasgune|rasguno|hice dano|hago dano|hice heridas|hago heridas|abri|abro|rasque|rasco|queme|quemo) (\\w+ )?(los|las|mis) (brazos|piernas|munecas|muslos|antebrazos|venas|barriga|estomago|abdomen|caderas|tobillos|pantorrillas) (\\w+ ){0,2}con (un|una|el|la|unos|unas|mi|mis) (vidrio|vidrios|cuchilla|cuchillas|navaja|bisturi|tijeras|cuchillo|tajalapiz|sacapuntas|cortaunas|hoja de afeitar|gillette|cuchilla de afeitar|aguja|agujas|alfiler|clip|lapicero|esfero|compas|piedra|cigarrillo|cigarrillos|encendedor|unas|cuter|exacto)\\b(?!.{0,30}\\b(sin querer|por accidente|accidentalmente|jugando|cocinando|lavando|limpiando|arreglando|trabajando|cortando|cosiendo|depilando\\w*|afeitando\\w*)\\b)`),
+  `\\bme (lastime|lastimo|lastimaba|corte|corto|cortaba|raye|rayo|rasgune|rasguno|hice dano|hago dano|hice heridas|hago heridas|abri|abro|rasque|rasco|queme|quemo) (\\w+ )?(los|las|mis) (brazos|piernas|munecas|muslos|antebrazos|venas|barriga|estomago|abdomen|caderas|tobillos|pantorrillas) (\\w+ ){0,2}con (un|una|el|la|unos|unas|mi|mis) (vidrio|vidrios|cuchilla|cuchillas|navaja|bisturi|tijeras|cuchillo|tajalapiz|sacapuntas|cortaunas|hoja de afeitar|gillette|cuchilla de afeitar|aguja|agujas|alfiler|clip|lapicero|esfero|compas|piedra|cigarrillo|cigarrillos|encendedor|unas|cuter|exacto)\\b(?!.{0,30}\\b(sin querer|por accidente|accidentalmente|jugando|cocinando|lavando|limpiando|arreglando|trabajando|cortando|cosiendo|depilando\\w*|afeitando\\w*)\\b)`,
   /\bme (clave|clavo|clavaba|enterre|entierro|enterraba|hundi|hundo) (un|una|el|la|unas|unos|las|los) (cuchillo|navaja|cuchilla|tijeras|punal|destornillador|tenedor|cuchillos|tijera|bisturi|cuter)\b(?!.{0,40}\b(sin querer|por accidente|accidentalmente|cocinando|picando|cosiendo|jugando|arreglando|trabajando|pelando|cortando)\b)/,
   // Violencia sexual "a la fuerza", con escopolamina, y el abuso de una hija
   // dicho con "a mi hija la…" o en pasiva: "me forzó a estar con él", "me
@@ -1062,19 +1095,19 @@ export const CRISIS_PATTERNS = [
   /\bme (acosto|acostaba|acostaron) (\w+ ){0,2}a la fuerza\b(?! (el|la) (sueno|noche|lluvia|aguacero|tarde|hambre|pereza|gripa|frio|cansancio)\b| (en|haciendo) (el|la) (gimnasio|gym|clase|oficina|trabajo|entreno)\b| \w+(ando|iendo)\b)(?!.{0,40}\b(porque no (queria|quise|quiero) dormir|para (que )?(dormir|durmiera|la siesta)|a dormir|la siesta|cuando (era|estaba) (nina|chiquita|pequena|enferma))\b)/,
   /\b(relaciones|sexo|intimidad|hizo el amor|hicimos el amor|lo hicimos|tuvimos (sexo|relaciones)) (\w+ ){0,3}a la fuerza\b/,
   /\b(me|nos|la|lo|le|les) (\w+ ){0,2}(escopolamin\w*|burundang\w*)\b(?! para (el|la) (mareo|nausea|nauseas|vomito|viaje)\b)/,
-  new RegExp(`\\ba (mi|mis|nuestra|nuestro|una|la|su) (\\w+ ){0,4}?${MENOR} (\\w+ ){0,4}?(la|lo|las|los) (toco|tocaron|toca|tocan|tocaba|tocaban|ha tocado|han tocado|esta tocando|estan tocando|sigue tocando|manoseo|manosearon|manosea|manosean|manoseaba|violo|violaron|viola|violan|violaba|ha violado|han violado|abuso|abusaron|abusa|abusaba|ha abusado|han abusado|esta violando|esta abusando|esta manoseando)\\b(?! (el|la|los|las) (turno|guitarra|piano|cancion|musica|puerta|timbre|tema|bateria|violin|tambor|frente|loteria|rifa|premio|suerte|china|bolita|lista|papeleta|regalo)\\b| (para|en|de) (el|la|los|las|un|una) \\w+| (\\w+ )?\\w+(ar|er|ir)(la|lo|las|los|le|les)?\\b| (muy |tan )?(bien|mal|bonito|lindo|duro|suave)\\b)`),
+  `\\ba (mi|mis|nuestra|nuestro|una|la|su) (\\w+ ){0,4}?${MENOR} (\\w+ ){0,4}?(la|lo|las|los) (toco|tocaron|toca|tocan|tocaba|tocaban|ha tocado|han tocado|esta tocando|estan tocando|sigue tocando|manoseo|manosearon|manosea|manosean|manoseaba|violo|violaron|viola|violan|violaba|ha violado|han violado|abuso|abusaron|abusa|abusaba|ha abusado|han abusado|esta violando|esta abusando|esta manoseando)\\b(?! (el|la|los|las) (turno|guitarra|piano|cancion|musica|puerta|timbre|tema|bateria|violin|tambor|frente|loteria|rifa|premio|suerte|china|bolita|lista|papeleta|regalo)\\b| (para|en|de) (el|la|los|las|un|una) \\w+| (\\w+ )?\\w+(ar|er|ir)(la|lo|las|los|le|les)?\\b| (muy |tan )?(bien|mal|bonito|lindo|duro|suave)\\b)`,
   /\b(mi|mis|nuestra|nuestro|su|una|la) (\w+ ){0,3}?(hij[oa]s?|hijastr[oa]s?|nin[oa]s?|nen[ae]s?|bebes?|niet[oa]s?|sobrin[oa]s?|hermanit[oa]s?|herman[oa]s?|amiga|amigas|mama|prima|primas|vecina|novia|esposa|alumn[oa]s?|estudiantes?) (\w+ ){0,3}?(fue|ha sido|habia sido|fueron|han sido|era|eran) (violad[oa]s?|abusad[oa]s?|manosead[oa]s?)( sexualmente)?\b(?! en (sus|mis|los) derechos\b| (por|de) (la|el|los|las) (sistema|eps|empresa|banco|ley|estado|gobierno|colegio)\b)/,
   /\b(padrastro|tio|primo|abuelo|cunado|suegro|vecino|hermanastro|profesor|profe|entrenador|papa|padre|esposo|marido|novio|pareja|senor|hombre|man|tipo|viejo) (de (mi|su|la) (\w+ )?(hij[oa]|nin[oa]|mama|madre|hermana|hermanita|sobrin[oa]|niet[oa]) )?(\w+ ){0,2}(la|lo|las|los) (esta|estan|sigue|siguen|ha estado|anda|vive) (tocando|manoseando|violando|abusando|acosando)\b(?! (la|el|los|las) (guitarra|piano|cancion|musica|puerta|timbre|tema|bateria|violin|tambor|flauta)\b| (en|para|con) (el|la|clase|misa|la iglesia|el concierto|la banda)\b)/,
-  /(?<!\b(cancion|guitarra|piano|musica|tema|pieza|flauta|violin|bateria|puerta|campana|timbre|melodia|tambor|acordeon|organo|teclado|canciones|vallenato|himno|vals|bambuco)\b.{0,40})\b(la|lo) (esta|estan|sigue|siguen) (tocando|manoseando)$/,
-  new RegExp(`\\b(padrastro|tio|primo|abuelo|cunado|suegro|vecino|hermanastro|senor|viejo|man|tipo|hombre|profesor|(novio|esposo|pareja|marido) de (mi|su) (mama|madre)) (\\w+ ){0,2}se (le|les) (mete|metia|metio|entra|entraba|entro|pasa|pasaba|cuela|colaba|colo) (a|al|en|por) (el |la |su )?(cuarto|cama|habitacion|pieza|bano)\\b(?=.{0,30}\\ba (mi|mis|nuestra|nuestro|la|su) (\\w+ )?${MENOR}\\b)`),
-  new RegExp(`\\b(padrastro|tio|primo|abuelo|cunado|suegro|vecino|hermanastro|senor|viejo|man|tipo|hombre|profesor|(novio|esposo|pareja|marido) de (mi|su) (mama|madre)) (\\w+ ){0,2}se (mete|metia|metio|entra|entraba|entro|pasa|pasaba|cuela|colaba|colo) (a|al|en) (el |la )?(cuarto|cama|habitacion|pieza|bano) de (mi|mis|nuestra|nuestro) (\\w+ )?${MENOR}\\b(?! (a|para) (coger|buscar|sacar|traer|llevar|arreglar|pintar|limpiar|revisar|dejar|poner|instalar|cambiar)\\b)`),
+  '(?<!\\b(cancion|guitarra|piano|musica|tema|pieza|flauta|violin|bateria|puerta|campana|timbre|melodia|tambor|acordeon|organo|teclado|canciones|vallenato|himno|vals|bambuco)\\b.{0,40})\\b(la|lo) (esta|estan|sigue|siguen) (tocando|manoseando)$',
+  `\\b(padrastro|tio|primo|abuelo|cunado|suegro|vecino|hermanastro|senor|viejo|man|tipo|hombre|profesor|(novio|esposo|pareja|marido) de (mi|su) (mama|madre)) (\\w+ ){0,2}se (le|les) (mete|metia|metio|entra|entraba|entro|pasa|pasaba|cuela|colaba|colo) (a|al|en|por) (el |la |su )?(cuarto|cama|habitacion|pieza|bano)\\b(?=.{0,30}\\ba (mi|mis|nuestra|nuestro|la|su) (\\w+ )?${MENOR}\\b)`,
+  `\\b(padrastro|tio|primo|abuelo|cunado|suegro|vecino|hermanastro|senor|viejo|man|tipo|hombre|profesor|(novio|esposo|pareja|marido) de (mi|su) (mama|madre)) (\\w+ ){0,2}se (mete|metia|metio|entra|entraba|entro|pasa|pasaba|cuela|colaba|colo) (a|al|en) (el |la )?(cuarto|cama|habitacion|pieza|bano) de (mi|mis|nuestra|nuestro) (\\w+ )?${MENOR}\\b(?! (a|para) (coger|buscar|sacar|traer|llevar|arreglar|pintar|limpiar|revisar|dejar|poner|instalar|cambiar)\\b)`,
   // Un hijo (o la pareja) que llega a pegarle, y la cabeza rota: "mi hijo
   // llega borracho a pegarme", "mi hijo me rompió la cabeza con una
   // botella", "me abrió la cabeza", "me descalabró", "me abrió la ceja". No
   // activan "mi hijo llega a pegarme los botones", "mi hijo me rompió la
   // cabeza con tantas preguntas" ni "ese libro me abrió la cabeza".
   /\b(llega|llego|llegaba|viene|vino|venia|entra|entro|entraba|se mete|se metio|sale|salio) (\w+ ){0,3}a (pegarme|golpearme|cascarme|maltratarme|patearme|ahorcarme|violarme|tocarme|amenazarme|empujarme|zarandearme|jalonearme|levantarme la mano|darme (golpes|punos|patadas|correa|una pela))\b(?! (los|las|el|la|un|una|sus|su) \w+| (mi|mis) (?!(esposo|marido|mama|papa|hija|hijo|hijos|hijas|familia|pareja|novio|hermana|hermano|gente)\b)\w+)(?!.{0,30}\b(jugando|pataleta|berrinche|bromeando|de juego)\b)/,
-  /(?<!\b(ejercicio|problema|examen|parcial|tarea|acertijo|crucigrama|sudoku|pregunta|tema|libro|clase|matematicas|ruido|bulla|musica|curso|terapia|viaje|experiencia|pelicula|charla|serie|documental|conversacion|psicologa|psicologo|taller|profe|profesora|profesor|lectura)( \w+)? )\bme (rompio|rompieron|partio|partieron|abrio|abrieron|reventaron|revento|fracturo|fracturaron) (la|el) (cabeza|craneo)\b(?! (con|de) (tant[oa]s?|esas?|esos?|sus|la|el|los|las|mis) (preguntas|problemas|ejercicios?|tareas?|cuentas|cosas|matematicas|pensamientos|ideas|dudas|gritos|ruido|bulla|musica|cantaleta|quejas|lloradera|chismes|historias|cuentos)\b| (ese|esa|este|esta|el|la) (ejercicio|problema|examen|parcial|tarea|acertijo|crucigrama|sudoku|pregunta|tema|libro|clase|curso|viaje|pelicula|serie|charla)\b| a (nuevas|otras|otro|una|mas|todo) \w+| (para|de) (bien|entender|pensar)\b)(?!.{0,40}\b(jugando|sin querer|por accidente|accidentalmente)\b)/,
+  '(?<!\\b(ejercicio|problema|examen|parcial|tarea|acertijo|crucigrama|sudoku|pregunta|tema|libro|clase|matematicas|ruido|bulla|musica|curso|terapia|viaje|experiencia|pelicula|charla|serie|documental|conversacion|psicologa|psicologo|taller|profe|profesora|profesor|lectura)( \\w+)? )\\bme (rompio|rompieron|partio|partieron|abrio|abrieron|reventaron|revento|fracturo|fracturaron) (la|el) (cabeza|craneo)\\b(?! (con|de) (tant[oa]s?|esas?|esos?|sus|la|el|los|las|mis) (preguntas|problemas|ejercicios?|tareas?|cuentas|cosas|matematicas|pensamientos|ideas|dudas|gritos|ruido|bulla|musica|cantaleta|quejas|lloradera|chismes|historias|cuentos)\\b| (ese|esa|este|esta|el|la) (ejercicio|problema|examen|parcial|tarea|acertijo|crucigrama|sudoku|pregunta|tema|libro|clase|curso|viaje|pelicula|serie|charla)\\b| a (nuevas|otras|otro|una|mas|todo) \\w+| (para|de) (bien|entender|pensar)\\b)(?!.{0,40}\\b(jugando|sin querer|por accidente|accidentalmente)\\b)',
   /\bme (descalabro|descalabraron|descalabra)\b(?! (el|la|los|las|mi|mis) (?!(cabeza|frente|craneo)\b)\w+)/, /\bme (abrio|abrieron|rajo|rajaron) (la|el) (ceja|frente|labio|cara|mejilla|pomulo)\b/,
   // La crisis de otra persona: "encontré a mi hija cortándose", "mi pareja
   // dice que se va a pegar un tiro", "mi hija se colgó", "el marido de mi
@@ -1082,7 +1115,7 @@ export const CRISIS_PATTERNS = [
   // señora". No activan "encontré a mi hija cortándose el pelo", "mi hija se
   // colgó del columpio", "se va a pegar una siesta" ni "el vecino le está
   // pegando al balón".
-  new RegExp(`\\b(encontre|vi|pille|descubri|cache|halle|encontramos|vimos|sorprendi|encuentro|veo) a (mi|mis|una|la|el|su|nuestra|nuestro) (\\w+ ){0,2}(cortandose|ahorcandose|lastimandose|haciendose dano|quemandose|envenenandose|asfixiandose|tomandose (las|unas|todas las|un frasco|el frasco|la caja)|tragandose (las|unas|todas las)|colgandose (de|del|en) (el |la |una |un )?(viga|techo|arbol|closet|ducha|ventilador|lampara|baranda|cuerda|soga))\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`),
+  `\\b(encontre|vi|pille|descubri|cache|halle|encontramos|vimos|sorprendi|encuentro|veo) a (mi|mis|una|la|el|su|nuestra|nuestro) (\\w+ ){0,2}(cortandose|ahorcandose|lastimandose|haciendose dano|quemandose|envenenandose|asfixiandose|tomandose (las|unas|todas las|un frasco|el frasco|la caja)|tragandose (las|unas|todas las)|colgandose (de|del|en) (el |la |una |un )?(viga|techo|arbol|closet|ducha|ventilador|lampara|baranda|cuerda|soga))\\b${NO_ES_PELO}${NO_ES_ACCIDENTE}`,
   /\bse (va|iba|quiere|queria|quiso|quisiera|piensa|intento|trato de|ha intentado) (a )?(pegar|dar|meter) (un tiro|un balazo|un disparo)\b(?! (de|libre|penal|al arco|a gol|a puerta)\b)/,
   /\b(pegarse|darse|meterse) un (tiro|balazo|disparo)\b(?! (de|libre|penal|al arco|a gol|a puerta)\b)|\bvolarse (la cabeza|los sesos)\b/,
   /\b(mi|una|la|el|su) (hija|hijo|amiga|amigo|hermana|hermano|prima|primo|sobrina|sobrino|nieta|nieto|alumna|alumno|mama|papa|madre|padre|esposo|esposa|marido|novio|novia|pareja|companera|vecina|cunada|tia|tio) (\w+ ){0,3}se colgo\b(?=$| (y|pero|ya|anoche|ayer|hoy|en (el|la|su|mi) (bano|cuarto|closet|patio|habitacion|ducha|casa|finca|arbol|garaje)|con (una|la|un|el) (cuerda|soga|sabana|cinturon|correa|cable)|de (una|la|un|el) (viga|cuerda|soga|arbol|ventilador|techo))\b)/,
@@ -1101,9 +1134,9 @@ export const CRISIS_PATTERNS = [
   // "no tengo razones para seguir con él", "quisiera acostarme y no
   // despertar hasta el lunes", "quisiera no existir en el grupo" ni "estoy
   // mamada de esta vida de oficina".
-  new RegExp(`\\bno (le )?(veo|encuentro|hallo|tiene) (ningun )?sentido (a |de |en )?(levantarme|despertar(me)?|seguir viva|seguir vivo|estar viva|estar vivo|existir|respirar|seguir aqui|seguir respirando)\\b(?! (temprano|tan temprano|a las|para (ir|el|la)|en (el|la|esta|este) (trabajo|empresa|ciudad|casa|oficina))\\b)`),
+  `\\bno (le )?(veo|encuentro|hallo|tiene) (ningun )?sentido (a |de |en )?(levantarme|despertar(me)?|seguir viva|seguir vivo|estar viva|estar vivo|existir|respirar|seguir aqui|seguir respirando)\\b(?! (temprano|tan temprano|a las|para (ir|el|la)|en (el|la|esta|este) (trabajo|empresa|ciudad|casa|oficina))\\b)`,
   /\bme (da|daria|daba|es|seria) (igual|lo mismo|indiferente) (vivir|estar viva|estar vivo|seguir viva|seguir vivo|seguir viviendo) (que|o) (morir(me)?|estar muert[ao]|no|dejar de vivir)\b/,
-  new RegExp(`\\b(acostarme|dormirme|dormir|cerrar los ojos|echarme|irme a dormir|acostarme a dormir) y no (volver a )?(despertar(me)?|abrir los ojos)( nunca( mas)?| jamas| mas)?\\b${NO_ES_SUENO}`),
+  `\\b(acostarme|dormirme|dormir|cerrar los ojos|echarme|irme a dormir|acostarme a dormir) y no (volver a )?(despertar(me)?|abrir los ojos)( nunca( mas)?| jamas| mas)?\\b${NO_ES_SUENO}`,
   /\b(estorbo|sobro|soy un estorbo|soy una carga|solo estorbo) en (este mundo|esta vida|la vida|esta tierra|el mundo|esta familia|esta casa)\b/,
   /\bme (canse|harte|aburri|agote) de (luchar|intentarlo|seguir luchando|seguir intentando|sobrevivir|resistir)\b(?! (con|contra|por|para|en|de|cada|todos los|todo el|tanto)\b)/,
   /\b(no tengo|ya no tengo|sin|perdi las|no me quedan|se me acabaron las) (razones|motivos|fuerzas|ganas) (de|para) seguir\b(?! (con|en (?!este mundo\b)|de|del|a|al|para|por|haciendo|trabajando|estudiando|intentando|insistiendo|pagando|esperando|yendo|corriendo|entrenando|caminando|cocinando|limpiando|adelante (con|en)|el|la|los|las|este|esta|ese|esa)\b)/,
@@ -1111,9 +1144,9 @@ export const CRISIS_PATTERNS = [
   /\bno (doy|puedo|aguanto|soporto) mas\b.{0,20}\bestoy al limite\b(?! (con|en|de|del|por|para|el|la|los|las|este|esta)\b)|\bestoy al limite\b.{0,10}\bno (doy|puedo|aguanto|soporto) mas\b(?! (con|en|de|del|por|para|el|la|los|las|este|esta)\b)/,
   /\b(quisiera|quiero|preferiria|prefiero|me gustaria|desearia|deseo|ojala pudiera|solo quiero|solo quisiera) no (existir|haber existido)\b(?! (en|para|de|del|mas en|tan) \w+)/,
   /\bsi (yo )?no (estuviera|existiera|hubiera nacido|viviera)\b(?! (en|con|de|aqui (en|con)|tan|asi|\w+ando|\w+iendo)\b).{0,40}\b(estarian|estaria|serian|seria|vivirian|viviria) (\w+ ){0,2}(mejor|mas felices|mas feliz|mas tranquil[oa]s?|en paz)\b/,
-  new RegExp(`\\bmejor (es )?que (yo )?me (muera|muriera|mate|desaparezca|vaya para siempre)\\b${NO_ES_RISA}`),
-  new RegExp(`\\b(cansada|cansado|harta|harto|agotada|agotado|mamada|mamado|jarta|jarto|hastiada|hastiado) de (esta|mi) (vida|existencia)\\b${NO_ES_ETAPA}(?! (de|en|con|tan|aca|aqui|social|asi de)\\b)`),
-  new RegExp(`\\b(mamada|mamado|jarta|jarto|hastiada|hastiado) de (vivir|existir|la vida|estar viva|estar vivo)\\b${NO_ES_VIVIR_CON}`),
+  `\\bmejor (es )?que (yo )?me (muera|muriera|mate|desaparezca|vaya para siempre)\\b${NO_ES_RISA}`,
+  `\\b(cansada|cansado|harta|harto|agotada|agotado|mamada|mamado|jarta|jarto|hastiada|hastiado) de (esta|mi) (vida|existencia)\\b${NO_ES_ETAPA}(?! (de|en|con|tan|aca|aqui|social|asi de)\\b)`,
+  `\\b(mamada|mamado|jarta|jarto|hastiada|hastiado) de (vivir|existir|la vida|estar viva|estar vivo)\\b${NO_ES_VIVIR_CON}`,
   // Despedidas: "esto es un adiós", "les dejo esto por si no vuelvo a
   // escribir", "cuiden a mis hijos por mí", "fue un gusto conocerlas, hasta
   // nunca", "quiero que mis hijos sepan que no fue culpa de ellos", "ya les
@@ -1138,13 +1171,22 @@ export const CRISIS_PATTERNS = [
   /\bpara que (\w+ ){0,3}(lean|lea|encuentren|abran) (\w+ ){0,2}cuando (yo )?(ya )?no (este|exista|estuviera|viva)\b/,
   /\b(diganle|diganles|digale|digales) (a (mi|mis) (\w+ ){0,2})?que (la|lo|los|las|les|le) perdono\b|\ba (mi|mis) (\w+ ){0,2}(diganle|diganles|digale|digales|dile|diles) que (la|lo|los|las|les|le) (perdono|amo|quiero|adoro|extranare|voy a extranar)\b/,
   /\bme voy para siempre\b(?! (a|al|de|del|para|con|en)\b)/,
-  /(?<!\b((en|por) (ese|esa|este|esta|el|la|esos|esas)( \w+)?|ahi|alla|aca|aqui) )\b(no|nunca( mas)?) me (van|vas|volveran|volveras|vuelven) a (volver a )?ver( (nunca|nunca mas|mas|jamas))?\b(?! (en|por|de|del|la|el|los|las|lo|un|una|aqui|alla|aca|ahi|hasta|con|sin|tan|asi|ni|triste|mal|debil|sola|gorda|flaca|fea|igual|\w+(ar|er|ir|ando|iendo|ada|ado|ida|ido)|(nunca|nunca mas|mas|jamas) (en|por|aqui|aca|asi|triste|igual|con|sin|de|del))\b)/,
+  '(?<!\\b((en|por) (ese|esa|este|esta|el|la|esos|esas)( \\w+)?|ahi|alla|aca|aqui) )\\b(no|nunca( mas)?) me (van|vas|volveran|volveras|vuelven) a (volver a )?ver( (nunca|nunca mas|mas|jamas))?\\b(?! (en|por|de|del|la|el|los|las|lo|un|una|aqui|alla|aca|ahi|hasta|con|sin|tan|asi|ni|triste|mal|debil|sola|gorda|flaca|fea|igual|\\w+(ar|er|ir|ando|iendo|ada|ado|ida|ido)|(nunca|nunca mas|mas|jamas) (en|por|aqui|aca|asi|triste|igual|con|sin|de|del))\\b)',
   /\b(manana|pronto|esta noche|hoy|en unos dias) ya no (voy a estar|estare)( (aqui|mas|para nadie))?\b(?! (en|por|de|del|a|al|para|con|hasta|disponible|trabajando|conectada|pendiente|tan|temprano|ahi|alla|despues|antes|todo el|toda la|el|la|los|las|aqui (en|para|hasta|con|el|la)|mas (en|de|con|por|para))\b)/,
   /\b(esta es|es|sera) la ultima vez que (les |los |las )?(escribo|hablo|me leen|me ven|me van a (leer|ver)|publico|saben de mi) (aqui|aca|con ustedes|en este mundo)\b(?! (de|del|sobre|acerca|por|en|hasta|este|esta|ese|esa|tan|asi|para)\b)/,
   /\b(esta es|es|sera) la ultima vez que (les|los|las) (escribo|hablo)\b(?! (de|del|sobre|acerca|por|en|hasta|este|esta|ese|esa|tan|asi|para)\b)/,
   /\b(pensando en|pienso|voy a|quiero|ganas de|estoy a punto de|capaz de|me dan ganas de|tentada a|tentado a|a punto de) (hacer|cometer) (una )?(locura|estupidez|tonteria|barbaridad|burrada|loquera)\b(?! (con|en|de|del|como|para|por|y (me )?(compr|cort|pint|tatu|renunc|viaj|ten|largar|escap|gast|vend)\w*|comprando|gastando|cortandome|pintandome|tatuandome|renunciando|viajando|el pelo|la tarjeta|mi pelo|jaja\w*)\b)/,
   /\bno (veo|encuentro|tengo|le veo|le encuentro) (ninguna |otra )?salida que (hago|hacer|hare|voy a hacer|mas hacer)\b/,
 ]
+
+// Las regex de PATRONES, en el mismo orden, compiladas la primera vez que se
+// consulta; null la que este motor no compila (la que usa lookbehind, en
+// Safari antes de 16.4).
+let COMPILADOS = null
+export function crisisPatterns() {
+  if (!COMPILADOS) COMPILADOS = PATRONES.map((p) => (typeof p === 'string' ? compilar(p) : p))
+  return COMPILADOS
+}
 
 // Cuántas cláusulas seguidas se leen también juntas: una pausa dentro de la
 // frase ("no quiero... vivir, de verdad") no la parte.
@@ -1358,9 +1400,45 @@ function indiceDe(fondo) {
   return indice
 }
 
+// En un motor sin lookbehind (Safari antes de 16.4) los patrones que lo usan
+// no compilan y se saltan. Ahí isCrisis suma la detección completa de la
+// versión bfd2df8 (isCrisisBasico, que no usa lookbehind) y activa si
+// cualquiera de las dos activa. Ante la duda, ayuda: si algo falla, decide la
+// básica, y si también falla, activa.
 export function isCrisis(content) {
-  if (!PUERTAS) PUERTAS = CRISIS_PATTERNS.map(puertaDe)
+  try {
+    const patrones = crisisPatterns()
+    return detecta(content, patrones) || (!patrones.every(Boolean) && detectaBasico(content))
+  } catch {
+    try {
+      return isCrisisBasico(content)
+    } catch {
+      return true
+    }
+  }
+}
+
+function detecta(content, patrones) {
+  if (!PUERTAS) PUERTAS = patrones.map((re) => re && puertaDe(re))
   const { textos, fondo } = lecturas(content)
+  const abierta = abiertaEn(fondo)
+  return patrones.some((re, n) => re !== null && abierta(PUERTAS[n]) && textos.some((t) => re.test(t)))
+}
+
+// La detección básica con las mismas puertas, en su propio texto: sin ellas,
+// en un motor sin lookbehind la primera consulta en el texto más largo
+// tardaba casi el doble (cada regex se compila la primera vez que se usa).
+let PUERTAS_BASICAS = null
+function detectaBasico(content) {
+  const patrones = patronesBasicos()
+  if (!PUERTAS_BASICAS) PUERTAS_BASICAS = patrones.map(puertaDe)
+  const n = textoBasico(content)
+  const abierta = abiertaEn(n)
+  return patrones.some((re, i) => abierta(PUERTAS_BASICAS[i]) && re.test(n))
+}
+
+// Si una puerta está abierta en el fondo: cada grupo con algún pedazo en él.
+function abiertaEn(fondo) {
   const indice = indiceDe(fondo)
   const visto = new Map()
   const esta = (s) => {
@@ -1372,7 +1450,7 @@ export function isCrisis(content) {
     }
     return v
   }
-  return CRISIS_PATTERNS.some((re, n) => (!PUERTAS[n] || PUERTAS[n].every((grupo) => grupo.some(esta))) && textos.some((t) => re.test(t)))
+  return (puerta) => !puerta || puerta.every((grupo) => grupo.some(esta))
 }
 
 // Nombre del botón que abre las herramientas de crisis, tal como se ve en el
