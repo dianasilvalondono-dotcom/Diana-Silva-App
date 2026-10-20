@@ -3561,15 +3561,8 @@ function App() {
       <div style={{ fontSize: 14, color: C.subtle, marginTop: 20, maxWidth: 300, lineHeight: 1.6 }}>
         Afuera y Juntas te esperan abajo.
       </div>
-      <button onClick={finishOnboarding} style={{
-        padding: '14px 40px', borderRadius: 30, width: '100%', maxWidth: 330, marginTop: 22,
-        background: `linear-gradient(135deg, ${C.teal}, ${C.tealDark})`,
-        color: 'white', fontSize: 18, fontWeight: 800, border: 'none',
-        cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.03em',
-        boxShadow: '0 4px 16px rgba(20,24,51,0.35)',
-      }}>
-        Comenzar mi Ronda
-      </button>
+      {/* "Comenzar mi Ronda" va en la barra de abajo, junto a Atrás: así
+          siempre se ve y nada se le encima (bienvenida-2, bienvenida-7). */}
     </>),
   ]
 
@@ -3623,12 +3616,22 @@ function App() {
 
   /* ── Onboarding screen ── */
   if (!onboarded) {
+    const ultimoPaso = onboardStep === onboardSlides.length - 1
     return (
       <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: FONT }}>
         {onboardSlides[onboardStep]}
 
-        {/* Dots + Navigation */}
-        <div style={{ position: 'fixed', bottom: 40, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        {/* Dots + Navigation. Barra de ancho completo con fondo propio: lo que
+            pasa por debajo queda tapado en vez de encimarse con los puntos y
+            los botones, y ningún toque se pierde en algo que sí se ve
+            (bienvenida-1, bienvenida-2). El padding inferior de
+            onboardStepShell deja subir con scroll todo el contenido. */}
+        <div style={{
+          position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 10,
+          maxWidth: 600, margin: '0 auto', padding: '16px 16px 40px',
+          background: C.cream,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
+        }}>
           {/* Dots */}
           <div role="img" aria-label={`Paso ${onboardStep + 1} de ${onboardSlides.length}`} style={{ display: 'flex', gap: 8 }}>
             {onboardSlides.map((_, i) => (
@@ -3640,29 +3643,30 @@ function App() {
             ))}
           </div>
 
-          {/* Buttons */}
-          {onboardStep < onboardSlides.length - 1 && (
-            <div style={{ display: 'flex', gap: 16 }}>
-              {onboardStep > 0 && (
-                <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
-                  padding: '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
-                  background: 'transparent', color: C.muted, fontSize: 19, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  Atrás
-                </button>
-              )}
-              <button onClick={() => setOnboardStep(onboardStep + 1)} style={{
-                padding: '12px 32px', borderRadius: 25, border: 'none',
-                background: `${C.teal}`,
-                color: 'white', fontSize: 19, fontWeight: 800,
-                cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 4px 12px rgba(20,24,51,0.3)',
+          {/* Buttons. En el último paso Siguiente pasa a ser "Comenzar mi
+              Ronda" y Atrás se queda, para corregir el nombre o los hábitos
+              antes de crearlos (bienvenida-7). Ahí los botones van más
+              compactos para caber lado a lado en un teléfono de 360px. */}
+          <div style={{ display: 'flex', gap: 16, maxWidth: '100%' }}>
+            {onboardStep > 0 && (
+              <button onClick={() => setOnboardStep(onboardStep - 1)} style={{
+                padding: ultimoPaso ? '12px 18px' : '12px 28px', borderRadius: 25, border: `2px solid ${C.contorno}`,
+                background: C.card, color: C.muted, fontSize: 19, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
               }}>
-                Siguiente
+                Atrás
               </button>
-            </div>
-          )}
+            )}
+            <button onClick={ultimoPaso ? finishOnboarding : () => setOnboardStep(onboardStep + 1)} style={{
+              padding: ultimoPaso ? '12px 22px' : '12px 32px', borderRadius: 25, border: 'none',
+              background: ultimoPaso ? `linear-gradient(135deg, ${C.teal}, ${C.tealDark})` : `${C.teal}`,
+              color: 'white', fontSize: ultimoPaso ? 18 : 19, fontWeight: 800,
+              cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: '0 4px 12px rgba(20,24,51,0.3)',
+            }}>
+              {ultimoPaso ? 'Comenzar mi Ronda' : 'Siguiente'}
+            </button>
+          </div>
         </div>
       </div>
     )
