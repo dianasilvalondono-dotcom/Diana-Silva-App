@@ -132,12 +132,12 @@ export const PLANES_EJEMPLO = [
   {
     id: 'ej-ctg-5', ciudad: 'cartagena', barrio: 'Manga', sala: 'acompanamiento',
     colecciones: ['recien-llegada'],
-    titulo: 'Círculo de conversación con psicóloga verificada', cuando: 'Martes, 6:30 p. m.', anfitriona: 'psicóloga verificada por Ronda',
+    titulo: 'Círculo de conversación para recién llegadas', cuando: 'Martes, 6:30 p. m.', anfitriona: 'Natalia',
     acceso: 'solo-mujeres', verificacion: 2, cupos: 8,
     cedula: {
-      porque: 'Un espacio cuidado y guiado por una profesional verificada.',
+      porque: 'Ocho mujeres, una pregunta por encuentro y nadie tiene que dar consejos.',
       paraQuien: 'Para la que está atravesando un cambio y quiere compañía con criterio.',
-      comoLlegas: 'Ocho cupos. La profesional te escribe antes para saludarte.',
+      comoLlegas: 'Ocho cupos. Natalia te escribe antes para saludarte.',
     },
   },
   {
