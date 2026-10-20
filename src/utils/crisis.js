@@ -274,6 +274,12 @@ export const CRISIS_PATTERNS = [
   // Sentirse una carga o creer que nadie la extrañaría.
   /\b(soy|me siento|siento que soy) (una|un) carga\b/,
   /\bnadie (me )?(extranaria|echaria de menos|notaria|lloraria)\b/,
+  // También con "va a" y en futuro ("nadie me va a extrañar", "nadie me
+  // extrañará cuando me vaya"), y "nadie se daría cuenta si me muero". No
+  // activan "nadie me va a extrañar en la oficina", "nadie me va a llorar la
+  // tusa" ni "nadie va a notar si no voy a la fiesta".
+  /\bnadie (me )?((va|iba) a )?(extranar|extranara|echar de menos|echara de menos|llorar|llorara)\b(?! (en|la|el|los|las|cuando (renuncie|me cambie|me mude|me vaya de (la|el|mi)))\b)/,
+  /\bnadie (se )?((va|iba) a )?(dar cuenta|daria cuenta|dara cuenta|notar|notaria|notara) (si|cuando) (ya )?(me muero|muero|me muera|desaparezco|desaparezca|no estoy|no este|me mato|me voy para siempre)\b/,
   /\bnadie le (importaria|importa) si (me muero|muero|desaparezco|no estoy|me mato|me voy)\b/,
   /\b(pienso|pense|pensando|pensado|penso|pensar) (\w+ ){0,3}en (morir(me)?|la muerte|no (despertar|existir|estar))\b(?! de (la )?(risa|verguenza|pena ajena|mi|mis|su|sus|el|la|los|las|un|una|alguien)\b)/,
   // Violencia: "mi esposo me pegó", "me golpearon", "me tiene encerrada",
