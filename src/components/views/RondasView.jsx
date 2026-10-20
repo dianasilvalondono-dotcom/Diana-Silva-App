@@ -13,11 +13,90 @@ import { C } from '../../constants/colors'
 import { FONT_DISPLAY } from '../../constants/tokens'
 import { CIUDADES, SALAS, ACCESO, MODALIDAD, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from '../../constants/curaduria'
 import { load, save } from '../../utils/helpers'
-import { getPlanes, getReservasLocales, reservarCupo, enviarReporte } from '../../lib/curaduria'
+import { getPlanes, getReservas, getReservasLocales, reservarCupo, liberarCupo, enviarReporte, enviarReportesPendientes } from '../../lib/curaduria'
 import { track } from '../../lib/analytics'
 import LineaCrisis from '../ui/LineaCrisis'
 
 const salaLabel = (id) => SALAS.find(s => s.id === id)?.label || id
+
+/* "1 cupo", "8 cupos"; si se sabe cuántos quedan, eso (rondas-10). */
+const textoCupos = (n) => (n === 1 ? '1 cupo' : `${n} cupos`)
+const cuposVisibles = (plan) => {
+  if (plan.restantes != null) {
+    if (plan.restantes === 0) return 'Cupos llenos'
+    return `${plan.restantes === 1 ? 'Queda' : 'Quedan'} ${textoCupos(plan.restantes)}`
+  }
+  return plan.cupos ? textoCupos(plan.cupos) : ''
+}
+const sinCupos = (plan) => plan.restantes === 0
+
+/* Con fecha real, el día exacto en hora de Colombia: "Jueves 22 oct" y
+   "6:00 p. m." (rondas-11). Sin fecha (los ejemplos), el texto 'cuando'. */
+const FORMATO_DIA = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', weekday: 'long', day: 'numeric', month: 'short' })
+const FORMATO_HORA = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', hour: 'numeric', minute: '2-digit' })
+const fechaDe = (plan) => {
+  if (!plan.fecha) return null
+  const d = new Date(plan.fecha)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+const mayuscula = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+/* → ["Jueves", "22 oct", "6:00 p. m."] o null */
+const partesFecha = (plan) => {
+  const d = fechaDe(plan)
+  if (!d) return null
+  const p = Object.fromEntries(FORMATO_DIA.formatToParts(d).map(x => [x.type, x.value]))
+  return [mayuscula(p.weekday), `${p.day} ${p.month}`, FORMATO_HORA.format(d)]
+}
+const cuandoVisible = (plan) => {
+  const f = partesFecha(plan)
+  return f ? `${f[0]} ${f[1]}, ${f[2]}` : plan.cuando
+}
+
+const ENFOCABLES = 'button:not([disabled]), textarea:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+/* Con el diálogo abierto, Tab y Shift+Tab dan la vuelta dentro de él y no
+   se van a lo que queda detrás (rondas-15). */
+function useTrampaFoco(ref, activo) {
+  useEffect(() => {
+    if (!activo) return
+    const alTeclear = (e) => {
+      const el = ref.current
+      if (e.key !== 'Tab' || !el) return
+      const focos = [...el.querySelectorAll(ENFOCABLES)]
+      if (!focos.length) return
+      const primero = focos[0]
+      const ultimo = focos[focos.length - 1]
+      const dentro = el.contains(document.activeElement)
+      if (e.shiftKey && (!dentro || document.activeElement === primero)) {
+        e.preventDefault()
+        ultimo.focus()
+      } else if (!e.shiftKey && (!dentro || document.activeElement === ultimo)) {
+        e.preventDefault()
+        primero.focus()
+      }
+    }
+    document.addEventListener('keydown', alTeclear)
+    return () => document.removeEventListener('keydown', alTeclear)
+  }, [ref, activo])
+}
+
+/* El aviso se cierra solo y también con su botón (rondas-4). */
+function TarjetaAviso({ texto, onCerrar }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'flex-start', gap: 4,
+      background: C.navy, color: '#FFFFFF', borderRadius: 16, padding: '6px 4px 6px 18px',
+      boxShadow: '0 10px 32px rgba(20,24,51,0.30)', fontSize: 15, lineHeight: 1.45,
+    }}>
+      <span style={{ flex: 1, padding: '10px 0' }}>{texto}</span>
+      <button onClick={onCerrar} aria-label="Cerrar aviso" style={{
+        width: 44, height: 44, flexShrink: 0, border: 'none', background: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" /></svg>
+      </button>
+    </div>
+  )
+}
 
 const eyebrow = (color) => ({
   fontSize: 12, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color,
@@ -94,7 +173,7 @@ function PlanDestacado({ plan, reservado, onAbrir }) {
         {plan.titulo}
       </h2>
       <div style={{ fontSize: 15, color: C.muted, marginBottom: 12 }}>
-        {plan.cuando} · con {plan.anfitriona}{plan.cupos ? ` · ${plan.cupos} cupos` : ''}
+        {cuandoVisible(plan)} · con {plan.anfitriona}{cuposVisibles(plan) ? ` · ${cuposVisibles(plan)}` : ''}
       </div>
       <Etiquetas plan={plan} />
       <p style={{
@@ -119,7 +198,8 @@ function PlanDestacado({ plan, reservado, onAbrir }) {
 
 /* ── Un plan de la lista ── */
 function FilaPlan({ plan, reservado, onAbrir }) {
-  const [dia, hora] = partirCuando(plan.cuando)
+  const fecha = partesFecha(plan)
+  const [dia, hora] = fecha ? [`${fecha[0].slice(0, 3)} ${fecha[1]}`, fecha[2].replace(/ /g, '\u00a0')] : partirCuando(plan.cuando)
   return (
     <li style={{ borderTop: '1px solid rgba(20,24,51,0.12)' }}>
       <button onClick={() => onAbrir(plan)} style={{
@@ -145,9 +225,25 @@ function FilaPlan({ plan, reservado, onAbrir }) {
 }
 
 /* ── El plan abierto: hoja que sube desde abajo ── */
-function HojaPlan({ plan, reservado, onCerrar, onReservar, onReportar, onIrAdentro }) {
+function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, onReservar, onLiberar, onReportar, onIrAdentro }) {
   const cerrarRef = useRef(null)
+  const hojaRef = useRef(null)
+  const reservarRef = useRef(null)
+  const [confirmandoLiberar, setConfirmandoLiberar] = useState(false)
   useEffect(() => { cerrarRef.current?.focus() }, [])
+  useTrampaFoco(hojaRef, true)
+  const lleno = !reservado && sinCupos(plan)
+  const inactivo = reservado || lleno || ocupado
+  // Al cerrar el aviso o la pregunta de liberar, el foco vuelve al botón del cupo.
+  const cerrarAviso = () => {
+    onCerrarAviso()
+    setTimeout(() => reservarRef.current?.focus(), 0)
+  }
+  const terminarLiberar = async (liberar) => {
+    if (liberar) await onLiberar(plan)
+    setConfirmandoLiberar(false)
+    setTimeout(() => reservarRef.current?.focus(), 0)
+  }
   useEffect(() => {
     const alTeclear = (e) => { if (e.key === 'Escape') onCerrar() }
     window.addEventListener('keydown', alTeclear)
@@ -157,6 +253,7 @@ function HojaPlan({ plan, reservado, onCerrar, onReservar, onReportar, onIrAdent
   return (
     <div onClick={onCerrar} style={{ position: 'fixed', inset: 0, zIndex: 300 }}>
       <section
+        ref={hojaRef}
         role="dialog" aria-modal="true" aria-labelledby="plan-abierto-titulo"
         onClick={e => e.stopPropagation()}
         style={{
@@ -182,7 +279,7 @@ function HojaPlan({ plan, reservado, onCerrar, onReservar, onReportar, onIrAdent
           {plan.titulo}
         </h2>
         <div style={{ fontSize: 15, color: C.muted, marginBottom: 12 }}>
-          {plan.cuando} · con {plan.anfitriona}{plan.cupos ? ` · ${plan.cupos} cupos` : ''}
+          {cuandoVisible(plan)} · con {plan.anfitriona}{cuposVisibles(plan) ? ` · ${cuposVisibles(plan)}` : ''}
         </div>
         <Etiquetas plan={plan} />
 
@@ -208,17 +305,59 @@ function HojaPlan({ plan, reservado, onCerrar, onReservar, onReportar, onIrAdent
           <span><b style={{ fontWeight: 600 }}>Antes de ir:</b> 2 minutos para llegar tranquila.</span>
         </button>
 
+        {/* El aviso de la reserva va aquí, encima del botón, y no lo tapa (rondas-4). */}
+        <div role="status" aria-live="polite">
+          {aviso && <div style={{ marginTop: 18 }}><TarjetaAviso texto={aviso} onCerrar={cerrarAviso} /></div>}
+        </div>
+
+        {/* aria-disabled y no disabled: el foco no se pierde al apartar (rondas-15). */}
         <button
-          onClick={() => !reservado && onReservar(plan)}
-          disabled={reservado}
+          ref={reservarRef}
+          onClick={() => !inactivo && onReservar(plan)}
+          aria-disabled={inactivo}
           style={{
             width: '100%', height: 52, marginTop: 18, border: 'none', borderRadius: 14,
-            background: reservado ? C.oliva : C.morado, color: '#FFFFFF',
+            background: reservado ? C.oliva : lleno ? C.border : C.morado,
+            color: lleno ? C.muted : '#FFFFFF',
             fontSize: 16, fontWeight: 600, letterSpacing: '0.03em', fontFamily: 'inherit',
-            cursor: reservado ? 'default' : 'pointer',
+            cursor: inactivo ? 'default' : 'pointer',
           }}>
-          {reservado ? 'Tu cupo está apartado ✓' : 'Apartar mi cupo'}
+          {reservado ? 'Tu cupo está apartado ✓'
+            : lleno ? 'Cupos llenos'
+            : ocupado ? 'Apartando…'
+            : 'Apartar mi cupo'}
         </button>
+        {/* "Ya no puedo ir": se puede liberar el cupo, con una pregunta antes (rondas-9). */}
+        {reservado && !confirmandoLiberar && (
+          <button onClick={() => setConfirmandoLiberar(true)} style={{
+            display: 'block', margin: '6px auto 0', minHeight: 44, padding: '0 12px', background: 'none', border: 'none',
+            cursor: 'pointer', fontSize: 15, fontWeight: 500, color: C.muted, fontFamily: 'inherit',
+            textDecoration: 'underline', textUnderlineOffset: 2,
+          }}>
+            Ya no puedo ir · liberar mi cupo
+          </button>
+        )}
+        {reservado && confirmandoLiberar && (
+          <div role="group" aria-labelledby="liberar-pregunta" style={{
+            marginTop: 10, padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}`,
+          }}>
+            <div id="liberar-pregunta" style={{ fontSize: 15, color: C.navy, lineHeight: 1.45 }}>
+              ¿Liberas tu cupo? Queda libre para otra persona.
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+              <button autoFocus onClick={() => terminarLiberar(false)} disabled={ocupado} style={{
+                flex: 1, minHeight: 48, borderRadius: 14, border: `1px solid ${C.border}`,
+                background: 'transparent', color: C.muted, fontSize: 15, fontWeight: 600,
+                fontFamily: 'inherit', cursor: 'pointer',
+              }}>No, lo mantengo</button>
+              <button onClick={() => terminarLiberar(true)} disabled={ocupado} style={{
+                flex: 1, minHeight: 48, borderRadius: 14, border: 'none',
+                background: C.morado, color: '#FFFFFF', fontSize: 15, fontWeight: 600,
+                fontFamily: 'inherit', cursor: ocupado ? 'default' : 'pointer',
+              }}>{ocupado ? 'Liberando…' : 'Sí, liberar'}</button>
+            </div>
+          </div>
+        )}
         <button onClick={() => onReportar(plan)} style={{
           display: 'block', margin: '10px auto 0', padding: 12, background: 'none', border: 'none',
           cursor: 'pointer', fontSize: 15, fontWeight: 500, color: C.morado, fontFamily: 'inherit',
@@ -239,6 +378,10 @@ export default function RondasView({ user, onIrAdentro }) {
   const [abierto, setAbierto] = useState(null)
   const [reportando, setReportando] = useState(null)
   const [textoReporte, setTextoReporte] = useState('')
+  const [errorReporte, setErrorReporte] = useState(null)
+  const [enviando, setEnviando] = useState(false)
+  // Id del plan que se está apartando o liberando: un solo toque cuenta.
+  const [ocupado, setOcupado] = useState(null)
   const [aviso, setAviso] = useState(null)
 
   useEffect(() => {
@@ -246,6 +389,26 @@ export default function RondasView({ user, onIrAdentro }) {
     getPlanes(ciudad).then(res => { if (!cancelled) setData({ ciudad, ...res }) })
     return () => { cancelled = true }
   }, [ciudad])
+
+  // Las reservas salen de la cuenta, no solo del teléfono (rondas-9), y los
+  // mensajes a la curadora que se quedaron sin enviar salen ahora (rondas-1).
+  const userId = user?.id || null
+  useEffect(() => {
+    if (!userId) return
+    let cancelled = false
+    getReservas({ id: userId }).then(ids => { if (!cancelled) setReservas(ids) })
+    enviarReportesPendientes({ id: userId })
+    return () => { cancelled = true }
+  }, [userId])
+
+  // El aviso flotante se va solo; más tiempo si es largo (rondas-4). Dentro
+  // de la hoja va en su lugar, sin tapar nada, y se queda hasta que ella lo
+  // cierre o cierre la hoja: si se fuera solo, lo de abajo saltaría.
+  useEffect(() => {
+    if (!aviso || abierto) return
+    const t = setTimeout(() => setAviso(null), Math.max(5000, aviso.length * 60))
+    return () => clearTimeout(t)
+  }, [aviso, abierto])
 
   const cargando = !data || data.ciudad !== ciudad
   const ciudadLabel = CIUDADES.find(c => c.id === ciudad)?.label
@@ -272,46 +435,130 @@ export default function RondasView({ user, onIrAdentro }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // El filtro activo siempre se ve en la barra, también al cambiar de
+  // ciudad (vuelve a "Todas"). Solo se mueve de lado (rondas-16).
+  const salasRef = useRef(null)
+  useEffect(() => {
+    const nav = salasRef.current
+    const activo = nav?.querySelector('[aria-pressed="true"]')
+    if (!nav || !activo) return
+    const n = nav.getBoundingClientRect()
+    const b = activo.getBoundingClientRect()
+    if (b.left < n.left) nav.scrollLeft -= n.left - b.left
+    else if (b.right > n.right) nav.scrollLeft += b.right - n.right
+  }, [filtro, ciudad])
+
   const abridorRef = useRef(null)
   const abrir = (plan) => {
     abridorRef.current = document.activeElement
+    setAviso(null)
     setAbierto(plan)
     track('plan_abierto', { sala: plan.sala, ciudad: plan.ciudad, ejemplo: !!plan.ejemplo })
   }
   const cerrar = useCallback(() => {
     setAbierto(null)
+    setAviso(null)
     setTimeout(() => abridorRef.current?.focus?.(), 0)
   }, [])
+  // La hoja muestra el plan con sus cupos al día.
+  const planAbierto = abierto && (data?.planes.find(p => p.id === abierto.id) || abierto)
+
+  /* Al cerrar el mensaje a la curadora (enviado o no), el texto se borra
+     (rondas-3) y el foco vuelve a lo que abrió el plan (rondas-15). */
+  const cerrarReporte = useCallback(() => {
+    setReportando(null)
+    setTextoReporte('')
+    setErrorReporte(null)
+    setTimeout(() => abridorRef.current?.focus?.(), 0)
+  }, [])
+  // Mientras se envía, no se cierra: así el resultado le llega a ella.
+  const cancelarReporte = useCallback(() => { if (!enviando) cerrarReporte() }, [enviando, cerrarReporte])
 
   /* El mensaje a la curadora también se cierra con Escape */
   useEffect(() => {
     if (!reportando) return
-    const alTeclear = (e) => { if (e.key === 'Escape') setReportando(null) }
+    const alTeclear = (e) => { if (e.key === 'Escape') cancelarReporte() }
     window.addEventListener('keydown', alTeclear)
     return () => window.removeEventListener('keydown', alTeclear)
-  }, [reportando])
+  }, [reportando, cancelarReporte])
+  const dialogoRef = useRef(null)
+  useTrampaFoco(dialogoRef, !!reportando)
+
+  // Cupos que quedan después de apartar o liberar. Si no se sabía cuántos
+  // quedaban, solo se anota cuando el servidor dice que no queda ninguno.
+  const ajustarRestantes = (id, cambio) => {
+    setData(prev => prev && {
+      ...prev,
+      planes: prev.planes.map(p => {
+        if (p.id !== id || p.cupos == null) return p
+        const nuevo = cambio(p.restantes)
+        return nuevo == null ? p : { ...p, restantes: Math.max(0, Math.min(p.cupos, nuevo)) }
+      }),
+    })
+  }
 
   const reservar = async (plan) => {
+    if (ocupado) return
+    setOcupado(plan.id)
     const res = await reservarCupo(plan, user)
+    setOcupado(null)
     if (res.ok) {
       setReservas(prev => [...new Set([...prev, plan.id])])
-      track('plan_reservado', { sala: plan.sala, ciudad: plan.ciudad, ejemplo: !!plan.ejemplo })
-      setAviso(plan.ejemplo
-        ? 'Así se aparta un cupo. Este plan es de ejemplo: cuando la curadora publique los primeros planes reales, tu reserva le llegará a la anfitriona.'
-        : `Tu cupo en "${plan.titulo}" está apartado. Te llega la confirmación con los detalles.`)
+      if (!res.yaEstaba) ajustarRestantes(plan.id, n => (n == null ? null : n - 1))
+      track('plan_reservado', { sala: plan.sala, ciudad: plan.ciudad, ejemplo: false })
+      setAviso(`Tu cupo en "${plan.titulo}" quedó apartado. Si ya no puedes ir, lo liberas aquí mismo.`)
+    } else if (res.motivo === 'ejemplo') {
+      // Un plan de ejemplo no se aparta ni queda marcado (rondas-19).
+      track('plan_reservado', { sala: plan.sala, ciudad: plan.ciudad, ejemplo: true })
+      setAviso('Así se aparta un cupo. Este plan es de ejemplo, así que no quedó nada apartado. Cuando la curadora publique planes reales, los apartas aquí.')
+    } else if (res.motivo === 'lleno') {
+      ajustarRestantes(plan.id, () => 0)
+      setAviso('Este plan ya no tiene cupos.')
+    } else {
+      setAviso('No pudimos apartar tu cupo. Revisa tu conexión e inténtalo de nuevo.')
+    }
+  }
+
+  const liberar = async (plan) => {
+    if (ocupado) return
+    setOcupado(plan.id)
+    const res = await liberarCupo(plan, user)
+    setOcupado(null)
+    if (res.ok) {
+      setReservas(prev => prev.filter(id => id !== plan.id))
+      ajustarRestantes(plan.id, n => (n == null ? null : n + 1))
+      track('plan_liberado', { sala: plan.sala, ciudad: plan.ciudad })
+      setAviso('Liberaste tu cupo. Queda libre para otra persona.')
+    } else {
+      setAviso('No pudimos liberar tu cupo. Revisa tu conexión e inténtalo de nuevo.')
     }
   }
 
   const enviar = async () => {
-    if (!textoReporte.trim()) return
-    await enviarReporte(reportando, textoReporte.trim(), user)
+    const texto = textoReporte.trim()
+    if (!texto || enviando) return
+    setEnviando(true)
+    setErrorReporte(null)
+    const res = await enviarReporte(reportando, texto, user)
+    setEnviando(false)
+    if (!res.ok) {
+      // No se cierra ni se borra: puede reintentar (rondas-1).
+      setErrorReporte('No pudimos enviarlo. Revisa tu conexión e inténtalo de nuevo; tu mensaje sigue aquí.')
+      return
+    }
     track('plan_reportado', { sala: reportando.sala })
-    setReportando(null)
-    setTextoReporte('')
+    cerrarReporte()
     setAviso('Gracias. Tu mensaje le llega solo a la curadora y lo revisa en las siguientes 48 horas.')
   }
 
-  const [destacado, ...resto] = planes
+  // El plan sugerido es el de la ciudad y no cambia con el filtro; debajo de
+  // los filtros van todos los de la sala elegida (rondas-5).
+  const destacado = cargando ? null : data.planes[0]
+  const resto = filtro === 'todas' ? planes.filter(p => p.id !== destacado?.id) : planes
+  const textoVacio = filtro === 'todas' ? `La curaduría en ${ciudadLabel} está en camino.`
+    : filtro === 'en-linea' ? 'Pronto habrá planes en línea.'
+    : `La curaduría de esta sala en ${ciudadLabel} está en camino.`
+  const reporteVacio = !textoReporte.trim()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -328,7 +575,7 @@ export default function RondasView({ user, onIrAdentro }) {
 
       {!cargando && destacado && <PlanDestacado plan={destacado} reservado={reservas.includes(destacado.id)} onAbrir={abrir} />}
 
-      <nav aria-label="Salas" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+      <nav ref={salasRef} aria-label="Salas" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
         {filtros.map(f => {
           const activo = filtro === f.id
           return (
@@ -356,7 +603,7 @@ export default function RondasView({ user, onIrAdentro }) {
           background: C.card, borderRadius: 20, padding: 22, textAlign: 'center',
           border: `1px dashed ${C.border}`, color: C.muted, fontSize: 16, lineHeight: 1.5,
         }}>
-          La curaduría de esta sala en {ciudadLabel} está en camino.
+          {textoVacio}
         </div>
       )}
 
@@ -378,37 +625,40 @@ export default function RondasView({ user, onIrAdentro }) {
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke={C.morado} strokeWidth="1.8" strokeLinecap="round" /></svg>
       </button>
 
-      {abierto && (
+      {planAbierto && (
         <HojaPlan
-          plan={abierto}
-          reservado={reservas.includes(abierto.id)}
+          plan={planAbierto}
+          reservado={reservas.includes(planAbierto.id)}
+          ocupado={ocupado === planAbierto.id}
+          aviso={aviso}
+          onCerrarAviso={() => setAviso(null)}
           onCerrar={cerrar}
           onReservar={reservar}
-          onReportar={(p) => { setReportando(p); setAbierto(null) }}
+          onLiberar={liberar}
+          onReportar={(p) => { setTextoReporte(''); setErrorReporte(null); setReportando(p); setAbierto(null) }}
           onIrAdentro={() => onIrAdentro?.()}
         />
       )}
 
-      {/* ── Aviso ── */}
-      {aviso && (
-        <div role="status" onClick={() => setAviso(null)} style={{
-          position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
-          width: 'calc(100% - 32px)', maxWidth: 440, zIndex: 9999, cursor: 'pointer',
-          background: C.navy, color: '#FFFFFF', borderRadius: 16, padding: '16px 18px',
-          boxShadow: '0 10px 32px rgba(20,24,51,0.30)', fontSize: 15, lineHeight: 1.45,
-        }}>
-          {aviso}
-        </div>
-      )}
+      {/* ── Aviso ── La región está siempre montada para que el lector de
+          pantalla lo anuncie; con la hoja abierta el aviso va dentro de ella. */}
+      <div role="status" aria-live="polite" style={{
+        position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
+        width: 'calc(100% - 32px)', maxWidth: 440, zIndex: 9999,
+        pointerEvents: aviso && !abierto ? 'auto' : 'none',
+      }}>
+        {aviso && !abierto && <TarjetaAviso texto={aviso} onCerrar={() => setAviso(null)} />}
+      </div>
 
-      {/* ── Mensaje privado a la curadora ── */}
+      {/* ── Mensaje privado a la curadora ── Si no cabe (pantalla baja o
+          teclado abierto) se desplaza en vez de cortarse (rondas-13). */}
       {reportando && (
-        <div onClick={() => setReportando(null)} style={{
+        <div onClick={cancelarReporte} style={{
           position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(20,24,51,0.45)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          display: 'flex', padding: 20, overflowY: 'auto', overscrollBehavior: 'contain',
         }}>
-          <div role="dialog" aria-modal="true" aria-label="Contarle algo a la curadora" onClick={e => e.stopPropagation()} style={{
-            background: C.hoja, borderRadius: 24, padding: 24, width: '100%', maxWidth: 420,
+          <div ref={dialogoRef} role="dialog" aria-modal="true" aria-label="Contarle algo a la curadora" onClick={e => e.stopPropagation()} style={{
+            background: C.hoja, borderRadius: 24, padding: 24, width: '100%', maxWidth: 420, margin: 'auto',
           }}>
             <div style={{ fontFamily: FONT_DISPLAY, fontSize: 26, fontWeight: 600, color: C.navy }}>
               Contarle algo a la curadora
@@ -429,7 +679,7 @@ export default function RondasView({ user, onIrAdentro }) {
               style={{
                 width: '100%', marginTop: 6, padding: 14, borderRadius: 14,
                 border: `1px solid ${C.border}`, background: C.card, color: C.navy,
-                fontFamily: 'inherit', fontSize: 16, resize: 'vertical',
+                fontFamily: 'inherit', fontSize: 16, resize: 'vertical', maxHeight: '40vh',
               }}
             />
             {/* Un incidente en un plan presencial: primero emergencias (123,
@@ -437,17 +687,25 @@ export default function RondasView({ user, onIrAdentro }) {
             <div style={{ fontSize: 14, color: C.muted, marginTop: 8, lineHeight: 1.4 }}>
               Si estás en peligro en este momento, llama al <LineaCrisis numero="123">123</LineaCrisis>. Para apoyo emocional, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>.
             </div>
+            {errorReporte && (
+              <div role="alert" style={{ marginTop: 12, fontSize: 15, fontWeight: 600, color: C.morado, lineHeight: 1.4 }}>
+                {errorReporte}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              <button onClick={() => setReportando(null)} style={{
+              <button onClick={cancelarReporte} disabled={enviando} style={{
                 flex: 1, minHeight: 48, borderRadius: 14, border: `1px solid ${C.border}`,
                 background: 'transparent', color: C.muted, fontSize: 15, fontWeight: 600,
-                fontFamily: 'inherit', cursor: 'pointer',
+                fontFamily: 'inherit', cursor: enviando ? 'default' : 'pointer',
               }}>Cancelar</button>
-              <button onClick={enviar} style={{
+              {/* Sin texto no se puede enviar, y se ve (rondas-14); mientras
+                  se envía, un segundo toque no lo manda dos veces (rondas-1). */}
+              <button onClick={enviar} disabled={reporteVacio || enviando} style={{
                 flex: 1.4, minHeight: 48, borderRadius: 14, border: 'none',
-                background: C.morado, color: '#FFFFFF', fontSize: 15, fontWeight: 600,
-                fontFamily: 'inherit', cursor: 'pointer',
-              }}>Enviar a la curadora</button>
+                background: reporteVacio ? C.border : C.morado,
+                color: reporteVacio ? C.subtle : '#FFFFFF', fontSize: 15, fontWeight: 600,
+                fontFamily: 'inherit', cursor: reporteVacio || enviando ? 'default' : 'pointer',
+              }}>{enviando ? 'Enviando…' : 'Enviar a la curadora'}</button>
             </div>
           </div>
         </div>
@@ -455,4 +713,3 @@ export default function RondasView({ user, onIrAdentro }) {
     </div>
   )
 }
-
