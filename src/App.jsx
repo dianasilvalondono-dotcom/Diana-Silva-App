@@ -4072,16 +4072,18 @@ function App() {
             <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
               Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.
             </div>
-            <button onClick={() => setGroundStep(0)} style={{
-              padding: '12px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
-              border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
-              fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginRight: 10,
-            }}>Repetir</button>
-            <button onClick={() => setPanicScreen('home')} style={{
-              padding: '12px 28px', borderRadius: 20, background: C.rose,
-              border: 'none', color: 'white', fontSize: 20,
-              fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            }}>Volver</button>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setGroundStep(0)} style={{
+                padding: '12px 28px', borderRadius: 20, background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)', color: 'white', fontSize: 20,
+                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Repetir</button>
+              <button onClick={() => setPanicScreen('home')} style={{
+                padding: '12px 28px', borderRadius: 20, background: C.orquidea,
+                border: 'none', color: C.navy, fontSize: 20,
+                fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+              }}>Volver</button>
+            </div>
           </>)}
         </>}
 
