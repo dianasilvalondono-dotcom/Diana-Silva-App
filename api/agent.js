@@ -4,6 +4,10 @@ import { normalize, isCrisis, CRISIS_TEXT_CHAT } from '../src/utils/crisis.js'
 // Largo máximo de cada turno del historial que se le pasa al modelo.
 const MAX_TURNO = 4000
 
+// [CONECTAR:categoria] lleva a preguntar en la Comunidad: las categorías son
+// las del Board (BOARD_CATS en src/App.jsx y api/guia.js, sin 'todas').
+const CATEGORIAS_COMUNIDAD = ['ansiedad', 'relaciones', 'autoestima', 'maternidad', 'duelo', 'emprendimiento', 'general']
+
 /* El historial que manda la app, listo para la Messages API: solo turnos de
    'user' o 'assistant' con texto, los consecutivos del mismo rol unidos y sin
    turnos de la asistente al inicio (el primer mensaje tiene que ser de la
@@ -86,15 +90,15 @@ ${ctxBlock}
 LO QUE SABES HACER:
 1. VALIDAR primero (siempre)
 2. ACOMPAÑAR con neurociencia/DBT sin ser académica
-3. SUGERIR programas o Guías Ronda cuando sea relevante
+3. SUGERIR programas, o preguntar en la Comunidad de Ronda, cuando sea relevante
 4. CREAR programas personalizados de 7 días si te los piden
 5. RECORDAR patrones de la usuaria y referenciarlos con naturalidad
 
-GUÍAS RONDA disponibles: coaching, maternidad, yoga, nutrición, legal, negocios, educacion
+COMUNIDAD DE RONDA: la usuaria puede publicar su pregunta de forma anónima en la Comunidad, donde le responde la Guía IA de Ronda. El directorio de profesionales todavía no está disponible: NUNCA prometas conectarla con una Guía, una psicóloga ni otra profesional, y no ofrezcas "¿Te conecto?".
 
 FORMATO DE RESPUESTA:
 - Texto plano conversacional
-- Usa [CONECTAR:categoria] si sugieres una guía
+- Usa [CONECTAR:categoria] si le sugieres preguntar en la Comunidad (la app le muestra un botón para hacerlo). Escribe la categoría exactamente así, sin tildes: ansiedad, relaciones, autoestima, maternidad, duelo, emprendimiento o general. Ejemplo: [CONECTAR:relaciones]
 - Usa [SOS] si sugieres herramientas de emergencia
 - Si te piden programa: devuélvelo como JSON {"type":"program","title":"...","desc":"...","days":[...]}
 
@@ -185,8 +189,10 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
         .replace(/\[SOS\]/gi, '')
         .replace(/[ \t]{2,}/g, ' ')
         .trim()
-      // La categoría va sin tildes y en minúscula ('nutrición' → 'nutricion').
-      const connect = connectMatch ? normalize(connectMatch[1]).trim() || null : null
+      // La categoría va sin tildes y en minúscula; si no es una de la
+      // Comunidad, va a 'general'.
+      const categoria = connectMatch ? normalize(connectMatch[1]).trim() : null
+      const connect = categoria ? (CATEGORIAS_COMUNIDAD.includes(categoria) ? categoria : 'general') : null
 
       // ¿Viene un programa en JSON? Nunca se deja el JSON en el texto del chat.
       let program = null
@@ -242,34 +248,31 @@ function respuestaDeRespaldo(message) {
 
   if (hasWord('mal', 'fatal', 'triste', 'tristeza', 'ansiedad', 'ansiosa', 'crisis', 'no puedo', 'llorar', 'lloro', 'llorando')) {
     reply = 'Lo que sientes es real y es válido. Ya diste un paso importante al contarlo. Puedo activar herramientas de bienestar para ti — respiración guiada, grounding, y técnicas de regulación emocional. Si necesitas acompañamiento más profundo, te oriento.'
-    connect = 'coaching'
     sos = true
   } else if (hasWord('pareja', 'esposo', 'novio', 'separar', 'separarme', 'divorcio')) {
-    reply = 'Las relaciones son complejas y lo que sientes tiene todo el sentido. Reconocerlo es poder. Tenemos Guías Ronda que se especializan en transiciones y relaciones.'
-    connect = 'coaching'
+    reply = 'Las relaciones son complejas y lo que sientes tiene todo el sentido. Reconocerlo es poder. Si quieres, cuéntame más, o pregúntalo de forma anónima en la Comunidad: lo que vives lo viven muchas.'
+    connect = 'relaciones'
   } else if (hasWord('comer', 'peso', 'dieta', 'nutricion', 'comida')) {
-    reply = 'La relación con la comida es un camino, no una carrera. Puedo sugerirte un programa de 7 días para empezar, y también conectarte con una nutricionista que entiende que se trata de bienestar real, no de dietas.'
-    connect = 'nutricion'
+    reply = 'La relación con la comida es un camino, no una carrera. Puedo sugerirte un programa de 7 días para empezar, pensado en tu bienestar real, no en dietas.'
   } else if (hasWord('trabajo', 'emprender', 'emprendimiento', 'negocio', 'negocios', 'jefa', 'jefe', 'lider')) {
-    reply = '¡Qué bueno que estás pensando en crecer profesionalmente! Tenemos Guías Ronda especializadas en emprendimiento y liderazgo. ¿Te conecto?'
-    connect = 'negocios'
+    reply = '¡Qué bueno que estás pensando en crecer profesionalmente! Cuéntame qué quieres lograr y armamos el primer paso. También puedes preguntarlo de forma anónima en la Comunidad.'
+    connect = 'emprendimiento'
   } else if (hasWord('yoga', 'meditar', 'meditacion', 'respirar')) {
-    reply = 'La meditación y el yoga son herramientas poderosas — tu sistema nervioso te lo va a agradecer. Puedo sugerirte un programa de 7 días, y también tenemos Guías Ronda certificadas.'
-    connect = 'yoga'
+    reply = 'La meditación y el yoga son herramientas poderosas — tu sistema nervioso te lo va a agradecer. Puedo sugerirte un programa de 7 días para empezar.'
   } else if (hasWord('mama', 'hijos', 'hijo', 'hija', 'hijas', 'bebe', 'maternidad')) {
-    reply = 'Ser mamá es un viaje intenso y hermoso. Tenemos el programa "Volver a mí" diseñado para mamás, y Guías Ronda de maternidad que entienden exactamente lo que vives.'
+    reply = 'Ser mamá es un viaje intenso y hermoso. Tenemos el programa "Volver a mí" diseñado para mamás, y en la Comunidad puedes preguntar de forma anónima lo que estás viviendo.'
     connect = 'maternidad'
   } else if (hasWord('profesional', 'psicologa', 'psicologo', 'coach', 'coaching', 'terapeuta', 'ayuda profesional')) {
-    reply = 'Por supuesto. Tenemos Guías Ronda verificadas en bienestar, yoga, nutrición, derecho de familia, emprendimiento y más. ¿Qué tipo de acompañamiento necesitas?'
-    connect = 'coaching'
+    reply = 'El directorio de profesionales de Ronda todavía está en camino. Mientras tanto, puedes preguntar de forma anónima en la Comunidad. Y cuéntame: ¿qué tipo de acompañamiento buscas?'
+    connect = 'general'
   } else if (hasWord('programa', 'crear')) {
     reply = 'Me encanta que quieras empezar algo nuevo. Cambia a "Crea tu programa" arriba y te armo uno paso a paso. O cuéntame qué quieres lograr y te oriento.'
   } else if (hasWord('habito', 'habitos', 'rutina', 'rutinas')) {
     reply = 'Tus hábitos son la arquitectura de tu bienestar. ¿Quieres que revisemos juntas cuáles tienes activos? O si prefieres, puedo sugerirte nuevos basados en lo que necesitas.'
   } else if (hasWord('hola', 'hey', 'buenos', 'buenas')) {
-    reply = '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo escucharte, sugerirte un programa, o conectarte con una Guía Ronda.'
+    reply = '¡Hola! Soy Tu Ronda — tu compañera de camino. ¿Cómo vas hoy? Puedo escucharte, sugerirte un programa o ayudarte con tus hábitos.'
   } else {
-    reply = 'Estoy aquí para ti. Puedo escucharte, ayudarte con tus hábitos, crear un programa personalizado, conectarte con una Guía Ronda, o activar herramientas de bienestar. ¿Por dónde empezamos?'
+    reply = 'Estoy aquí para ti. Puedo escucharte, ayudarte con tus hábitos, crear un programa personalizado o activar herramientas de bienestar. ¿Por dónde empezamos?'
   }
 
   return { reply, connect, sos, memoryUpdate: null }

@@ -297,7 +297,6 @@ function App() {
   // y el botón no se muestra.
   const { speak, speakingId, loadingId: speechLoadingId, available: voiceAvailable } = useSpeech()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [, setDirFilter] = useState('todas')
 
   // Día al que pertenecen los estados diarios (hábitos, rutina, check-ins,
   // tareas). Se fija al montar: si cambia el día con la app abierta, lo de
@@ -2456,14 +2455,17 @@ function App() {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
         <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
-          Directorio Ronda
+          Acompañamiento
         </div>
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: FONT, lineHeight: 1.3 }}>
           Mujeres que te acompañan en el camino
         </div>
-        <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
-          Profesionales y negocios verificados por la comunidad ✓
-        </div>
+        {/* La verificación solo se anuncia cuando haya a quién mostrar. */}
+        {SEED_DIRECTORIO.length > 0 && (
+          <div style={{ fontSize: 19, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+            Profesionales verificadas por Ronda ✓
+          </div>
+        )}
       </div>
 
       {/* Coming soon */}
@@ -2649,6 +2651,15 @@ function App() {
     setChatLoading(false)
   }
 
+  // El directorio de profesionales aún no existe: lo que Tu Ronda sugiere con
+  // [CONECTAR:categoria] es preguntar en la Comunidad (anónima), con el
+  // formulario abierto en esa categoría.
+  const preguntarEnComunidad = (cat) => {
+    openModule('juntas', 'board')
+    setBoardNewCat(BOARD_CATS.some(c => c.id === cat && c.id !== 'todas') ? cat : 'general')
+    setBoardShowForm(true)
+  }
+
   const chatRef = { current: null }
 
   const aiAgentView = (
@@ -2719,7 +2730,7 @@ function App() {
                 )}
                 {/* Action buttons: Connect with professional / SOS */}
                 {msg.connect && (
-                  <button onClick={() => { openModule('juntas', 'directorio', { silent: true }); setDirFilter(msg.connect) }} style={{
+                  <button onClick={() => preguntarEnComunidad(msg.connect)} style={{
                     marginTop: 10, padding: '10px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
                     background: `linear-gradient(135deg, ${C.gold}, ${C.rose})`, color: 'white',
                     fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
@@ -2728,7 +2739,7 @@ function App() {
                     <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />
                     </div>
-                    Conectar con profesional
+                    Preguntar en la Comunidad
                   </button>
                 )}
                 {msg.sos && (
@@ -3122,7 +3133,7 @@ function App() {
         {isPremium && (
           <div style={{ background: `${C.teal}10`, borderRadius: 12, padding: 14, border: `1px solid ${C.teal}30`, textAlign: 'center' }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: C.teal }}>Acceso completo activo</div>
-            <div style={{ fontSize: 16, color: C.muted, marginTop: 4 }}>Tu Ronda, programas premium, Talent Pot y más.</div>
+            <div style={{ fontSize: 16, color: C.muted, marginTop: 4 }}>Tu Ronda (IA), rutas de 21 días, escribir en la Comunidad y más.</div>
           </div>
         )}
       </div>
@@ -4045,7 +4056,6 @@ function App() {
         {view === 'rondas' && (
           <RondasView
             user={user}
-            onOpenProfesionales={() => openModule('juntas', 'directorio')}
             onIrAdentro={() => empezarRespiracion('afuera')}
           />
         )}

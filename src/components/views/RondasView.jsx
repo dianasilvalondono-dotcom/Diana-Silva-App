@@ -228,7 +228,7 @@ function HojaPlan({ plan, reservado, onCerrar, onReservar, onReportar, onIrAdent
   )
 }
 
-export default function RondasView({ user, onOpenProfesionales, onIrAdentro }) {
+export default function RondasView({ user, onIrAdentro }) {
   const [ciudad, setCiudad] = useState('cartagena')
   const [filtro, setFiltro] = useState('todas')
   const [data, setData] = useState(null)
@@ -258,9 +258,16 @@ export default function RondasView({ user, onOpenProfesionales, onIrAdentro }) {
 
   const filtros = [
     { id: 'todas', label: 'Todas' },
-    ...SALAS.filter(s => s.id !== 'acompanamiento').map(s => ({ id: s.id, label: s.label })),
+    ...SALAS.map(s => ({ id: s.id, label: s.label })),
     { id: 'en-linea', label: MODALIDAD['en-linea'] },
   ]
+  const salaAcompanamiento = SALAS.find(s => s.id === 'acompanamiento')
+  // El enlace del final lleva a los planes de la sala de acompañamiento de
+  // esta ciudad (si no hay, la lista dice que la curaduría está en camino).
+  const verAcompanamiento = () => {
+    setFiltro('acompanamiento')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const abridorRef = useRef(null)
   const abrir = (plan) => {
@@ -356,14 +363,14 @@ export default function RondasView({ user, onOpenProfesionales, onIrAdentro }) {
         </div>
       )}
 
-      <button onClick={onOpenProfesionales} style={{
+      <button onClick={verAcompanamiento} style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
         padding: '14px 0', background: 'none', border: 'none', borderTop: '1px solid rgba(20,24,51,0.12)',
         cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', color: C.navy,
       }}>
         <span>
-          <span style={{ display: 'block', fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 600 }}>Acompañamiento</span>
-          <span style={{ fontSize: 14, color: C.muted }}>Psicólogas con tarjeta profesional verificada</span>
+          <span style={{ display: 'block', fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 600 }}>{salaAcompanamiento.label}</span>
+          <span style={{ fontSize: 14, color: C.muted }}>Ver los planes de esta sala en {ciudadLabel}</span>
         </span>
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke={C.morado} strokeWidth="1.8" strokeLinecap="round" /></svg>
       </button>
