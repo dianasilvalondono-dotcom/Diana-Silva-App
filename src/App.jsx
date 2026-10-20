@@ -4909,8 +4909,12 @@ function App() {
             <div data-titulo-ayuda tabIndex={-1} style={{ fontSize: 24, fontWeight: 800, color: 'white', textAlign: 'center', fontFamily: FONT, marginBottom: 12, outline: 'none' }}>
               Estás aquí. Estás presente.
             </div>
+            {/* Abierta por una crisis, no se le dice que está a salvo (puede
+                contar que ya se hizo daño): el 123, como en el inicio. */}
             <div style={{ fontSize: 19, color: '#E3E5D3', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
-              Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.
+              {panicOrigen === 'crisis'
+                ? <>Acabas de reconectar con tus sentidos. No estás sola: si estás en peligro o ya te hiciste daño, llama al <a href="tel:123" style={{ color: 'white', fontWeight: 800 }}>123</a> ahora.</>
+                : 'Acabas de reconectar con tus sentidos. Tu cuerpo sabe que estás a salvo.'}
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <button onClick={() => setGroundStep(0)} style={{
