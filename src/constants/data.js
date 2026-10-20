@@ -45,11 +45,11 @@ export const TOOLKIT_CATS = [
   { id: 'podcast',    emoji: '', label: 'Podcasts',      color: '#592147' },
   { id: 'libro',      emoji: '', label: 'Libros',        color: '#726D2D' },
   { id: 'curso',      emoji: '', label: 'Cursos',        color: '#141833' },
-  { id: 'tedtalk',    emoji: '', label: 'Ted Talks',     color: '#141833' },
+  { id: 'tedtalk',    emoji: '', label: 'Charlas TED',   color: '#141833' },
   { id: 'musica',     emoji: '', label: 'Música',        color: '#141833' },
-  { id: 'masterclass',emoji: '', label: 'Masterclasses', color: '#592147' },
+  { id: 'masterclass',emoji: '', label: 'Clases magistrales', color: '#592147' },
   // textColor: el salvia es acento; la etiqueta de texto va en oliva oscuro (8:1).
-  { id: 'wellness',   emoji: '', label: 'Wellness',      color: '#91946E', textColor: '#4F4B1E' },
+  { id: 'wellness',   emoji: '', label: 'Bienestar',     color: '#91946E', textColor: '#4F4B1E' },
   { id: 'otro',       emoji: '', label: 'Otros',         color: '#592147' },
 ]
 
@@ -275,11 +275,11 @@ export const PROGRAMAS_PREMIUM = [
       /* === SEMANA 2: CONSTRUIR — Crear las conexiones neuronales === */
       { day: 8, title: 'Define tu hábito', dim: 'mental', task: 'Escoge 1 hábito que quieres para siempre. Escríbelo claro: "Yo hago X cada día a las Y".', prompt: '¿Por qué este hábito y no otro? ¿Qué cambia si lo logro?', neuro: 'Un hábito claro y específico activa los ganglios basales — la zona del cerebro que automatiza comportamientos. Mientras más específico, más fácil de automatizar.' },
       { day: 9, title: 'Tu ancla neuronal', dim: 'emocional', task: 'Conecta tu hábito a algo que ya haces. Ejemplo: "Después de mi café, medito 2 min."', prompt: '¿A qué momento del día puedo anclar este nuevo hábito?', neuro: 'Esto se llama "habit stacking" — conectas una red neuronal nueva a una que ya existe. Es como colgar una hamaca de dos árboles que ya están firmes.' },
-      { day: 10, title: 'Hazlo ridículamente fácil', dim: 'fisico', task: 'Reduce tu hábito a 1 minuto. Si es gym, pon los tenis. Si es leer, abre el libro. Solo eso.', prompt: '¿Cuál es la versión más pequeña de mi hábito que puedo hacer sin excusas?', neuro: 'Tu cerebro resiste el cambio grande (homeostasis). Pero cambios pequeños pasan por debajo del radar de la amígdala — no activan el miedo al cambio.' },
+      { day: 10, title: 'Hazlo ridículamente fácil', dim: 'fisico', task: 'Reduce tu hábito a 1 minuto. Si es ir al gimnasio, ponte los tenis. Si es leer, abre el libro. Solo eso.', prompt: '¿Cuál es la versión más pequeña de mi hábito que puedo hacer sin excusas?', neuro: 'Tu cerebro resiste el cambio grande (homeostasis). Pero cambios pequeños pasan por debajo del radar de la amígdala — no activan el miedo al cambio.' },
       { day: 11, title: 'Celebra cada vez', dim: 'emocional', task: 'Cada vez que hagas tu hábito hoy, sonríe y dite "¡Eso!". La celebración crea dopamina.', prompt: '¿Cómo me siento cuando cumplo lo que me propongo?', neuro: 'La dopamina no solo es placer — es la señal que le dice a tu cerebro "repite esto". Celebrar después del hábito crea un loop de recompensa que lo vuelve adictivo.' },
       { day: 12, title: 'Diseña tu entorno', dim: 'fisico', task: 'Haz que tu hábito sea fácil: deja la ropa lista, el libro visible, la app abierta.', prompt: '¿Qué puedo cambiar en mi espacio para que sea más fácil cumplir?', neuro: 'Casi la mitad de tus acciones diarias son hábitos automáticos disparados por tu entorno (Wood, Quinn & Kashy, 2002). Cambia el entorno y cambias el comportamiento sin usar fuerza de voluntad.' },
       { day: 13, title: 'El día difícil', dim: 'espiritual', task: 'Hoy haz tu hábito aunque no quieras. La consistencia importa más que la perfección.', prompt: '¿Qué me digo a mí misma cuando no tengo ganas?', neuro: 'Cada vez que haces algo difícil, se fortalece tu mielina — la capa que recubre tus conexiones neuronales y las hace más rápidas. La dificultad es el entrenamiento.' },
-      { day: 14, title: 'Revisa tu progreso', dim: 'mental', task: '2 semanas. Mira tu tracking. ¿Cuántos días cumpliste? Escribe qué sientes.', prompt: '¿En qué he cambiado desde el día 1?', neuro: 'Ver tu progreso visual activa el circuito de recompensa. Un metaanálisis de 138 estudios muestra que monitorear tu progreso aumenta significativamente la probabilidad de lograr tu meta (Harkin et al., 2016).' },
+      { day: 14, title: 'Revisa tu progreso', dim: 'mental', task: '2 semanas. Mira tu registro. ¿Cuántos días cumpliste? Escribe qué sientes.', prompt: '¿En qué he cambiado desde el día 1?', neuro: 'Ver tu progreso visual activa el circuito de recompensa. Un metaanálisis de 138 estudios muestra que monitorear tu progreso aumenta significativamente la probabilidad de lograr tu meta (Harkin et al., 2016).' },
 
       /* === SEMANA 3: INTEGRAR — De hábito a identidad === */
       { day: 15, title: 'Sube el nivel', dim: 'fisico', task: 'Aumenta tu hábito un poquito. Si eran 2 minutos, haz 5. Si era 1 página, lee 3.', prompt: '¿Estoy lista para pedirme un poco más?', neuro: 'Esto es neuroplasticidad en acción: tus neuronas ya formaron la conexión base. Ahora cada repetición la hace más gruesa y fuerte, como un camino que se vuelve carretera.' },
