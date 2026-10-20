@@ -129,6 +129,9 @@ function App() {
   const [motivoPuerta, setMotivoPuerta] = useState(puerta.motivo)
   const [eligiendoPuerta, setEligiendoPuerta] = useState(false)
   const [avisoPuerta, setAvisoPuerta] = useState(null)
+  const avisoPuertaTimerRef = useRef(null)
+  // La preferencia guardada (para marcarla en Perfil sin leer localStorage en cada render)
+  const [puertaGuardada, setPuertaGuardada] = useState(() => load(PUERTA_KEY, 'auto'))
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
   // Al cambiar de sección o de herramienta, la pantalla nueva empieza arriba
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [view, subTab])
@@ -771,14 +774,24 @@ function App() {
 
   /* Abre una sección. Lo que antes era "Crecer" (programas e IA) vive
      ahora dentro de Adentro. Sin ventanas de introducción. */
+  // Al navegar se van el motivo de apertura, el selector de puerta y el aviso.
+  const limpiarTelon = () => {
+    setMotivoPuerta(null)
+    setEligiendoPuerta(false)
+    setAvisoPuerta(null)
+    clearTimeout(avisoPuertaTimerRef.current)
+  }
   const openModule = (id, sub = '') => {
     const destino = id === 'crecer' ? 'ahora' : id
     setView(destino)
     setSubTab(sub)
-    setMotivoPuerta(null)
-    setEligiendoPuerta(false)
-    setAvisoPuerta(null)
+    limpiarTelon()
     track('module_viewed', { module: destino, sub: sub || null })
+  }
+  // Cambia de subpestaña dentro de la misma sección.
+  const irASubTab = (id) => {
+    setSubTab(id)
+    limpiarTelon()
   }
 
   const abrirAyuda = (desde = 'encabezado') => {
@@ -824,15 +837,20 @@ function App() {
     { id: 'ahora', label: 'Adentro' },
     { id: 'juntas', label: 'Juntas' },
   ]
-  const fijarPuerta = (id) => {
+  // Desde Perfil se guarda sin cambiar de sección (navegar: false).
+  const fijarPuerta = (id, { navegar = true } = {}) => {
     try { save(PUERTA_KEY, id) } catch { /* sin almacenamiento: vale solo por hoy */ }
+    setPuertaGuardada(id)
     const elegida = PUERTAS.find(op => op.id === id)
-    if (id !== 'auto' && id !== view) openModule(id)
+    if (navegar && id !== 'auto' && id !== view) openModule(id)
     setEligiendoPuerta(false)
     setMotivoPuerta(null)
     setAvisoPuerta(id === 'auto'
       ? 'Listo. Ronda abrirá según tu momento del día.'
       : `Listo. Ronda abrirá en ${elegida?.label || 'esa sección'}.`)
+    // El aviso se va solo para no tapar la línea del telón.
+    clearTimeout(avisoPuertaTimerRef.current)
+    avisoPuertaTimerRef.current = setTimeout(() => setAvisoPuerta(null), 4000)
     track('puerta_fijada', { puerta: id })
   }
 
@@ -848,13 +866,14 @@ function App() {
   )
 
   /* ── La línea del telón: dice dónde estás ── */
-  const estiloTelon = { fontSize: 12, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.orquidea }
+  // Alto mínimo igual al de los botones de la línea: el encabezado no salta al navegar.
+  const estiloTelon = { fontSize: 12, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.orquidea, minHeight: 44, display: 'flex', alignItems: 'center' }
   const botonTelon = {
     background: 'none', border: 'none', minHeight: 44, padding: '0 2px', cursor: 'pointer', fontFamily: 'inherit',
     display: 'inline-flex', alignItems: 'center',
   }
   const lineaTelon = (() => {
-    if (avisoPuerta) return <div role="status" style={{ fontSize: 14, color: '#FFFFFF', minHeight: 44, display: 'flex', alignItems: 'center' }}>{avisoPuerta}</div>
+    if (avisoPuerta && !subTab) return <div role="status" style={{ fontSize: 14, color: '#FFFFFF', minHeight: 44, display: 'flex', alignItems: 'center' }}>{avisoPuerta}</div>
     if (motivoPuerta && !subTab) return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontSize: 14, color: '#FFFFFF' }}>
         <span>{motivoPuerta === 'elegida' ? 'Abrí aquí porque así lo elegiste.' : `Abrí aquí porque es tu momento de la ${motivoPuerta}.`}</span>
@@ -904,7 +923,7 @@ function App() {
         </div>
       </div>
       <div style={{ marginTop: 4 }}>{lineaTelon}</div>
-      {eligiendoPuerta && (
+      {eligiendoPuerta && motivoPuerta && !subTab && (
         <div role="group" aria-label="Dónde abre Ronda" style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <span style={{ width: '100%', fontSize: 13, color: C.orquidea }}>¿Dónde quieres que abra Ronda?</span>
           {PUERTAS.map(op => (
@@ -978,7 +997,7 @@ function App() {
   ]
   const abrirAcceso = (id) => {
     if (id === 'ai') { resetAiAgent(); setChatMode('chat') }
-    setSubTab(id)
+    irASubTab(id)
     track('module_viewed', { module: 'ahora', sub: id })
   }
 
@@ -2838,6 +2857,25 @@ function App() {
         </div>
       )}
 
+      {/* Dónde abre Ronda: se puede cambiar en cualquier momento */}
+      <div role="group" aria-labelledby="perfil-puerta-titulo" style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm }}>
+        <div id="perfil-puerta-titulo" style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 4 }}>¿Dónde quieres que abra Ronda?</div>
+        <div style={{ fontSize: 15, color: C.muted, marginBottom: 12, lineHeight: 1.45 }}>Se guarda en este dispositivo.</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {PUERTAS.map(op => {
+            const activa = puertaGuardada === op.id
+            return (
+              <button key={op.id} type="button" aria-pressed={activa} onClick={() => fijarPuerta(op.id, { navegar: false })} style={{
+                minHeight: 44, padding: '0 14px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 15, fontWeight: 600,
+                border: `1px solid ${activa ? C.morado : C.border}`,
+                background: activa ? C.morado : 'transparent', color: activa ? '#FFFFFF' : C.text,
+              }}>{op.label}</button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Membership — Yo soy Ronda */}
       <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm, border: `1px solid ${C.goldLight}` }}>
         <div style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Yo soy Ronda</div>
@@ -3832,7 +3870,7 @@ function App() {
               { id: 'directorio', label: 'Acompañamiento' },
             ]}
             active={subTab || 'board'}
-            onChange={setSubTab}
+            onChange={irASubTab}
           />
           {(subTab || 'board') === 'board' && boardView}
           {subTab === 'directorio' && directorioView}
@@ -3893,8 +3931,7 @@ function App() {
             <button data-autofocus onClick={() => {
               if (appModal.type === 'paywall') {
                 track('paywall_cta_clicked', { title: appModal.title })
-                setView('perfil')
-                setSubTab('')
+                openModule('perfil')
               }
               setAppModal(null)
             }} style={{
