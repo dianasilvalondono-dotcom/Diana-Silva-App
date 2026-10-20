@@ -3886,11 +3886,11 @@ function App() {
 
   /* ── Panic Modal — Full Crisis Support ── */
   const GROUND_STEPS = [
-    { sense: '👀 VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#BFD5EB' },
-    { sense: '✋ TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#E3E5D3' },
-    { sense: '👂 ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#D6BFDD' },
-    { sense: '👃 OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#BFD5EB' },
-    { sense: '👅 SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#E3E5D3' },
+    { icon: '👀', sense: 'VER', prompt: 'Nombra 5 cosas que puedes VER ahora mismo', count: 5, color: '#BFD5EB' },
+    { icon: '✋', sense: 'TOCAR', prompt: 'Nombra 4 cosas que puedes TOCAR', count: 4, color: '#E3E5D3' },
+    { icon: '👂', sense: 'ESCUCHAR', prompt: 'Nombra 3 cosas que puedes ESCUCHAR', count: 3, color: '#D6BFDD' },
+    { icon: '👃', sense: 'OLER', prompt: 'Nombra 2 cosas que puedes OLER', count: 2, color: '#BFD5EB' },
+    { icon: '👅', sense: 'SABOREAR', prompt: 'Nombra 1 cosa que puedes SABOREAR', count: 1, color: '#E3E5D3' },
   ]
 
   const DBT_SKILLS = [
@@ -4047,7 +4047,7 @@ function App() {
         {/* ── GROUND: 5-4-3-2-1 Sensory Grounding ── */}
         {panicScreen === 'ground' && <>
           {groundStep < 5 ? (<>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>{GROUND_STEPS[groundStep].sense.split(' ')[0]}</div>
+            <div aria-hidden="true" style={{ fontSize: 64, marginBottom: 16 }}>{GROUND_STEPS[groundStep].icon}</div>
             <div style={{ fontSize: 19, fontWeight: 700, color: GROUND_STEPS[groundStep].color, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8 }}>
               {GROUND_STEPS[groundStep].sense}
             </div>
