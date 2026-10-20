@@ -1359,7 +1359,11 @@ function App() {
   ]
   const abrirAcceso = (id) => {
     if (id === 'ai') {
-      resetAiAgent(); setChatMode('chat')
+      // Un programa que se está creando, o creado y sin guardar, no se pierde
+      // al salir y volver: Pregúntale abre ahí. Lo demás empieza de cero.
+      const programaPendiente = aiStep === 3 || (aiStep === 4 && aiProgram && !aiSaved)
+      if (!programaPendiente) resetAiAgent()
+      setChatMode(programaPendiente ? 'create' : 'chat')
       chatSesionContadaRef.current = false
       if (isPremium) showFoundingPerk('chat', 'Tu Ronda · IA personal')
     }
@@ -3085,9 +3089,11 @@ function App() {
       // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
       if (data.crisis) abrirAyuda('crisis_chat')
 
-      // If AI returned a program, save it for the create flow
-      if (data.program) {
+      // If AI returned a program, save it for the create flow: queda en el
+      // paso del resultado, listo para verlo y guardarlo en "Crea tu programa".
+      if (Array.isArray(data.program?.days) && data.program.days.length) {
         setAiProgram(data.program)
+        setAiStep(4); setAiSaved(false); setAiError('')
         setChatMessages(prev => [...prev, { role: 'assistant', text: '¡Te armé un programa! Cambia a "Crea tu programa" arriba para verlo y guardarlo.', isProgram: true, local: true }])
       }
 
@@ -3126,10 +3132,20 @@ function App() {
     setBoardShowForm(true)
   }
 
-  const chatRef = { current: null }
+  // La conversación baja al final solo cuando llega un mensaje, aparece o se
+  // va el "escribiendo…" o se abre el chat. Escuchar o escribir no mueven la lectura.
+  const chatRef = useRef(null)
+  const chatAbierto = view === 'ahora' && subTab === 'ai' && isPremium && chatMode === 'chat'
+  useEffect(() => {
+    const el = chatRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [chatMessages.length, chatLoading, chatAbierto])
 
+  // El chat cabe en la pantalla sin que la página se desplace: arriba el
+  // encabezado (124) y el margen de la hoja; abajo el aviso legal (32 + ~86
+  // en móvil, ~50 en escritorio) y el espacio de la barra inferior (110).
   const aiAgentView = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 240px)', maxHeight: 600 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: `calc(100dvh - env(safe-area-inset-top, 0px) - ${isMobile ? 376 : 344}px)`, minHeight: 280, maxHeight: 600 }}>
       {/* Mode toggle */}
       <div role="group" aria-label="Modo de Tu Ronda" style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
         {[{ id: 'chat', label: 'Habla conmigo' }, { id: 'create', label: 'Crea tu programa' }].map(m => (
@@ -3164,8 +3180,8 @@ function App() {
           </div>
         )}
         {/* Messages */}
-        <div ref={el => { chatRef.current = el; if (el) el.scrollTop = el.scrollHeight }}
-          style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
+        <div ref={chatRef}
+          style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 8 }}>
           {chatMessages.map((msg, i) => (msg.role === 'assistant' && !msg.text && !msg.connect && !msg.sos) ? null : (
             <div key={i} style={{
               display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
@@ -3183,7 +3199,8 @@ function App() {
                 {msg.role === 'assistant' && (
                   <div style={{ fontSize: 17, fontWeight: 700, color: C.rose, marginBottom: 4 }}>Tu Ronda</div>
                 )}
-                {msg.text}
+                {/* Los párrafos y las listas de la respuesta conservan sus saltos de línea. */}
+                {msg.text && <div style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{msg.text}</div>}
                 {/* Escuchar la respuesta en voz. En crisis la voz va más pausada. */}
                 {msg.role === 'assistant' && voiceAvailable && msg.text && !msg.isProgram && (
                   <button
@@ -3292,7 +3309,7 @@ function App() {
 
       {/* ── CREATE PROGRAM MODE ── */}
       {chatMode === 'create' && (
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Step 0: Intro / Examples */}
           {aiStep === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -3317,6 +3334,7 @@ function App() {
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..."
+                  onKeyDown={e => { if (e.key === 'Enter' && aiGoal.trim()) { e.preventDefault(); setAiStep(1) } }}
                   style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none' }} />
                 <button onClick={() => aiGoal.trim() && setAiStep(1)} disabled={!aiGoal.trim()} aria-label="Continuar con esta meta" style={{
                   padding: '12px 18px', borderRadius: 14, border: 'none', cursor: 'pointer',
