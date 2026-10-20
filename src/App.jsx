@@ -1336,7 +1336,8 @@ function App() {
 
   const abrirAyuda = (desde = 'encabezado') => {
     // Abierta por una señal de crisis (crisis_chat, crisis_comunidad,
-    // crisis_programa): sin "Estás a salvo." y con el 123 en el primer texto.
+    // crisis_programa) o desde el aviso de pago (crisis_aviso_pago): sin
+    // "Estás a salvo." y con el 123 en el primer texto.
     setPanicOrigen(String(desde).startsWith('crisis') ? 'crisis' : 'ayuda')
     setShowPanic(true); setPanicScreen('home'); setGroundStep(0); setBreatheActive(false); setBreatheCount(0); setPanicDbtExpanded(null)
     track('sos_opened', { origen: desde })
@@ -2922,6 +2923,10 @@ function App() {
       title: `Escribir en la Comunidad es parte de ${PLAN_PAGO}`,
       body: 'Publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda.',
       cta: 'Ver planes',
+      // Lo que escribió puede ser una crisis dicha de una forma que isCrisis
+      // no reconoce, y sin Ronda+ no la lee el modelo: Ayuda y las líneas
+      // quedan a la vista en el aviso.
+      ayuda: true,
     })
   }
 
@@ -5147,6 +5152,28 @@ function App() {
                           textAlign: 'center', marginBottom: 24 }}>
               {appModal.body}
             </div>
+
+            {/* La salida a Ayuda y a las líneas, también en el aviso de pago
+                (el de la Comunidad, donde ella ya escribió algo). Si la pide
+                desde aquí, Ayuda abre como ante una crisis: "No estás sola." y
+                el 123, no "Estás a salvo.". */}
+            {appModal.ayuda && (
+              <div style={{
+                marginTop: -8, marginBottom: 20, padding: '12px 14px', borderRadius: 14,
+                border: `1px solid ${C.border}`, background: 'white', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 16, color: C.text, lineHeight: 1.5 }}>
+                  Si estás pasando por un momento difícil, abre {BOTON_AYUDA} o llama a la{' '}
+                  <a href="tel:106" style={{ color: C.text, fontWeight: 800 }}>Línea 106</a> (gratuita y confidencial).
+                  Si estás en peligro inmediato, llama al <a href="tel:123" style={{ color: C.text, fontWeight: 800 }}>123</a>.
+                </div>
+                <button type="button" onClick={() => { setAppModal(null); abrirAyuda('crisis_aviso_pago') }} style={{
+                  marginTop: 10, minHeight: 44, padding: '8px 16px', borderRadius: 20, cursor: 'pointer',
+                  border: `2px solid ${C.lavanda}`, background: 'white', color: C.lavanda,
+                  fontSize: 17, fontWeight: 700, fontFamily: 'inherit', width: '100%',
+                }}>Abrir {BOTON_AYUDA}</button>
+              </div>
+            )}
 
             {/* En 'confirm' el foco empieza en "Cancelar": Enter no borra por accidente */}
             <button type="button" data-autofocus={appModal.type === 'confirm' ? undefined : true} onClick={() => {

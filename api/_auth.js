@@ -5,6 +5,7 @@
    Además, como en la app, son de Ronda+ (exigirRondaPlus).
    El guion bajo del nombre hace que Vercel no lo publique como endpoint. */
 import { esAdmin, rondaPlusVigente } from '../src/utils/plan.js'
+import { AYUDA_TEXT } from '../src/utils/crisis.js'
 
 const tokenDe = (req) => {
   const auth = req.headers?.authorization || ''
@@ -71,9 +72,11 @@ export async function tieneRondaPlus(req, user) {
 
 // El paywall de la app, aplicado aquí: sin Ronda+ corta con 403. Devuelve
 // true si puede seguir. Va después del chequeo de crisis: una crisis nunca
-// recibe un error.
+// recibe un error. Y como sin Ronda+ no hay segunda capa (el modelo) que vea
+// una crisis que el chequeo no reconoció, el 403 lleva la salida a Ayuda y a
+// las líneas (ayuda).
 export async function exigirRondaPlus(req, res, user) {
   if (await tieneRondaPlus(req, user)) return true
-  res.status(403).json({ error: 'Esta función es parte de Ronda+.' })
+  res.status(403).json({ error: 'Esta función es parte de Ronda+.', ayuda: AYUDA_TEXT })
   return false
 }
