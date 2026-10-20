@@ -4269,8 +4269,9 @@ function App() {
         aria-labelledby="onboard-nombre-titulo"
         autoComplete="given-name"
         autoFocus
-        // Enter pasa al paso siguiente, como "Siguiente".
-        onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); irAPasoOnboard(2) } }}
+        // Enter pasa al paso siguiente, como "Siguiente". El campo se va con
+        // el paso: el foco pasa al título del paso siguiente, no a <body>.
+        onKeyDown={e => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); irAPasoOnboard(2); enfocarDespues('onboard-habitos-titulo') } }}
         maxLength={40}
         style={{
           width: '100%', maxWidth: 320, padding: '16px 20px', borderRadius: 16,
@@ -4287,7 +4288,7 @@ function App() {
 
     /* Paso 2 — Sus primeros hábitos (hasta 3). Que salga del onboarding habiendo HECHO algo. */
     onboardStepShell(2, <>
-      <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px', maxWidth: '100%', overflowWrap: 'anywhere' }}>
+      <h1 id="onboard-habitos-titulo" tabIndex={-1} style={{ fontSize: 26, fontWeight: 700, color: C.text, fontFamily: FONT, margin: '0 0 10px', maxWidth: '100%', overflowWrap: 'anywhere', outline: 'none' }}>
         {onboardName.trim() ? `${onboardName.trim()}, elige tus primeros hábitos` : 'Elige tus primeros hábitos'}
       </h1>
       <div style={{ fontSize: 16, color: C.muted, marginBottom: 8, maxWidth: 320, lineHeight: 1.6 }}>
