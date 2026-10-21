@@ -225,17 +225,18 @@ export const PROGRAMAS = [
 ]
 
 /* ── Plan de pago ──
-   Un solo nombre y un solo precio para toda la app (PRODUCT.md: "Ronda+",
-   $9.99/mes). El nivel base se llama "Freemium", nunca "gratis". */
+   Un solo nombre para toda la app (PRODUCT.md: "Ronda+"). Sin precio en la
+   app hasta que R-07 traiga el de pesos con IVA: en Colombia «$9.99» se lee
+   como pesos, y lo anunciado obliga (Ley 1480, arts. 26 y 29). El nivel base
+   se llama "Freemium", nunca "gratis". */
 export const PLAN_PAGO = 'Ronda+'
-export const PLAN_PRECIO = '$9.99/mes'
 
 /* ── Programas Premium (21 días) ── */
 export const PROGRAMAS_PREMIUM = [
   {
     id: 'despertar21', title: 'Despertar — 21 días para crear tu hábito',
     desc: '3 semanas para sembrar, construir e integrar el hábito que va a cambiar tu vida. Una práctica al día.',
-    color: '#726D2D', price: 9.99, duration: '21 días',
+    color: '#726D2D', duration: '21 días',
     phases: [
       { name: 'Sembrar', days: '1-7', desc: 'Conocerte y despertar' },
       { name: 'Construir', days: '8-14', desc: 'Fortalecer tu hábito' },

@@ -30,6 +30,18 @@ export async function getUserProfile(userId) {
   } catch (e) { console.error('getUserProfile:', e); return null }
 }
 
+// Los mensajes de IA al día por persona (public.ronda_plus_ajustes,
+// src/sql/tope-ia-y-cuentas-nuevas.sql): la app los dice antes de llegar al
+// tope. null si no se pudo leer (sin Supabase, sin sesión o sin el SQL).
+export async function leerTopeIA() {
+  if (!supabase) return null
+  try {
+    const { data, error } = await supabase.from('ronda_plus_ajustes').select('tope_ia_diario').maybeSingle()
+    if (error) throw error
+    return Number.isInteger(data?.tope_ia_diario) ? data.tope_ia_diario : null
+  } catch { return null }
+}
+
 /* ── Hábitos, check-ins de hábitos, rutas, frases favoritas y racha ──
    Viven solo en el teléfono: nada en la app los vuelve a leer de la nube,
    así que tampoco se suben (Decreto 1377, art. 4: solo lo que se usa). La

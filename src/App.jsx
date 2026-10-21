@@ -16,7 +16,7 @@ import { borrarReportesViejos } from './lib/curaduria'
 import {
   DIMS, DIM_POR_DEFECTO, dimValida, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
-  PLAN_PAGO, PLAN_PRECIO,
+  PLAN_PAGO,
 } from './constants/data'
 import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistorialHabitos, rachaHabito, totalesHabitosPorDia, guardarTotalDia, horaAMinutos, horaValida, horaHHMM, ordenarPorHora, formatRelative, franjaDelDia, getGreeting, seGuardo, MOOD_LABELS, MOOD_COLORS, runMigrationCleanDianaDefaults, asegurarDuenaLocal, duenaLocal, guardadoEstaBloqueado, safeKeys, STORAGE_ERROR_EVENT } from './utils/helpers'
 
@@ -41,9 +41,10 @@ import {
   iaRespondida, registrar as registrarAutorizaciones, adoptar as adoptarAutorizaciones, leerAutorizacionesNube,
   subirAutorizaciones, trasSubir, hayQueSubir, crearCola, esperarIAEnNube,
 } from './lib/autorizaciones'
-import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL } from './lib/database'
-import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
-import { esAdmin, rondaPlusVigente } from './utils/plan'
+import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveToolkitItems, CAMPOS_PERFIL, leerTopeIA } from './lib/database'
+import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, AYUDA_TEXT, BOTON_AYUDA } from './utils/crisis'
+import { esAdmin, rondaPlusVigente, fechaRondaPlusTexto } from './utils/plan'
+import { TOPE_IA_DIARIO, MAX_MENSAJE_CHAT, MAX_META_PROGRAMA, MAX_CONTEXTO_PROGRAMA, avisoIADe, textoAvisoIA } from './utils/limitesIA'
 import { ultimaEntradaDiario } from './utils/diario'
 import { cuantoSubir } from './utils/sobreFlotantes'
 
@@ -175,35 +176,54 @@ function SubTabs({ tabs, active, onChange, accentColor, label, idBase }) {
   )
 }
 
+/* ── Qué trae Ronda+ (el muro honesto) ──
+   Para las cuentas sin Ronda+ (de la 51 en adelante): sin precio, sin
+   «Próximamente» y sin botón de pago (Ley 1480, arts. 26 y 29). Dice qué
+   trae Ronda+, para quién es hoy y qué tiene ella a la mano. Textos de la CMO
+   (ronda-hq/03-mercado/estrategia/textos-ronda-plus-fundadoras.md, 4.0).
+   tope: el de ronda_plus_ajustes (10 si no se pudo leer). */
+function BloqueRondaPlus({ tope = TOPE_IA_DIARIO, style }) {
+  const p = { margin: '12px 0 0', fontSize: 17, color: C.muted, lineHeight: 1.55 }
+  return (
+    <div style={{ textAlign: 'left', ...style }}>
+      <p style={{ ...p, marginTop: 0, color: C.text, fontWeight: 700 }}>Con {PLAN_PAGO} tienes:</p>
+      <ul style={{ margin: '8px 0 0', paddingLeft: 22, fontSize: 17, color: C.muted, lineHeight: 1.55 }}>
+        <li><strong style={{ color: C.text }}>Tu Ronda:</strong> una IA que recuerda lo que le cuentas y te acompaña con tus metas y tus hábitos.</li>
+        <li style={{ marginTop: 6 }}><strong style={{ color: C.text }}>Crea tu programa:</strong> la IA de Ronda arma contigo un programa a la medida de tu meta.</li>
+        <li style={{ marginTop: 6 }}><strong style={{ color: C.text }}>Despertar:</strong> una ruta de 21 días para empezar un hábito, un paso al día.</li>
+        <li style={{ marginTop: 6 }}><strong style={{ color: C.text }}>La Comunidad:</strong> publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda.</li>
+      </ul>
+      <p style={p}>La IA de Ronda te da {tope} mensajes al día, sumando Tu Ronda, Crea tu programa y la Comunidad.</p>
+      <p style={{ ...p, color: C.text, fontWeight: 700 }}>Hoy {PLAN_PAGO} es para las fundadoras: las primeras 50 cuentas de Ronda.</p>
+      <p style={p}>Con tu cuenta tienes a la mano Ayuda, los 10 programas de 7 días, tus hábitos, tu diario y la Comunidad para leer.</p>
+    </div>
+  )
+}
+
 /* ── Paywall component ──
-   A nivel de módulo por la misma razón que SubTabs. onCta abre el aviso
-   (lo decide App, que tiene el estado del modal). */
-function Paywall({ feature, price, desc, onCta }) {
+   El muro de Tu Ronda y Crea tu programa para quien no tiene Ronda+. A nivel
+   de módulo por la misma razón que SubTabs. onCta lleva a los programas de 7
+   días (lo decide App); onAyuda abre Ayuda (la salida siempre a la vista). */
+function Paywall({ feature, tope, onCta, onAyuda }) {
   return (
     <div style={{
-      textAlign: 'center', padding: 32, background: `linear-gradient(135deg, ${C.rose}08, ${C.gold}08)`,
+      padding: 24, background: `linear-gradient(135deg, ${C.rose}08, ${C.gold}08)`,
       borderRadius: 20, border: `1.5px solid ${C.roseLight}`,
     }}>
-      <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: FONT, marginBottom: 8 }}>
-        {feature}
-      </div>
-      <div style={{ fontSize: 20, color: C.muted, lineHeight: 1.6, marginBottom: 20, maxWidth: 300, margin: '0 auto 20px' }}>
-        {desc}
-      </div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{price}</div>
-      <div style={{ fontSize: 20, color: C.subtle, marginBottom: 16 }}>Cancela cuando quieras</div>
-      <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.55, maxWidth: 320, margin: '0 auto 20px' }}>{NOTA_IA_PLUS}</p>
+      <h2 id="muro-ronda-plus" tabIndex={-1} style={{ margin: '0 0 14px', fontSize: 22, fontWeight: 700, color: C.text, fontFamily: FONT, textAlign: 'center', outline: 'none' }}>
+        Tu Ronda es parte de {PLAN_PAGO}
+      </h2>
+      <BloqueRondaPlus tope={tope} />
       <button type="button" onClick={() => { track('paywall_cta_clicked', { feature }); onCta?.() }} style={{
-        padding: '14px 32px', borderRadius: 14, border: 'none',
+        width: '100%', marginTop: 20, padding: '14px 20px', minHeight: 48, borderRadius: 14, border: 'none',
         background: `linear-gradient(135deg, ${C.gold}, #141833)`, color: 'white',
-        fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+        fontSize: 18, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
         boxShadow: '0 4px 16px rgba(114,109,45,0.3)',
       }}>
-        Desbloquear {PLAN_PAGO}
+        Ver los programas de 7 días
       </button>
-      <div style={{ fontSize: 19, color: C.subtle, marginTop: 12 }}>
-        Próximamente · Te avisamos cuando esté disponible
-      </div>
+      <SalidaAyuda style={{ marginTop: 16 }} onAbrir={onAyuda} />
+      <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.55, margin: '16px 0 0' }}>{NOTA_IA_PLUS}</p>
     </div>
   )
 }
@@ -397,6 +417,16 @@ function App() {
   const [premiumStatus, setPremiumStatus] = useState({ is_premium: false, premium_until: null, premium_source: null })
   // De qué cuenta es premiumStatus (para la analítica: no manda el plan por defecto).
   const [premiumDe, setPremiumDe] = useState(null)
+  // Los mensajes de IA al día (ronda_plus_ajustes.tope_ia_diario): se dicen
+  // antes de llegar al tope (Perfil y el muro; Ley 1480, arts. 23 y 33). Si no
+  // se pudo leer, o la IA está en pausa (0), se dice el de siempre.
+  const [topeIA, setTopeIA] = useState(TOPE_IA_DIARIO)
+  useEffect(() => {
+    if (!user) return
+    let cancelado = false
+    leerTopeIA().then(t => { if (!cancelado && Number.isInteger(t) && t > 0) setTopeIA(t) })
+    return () => { cancelado = true }
+  }, [user])
   useEffect(() => {
     if (!user) { setPremiumStatus({ is_premium: false, premium_until: null, premium_source: null }); setPremiumDe(null); return }
     let cancelled = false
@@ -466,7 +496,8 @@ function App() {
   useEffect(() => {
     if (view === 'ahora' && subTab === 'ai' && !isPremium && !paywallSeenRef.current.ai) {
       paywallSeenRef.current.ai = true
-      track('paywall_viewed', { feature: 'tu_ronda_ia', price: PLAN_PRECIO })
+      // Sin precio: Ronda+ todavía no tiene uno en pesos (R-07).
+      track('paywall_viewed', { feature: 'tu_ronda_ia' })
     }
   }, [view, subTab, isPremium])
 
@@ -585,6 +616,8 @@ function App() {
   const [aiStep, setAiStep] = useState(0) // 0=meta, 1=contexto (y error), 3=creando, 4=resultado
   const [aiProgram, setAiProgram] = useState(null)
   const [aiError, setAiError] = useState('')
+  // El tope de hoy, la IA en pausa o el conteo que falló (src/utils/limitesIA.js).
+  const [aiAviso, setAiAviso] = useState('')
   // La meta o el contexto traen una señal de crisis: en vez del programa, el
   // texto de crisis con "Abrir Ayuda" (como en el chat).
   const [aiCrisis, setAiCrisis] = useState(false)
@@ -739,10 +772,12 @@ function App() {
     // la app mientras la Guía IA respondía) o falló en silencio en versiones
     // anteriores. Se marca como fallida para que aparezca "Reintentar" en vez
     // de "está leyendo" para siempre.
+    // El aviso del tope o de la pausa (avisoIA) era de ese momento: al volver
+    // a abrir la app no se repite.
     return Array.isArray(guardados)
       ? guardados.filter(Boolean).map(p => p.replies?.length
         ? (p.awaitingGuia ? { ...p, awaitingGuia: false } : p)
-        : { ...p, awaitingGuia: false, guiaFallo: true })
+        : { ...p, awaitingGuia: false, guiaFallo: true, avisoIA: null })
       : []
   })
   const [boardFilter, setBoardFilter] = useState('todas')
@@ -2631,6 +2666,21 @@ function App() {
   // ya en curso): queda arriba, bajo el encabezado fijo, con su Día 1 a la
   // vista, y el foco pasa a su título. Con un aviso abierto el fondo es inerte:
   // se mueve igual y el foco se queda en el aviso.
+  // Los programas de 7 días (lo que tiene a la mano sin Ronda+): Rutas, con
+  // «Crece a tu ritmo» arriba, bajo el encabezado fijo. Con un aviso abierto,
+  // el foco lo pone el aviso al cerrarse (focoTrasModalRef).
+  const irAProgramas7Dias = ({ enfocar = true } = {}) => {
+    if (view !== 'ahora' || subTab !== 'programas') openModule('ahora', 'programas')
+    // Después del salto arriba de la sección nueva (el efecto de view/subTab),
+    // como en preguntarEnComunidad.
+    setTimeout(() => {
+      const titulo = document.getElementById('programas-7-dias')
+      if (!titulo) return
+      const alto = document.querySelector('header')?.offsetHeight || 0
+      window.scrollTo({ top: titulo.getBoundingClientRect().top + window.scrollY - alto - 12, behavior: 'instant' })
+      if (enfocar) titulo.focus({ preventScroll: true })
+    }, 0)
+  }
   const irARutaActiva = (progId) => requestAnimationFrame(() => {
     const tarjeta = document.getElementById(`ruta-activa-${progId}`)
     if (!tarjeta) return
@@ -2749,9 +2799,10 @@ function App() {
         </div>
       )}
 
-      {/* Available programs — positivos primero */}
+      {/* Available programs — positivos primero (los programas de 7 días:
+          el muro de Ronda+ lleva aquí, irAProgramas7Dias) */}
       <div>
-        <div style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+        <div id="programas-7-dias" tabIndex={-1} style={{ fontSize: 19, fontWeight: 700, color: C.gold, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, outline: 'none' }}>
           Crece a tu ritmo
         </div>
         <div style={{ fontSize: 20, color: C.muted, marginBottom: 12, lineHeight: 1.5 }}>
@@ -2898,20 +2949,20 @@ function App() {
 
             {/* Price + CTA */}
             <div style={{ textAlign: 'center' }}>
+              {/* Sin precio (R-07 todavía no tiene el de pesos con IVA). */}
               {!isPremium && (
-                <>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: C.gold, marginBottom: 4 }}>{PLAN_PRECIO}</div>
-                  <div style={{ fontSize: 20, color: C.muted, marginBottom: 14 }}>Incluido en {PLAN_PAGO}</div>
-                </>
+                <div style={{ fontSize: 20, fontWeight: 700, color: C.gold, marginBottom: 14 }}>Parte de {PLAN_PAGO}</div>
               )}
               <button data-empezar-ruta={prog.id} onClick={() => {
                 if (!isPremium) {
-                  track('paywall_viewed', { feature: 'programa_21_dias', price: PLAN_PRECIO })
+                  track('paywall_viewed', { feature: 'programa_21_dias' })
                   setAppModal({
                     type: 'paywall',
                     title: `Esta ruta es parte de ${PLAN_PAGO}`,
-                    body: 'Durante 21 días te acompaña paso a paso, con neurociencia y una micro-acción al día.',
-                    cta: 'Ver planes',
+                    body: `Despertar te acompaña 21 días, un paso al día. Hoy ${PLAN_PAGO} es para las fundadoras: las primeras 50 cuentas de Ronda. Tus 10 programas de 7 días te esperan, listos para empezar.`,
+                    cta: 'Ver los programas de 7 días',
+                    destino: 'programas',
+                    ayuda: true,
                   })
                   return
                 }
@@ -2941,7 +2992,7 @@ function App() {
                 color: 'white', fontSize: 20, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
                 boxShadow: '0 4px 16px rgba(114,109,45,0.35)', letterSpacing: '0.02em',
               }}>
-                {!isPremium ? `Desbloquear con ${PLAN_PAGO}` : activePrograms[prog.id] ? 'Continuar mi ruta' : 'Empezar esta ruta'}
+                {!isPremium ? `Conoce ${PLAN_PAGO}` : activePrograms[prog.id] ? 'Continuar mi ruta' : 'Empezar esta ruta'}
               </button>
             </div>
           </div>
@@ -3245,14 +3296,16 @@ function App() {
   // ya la incluye), no solo que haya una fecha guardada (perfil-10).
   const fundadoraFecha = premiumStatus.premium_source === 'founding_member' && premiumStatus.premium_until
     ? new Date(premiumStatus.premium_until) : null
-  const fundadoraFechaTexto = fundadoraFecha
-    // premium_until llega como medianoche UTC: en Colombia (UTC-5) sin timeZone
-    // se veía un día antes ('2026-03-01T00:00Z' → '28 de febrero').
-    ? fundadoraFecha.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) : ''
+  // premium_until es el fin del día en Colombia (23:59:59): se muestra en hora
+  // de Colombia. El 31-mar-2027 se guarda como 2027-04-01 04:59:59+00 y en
+  // UTC se vería «1 de abril» (src/utils/plan.js, fechaRondaPlusTexto).
+  const fundadoraFechaTexto = fundadoraFecha ? fechaRondaPlusTexto(fundadoraFecha) : ''
+  // Textos de la CMO (textos-ronda-plus-fundadoras.md, 5). El de la fecha ya
+  // pasada es provisional hasta la revisión del 15-feb-2027.
   const fundadoraAcceso = !fundadoraFecha ? ''
-    : premiumStatus.is_premium ? `Tienes acceso completo incluido hasta el ${fundadoraFechaTexto}.`
-      : fundadoraFecha <= new Date() ? `Tu acceso completo incluido terminó el ${fundadoraFechaTexto}.`
-        : 'Tu acceso completo incluido ya no está activo.'
+    : premiumStatus.is_premium ? `Como fundadora, tienes ${PLAN_PAGO} hasta el ${fundadoraFechaTexto}.`
+      : fundadoraFecha <= new Date() ? `Tu ${PLAN_PAGO} de fundadora estuvo activa hasta el ${fundadoraFechaTexto}. Gracias por ser parte del comienzo de Ronda.`
+        : `Tu ${PLAN_PAGO} de fundadora está en pausa por ahora.`
 
   /* ── Board categories ── */
   const BOARD_CATS = [
@@ -3337,7 +3390,7 @@ function App() {
       return
     }
 
-    actualizar({ awaitingGuia: true, guiaFallo: false })
+    actualizar({ awaitingGuia: true, guiaFallo: false, avisoIA: null })
     // Antes del corte de 20 s: la espera de la subida no se lo gasta.
     if (!(await iaListaEnNube())) { actualizar({ awaitingGuia: false }); pedirIAComunidad(); return }
     // Pausa breve (se siente considerada), en paralelo con la petición: la
@@ -3352,9 +3405,16 @@ function App() {
         body: JSON.stringify({ content, cat }),
         signal: control.signal,
       }).then(async resp => {
-        // 403 de la IA sin autorizar (la quitó en otro teléfono): además del
-        // aviso de siempre, se revisan sus autorizaciones.
-        if (!resp.ok) { await iaRechazadaEnServidor(resp); throw new Error(`HTTP ${resp.status}`) }
+        if (!resp.ok) {
+          // El tope de hoy, la IA en pausa o el conteo que falló: su texto
+          // (src/utils/limitesIA.js) en lugar del error, con «Pedir respuesta».
+          const aviso = await avisoIADe(resp)
+          if (aviso) throw Object.assign(new Error(`HTTP ${resp.status}`), { aviso })
+          // 403 de la IA sin autorizar (la quitó en otro teléfono): además del
+          // aviso de siempre, se revisan sus autorizaciones.
+          await iaRechazadaEnServidor(resp)
+          throw new Error(`HTTP ${resp.status}`)
+        }
         const data = await resp.json()
         if (data.error || !data.reply) throw new Error(data.error || 'Sin respuesta')
         return data
@@ -3363,11 +3423,12 @@ function App() {
       actualizar({ replies: [data.reply], awaitingGuia: false, guiaFallo: false })
       // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
       if (data.crisis) abrirAyuda('crisis_comunidad')
-    } catch {
+    } catch (err) {
       // Sin respuesta (también el 403 de Ronda+ cuando el perfil no se pudo
-      // leer): la publicación queda guardada, se puede reintentar y el aviso
-      // deja a la vista Ayuda, la Línea 106 y el 123 (SalidaAyuda).
-      actualizar({ awaitingGuia: false, guiaFallo: true })
+      // leer, y el tope de hoy o la pausa): la publicación queda guardada, se
+      // puede pedir otra vez y el aviso deja a la vista Ayuda, la Línea 106 y
+      // el 123 (SalidaAyuda).
+      actualizar({ awaitingGuia: false, guiaFallo: true, avisoIA: err?.aviso || null })
       // Sin la categoría: dice de qué habla (ansiedad, duelo…).
       track('community_guia_failed')
     } finally {
@@ -3383,12 +3444,13 @@ function App() {
   }
 
   const avisoPagoComunidad = () => {
-    track('paywall_viewed', { feature: 'comunidad_escribir', price: PLAN_PRECIO })
+    track('paywall_viewed', { feature: 'comunidad_escribir' })
     setAppModal({
       type: 'paywall',
       title: `Escribir en la Comunidad es parte de ${PLAN_PAGO}`,
-      body: 'Publica preguntas anónimas y recibe la respuesta de la Guía IA de Ronda.',
-      cta: 'Ver planes',
+      body: `Con ${PLAN_PAGO} publicas preguntas anónimas y recibes la respuesta de la Guía IA de Ronda. Hoy ${PLAN_PAGO} es para las fundadoras: las primeras 50 cuentas de Ronda. Tú puedes leer todo lo que comparte la Comunidad.`,
+      // Sin destino: el botón cierra el aviso y ella sigue leyendo.
+      cta: 'Seguir leyendo',
       // Lo que escribió puede ser una crisis dicha de una forma que isCrisis
       // no reconoce, y sin Ronda+ no la lee el modelo: Ayuda y las líneas
       // quedan a la vista en el aviso.
@@ -3702,10 +3764,14 @@ function App() {
               display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10,
             }}>
               <div style={{ fontSize: 17, color: C.text, lineHeight: 1.5 }}>
-                {/* Si el dispositivo no dejó guardar, no se dice que quedó guardada. */}
-                {seGuardo('ronda-board')
-                  ? 'La Guía IA tuvo un problema para responder. Tu publicación quedó guardada.'
-                  : 'La Guía IA tuvo un problema para responder. Este dispositivo también tuvo un problema para guardar tu publicación: la ves aquí mientras tengas Ronda abierta.'}
+                {/* Si el dispositivo no dejó guardar, no se dice que quedó guardada.
+                    Con el tope de hoy, la pausa o el conteo que falló, su texto
+                    (src/utils/limitesIA.js). */}
+                {post.avisoIA
+                  ? textoAvisoIA(post.avisoIA, 'comunidad', { guardada: seGuardo('ronda-board') })
+                  : seGuardo('ronda-board')
+                    ? 'La Guía IA tuvo un problema para responder. Tu publicación quedó guardada.'
+                    : 'La Guía IA tuvo un problema para responder. Este dispositivo también tuvo un problema para guardar tu publicación: la ves aquí mientras tengas Ronda abierta.'}
               </div>
               {/* Sin respuesta tampoco hay segunda capa (el modelo) que vea una
                   crisis dicha de otra forma: Ayuda y las líneas quedan a la
@@ -3718,7 +3784,7 @@ function App() {
                 minHeight: 44, padding: '0 20px', borderRadius: 12, border: 'none',
                 background: C.rose, color: 'white', fontSize: 17, fontWeight: 700,
                 cursor: 'pointer', fontFamily: 'inherit',
-              }}>Reintentar</button>
+              }}>{post.avisoIA ? 'Pedir respuesta' : 'Reintentar'}</button>
             </div>
           )}
 
@@ -3830,8 +3896,9 @@ function App() {
   // a "Crear mi programa" (que vuelve a revisar la meta y el contexto).
   const confirmarMeta = (meta) => {
     const crisis = isCrisis(meta)
-    setAiGoal(meta)
+    setAiGoal(meta.slice(0, MAX_META_PROGRAMA))
     setAiError('')
+    setAiAviso('')
     setAiCrisis(crisis)
     setAiStep(1)
     if (crisis) abrirAyuda('crisis_programa')
@@ -3854,13 +3921,21 @@ function App() {
     setAiCrisis(false)
     setAiStep(3)
     setAiError('')
+    setAiAviso('')
     if (!(await iaListaEnNube())) { setAiStep(1); return }
     try {
       const resp = await apiFetch('/api/generate-program', {
         method: 'POST',
         body: JSON.stringify({ goal: aiGoal, context: aiContext }),
       })
-      if (!resp.ok) { await iaRechazadaEnServidor(resp); throw new Error(`HTTP ${resp.status}`) }
+      if (!resp.ok) {
+        // El tope de hoy, la IA en pausa o el conteo que falló: su texto, con
+        // la meta a la vista (vuelve al paso de contexto) y SalidaAyuda.
+        const aviso = await avisoIADe(resp)
+        if (aviso) { setAiAviso(textoAvisoIA(aviso, 'programa')); setAiStep(1); return }
+        await iaRechazadaEnServidor(resp)
+        throw new Error(`HTTP ${resp.status}`)
+      }
       const data = await resp.json().catch(() => null)
       // Señal de crisis del servidor (por si el texto se le escapó al chequeo de aquí).
       if (data?.crisis) {
@@ -3894,7 +3969,7 @@ function App() {
   }
 
   const resetAiAgent = () => {
-    setAiGoal(''); setAiContext(''); setAiStep(0); setAiProgram(null); setAiError(''); setAiCrisis(false); setAiSaved(false)
+    setAiGoal(''); setAiContext(''); setAiStep(0); setAiProgram(null); setAiError(''); setAiAviso(''); setAiCrisis(false); setAiSaved(false)
   }
 
   const sendChatMessage = async () => {
@@ -3983,7 +4058,19 @@ function App() {
           memory: memory,       // 🧠 Memoria persistente
         }),
       })
-      if (!resp.ok) { await iaRechazadaEnServidor(resp); throw new Error(`HTTP ${resp.status}`) }
+      if (!resp.ok) {
+        // El tope de hoy, la IA en pausa o el conteo que falló: su texto
+        // (src/utils/limitesIA.js) seguido de la salida a Ayuda y a las
+        // líneas, con el botón de Ayuda (sos), en vez del error.
+        const aviso = await avisoIADe(resp)
+        if (aviso) {
+          setChatMessages(prev => [...prev, { role: 'assistant', text: `${textoAvisoIA(aviso, 'chat')} ${AYUDA_TEXT}`, sos: true, local: true }])
+          setChatLoading(false)
+          return
+        }
+        await iaRechazadaEnServidor(resp)
+        throw new Error(`HTTP ${resp.status}`)
+      }
       const data = await resp.json().catch(() => null)
       if (!data || data.error) throw new Error(data?.error || 'Respuesta vacía')
 
@@ -4053,8 +4140,8 @@ function App() {
   const aiAccionesRef = useRef(null)
   const aiGuardadoRef = useRef(null)
   useEffect(() => {
-    if ((aiError || aiCrisis) && aiStep === 1) aiAccionesRef.current?.scrollIntoView({ block: 'nearest' })
-  }, [aiError, aiCrisis, aiStep])
+    if ((aiError || aiAviso || aiCrisis) && aiStep === 1) aiAccionesRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [aiError, aiAviso, aiCrisis, aiStep])
   useEffect(() => {
     if (aiSaved) aiGuardadoRef.current?.scrollIntoView({ block: 'nearest' })
   }, [aiSaved])
@@ -4224,6 +4311,7 @@ function App() {
           <input
             value={chatInput}
             onChange={e => setChatInput(e.target.value)}
+            maxLength={MAX_MENSAJE_CHAT}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage() } }}
             placeholder="Escríbeme..."
             style={{
@@ -4268,7 +4356,7 @@ function App() {
                 </button>
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..."
+                <input value={aiGoal} onChange={e => setAiGoal(e.target.value)} placeholder="O escribe tu meta..." maxLength={MAX_META_PROGRAMA}
                   onKeyDown={e => { if (e.key === 'Enter' && aiGoal.trim()) { e.preventDefault(); confirmarMeta(aiGoal) } }}
                   style={{ flex: 1, padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none' }} />
                 <button onClick={() => aiGoal.trim() && confirmarMeta(aiGoal)} disabled={!aiGoal.trim()} aria-label="Continuar con esta meta" style={{
@@ -4288,8 +4376,14 @@ function App() {
               </div>
               <div style={{ fontSize: 19, color: C.muted, lineHeight: 1.6 }}>¿Quieres contarme algo más? Entre más me cuentes, mejor tu programa.</div>
               <textarea value={aiContext} onChange={e => setAiContext(e.target.value)}
-                placeholder="Opcional: cuéntame un poco más..." rows={3}
+                placeholder="Opcional: cuéntame un poco más..." rows={3} maxLength={MAX_CONTEXTO_PROGRAMA}
                 style={{ padding: '12px 16px', borderRadius: 14, border: `1.5px solid ${C.contorno}`, fontSize: 19, fontFamily: 'inherit', background: C.card, color: C.text, outline: 'none', resize: 'none', lineHeight: 1.6 }} />
+              {aiAviso && !aiError && <>
+                <div role="status" style={{ fontSize: 18, color: C.text, lineHeight: 1.55, background: C.card, borderRadius: 14, padding: 14, border: `1px solid ${C.border}` }}>{aiAviso}</div>
+                {/* Sin programa tampoco hay segunda capa (el modelo): Ayuda y
+                    las líneas a la vista, como con el error. */}
+                <SalidaAyuda onAbrir={() => abrirAyuda('crisis_programa_fallo')} />
+              </>}
               {aiError && <>
                 <div role="alert" style={{ fontSize: 18, color: C.coral, fontWeight: 600 }}>{aiError}</div>
                 {/* Sin programa, tampoco hay segunda capa (el modelo) que vea una
@@ -4309,7 +4403,7 @@ function App() {
                 </div>
               )}
               <div ref={aiAccionesRef} style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext(''); setAiCrisis(false) }} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>← Atrás</button>
+                <button onClick={() => { setAiStep(0); setAiGoal(''); setAiContext(''); setAiCrisis(false); setAiAviso('') }} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${C.border}`, background: C.card, color: C.muted, fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>← Atrás</button>
                 <button onClick={generateAiProgram} style={{ flex: 2, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${C.rose}, ${C.roseDark})`, color: 'white', fontSize: 19, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>Crear mi programa</button>
               </div>
             </div>
@@ -4532,7 +4626,7 @@ function App() {
         </div>
       </div>
 
-      {/* Membership — Yo soy Ronda ("Ver planes" del aviso de pago llega aquí) */}
+      {/* Membership — Yo soy Ronda: el plan de ella, y sin Ronda+ el muro honesto */}
       <div id="perfil-planes" style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm, border: `1px solid ${C.goldLight}` }}>
         <div id="perfil-planes-titulo" tabIndex={-1} style={{ fontSize: 20, fontWeight: 800, color: C.gold, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em', outline: 'none' }}>Yo soy Ronda</div>
         <div style={{ fontSize: 18, color: C.muted, marginBottom: 14 }}>
@@ -4558,39 +4652,22 @@ function App() {
           </div>
         )}
 
+        {/* El muro honesto: qué trae Ronda+, para quién es hoy y qué tiene
+            ella a la mano. Sin precio, sin botón de pago y sin «Próximamente»
+            (Ley 1480, arts. 26 y 29; textos de la CMO, 4). */}
         {!isPremium && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[
-              // Lo mismo que dice "Acceso completo activo": sin profesionales
-              // (en la Comunidad responde la Guía IA de Ronda).
-              { name: PLAN_PAGO, price: PLAN_PRECIO, features: 'Tu Ronda (IA), rutas de 21 días, escribir en la Comunidad y más.', color: C.teal },
-              { name: 'Ronda Pro', price: 'Próximamente', features: 'El siguiente nivel de Ronda, en camino.', color: C.gold },
-            ].map((plan, i) => (
-              <div key={i} style={{ background: C.cream, borderRadius: 14, padding: 14, border: `2px solid ${plan.color}30` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: plan.color }}>{plan.name}</div>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>{plan.price}</div>
-                </div>
-                <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.5, marginBottom: 10 }}>{plan.features}</div>
-                {plan.name === PLAN_PAGO && (
-                  <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.5, marginBottom: 10 }}>{NOTA_IA_PLUS}</div>
-                )}
-                <button onClick={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${plan.name}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} style={{
-                  width: '100%', padding: '10px', borderRadius: 12, border: 'none',
-                  background: plan.color, color: 'white', fontSize: 17, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>
-                  Elegir {plan.name}
-                </button>
-              </div>
-            ))}
+          <div style={{ background: C.cream, borderRadius: 14, padding: 16, border: `2px solid ${C.teal}30` }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: C.teal, marginBottom: 10 }}>{PLAN_PAGO}</div>
+            <BloqueRondaPlus tope={topeIA} />
+            <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.5, marginTop: 12 }}>{NOTA_IA_PLUS}</div>
           </div>
         )}
 
+        {/* Con Ronda+: el tope se dice antes de llegar a él (Ley 1480, arts. 23 y 33). */}
         {isPremium && (
           <div style={{ background: `${C.teal}10`, borderRadius: 12, padding: 14, border: `1px solid ${C.teal}30`, textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.teal }}>Acceso completo activo</div>
-            <div style={{ fontSize: 16, color: C.muted, marginTop: 4 }}>Tu Ronda (IA), rutas de 21 días, escribir en la Comunidad y más.</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.teal }}>Tu {PLAN_PAGO} está activa</div>
+            <div style={{ fontSize: 16, color: C.muted, marginTop: 4, lineHeight: 1.5 }}>Tu Ronda, Crea tu programa, la ruta Despertar y escribir en la Comunidad, con {topeIA} mensajes de IA al día.</div>
           </div>
         )}
       </div>
@@ -5713,7 +5790,7 @@ function App() {
                 enfocarDespues('acceso-ai', { centrar: true })
               }}
               onAyuda={() => abrirAyuda('crisis_tarjeta_ia')} />
-          )) : <Paywall feature="Tu Ronda · IA personal" price={PLAN_PRECIO} desc="Tu compañera de bienestar 24/7. Recuerda quién eres, te acompaña, te orienta y crea programas personalizados solo para ti." onCta={() => setAppModal({ type: 'info', title: 'Próximamente', body: `Estamos finalizando el sistema de pago para ${PLAN_PAGO}. Te avisaremos cuando esté listo. 💛`, cta: 'Entendido' })} />)}
+          )) : <Paywall feature="Tu Ronda · IA personal" tope={topeIA} onCta={() => irAProgramas7Dias()} onAyuda={() => abrirAyuda('muro_ronda_plus')} />)}
         </>}
 
         {view === 'juntas' && <>
@@ -5812,19 +5889,15 @@ function App() {
 
             {/* En 'confirm' el foco empieza en "Cancelar": Enter no borra por accidente */}
             <button type="button" data-autofocus={appModal.type === 'confirm' ? undefined : true} onClick={() => {
+              // El aviso de Ronda+ lleva a lo que ella tiene a la mano (los
+              // programas de 7 días) o, sin destino, solo se cierra («Seguir
+              // leyendo»). Nunca a un pago (no existe todavía).
               if (appModal.type === 'paywall') {
                 track('paywall_cta_clicked', { title: appModal.title })
-                openModule('perfil')
-                // Los planes están en "Yo soy Ronda", más abajo en Perfil (en el
-                // celular no se ven al abrir): se baja hasta ahí, bajo el
-                // encabezado fijo, y el foco pasa a su título.
-                focoTrasModalRef.current = () => document.getElementById('perfil-planes-titulo')
-                requestAnimationFrame(() => {
-                  const tarjeta = document.getElementById('perfil-planes')
-                  if (!tarjeta) return
-                  const alto = document.querySelector('header')?.offsetHeight || 0
-                  window.scrollTo({ top: tarjeta.getBoundingClientRect().top + window.scrollY - alto - 12, behavior: 'instant' })
-                })
+                if (appModal.destino === 'programas') {
+                  focoTrasModalRef.current = () => document.getElementById('programas-7-dias')
+                  irAProgramas7Dias({ enfocar: false })
+                }
               }
               if (appModal.type === 'confirm') appModal.onConfirm?.()
               setAppModal(null)
@@ -5839,8 +5912,8 @@ function App() {
             }}>
               {appModal.cta || 'Listo'}
             </button>
-            {/* El aviso de pago siempre se puede cerrar sin ir a los planes */}
-            {appModal.type === 'paywall' && (
+            {/* El aviso de Ronda+ siempre se puede cerrar sin ir a otro lado */}
+            {appModal.type === 'paywall' && appModal.destino && (
               <button onClick={() => setAppModal(null)} style={{
                 width: '100%', minHeight: 44, marginTop: 8, background: 'none', border: 'none',
                 color: C.muted, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
