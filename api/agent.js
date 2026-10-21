@@ -1,6 +1,5 @@
 // Patrones y respuesta de crisis: los mismos de la Guía IA y de la app.
-import { normalize, isCrisis, CRISIS_TEXT_CHAT, BOTON_AYUDA } from '../src/utils/crisis.js'
-import { AYUDA_TEXT } from '../src/utils/crisis.js'
+import { normalize, isCrisis, CRISIS_TEXT_CHAT, BOTON_AYUDA, AYUDA_TEXT } from '../src/utils/crisis.js'
 import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA, exigirTopeIA, responderPausaIA } from './_auth.js'
 import { corta, numero, cabeEnTope, MAX_MENSAJE_CHAT } from '../src/utils/limitesIA.js'
 
