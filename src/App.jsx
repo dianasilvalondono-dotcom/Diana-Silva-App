@@ -1218,7 +1218,7 @@ function App() {
   // El título y el texto dependen de lo que falló (permiso, micrófono, red u
   // otro): cada uno dice qué hacer, y siempre queda escribir con el teclado.
   const AVISOS_DICTADO = {
-    permiso: { title: 'Activa tu micrófono para dictar', body: 'Permite el micrófono en la configuración de tu navegador y vuelve a tocar el botón del micrófono. También puedes escribir tu reflexión.' },
+    permiso: { title: 'Activa tu micrófono para dictar', body: 'Permite el acceso al micrófono en la configuración de tu navegador y vuelve a tocar el botón del micrófono. También puedes escribir tu reflexión.' },
     microfono: { title: 'Conecta un micrófono para dictar', body: 'Revisa que tu micrófono esté conectado y encendido, y vuelve a tocar el botón del micrófono. También puedes escribir tu reflexión.' },
     red: { title: 'Revisa tu conexión para dictar', body: 'El dictado usa internet para convertir tu voz en texto. Cuando tengas conexión, vuelve a tocar el botón del micrófono. Mientras tanto, puedes escribir tu reflexión.' },
     otro: { title: 'Intenta dictar otra vez', body: 'Vuelve a tocar el botón del micrófono en un momento. También puedes escribir tu reflexión.' },
@@ -3142,25 +3142,26 @@ function App() {
 
   /* ── Seed board data (MVP — will be replaced by Supabase) ── */
   /* En orden de la más reciente a la más antigua: así se leen las horas
-     (2 h, 3 h, 4 h, 5 h, 8 h, 1 día) (juntas-13). */
+     (2 h, 3 h, 4 h, 5 h, 8 h, 1 día) (juntas-13). Las respuestas no traen
+     autora: abajo todas se atribuyen a la Guía IA de Ronda (GUIA_IA_PRO). */
   const SEED_POSTS = [
     { id: 's1', cat: 'ansiedad', content: 'Llevo 3 noches sin dormir bien. Siento que el pecho me aprieta y no puedo parar de pensar en todo lo que tengo que hacer mañana. ¿Alguien más se siente así?', time: 'Hace 2 horas', hearts: 24,
-      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Muchas mujeres lo han sentido. Desde la cama, tu mente intenta "resolver" el día de mañana, y tu cuerpo se pone en alerta. Prueba esto: escribe en un papel TODO lo que te preocupa. Luego cierra el cuaderno y dile a tu mente: "Ya está escrito, mañana lo resuelvo." Cuando tu mente sabe que lo tiene guardado, le queda más fácil soltarlo. Si esto sigue por más de 2 semanas, busca el acompañamiento de una profesional. Aquí estoy contigo. 💛' }] },
+      replies: [{
+        text: 'Muchas mujeres lo han sentido. Desde la cama, tu mente intenta «resolver» todo lo de mañana, y tu cuerpo se pone en alerta. Prueba esto: escribe en un cuaderno TODO lo que te preocupa. Luego ciérralo y dile a tu mente: «Ya está escrito, mañana lo resuelvo». Cuando tu mente sabe que lo tiene guardado, le queda más fácil soltarlo. Si esto sigue por más de 2 semanas, busca el acompañamiento de una profesional. Aquí estoy contigo. 💛' }] },
     { id: 's4', cat: 'relaciones', content: 'Siempre elijo el mismo tipo de persona. Sé que me hace daño pero no puedo dejar de hacerlo. ¿Por qué repito el patrón?', time: 'Hace 3 horas', hearts: 38,
-      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Los patrones en el amor se forman temprano: buscamos lo "familiar", que viene de familia, más que de "conocido". Si creciste con un cariño que iba y venía, puedes confundir la intensidad con el amor. El primer paso es ver el patrón, y tú ya lo estás dando. El segundo es conocerlo mejor: escribe qué tienen en común las personas que eliges y cómo te quieres sentir en una relación. Lo que aprendiste se puede reaprender, a tu ritmo. 🌱' }] },
+      replies: [{
+        text: 'Los patrones en el amor se forman temprano. Buscamos lo «familiar»: lo que se parece a lo que vivimos en casa. Si creciste con un cariño que iba y venía, puedes confundir la intensidad con el amor. El primer paso es ver el patrón, y tú ya lo estás dando. El segundo es conocerlo mejor: escribe qué tienen en común las personas que eliges y cómo te quieres sentir en una relación. Lo que aprendiste se puede reaprender, a tu ritmo. 🌱' }] },
     { id: 's6', cat: 'emprendimiento', content: 'Tengo una idea de negocio pero me da pánico fracasar. Llevo meses paralizada sin dar el primer paso.', time: 'Hace 4 horas', hearts: 29,
-      replies: [{ pro: { name: 'Camila S.', title: 'Guía Ronda · Mentora de emprendimiento', verified: true },
+      replies: [{
         text: 'El miedo a fracasar suele ser miedo a lo que piensen los demás: lo que más pesa es imaginar que te ven equivocarte. Y aquí va la verdad: la gente está mucho más ocupada en su propia vida de lo que crees. Cada intento, por pequeño que sea, te enseña algo y te acerca a lo que quieres. Empieza con la versión más pequeña de tu idea, con lo que ya tienes: lo importante es que EXISTA.' }] },
     { id: 's2', cat: 'autoestima', content: 'Me separé hace 6 meses y siento que perdí mi identidad. No sé quién soy sin esa relación. Me miro al espejo y no me reconozco.', time: 'Hace 5 horas', hearts: 41,
-      replies: [{ pro: { name: 'Valentina R.', title: 'Guía Ronda · Certificada en DBT', verified: true },
-        text: 'Lo que sientes es muy común después de una separación. Cuando termina una relación larga, se va la persona y también la versión de ti que vivía en esa relación. Es un duelo, y tiene su tiempo. Y aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ. Empieza por algo pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo y elige una cosa para volver a hacer esta semana. Ahí empieza el camino de regreso a ti. 🌱' }] },
+      replies: [{
+        text: 'Lo que sientes es muy común después de una separación. Cuando termina una relación larga, se va la persona y también la versión de ti que vivía en esa relación. Es un duelo y tiene su tiempo. Y aquí está la buena noticia: ahora tienes espacio para descubrir quién eres TÚ. Empieza por algo pequeño: ¿qué te gustaba hacer antes de esa relación? ¿Qué dejaste de hacer? Escríbelo y elige una cosa para volver a hacer esta semana. Ahí empieza el camino de regreso a ti. 🌱' }] },
     { id: 's5', cat: 'duelo', content: 'Perdí a mi mamá hace un año y hay días que siento que el dolor es igual de fuerte que el primer día. ¿Cuándo para esto?', time: 'Hace 8 horas', hearts: 53,
-      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Meditación', verified: true },
-        text: 'El duelo va en olas y tiene su propio ritmo. Lo que cambia con el tiempo es tu relación con el dolor: se queda contigo y aprende a ocupar un espacio más pequeño, al lado de todo el amor que le tienes a tu mamá. Los días fuertes van a seguir llegando (fechas especiales, canciones, olores). Esos días también hacen parte de avanzar: hablan de lo mucho que la amas. Permítete sentir y trátate con cariño. 💛' }] },
+      replies: [{
+        text: 'El duelo va en olas y tiene su propio ritmo. Con el tiempo, el dolor cambia de lugar: se queda contigo y aprende a ocupar un espacio más pequeño, al lado de todo el amor que le tienes a tu mamá. Los días fuertes van a seguir llegando (fechas especiales, canciones, olores). Esos días también hacen parte del camino: hablan de lo mucho que la amas. Permítete sentir y trátate con cariño. 💛' }] },
     { id: 's3', cat: 'maternidad', content: 'Amo a mis hijos pero hay días que siento que me perdí a mí misma. No tengo un minuto para mí. ¿Está mal sentirme así?', time: 'Hace 1 día', hearts: 67,
-      replies: [{ pro: { name: 'Mariana L.', title: 'Guía Ronda · Instructora certificada Yoga y Meditación', verified: true },
+      replies: [{
         text: 'Lo que sientes es válido, y es una de las experiencias más comunes y menos habladas de la maternidad. Muchas mamás lo sienten y se lo guardan. Querer tiempo para ti es humano y también es cuidar a tu familia. Empieza con 15 minutos al día solo para ti, y disfrútalos con la conciencia tranquila. Tu bienestar ES parte del bienestar de tus hijos. 🌿' }] },
   ]
 
