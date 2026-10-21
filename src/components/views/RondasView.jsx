@@ -18,6 +18,7 @@ import { getPlanes, getReservas, getReservasLocales, reservarCupo, liberarCupo, 
 import { track } from '../../lib/analytics'
 import LineaCrisis from '../ui/LineaCrisis'
 import { EnlacePolitica } from '../Autorizaciones'
+import { BOTON_AYUDA } from '../../utils/crisis'
 
 const salaLabel = (id) => SALAS.find(s => s.id === id)?.label || id
 
@@ -55,6 +56,12 @@ const cuandoVisible = (plan) => {
 }
 
 const ENFOCABLES = 'button:not([disabled]), textarea:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+/* Con la Ayuda (u otro diálogo de la app) abierta encima de la hoja, el
+   teclado es de ese diálogo: Tab da la vuelta allá y Escape cierra solo ese. */
+const otroDialogoAbierto = (el) => {
+  const activo = document.activeElement
+  return !!activo?.closest?.('[role="dialog"]') && !el?.contains(activo)
+}
 /* Con el diálogo abierto, Tab y Shift+Tab dan la vuelta dentro de él y no
    se van a lo que queda detrás (rondas-15). */
 function useTrampaFoco(ref, activo) {
@@ -62,7 +69,7 @@ function useTrampaFoco(ref, activo) {
     if (!activo) return
     const alTeclear = (e) => {
       const el = ref.current
-      if (e.key !== 'Tab' || !el) return
+      if (e.key !== 'Tab' || !el || otroDialogoAbierto(el)) return
       const focos = [...el.querySelectorAll(ENFOCABLES)]
       if (!focos.length) return
       const primero = focos[0]
@@ -230,7 +237,7 @@ function FilaPlan({ plan, reservado, onAbrir }) {
 }
 
 /* ── El plan abierto: hoja que sube desde abajo ── */
-function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, onReservar, onLiberar, onReportar, onIrAdentro }) {
+function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, onReservar, onLiberar, onReportar, onIrAdentro, onAyuda }) {
   const cerrarRef = useRef(null)
   const hojaRef = useRef(null)
   const reservarRef = useRef(null)
@@ -254,7 +261,7 @@ function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, on
     setTimeout(() => reservarRef.current?.focus(), 0)
   }
   useEffect(() => {
-    const alTeclear = (e) => { if (e.key === 'Escape') onCerrar() }
+    const alTeclear = (e) => { if (e.key === 'Escape' && !otroDialogoAbierto(hojaRef.current)) onCerrar() }
     window.addEventListener('keydown', alTeclear)
     return () => window.removeEventListener('keydown', alTeclear)
   }, [onCerrar])
@@ -271,11 +278,24 @@ function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, on
           width: '100%', maxWidth: 600, background: C.hoja,
           borderRadius: '24px 24px 0 0', boxShadow: '0 -12px 32px rgba(20,24,51,0.18)',
           overflowY: 'auto', overscrollBehavior: 'contain',
-          padding: '12px 22px calc(env(safe-area-inset-bottom, 0px) + 32px)',
+          // Abajo, el espacio del botón de emergencia, que queda encima de la
+          // hoja: lo último sube por encima de él con el scroll.
+          padding: '12px 22px 0', paddingBottom: ESPACIO_FLOTANTES.unoConMenu,
         }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <div aria-hidden="true" style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(20,24,51,0.2)', marginLeft: 'calc(50% - 20px)' }} />
+        {/* Arriba, «Ayuda» (la misma del encabezado, que la hoja tapa) y
+            cerrar. «Ayuda» está dentro de la hoja: se llega con Tab y con el
+            lector de pantalla. */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: 10 }}>
+          {onAyuda ? (
+            <button type="button" onClick={onAyuda} style={{
+              justifySelf: 'start', minHeight: 44, padding: '0 10px', marginLeft: -10,
+              background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              fontSize: 16, fontWeight: 600, color: C.morado, textDecoration: 'underline', textUnderlineOffset: 2,
+            }}>{BOTON_AYUDA}</button>
+          ) : <span />}
+          <div aria-hidden="true" style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(20,24,51,0.2)' }} />
           <button ref={cerrarRef} onClick={onCerrar} aria-label="Cerrar el plan" style={{
+            justifySelf: 'end',
             width: 44, height: 44, border: 'none', background: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
@@ -379,10 +399,14 @@ function HojaPlan({ plan, reservado, ocupado, aviso, onCerrarAviso, onCerrar, on
   )
 }
 
-export default function RondasView({ user, onIrAdentro }) {
+export default function RondasView({ user, onIrAdentro, filtro: filtroDeApp, onFiltro, onHojaAbierta, onAyuda }) {
   // La ciudad elegida se recuerda al recargar y al volver de Adentro (rondas-12).
   const [ciudad, setCiudad] = useState(() => ciudadValida(load(CIUDAD_KEY, CIUDAD_POR_DEFECTO)))
-  const [filtro, setFiltro] = useState('todas')
+  // La sala elegida la guarda App (filtroPlanes): sigue igual al ir a Tu
+  // Ronda con el botón flotante y volver.
+  const [filtroPropio, setFiltroPropio] = useState('todas')
+  const filtro = filtroDeApp ?? filtroPropio
+  const setFiltro = onFiltro ?? setFiltroPropio
   const [data, setData] = useState(null)
   const [reservas, setReservas] = useState(() => getReservasLocales())
   const [abierto, setAbierto] = useState(null)
@@ -483,6 +507,11 @@ export default function RondasView({ user, onIrAdentro }) {
   }, [])
   // La hoja muestra el plan con sus cupos al día.
   const planAbierto = abierto && (data?.planes.find(p => p.id === abierto.id) || abierto)
+  // App sabe si la hoja está abierta: sube el corazón por encima y deja
+  // inerte lo de atrás. Al salir de los planes, ya no hay hoja.
+  const hayHoja = !!planAbierto
+  useEffect(() => { onHojaAbierta?.(hayHoja) }, [hayHoja, onHojaAbierta])
+  useEffect(() => () => onHojaAbierta?.(false), [onHojaAbierta])
 
   /* Al cerrar el mensaje a la curadora (enviado o no), el texto se borra
      (rondas-3) y el foco vuelve a lo que abrió el plan (rondas-15). */
@@ -662,6 +691,7 @@ export default function RondasView({ user, onIrAdentro }) {
           onLiberar={liberar}
           onReportar={(p) => { setTextoReporte(''); setErrorReporte(null); setReportando(p); setAbierto(null) }}
           onIrAdentro={() => onIrAdentro?.()}
+          onAyuda={onAyuda}
         />
       )}
 

@@ -35,3 +35,58 @@ body {
     animation: none;
   }
 }
+
+/* Los dos botones flotantes (BotonesFlotantes.jsx). En el celular, círculos
+   de 56 px pegados al borde derecho de la columna de 600 px (a 16 px del
+   borde de la pantalla). Desde 810 px de ancho caben a la derecha de la
+   columna: van junto al borde de la ventana, como hasta el 12-oct, y no
+   tapan nada de la página. Desde 1140 px dicen además su nombre. Los dos
+   anchos están también en src/constants/flotantes.js. */
+.flotante {
+  position: fixed;
+  right: max(16px, calc(50% - 284px));
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.flotante-nombre {
+  display: none;
+}
+@media (min-width: 810px) {
+  .flotante {
+    right: 16px;
+  }
+}
+@media (min-width: 1140px) {
+  .flotante {
+    width: auto;
+    justify-content: flex-start;
+    padding: 0 22px 0 11px;
+  }
+  .flotante-tu-ronda {
+    padding-left: 14px;
+  }
+  .flotante-nombre {
+    display: inline;
+  }
+}
+
+/* En Tu Ronda, la hoja mide lo que deja el encabezado (124 px + la muesca)
+   y el chat crece hasta llenarla (aiAgentView en App.jsx). 100dvh es la
+   pantalla que se ve con las barras del navegador; quien no lo conoce se
+   queda con 100vh. */
+.hoja-tu-ronda {
+  min-height: calc(100vh - 124px - env(safe-area-inset-top, 0px));
+  min-height: calc(100dvh - 124px - env(safe-area-inset-top, 0px));
+}

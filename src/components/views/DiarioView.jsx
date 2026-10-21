@@ -45,8 +45,9 @@ export default function DiarioView({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* New entry */}
-      <div style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: SHADOW.sm }}>
+      {/* New entry. Al escribir, sube hasta dejar «Guardar reflexión» por
+          encima de los botones flotantes (subirSobreFlotantes en App). */}
+      <div data-sobre-flotantes style={{ background: C.card, borderRadius: 18, padding: 18, boxShadow: SHADOW.sm }}>
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10, color: C.text }}>¿Cómo te sientes hoy?</div>
         {/* Gap y padding justos para que los cinco quepan en 375px; el wrap es la
             red si una fuente sale más ancha. Solo la carita elegida se agranda:

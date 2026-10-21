@@ -45,6 +45,7 @@ import { syncFromLocal, getUserProfile, saveUserProfile, getToolkitItems, saveTo
 import { isCrisis, CRISIS_TEXT, CRISIS_TEXT_CHAT, CHAT_ERROR_TEXT, BOTON_AYUDA } from './utils/crisis'
 import { esAdmin, rondaPlusVigente } from './utils/plan'
 import { ultimaEntradaDiario } from './utils/diario'
+import { cuantoSubir } from './utils/sobreFlotantes'
 
 /* Antes de pagar Ronda+: lo que usa la IA pide su propia autorización
    (textos-autorizacion-v1; Ley 1581, art. 6). Va en el paywall y en el plan. */
@@ -74,6 +75,41 @@ function traerALaVista(el, { arriba = 140, abajo = 120 } = {}) {
   if (!el) return
   const cabe = el.getBoundingClientRect().height <= window.innerHeight - arriba - abajo
   el.scrollIntoView({ block: cabe ? 'nearest' : 'start' })
+}
+
+/* Los botones flotantes (Tu Ronda y emergencia) y el menú tapan la esquina
+   de abajo. Cuando algo de la página recibe el foco (con el teclado, o un
+   campo de texto con el dedo), sube lo justo para quedar por encima de ellos
+   y debajo del encabezado. Si el campo está en una fila o un formulario
+   marcado con data-sobre-flotantes, sube la fila entera: así el «+» o
+   «Publicar» de al lado tampoco quedan debajo de un botón. Si no cabe todo,
+   gana el campo. Solo cuentan los botones que quedan sobre la fila (en
+   pantalla ancha van fuera de la columna y no tapan nada). La cuenta está
+   en src/utils/sobreFlotantes.js. */
+function subirSobreFlotantes(foco) {
+  if (!foco?.isConnected) return
+  const zona = foco.closest('[data-sobre-flotantes]') || foco
+  const d = cuantoSubir({
+    zona: zona.getBoundingClientRect(),
+    foco: foco.getBoundingClientRect(),
+    tapas: ['nav[aria-label="Secciones"]', '#boton-emergencia', '#boton-tu-ronda']
+      .map(sel => document.querySelector(sel)?.getBoundingClientRect()),
+    alto: window.innerHeight,
+    arriba: document.querySelector('header')?.getBoundingClientRect().bottom || 0,
+  })
+  if (d) window.scrollBy({ top: d, behavior: 'instant' })
+}
+// :focus-visible: el foco que se ve (teclado, o un campo de texto). Un
+// navegador que no lo conoce (Safari antes de 15.4) cuenta solo los campos.
+function focoVisible(el) {
+  try { return el.matches(':focus-visible') } catch { return el.matches('input, textarea, select') }
+}
+// Dentro de algo fijo (un aviso flotante), mover la página no lo mueve.
+function dentroDeAlgoFijo(el) {
+  for (let n = el; n && n.tagName !== 'MAIN'; n = n.parentElement) {
+    if (getComputedStyle(n).position === 'fixed') return true
+  }
+  return false
 }
 
 /* Cuando se va una pantalla completa (el aviso único, «Lo íntimo es tuyo»),
@@ -299,6 +335,12 @@ function App() {
   // scrollY }), para que «Volver» y «Más tarde» la dejen donde estaba.
   const [volverA, setVolverA] = useState(null)
   const scrollAlVolverRef = useRef(null)
+  // La sala elegida en los planes vive aquí y no en RondasView: así sigue
+  // igual al volver de Tu Ronda (y la página, del mismo alto).
+  const [filtroPlanes, setFiltroPlanes] = useState('todas')
+  // La hoja de un plan abierta (RondasView avisa): el corazón sube por
+  // encima de ella y lo de atrás queda inerte.
+  const [hojaPlanAbierta, setHojaPlanAbierta] = useState(false)
   // Al cambiar de sección o de herramienta, la pantalla nueva empieza arriba
   // (o, al volver de Tu Ronda, donde estaba).
   useEffect(() => {
@@ -656,14 +698,14 @@ function App() {
     if (isAdmin) { setOnboarded(false); setModuleIntros({}) }
   }, [isAdmin])
 
-  // Bienvenida: la barra de abajo es fija y opaca. Mientras dura, el
-  // navegador trae el control enfocado con Tab por encima de ella, no debajo
-  // (WCAG 2.4.11; bienvenida-1). 190 px = alto de la barra con margen.
+  // Bienvenida: la barra de abajo es fija y opaca, y encima va el botón de
+  // emergencia. Mientras dura, el navegador trae el control enfocado con Tab
+  // por encima de los dos, no debajo (WCAG 2.4.11; bienvenida-1).
   useEffect(() => {
     if (onboarded) return
     const raiz = document.documentElement
     const antes = raiz.style.scrollPaddingBottom
-    raiz.style.scrollPaddingBottom = '190px'
+    raiz.style.scrollPaddingBottom = ESPACIO_FLOTANTES.bienvenida
     return () => { raiz.style.scrollPaddingBottom = antes }
   }, [onboarded])
 
@@ -1690,6 +1732,20 @@ function App() {
   const pantallaCarga = authLoading || cuentaAjena || revisandoAutorizaciones
   const pantallaBase = !pantallaCarga && !(isConfigured && !user) && !(isConfigured && recovering)
   const pantallaPrincipal = pantallaBase && onboarded && !pideAutorizacion
+  // Lo que recibe el foco en la página sube por encima de los botones
+  // flotantes (subirSobreFlotantes). Los diálogos y lo fijo se cuidan solos.
+  useEffect(() => {
+    if (!pantallaPrincipal) return
+    const alEnfocar = (e) => {
+      const el = e.target
+      if (!(el instanceof HTMLElement) || !el.closest('main') || el.closest('[role="dialog"]')) return
+      if (!focoVisible(el) || dentroDeAlgoFijo(el)) return
+      // Después de lo que haga quien dio el foco (centrar, traer a la vista).
+      requestAnimationFrame(() => { if (document.activeElement === el) subirSobreFlotantes(el) })
+    }
+    document.addEventListener('focusin', alEnfocar)
+    return () => document.removeEventListener('focusin', alEnfocar)
+  }, [pantallaPrincipal])
   const panicRef = useRef(null)
   const morningRef = useRef(null)
   const nightRef = useRef(null)
@@ -1823,7 +1879,7 @@ function App() {
 
   /* ── Encabezado: el telón ── */
   const header = (
-    <header inert={fondoInerte} style={{
+    <header inert={fondoInerte || hojaPlanAbierta} style={{
       background: C.morado,
       paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)',
       paddingLeft: 20, paddingRight: 12, paddingBottom: 18,
@@ -1866,7 +1922,7 @@ function App() {
 
   /* ── Barra inferior: Afuera · Adentro · Juntas ── */
   const bottomNav = (
-    <nav aria-label="Secciones" inert={fondoInerte} style={{
+    <nav aria-label="Secciones" inert={fondoInerte || hojaPlanAbierta} style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 600, background: '#F7F9FC',
       borderTop: `1px solid ${C.border}`, display: 'flex',
@@ -2183,7 +2239,7 @@ function App() {
 
       {/* Add habit */}
       {showAddHabit ? (
-        <div style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: SHADOW.sm }}>
+        <div data-sobre-flotantes style={{ background: C.card, borderRadius: 14, padding: 14, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 19, fontWeight: 700, marginBottom: 10, color: C.text }}>Nuevo hábito</div>
           <input value={newHabitName} onChange={e => { setNewHabitName(e.target.value); setAvisoHabito('') }} placeholder="Nombre del hábito..."
             autoFocus aria-label="Nombre del hábito" aria-invalid={!!avisoHabito} aria-describedby={avisoHabito ? 'aviso-habito' : undefined}
@@ -2466,7 +2522,7 @@ function App() {
 
       {/* Add new routine item */}
       {editingRoutine && (
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm }}>
+        <div data-sobre-flotantes style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: SHADOW.sm }}>
           <div style={{ fontSize: 19, fontWeight: 800, color: C.text, marginBottom: 12 }}>+ Agregar a mi rutina</div>
           {renderSectionPicker(newRoutineSection, setNewRoutineSection)}
           {/* La hora con su etiqueta visible. Si no queda espacio para leer
@@ -2533,7 +2589,9 @@ function App() {
         {/* Tomorrow tasks */}
         <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 8 }}>¿Qué necesito hacer mañana?</div>
         <div style={{ marginBottom: 12 }}>{renderTaskList(tomorrowTasks, toggleTomorrowTask, pedirQuitarTareaManana)}</div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        {/* Al tocar el campo, la fila sube entera por encima de los botones
+            flotantes: el «+» queda libre (subirSobreFlotantes). */}
+        <div data-sobre-flotantes style={{ display: 'flex', gap: 8 }}>
           <input id="tarea-manana" value={newTomorrowTask} onChange={e => setNewTomorrowTask(e.target.value)} placeholder="Escribir tarea para mañana..."
             aria-label="Tarea para mañana"
             style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 20, fontFamily: 'inherit' }}
@@ -3476,7 +3534,9 @@ function App() {
           <div style={{ fontSize: 19, color: C.subtle, marginTop: 4 }}>Tu publicación es anónima. Te responde la Guía IA de Ronda.</div>
         </button>
       ) : (
-        <div style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
+        // Al abrirlo, sube hasta dejar «Cancelar» y «Publicar» por encima de
+        // los botones flotantes (subirSobreFlotantes, al recibir el foco).
+        <div data-sobre-flotantes style={{ background: C.card, borderRadius: 16, padding: 18, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: `1px solid ${C.roseLight}` }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: C.roseDark, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
             🔒 Publicación anónima
           </div>
@@ -4010,12 +4070,14 @@ function App() {
     if (el) el.scrollTop = chatMessages.length > 1 || chatLoading ? el.scrollHeight : 0
   }, [chatMessages.length, chatLoading, chatAbierto])
 
-  // El chat cabe en la pantalla sin que la página se desplace: arriba el
-  // encabezado (124) y el margen de la hoja; abajo el aviso legal (32 + ~86
-  // en móvil, ~50 en escritorio) y el espacio del menú y del botón de
-  // emergencia (150 más la zona segura: ESPACIO_FLOTANTES.unoConMenu).
+  // El chat cabe en la pantalla sin que la página se desplace: en Tu Ronda
+  // la hoja es una columna del alto de la pantalla (debajo del encabezado) y
+  // el chat crece hasta llenar lo que dejan el aviso legal y el espacio del
+  // final (ESPACIO_FLOTANTES.finTuRonda), con 280 px como mínimo y 600 como
+  // máximo. Antes era una cuenta fija (100dvh − 376 px) y el aviso legal, más
+  // alto de lo contado, dejaba 34 px de scroll a 375 px de ancho.
   const aiAgentView = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: `calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${isMobile ? 416 : 384}px)`, minHeight: 280, maxHeight: 600 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: 280, maxHeight: 600 }}>
       {avisoFundadora('chat')}
       {/* Mode toggle */}
       <div role="group" aria-label="Modo de Tu Ronda" style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
@@ -4730,7 +4792,9 @@ function App() {
   const onboardStepShell = (key, children) => (
     <div key={key} style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      minHeight: '100vh', textAlign: 'center', padding: '32px 32px 190px',
+      // Abajo, la barra fija y el botón de emergencia: lo último sube por
+      // encima de los dos con el scroll.
+      minHeight: '100vh', textAlign: 'center', padding: '32px 32px', paddingBottom: ESPACIO_FLOTANTES.bienvenida,
     }}>{children}</div>
   )
 
@@ -5270,13 +5334,17 @@ function App() {
   }
 
   /* ── Onboarding screen ── (después de las autorizaciones, más abajo)
-     Sin botón de Ayuda propio, pero si llega con la Ayuda abierta (desde
-     "Cargando..."), la Ayuda sigue encima y esto queda inerte. */
+     Con el botón de emergencia encima de la barra de abajo: una mujer nueva
+     tiene a mano el 123, la Línea 106 y la respiración desde el primer
+     paso. Si llega con la Ayuda abierta (desde "Cargando..."), la Ayuda
+     sigue encima y esto queda inerte. */
   if (!onboarded && !pideAutorizacion) {
     const ultimoPaso = onboardStep === onboardSlides.length - 1
     return conAyuda(
       <div inert={showPanic} style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream, fontFamily: FONT }}>
         {onboardSlides[onboardStep]}
+
+        <BotonEmergencia onAbrir={() => abrirAyuda('bienvenida')} enBienvenida />
 
         {/* Dots + Navigation. Barra de ancho completo con fondo propio: lo que
             pasa por debajo queda tapado en vez de encimarse con los puntos y
@@ -5594,22 +5662,32 @@ function App() {
   return conAyuda(
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.morado, fontFamily: FONT }}>
       {header}
-      <main inert={fondoInerte} style={{
+      <main inert={fondoInerte} className={enTuRonda ? 'hoja-tu-ronda' : undefined} style={{
         background: C.hoja, borderRadius: '24px 24px 0 0',
         // La hoja llena lo que deja el encabezado (124 px + la muesca): con
-        // 110 px toda pantalla corta tenía 14 px de scroll sobrante.
-        minHeight: 'calc(100vh - 124px - env(safe-area-inset-top, 0px))',
+        // 110 px toda pantalla corta tenía 14 px de scroll sobrante. En Tu
+        // Ronda es una columna: el chat crece hasta llenar lo que queda entre
+        // el encabezado y el aviso legal, sin que la página se desplace (su
+        // alto, con 100dvh, está en App.css: .hoja-tu-ronda).
+        ...(enTuRonda
+          ? { display: 'flex', flexDirection: 'column' }
+          : { minHeight: 'calc(100vh - 124px - env(safe-area-inset-top, 0px))' }),
         paddingTop: isMobile ? 24 : 28,
         paddingLeft: isMobile ? 16 : 24,
         paddingRight: isMobile ? 16 : 24,
         // Abajo, el menú y los botones flotantes: con este espacio el final
-        // de cada pantalla sube por encima de ellos con el scroll.
-        paddingBottom: enTuRonda ? ESPACIO_FLOTANTES.unoConMenu : ESPACIO_FLOTANTES.dosConMenu,
+        // de cada pantalla sube por encima de ellos con el scroll. En Tu Ronda
+        // solo está el corazón, y el final queda a su lado (finTuRonda).
+        paddingBottom: enTuRonda ? ESPACIO_FLOTANTES.finTuRonda : ESPACIO_FLOTANTES.dosConMenu,
       }}>
         {view === 'rondas' && (
           <RondasView
             user={user}
             onIrAdentro={() => empezarRespiracion('afuera')}
+            filtro={filtroPlanes}
+            onFiltro={setFiltroPlanes}
+            onHojaAbierta={setHojaPlanAbierta}
+            onAyuda={() => abrirAyuda('plan')}
           />
         )}
 
@@ -5663,7 +5741,7 @@ function App() {
 
         {view === 'perfil' && perfilView}
 
-        <p style={{ margin: '32px 0 0', fontSize: 12, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
+        <p style={{ margin: `${enTuRonda ? 16 : 32}px 0 0`, fontSize: 12, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
           Ronda ofrece herramientas de bienestar y contenido educativo. Para atención médica o psicológica, acude a una profesional. Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
         </p>
         <p style={{ margin: '4px 0 0', fontSize: 13, textAlign: 'center' }}>
@@ -5671,9 +5749,11 @@ function App() {
         </p>
       </main>
       {/* Los botones flotantes: Tu Ronda encima del de emergencia, los dos
-          encima del menú. Con un diálogo abierto quedan debajo e inertes. */}
-      {!enTuRonda && <BotonTuRonda onAbrir={abrirTuRonda} conNombre={!isMobile} inerte={fondoInerte} />}
-      <BotonEmergencia onAbrir={() => abrirAyuda('flotante')} conMenu inerte={fondoInerte} />
+          encima del menú. Con un diálogo abierto quedan debajo e inertes.
+          Con la hoja de un plan abierta, el corazón sube por encima de ella
+          (la Ayuda a un toque) y Tu Ronda queda debajo, inerte. */}
+      {!enTuRonda && <BotonTuRonda onAbrir={abrirTuRonda} inerte={fondoInerte || hojaPlanAbierta} />}
+      <BotonEmergencia onAbrir={() => abrirAyuda('flotante')} conMenu encima={hojaPlanAbierta} inerte={fondoInerte} />
       {bottomNav}
       {morningModal}
       {nightModal}
