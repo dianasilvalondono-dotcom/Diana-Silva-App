@@ -1,9 +1,12 @@
 // Sintesis de voz para Ronda (ElevenLabs).
 // La key vive SOLO aqui, del lado servidor — igual que /api/agent y /api/guia.
-// Sin ELEVENLABS_API_KEY la funcion responde 503 y el cliente simplemente
-// no muestra el boton de audio: la app sigue funcionando en texto.
+// Apagada en esta versión (VOZ_ACTIVA = false, src/utils/voz.js): responde 503
+// antes de todo, sin leer la sesión ni llamar a ElevenLabs, aunque exista la
+// llave. Prendida, sin ELEVENLABS_API_KEY también responde 503. Con un 503 el
+// cliente no muestra el boton de audio: la app sigue funcionando en texto.
 
 import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA } from './_auth.js'
+import { VOZ_ACTIVA } from '../src/utils/voz.js'
 
 const MAX_CHARS = 1200
 
@@ -55,6 +58,8 @@ function sanitizeForSpeech(text) {
 }
 
 export default async function handler(req, res) {
+  // La voz está apagada: ElevenLabs no recibe nada (textos-autorizacion-v1.md, P6).
+  if (!VOZ_ACTIVA) return res.status(503).json({ error: 'voice_unavailable' })
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   // Solo una usuaria con sesión: esto gasta créditos pagos (api/_auth.js).

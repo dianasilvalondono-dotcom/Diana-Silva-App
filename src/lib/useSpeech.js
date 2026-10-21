@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { apiFetch } from './supabase'
+import { VOZ_ACTIVA } from '../utils/voz.js'
 
 // Reproduce en voz las respuestas de Tu Ronda.
+// Apagada en esta versión (VOZ_ACTIVA = false, src/utils/voz.js): available
+// queda en false desde el principio (el boton «Escuchar» no se muestra) y
+// speak no llama a /api/speak.
 // La sintesis ocurre en /api/speak (la key de ElevenLabs nunca toca el bundle).
 // Si el servidor responde 503 la voz no esta configurada: escondemos el boton
 // y la app sigue igual de completa en texto. Si falla por otra razon, errorId
@@ -14,7 +18,7 @@ export function useSpeech({ alRechazar } = {}) {
   const [speakingId, setSpeakingId] = useState(null)
   const [loadingId, setLoadingId] = useState(null)
   const [errorId, setErrorId] = useState(null)
-  const [available, setAvailable] = useState(true)
+  const [available, setAvailable] = useState(VOZ_ACTIVA)
 
   const audioRef = useRef(null)
   const urlRef = useRef(null)
@@ -73,6 +77,8 @@ export function useSpeech({ alRechazar } = {}) {
   }, [cancelar, cleanup])
 
   const speak = useCallback(async (text, { id = 'default', tone = 'chat' } = {}) => {
+    // Voz apagada: nada sale del telefono.
+    if (!VOZ_ACTIVA) return
     // Segundo toque sobre el mismo mensaje: silencio.
     if (speakingId === id) return stop()
 

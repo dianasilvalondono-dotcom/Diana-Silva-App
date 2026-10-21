@@ -531,8 +531,10 @@ function App() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatMode, setChatMode] = useState('chat') // 'chat' or 'create'
-  // Voz de Tu Ronda. Si /api/speak no está configurado, available queda en false
-  // y el botón no se muestra. Si falla, errorId marca el mensaje por un momento.
+  // Voz de Tu Ronda. Apagada en esta versión (VOZ_ACTIVA = false, src/utils/voz.js):
+  // available queda en false y el botón «Escuchar» no se muestra. Prendida, si
+  // /api/speak no está configurado, available también queda en false. Si falla,
+  // errorId marca el mensaje por un momento.
   // El hook vive en App (no se desmonta): al salir del chat se llama stopSpeech.
   // Un 403 de la voz pasa por el mismo detector que el chat (iaRechazadaEnServidor,
   // más abajo): si es el de la IA sin autorizar, se vuelven a leer las autorizaciones.

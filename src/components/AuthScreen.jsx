@@ -255,7 +255,7 @@ export default function AuthScreen({
               <Casilla id="auth-autorizo" marcada={autorizaCuenta} invalida={campoInvalido === 'cuenta'}
                 describedBy={campoInvalido === 'cuenta' ? 'auth-error' : undefined}
                 onCambiar={v => { setAutorizaCuenta(v); setError(''); setCampoInvalido(null) }}>
-                <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, los planes en los que aparto cupo y cómo uso la app) para crear mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
+                <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, mis gustos para los planes, los planes en los que aparto cupo y cómo uso la app) para crear mi cuenta, darme el servicio, recomendarme planes y mejorar Ronda, como explica la <EnlacePolitica />.
               </Casilla>
               <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.55, marginTop: 6 }}>
                 <em>{PROMESA} Lo íntimo te lo preguntamos aparte y es opcional.</em>{' '}

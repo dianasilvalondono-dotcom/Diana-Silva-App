@@ -22,7 +22,7 @@ import {
 
 // La promesa de Diana: para qué usamos los datos y que nunca se venden ni
 // se usan para anuncios de otras marcas (la promoción de Ronda+ es de Ronda).
-export const PROMESA = 'Nuestra promesa: tus datos son tuyos. Los usamos solo para darte Ronda, mejorarla y cumplir la ley, y tenemos prohibido venderlos o usarlos para anuncios de otras marcas.'
+export const PROMESA = 'Nuestra promesa: usamos tus datos para que Ronda funcione, mejore y te recomiende planes, y tenemos prohibido venderlos o usarlos para anuncios de otras marcas.'
 
 // Con el encabezado fijo arriba (124 px) y el menú fijo abajo: lo que se trae
 // a la vista queda entre los dos.
@@ -69,7 +69,7 @@ export function CasillaIA({ id, marcada, onCambiar, ref }) {
           Aplica a <strong>Tu Ronda</strong>, a la <strong>Guía IA de la Comunidad</strong> y a <strong>Crea tu programa</strong>. Para responderte, Tu Ronda también lee tu nombre, tu ciudad, tu intención, tus hábitos de hoy, tu ánimo de los últimos 7 días, tu última entrada del diario, tu programa activo y lo que recuerda de ti.
         </li>
         <li style={{ marginBottom: 6 }}>
-          Lo procesa <strong>Anthropic</strong>, en Estados Unidos, y sus condiciones le prohíben usarlo para entrenar sus modelos. Si tocas escuchar una respuesta, <strong>ElevenLabs</strong> (Estados Unidos) la lee en voz alta.
+          Lo procesa <strong>Anthropic</strong>, en Estados Unidos, y sus condiciones le prohíben usarlo para entrenar sus modelos.
         </li>
         <li>
           Esas tres funciones se abren solo si marcas esta casilla. Ayuda, los programas de 7 días, tus hábitos, tu diario y los planes de tu ciudad funcionan igual, decidas lo que decidas.
@@ -234,7 +234,7 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
         </Casilla>
         <Casilla id="aviso-cuenta" ref={cuentaRef} marcada={cuenta} onCambiar={v => { setCuenta(v); limpiarError() }}
           invalida={falta === 'cuenta'} describedBy={falta === 'cuenta' ? 'aviso-error' : undefined}>
-          <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, los planes en los que aparto cupo y cómo uso la app) para mantener mi cuenta y darme el servicio, como explica la <EnlacePolitica />.
+          <strong>Autorizo a Ronda el tratamiento de mis datos de cuenta y de uso</strong> (nombre, correo, perfil, hábitos, mis gustos para los planes, los planes en los que aparto cupo y cómo uso la app) para mantener mi cuenta, darme el servicio, recomendarme planes y mejorar Ronda, como explica la <EnlacePolitica />.
         </Casilla>
         {/* Justo debajo de las dos casillas: «Seguir» lleva hasta aquí. */}
         {error && (
