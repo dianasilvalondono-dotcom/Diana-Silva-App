@@ -1211,21 +1211,26 @@ function App() {
     setIsListening(false)
   }
 
+  // El título y el texto dependen de lo que falló (permiso, micrófono, red u
+  // otro): cada uno dice qué hacer, y siempre queda escribir con el teclado.
+  const AVISOS_DICTADO = {
+    permiso: { title: 'Activa tu micrófono para dictar', body: 'Permite el micrófono en la configuración de tu navegador y vuelve a tocar el botón del micrófono. También puedes escribir tu reflexión.' },
+    microfono: { title: 'Conecta un micrófono para dictar', body: 'Revisa que tu micrófono esté conectado y encendido, y vuelve a tocar el botón del micrófono. También puedes escribir tu reflexión.' },
+    red: { title: 'Revisa tu conexión para dictar', body: 'El dictado usa internet para convertir tu voz en texto. Cuando tengas conexión, vuelve a tocar el botón del micrófono. Mientras tanto, puedes escribir tu reflexión.' },
+    otro: { title: 'Intenta dictar otra vez', body: 'Vuelve a tocar el botón del micrófono en un momento. También puedes escribir tu reflexión.' },
+  }
   const avisarDictado = (motivo) => {
-    const body = motivo === 'not-allowed' || motivo === 'service-not-allowed'
-      ? 'Permite el micrófono en tu navegador para dictar tu reflexión.'
-      : motivo === 'audio-capture'
-        ? 'No encontramos un micrófono. Revisa que esté conectado.'
-        : motivo === 'network'
-          ? 'Revisa tu conexión e inténtalo de nuevo.'
-          : 'Inténtalo de nuevo en un momento. También puedes escribir tu reflexión.'
-    setAppModal({ type: 'info', title: 'Activa tu micrófono para dictar', body, cta: 'Listo' })
+    const tipo = motivo === 'not-allowed' || motivo === 'service-not-allowed' ? 'permiso'
+      : motivo === 'audio-capture' ? 'microfono'
+        : motivo === 'network' ? 'red'
+          : 'otro'
+    setAppModal({ type: 'info', ...AVISOS_DICTADO[tipo], cta: 'Listo' })
   }
 
   const toggleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) {
-      setAppModal({ type: 'info', title: 'Voz no disponible', body: 'Tu navegador no soporta entrada de voz. Usa Chrome o Safari para el diario de voz.', cta: 'Listo' })
+      setAppModal({ type: 'info', title: 'Dicta desde Chrome o Safari', body: 'Para dictar tu reflexión, abre Ronda en Chrome o Safari. Aquí puedes escribirla con el teclado.', cta: 'Listo' })
       return
     }
 
