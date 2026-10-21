@@ -112,12 +112,13 @@ IMPORTANTE: Responde SOLO con el JSON. Sin texto antes ni después. Sin emojis.`
         .map(b => b.text)
         .join('')
       const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) return res.status(500).json({ error: 'Respuesta de la IA no válida' })
+      // Ya contó el mensaje: toda falla lleva la salida a Ayuda y a las líneas.
+      if (!jsonMatch) return res.status(500).json({ error: 'Respuesta de la IA no válida', ayuda: AYUDA_TEXT })
       const program = JSON.parse(jsonMatch[0])
       return res.status(200).json({ program })
     } catch (err) {
       console.error('generate-program', err?.name)
-      return res.status(500).json({ error: 'Error del servidor' })
+      return res.status(500).json({ error: 'Error del servidor', ayuda: AYUDA_TEXT })
     }
   }
 

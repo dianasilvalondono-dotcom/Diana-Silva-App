@@ -17,8 +17,12 @@ export const MAX_PUBLICACION = 2000        // la Comunidad (el BOARD_MAX de la a
 
 // Tope de tamaño total de lo que le llega al modelo en un mensaje: el texto
 // fijo, el contexto que manda la app, la memoria, el historial y el mensaje.
-// 50.000 caracteres ≈ 14.300 tokens [ESTIMACIÓN: 3,5 caracteres por token],
-// unos US$0,07 por mensaje con la salida máxima (CFO, R-07).
+// Se mide en bytes UTF-8, no en caracteres: con texto no latino (chino,
+// japonés) cada carácter pesa 1 token o más [ESTIMACIÓN], y en caracteres
+// cabían unos 40.000 tokens; en bytes es un techo más fiel de los tokens. En
+// español casi no cambia (unos 1,03 bytes por carácter).
+// 50.000 bytes ≈ 14.300 tokens en español [ESTIMACIÓN: 3,5 caracteres por
+// token], unos US$0,07 por mensaje con la salida máxima (CFO, R-07).
 export const MAX_TOTAL_IA = 50000
 
 // Todo lo que entra al prompt se recorta como texto o como número, nunca por
@@ -30,10 +34,13 @@ export const numero = (v, max) => {
   return Number.isFinite(n) ? Math.min(Math.max(n, 0), max) : 0
 }
 
-// Cuántos caracteres le llegan al modelo: el texto fijo y cada turno.
+// Cuántos bytes UTF-8 le llegan al modelo: el texto fijo y cada turno.
+// TextEncoder existe igual en el navegador y en Node.
+const utf8 = new TextEncoder()
+export const bytesUTF8 = (v) => utf8.encode(corta(v, Infinity)).length
 export const tamanoTotal = (system, messages) =>
-  corta(system, Infinity).length + (Array.isArray(messages) ? messages : [])
-    .reduce((s, m) => s + corta(m?.content, Infinity).length, 0)
+  bytesUTF8(system) + (Array.isArray(messages) ? messages : [])
+    .reduce((s, m) => s + bytesUTF8(m?.content), 0)
 
 // ¿Cabe en el tope total? Si no, quita los turnos más viejos del historial
 // (el primero tiene que seguir siendo de ella) hasta que quepa. Devuelve los

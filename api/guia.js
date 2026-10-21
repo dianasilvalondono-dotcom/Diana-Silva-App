@@ -196,7 +196,8 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta (
       })
     } catch (err) {
       console.error('guia', err?.name)
-      return res.status(500).json({ error: 'Server error' })
+      // Ya contó el mensaje: la salida a Ayuda y a las líneas, como toda falla.
+      return res.status(500).json({ error: 'Server error', ayuda: AYUDA_TEXT })
     }
   }
 
