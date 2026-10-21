@@ -28,7 +28,7 @@ reaches the browser bundle.
 | `/api/agent` | Claude Sonnet 5 | Conversational companion with persistent user memory, day context, and crisis escalation |
 | `/api/generate-program` | Claude Haiku 4.5 | Turns a stated goal into a structured 7-day programme (strict JSON) |
 | `/api/guia` | Claude Sonnet 5 | Guided psychoeducation |
-| `/api/speak` | ElevenLabs `multilingual_v2` | Speech synthesis for the companion's replies |
+| `/api/speak` | ElevenLabs `multilingual_v2` | Speech synthesis for the companion's replies. **Off in this version** (`VOZ_ACTIVA = false` in `src/utils/voz.js`): it answers 503 without calling ElevenLabs |
 
 ### Three decisions worth explaining
 

@@ -66,13 +66,13 @@ export function initAnalytics() {
         disable_surveys: true,
         // Ni grabación, ni encuestas, ni nada que el panel quiera cargar.
         disable_external_dependency_loading: true,
-        // La IP: en posthog-js 1.415 la opción `ip` del cliente ya no hace
-        // nada. Se descarta en el panel del proyecto («Discard client IP
-        // data»): acción pendiente de Diana.
+        // La IP: PostHog la recibe con cada evento (en posthog-js 1.415 la
+        // opción `ip` del cliente ya no hace nada) y la política lo dice
+        // (secciones 3.1 y 6). Los ajustes del proyecto en PostHog no se tocan
+        // (decisión de Diana, 21-oct-2026).
         // Que PostHog no calcule ciudad ni coordenadas a partir de la IP
         // (la transformación GeoIP deja pasar sin tocar todo evento que trae
-        // $geoip_disable). Vale para todos, también $identify y $set. Además,
-        // Diana apaga GeoIP en el panel (lo-que-hace-diana-antes-de-publicar, paso 5d).
+        // $geoip_disable). Vale para todos, también $identify y $set.
         before_send: (ev) => {
           if (ev) ev.properties = { ...(ev.properties || {}), $geoip_disable: true }
           return ev
