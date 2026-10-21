@@ -22,7 +22,7 @@ import {
 
 // La promesa de Diana: para qué usamos los datos y que nunca se venden ni
 // se usan para anuncios de otras marcas (la promoción de Ronda+ es de Ronda).
-export const PROMESA = 'Nuestra promesa: usamos tus datos para que Ronda funcione, mejore y te recomiende planes, y tenemos prohibido venderlos o usarlos para anuncios de otras marcas.'
+export const PROMESA = 'Nuestra promesa: usamos tus datos para que Ronda funcione, mejore y te recomiende planes. Tenemos prohibido venderlos o usarlos para anuncios de otras marcas.'
 
 // Con el encabezado fijo arriba (124 px) y el menú fijo abajo: lo que se trae
 // a la vista queda entre los dos.
@@ -259,7 +259,7 @@ export function PantallaAutorizacion({ modo, onResponder, onAyuda, onCerrarSesio
 
       {!aviso && (
         <p style={{ margin: '14px 0 0', fontSize: 15, lineHeight: 1.55, color: C.muted }}>
-          <em>{PROMESA} Lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
+          <em>{PROMESA} Lo de la IA lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
         </p>
       )}
 
@@ -300,7 +300,7 @@ export function TarjetaIA({ idBase, onAutorizar, onAhoraNo, onAyuda }) {
       {/* Al pedir la autorización: quién es la responsable y sus derechos
           (Ley 1581, art. 12, lit. c y d), igual que en «Lo íntimo es tuyo». */}
       <p style={{ margin: '14px 0 0', fontSize: 15, lineHeight: 1.55, color: C.muted }}>
-        <em>{PROMESA} Lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
+        <em>{PROMESA} Lo de la IA lo cambias cuando quieras en Perfil → Tus autorizaciones.</em> <EnlacePolitica />
       </p>
       <button type="button" disabled={!ia} onClick={onAutorizar} style={{ ...botonPrincipal(ia), marginTop: 16 }}>Seguir</button>
       <div style={{ textAlign: 'center', marginTop: 4 }}>
@@ -378,7 +378,7 @@ export function TusAutorizaciones({ autorizaciones, onCambiarIA }) {
         Tus autorizaciones
       </h2>
       <p style={{ margin: '0 0 6px', fontSize: 16, color: C.muted, lineHeight: 1.55 }}>
-        Tú decides qué hacemos con tus datos. {PROMESA}
+        Aquí ves lo que autorizaste. {PROMESA}
       </p>
 
       {/* Usar la IA de Ronda */}

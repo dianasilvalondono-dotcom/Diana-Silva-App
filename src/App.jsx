@@ -4900,7 +4900,7 @@ function App() {
               tuyo» (ni en "Cargando..."): cerraría Ayuda y la devolvería a
               esa pantalla, sin llegar a la Comunidad. */}
           {pantallaPrincipal && (
-          <button onClick={() => { setShowPanic(false); openModule('juntas', '', { silent: true }) }} style={{
+          <button onClick={() => { setShowPanic(false); openModule('juntas') }} style={{
             marginTop: 24, width: '100%', padding: '14px 18px',
             background: 'rgba(114,109,45,0.2)', borderRadius: 16,
             border: '1px solid rgba(114,109,45,0.4)', cursor: 'pointer', textAlign: 'center',

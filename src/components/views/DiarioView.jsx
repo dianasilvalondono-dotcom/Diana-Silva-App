@@ -153,7 +153,7 @@ export default function DiarioView({
             <button onClick={() => {
               // Si la ruta ya está en curso solo se abre; si no, se empieza.
               if (!activePrograms?.[rec.programa]) startProgram(rec.programa)
-              openModule('crecer', 'programas', { silent: true })
+              openModule('crecer', 'programas')
             }} style={{
               marginTop: 12, width: '100%', padding: 12, borderRadius: 12, border: `2px solid ${rec.color}`,
               background: 'transparent', color: rec.color, fontSize: 20, fontWeight: 700,
