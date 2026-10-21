@@ -31,7 +31,8 @@ begin
 
   -- 2. Cada fundadora del respaldo vuelve a su valor anterior, si nadie le
   --    cambió la fecha después. Si su valor anterior era futuro (nació durante
-  --    una reapertura anterior), su Ronda+ termina hoy.
+  --    una reapertura anterior), su Ronda+ termina hoy. Las que solo habían
+  --    apartado su cupo vuelven a eso: is_premium false y sin fecha.
   update public.profiles p
      set is_premium = r.is_premium_antes,
          premium_until = case when r.premium_until_antes > now() then now() else r.premium_until_antes end

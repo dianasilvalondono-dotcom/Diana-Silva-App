@@ -10,7 +10,9 @@
 -- de desplegar la app que llama a usar_ia. Los endpoints de IA fallan cerrado:
 -- sin esta función responden 503 (la IA en pausa, con Ayuda). La app publicada
 -- antes no la usa, así que aplicarlo primero no le cambia nada; lo único que
--- se nota es que una cuenta nueva nace en freemium en vez de nacer vencida.
+-- se nota es que una cuenta nueva (hasta la 50) ya no nace vencida: aparta su
+-- cupo de fundadora sin Ronda+ todavía (en freemium) y la reapertura
+-- (reabrir-ronda-plus.sql) se lo da con la misma fecha que a las demás.
 --
 -- Lo que guarda: solo cuántos mensajes le envía cada persona a la IA cada día
 -- de Colombia (user_id, dia, usos, chat, comunidad, programa). Nunca qué
@@ -35,11 +37,21 @@ create table if not exists public.ronda_plus_ajustes (
   -- Mensajes de IA por persona y día de Colombia. 0 = la IA en pausa para
   -- todas (la revisión de crisis sigue respondiendo).
   tope_ia_diario integer not null default 10 check (tope_ia_diario between 0 and 200),
+  -- Cupos de fundadora ya dados (de los 50). Solo sube: si se borra una
+  -- cuenta fundadora (por ejemplo, porque lo pidió por correo), su cupo no
+  -- pasa a la cuenta 51 en adelante («las primeras 50 cuentas de Ronda»).
+  cupos_fundadora_dados integer not null default 0 check (cupos_fundadora_dados >= 0),
   actualizado_en timestamptz not null default now()
 );
 -- 10 = decisión de Diana del 21-oct-2026. Si la fila ya existe, no se toca.
 insert into public.ronda_plus_ajustes (id, tope_ia_diario) values (true, 10)
 on conflict (id) do nothing;
+-- El primer día, los cupos dados son las fundadoras que ya existen (36 el
+-- 21-oct-2026). greatest: aplicar el archivo otra vez nunca baja la cuenta.
+update public.ronda_plus_ajustes a
+   set cupos_fundadora_dados = greatest(a.cupos_fundadora_dados,
+         (select count(*) from public.profiles p where p.premium_source = 'founding_member'))
+ where a.id;
 alter table public.ronda_plus_ajustes enable row level security;
 -- La app lee el tope para decirlo antes de llegar a él (Perfil, Ley 1480).
 -- Nadie lo cambia desde la app: solo el editor SQL (postgres).
@@ -157,12 +169,18 @@ grant execute on function public.usar_ia(text) to authenticated;
 -- ── 5. Cuentas nuevas: nunca con una fecha vencida ──
 -- Hasta hoy la función traía escrita la fecha '2026-07-25 23:59:59+00': desde
 -- el 26-jul, toda cuenta nueva entre la 37 y la 50 nacía con Ronda+ vencido.
--- Ahora la fecha sale de ronda_plus_ajustes.fundadoras_hasta:
---   · sin fecha, o ya pasada: nace en freemium (los valores por defecto);
---   · con fecha vigente y menos de 50 fundadoras: nace fundadora hasta esa
---     fecha (la reapertura pone el 31-mar-2027 a las 23:59:59 de Colombia,
---     (date '2027-03-31' + 1)::timestamp at time zone 'America/Bogota' - interval '1 second');
---   · de la 51 en adelante: freemium.
+-- Ahora, mientras queden cupos de los 50 (cupos_fundadora_dados, que solo sube):
+--   · con fecha vigente en ronda_plus_ajustes.fundadoras_hasta: nace
+--     fundadora con Ronda+ hasta esa fecha (la reapertura pone el 31-mar-2027
+--     a las 23:59:59 de Colombia, (date '2027-03-31' + 1)::timestamp at time
+--     zone 'America/Bogota' - interval '1 second');
+--   · sin fecha, o ya pasada: aparta su cupo (premium_source =
+--     'founding_member') sin Ronda+ y sin fecha, es decir, en freemium y
+--     nunca vencida. Es la cuenta 37 que llega entre el paso 2 y la
+--     reapertura: reabrir-ronda-plus.sql le da la misma fecha que a las demás
+--     (decisión de Diana: cuentas 37 a 50 con la misma fecha). Perfil no le
+--     muestra la tarjeta de fundadora mientras no tenga fecha.
+--   · de la 51 en adelante (50 cupos dados): freemium, sin origen.
 -- El trigger auto_grant_premium (BEFORE INSERT en profiles) no cambia: solo se
 -- reemplaza su función, así conserva su nombre y su lugar en el orden
 -- (a_proteger_premium → a_sellar_autorizacion_perfil → auto_grant_premium).
@@ -174,6 +192,7 @@ set search_path = ''
 as $$
 declare
   v_hasta timestamptz;
+  v_dados integer;
   v_fundadoras integer;
 begin
   -- Solo el alta de una cuenta (handle_new_user, sin sesión de usuaria). Si
@@ -187,20 +206,30 @@ begin
     return new;
   end if;
 
-  select a.fundadoras_hasta into v_hasta from public.ronda_plus_ajustes a where a.id;
-  -- Sin fecha vigente nace en freemium (los valores por defecto), nunca vencida.
-  if v_hasta is null or v_hasta <= now() then
-    return new;
-  end if;
-
   -- Dos cuentas creadas al mismo tiempo no se pasan de los 50 cupos.
   perform pg_advisory_xact_lock(hashtext('ronda_cupos_fundadoras'));
+  select a.fundadoras_hasta, a.cupos_fundadora_dados into v_hasta, v_dados
+    from public.ronda_plus_ajustes a where a.id;
   select count(*) into v_fundadoras from public.profiles p where p.premium_source = 'founding_member';
-  if v_fundadoras < 50 then
+  -- Los cupos dados: el contador (no baja si se borra una cuenta) o las
+  -- fundadoras que hay hoy, la cifra mayor.
+  v_dados := greatest(coalesce(v_dados, 0), v_fundadoras);
+  if v_dados >= 50 then
+    return new;  -- de la 51 en adelante: freemium, sin origen
+  end if;
+
+  new.premium_source := 'founding_member';
+  if v_hasta is not null and v_hasta > now() then
     new.is_premium := true;
     new.premium_until := v_hasta;
-    new.premium_source := 'founding_member';
+  else
+    -- Sin fecha vigente: aparta su cupo, en freemium y sin fecha (nunca vencida).
+    new.is_premium := false;
+    new.premium_until := null;
   end if;
+  update public.ronda_plus_ajustes a
+     set cupos_fundadora_dados = v_dados + 1
+   where a.id;
   return new;
 end;
 $$;

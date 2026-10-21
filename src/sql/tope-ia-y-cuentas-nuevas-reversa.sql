@@ -9,7 +9,8 @@
 -- Se quedan, a propósito:
 --   · ronda_plus_ajustes y la función nueva de grant_founding_member_premium:
 --     volver a la de antes es volver a crear cuentas vencidas (fecha fija
---     '2026-07-25 23:59:59+00'). Sin fecha en los ajustes, nacen en freemium.
+--     '2026-07-25 23:59:59+00'). Sin fecha en los ajustes, hasta la 50
+--     apartan su cupo en freemium y de la 51 en adelante nacen en freemium.
 --   · la extensión pg_cron (sin tareas de Ronda, no hace nada).
 --   · el esquema metricas (vacío o con otras vistas).
 -- Se puede correr más de una vez.

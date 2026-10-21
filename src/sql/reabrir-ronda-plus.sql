@@ -18,9 +18,12 @@
 -- transacción) o en el editor SQL como postgres. Nunca con la sesión de una
 -- usuaria: el trigger a_proteger_premium desharía el cambio.
 --
--- Solo toca a las fundadoras (premium_source = 'founding_member'). Se puede
--- correr más de una vez: solo alarga, nunca acorta. Con la misma fecha, la
--- segunda vez no cambia nada. Reversa: reabrir-ronda-plus-reversa.sql.
+-- Solo toca a las fundadoras (premium_source = 'founding_member'): las 36
+-- vencidas y las cuentas que apartaron su cupo entre el paso 2 y este (sin
+-- Ronda+ y sin fecha, grant_founding_member_premium); todas quedan con la
+-- misma fecha. Se puede correr más de una vez: solo alarga, nunca acorta. Con
+-- la misma fecha, la segunda vez no cambia nada.
+-- Reversa: reabrir-ronda-plus-reversa.sql.
 -- ═══════════════════════════════════════════════════════════════
 
 -- Respaldo para la reversa: cómo estaba cada fundadora antes de la primera reapertura.
@@ -67,7 +70,8 @@ begin
     raise exception 'Hay % fundadoras y el máximo es 50. No se cambió nada.', v_fundadoras;
   end if;
 
-  -- Las que todavía no tienen Ronda+ vigente hasta esa fecha.
+  -- Las que todavía no tienen Ronda+ vigente hasta esa fecha (también las que
+  -- solo apartaron su cupo: is_premium false y premium_until null).
   insert into public.ronda_plus_respaldo (user_id, is_premium_antes, premium_until_antes)
   select id, is_premium, premium_until
     from public.profiles
