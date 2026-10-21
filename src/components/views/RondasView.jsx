@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { C } from '../../constants/colors'
 import { FONT_DISPLAY } from '../../constants/tokens'
+import { ESPACIO_FLOTANTES } from '../../constants/flotantes'
 import { CIUDADES, SALAS, ACCESO, MODALIDAD, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from '../../constants/curaduria'
 import { load, save } from '../../utils/helpers'
 import { getPlanes, getReservas, getReservasLocales, reservarCupo, liberarCupo, enviarReporte } from '../../lib/curaduria'
@@ -665,9 +666,11 @@ export default function RondasView({ user, onIrAdentro }) {
       )}
 
       {/* ── Aviso ── La región está siempre montada para que el lector de
-          pantalla lo anuncie; con la hoja abierta el aviso va dentro de ella. */}
+          pantalla lo anuncie; con la hoja abierta el aviso va dentro de ella.
+          Sale encima de los botones flotantes (Tu Ronda y emergencia): así
+          el de emergencia se sigue viendo entero mientras dura el aviso. */}
       <div role="status" aria-live="polite" style={{
-        position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
+        position: 'fixed', bottom: ESPACIO_FLOTANTES.dosConMenu, left: '50%', transform: 'translateX(-50%)',
         width: 'calc(100% - 32px)', maxWidth: 440, zIndex: 9999,
         pointerEvents: aviso && !abierto ? 'auto' : 'none',
       }}>

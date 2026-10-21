@@ -3,6 +3,8 @@ import { C } from '../constants/colors'
 import { FONT } from '../constants/tokens'
 import Button from './ui/Button'
 import LineaCrisis from './ui/LineaCrisis'
+import { BotonEmergencia } from './ui/BotonesFlotantes'
+import { ESPACIO_FLOTANTES } from '../constants/flotantes'
 import { BOTON_AYUDA } from '../utils/crisis'
 import { Casilla, EnlacePolitica, PROMESA } from './Autorizaciones'
 import { autorizacionesParaRegistro, URL_AVISO } from '../lib/autorizaciones'
@@ -171,7 +173,8 @@ export default function AuthScreen({
       maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.cream,
       fontFamily: FONT,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      padding: 32, position: 'relative', overflow: 'hidden',
+      // Abajo, el espacio del botón de emergencia: lo último sube por encima.
+      padding: 32, paddingBottom: ESPACIO_FLOTANTES.unoSinMenu, position: 'relative', overflow: 'hidden',
     }}>
       {/* id: al cerrar la Ayuda, el foco vuelve aquí (useDialog en App). */}
       {onAyuda && (
@@ -339,6 +342,9 @@ export default function AuthScreen({
       <div style={{ fontSize: 13, color: C.subtle, marginTop: 32, textAlign: 'center', lineHeight: 1.5, position: 'relative' }}>
         Tu compañera en cada etapa — en ronda, crecemos juntas.
       </div>
+
+      {/* El botón de emergencia abre la misma Ayuda que «Ayuda», arriba. */}
+      {onAyuda && <BotonEmergencia onAbrir={onAyuda} />}
     </div>
   )
 }

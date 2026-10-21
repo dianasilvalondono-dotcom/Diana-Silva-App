@@ -6,6 +6,8 @@ import { ICONS, MOOD_ICONS, UI_ICONS } from './constants/icons'
 import Badge from './components/ui/Badge'
 import LineaCrisis from './components/ui/LineaCrisis'
 import SalidaAyuda from './components/ui/SalidaAyuda'
+import { BotonEmergencia, BotonTuRonda } from './components/ui/BotonesFlotantes'
+import { ESPACIO_FLOTANTES } from './constants/flotantes'
 import HistoriaView from './components/views/HistoriaView'
 import DiarioView from './components/views/DiarioView'
 import RondasView from './components/views/RondasView'
@@ -293,8 +295,35 @@ function App() {
   // La preferencia guardada (para marcarla en Perfil sin leer localStorage en cada render)
   const [puertaGuardada, setPuertaGuardada] = useState(() => load(PUERTA_KEY, 'auto'))
   const [subTab, setSubTab] = useState('') // sub-navigation within tabs
+  // Tu Ronda abierta con el botón flotante: de dónde vino ({ view, subTab,
+  // scrollY }), para que «Volver» y «Más tarde» la dejen donde estaba.
+  const [volverA, setVolverA] = useState(null)
+  const scrollAlVolverRef = useRef(null)
   // Al cambiar de sección o de herramienta, la pantalla nueva empieza arriba
-  useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [view, subTab])
+  // (o, al volver de Tu Ronda, donde estaba).
+  useEffect(() => {
+    const y = scrollAlVolverRef.current
+    scrollAlVolverRef.current = null
+    window.scrollTo({ top: y || 0, behavior: 'instant' })
+    if (!y) return
+    // Lo de la pantalla puede llegar un momento después (los planes se
+    // cargan): se vuelve a intentar hasta llegar, por 2 s como mucho o
+    // hasta que ella toque o mueva la pantalla.
+    let cuadro = 0
+    let intentos = 0
+    const soltar = () => {
+      cancelAnimationFrame(cuadro)
+      for (const tipo of ['wheel', 'touchstart', 'keydown', 'pointerdown']) window.removeEventListener(tipo, soltar)
+    }
+    const seguir = () => {
+      if (Math.abs(window.scrollY - y) < 2 || ++intentos > 120) return soltar()
+      window.scrollTo({ top: y, behavior: 'instant' })
+      cuadro = requestAnimationFrame(seguir)
+    }
+    for (const tipo of ['wheel', 'touchstart', 'keydown', 'pointerdown']) window.addEventListener(tipo, soltar, { passive: true })
+    cuadro = requestAnimationFrame(seguir)
+    return soltar
+  }, [view, subTab])
   // Admin check — Diana sees everything, others see paywall
   // (La misma regla del servidor: src/utils/plan.js.)
   const isAdmin = !!user && esAdmin(user.email)
@@ -1597,6 +1626,7 @@ function App() {
     limpiarTelon()
     setFoundingToast(null)
     setPidiendoIA(false)
+    setVolverA(null)
     track('module_viewed', { module: destino, sub: sub || null })
   }
   // Cambia de subpestaña dentro de la misma sección.
@@ -1607,6 +1637,20 @@ function App() {
     limpiarTelon()
     setFoundingToast(null)
     setPidiendoIA(false)
+    setVolverA(null)
+  }
+  // Si Tu Ronda se abrió con el botón flotante, vuelve a la pantalla de donde
+  // vino, a la misma altura, y el foco pasa al botón de Tu Ronda. Devuelve
+  // false si no hay a dónde volver (se abrió desde «Pregúntale»).
+  const VOLVER_A = { rondas: 'Volver a los planes', juntas: 'Volver a Juntas', perfil: 'Volver a tu perfil', ahora: 'Volver a Adentro' }
+  const VOLVER_A_HERRAMIENTA = { diario: 'Volver al Diario', toolkit: 'Volver al Toolkit', habitos: 'Volver a Hábitos', rutina: 'Volver a Rutina', programas: 'Volver a Rutas' }
+  const textoVolver = (desde) => (desde.view === 'ahora' && VOLVER_A_HERRAMIENTA[desde.subTab]) || VOLVER_A[desde.view] || 'Volver'
+  const salirDeTuRonda = () => {
+    if (!volverA) return false
+    scrollAlVolverRef.current = volverA.scrollY
+    openModule(volverA.view, volverA.subTab)
+    enfocarDespues('boton-tu-ronda')
+    return true
   }
 
   const abrirAyuda = (desde = 'encabezado') => {
@@ -1757,8 +1801,10 @@ function App() {
     if (view === 'perfil') return <div style={estiloTelon}>Tu perfil</div>
     // Al volver, el foco pasa al acceso de la herramienta que se cerró (y se
     // trae a la vista); si no hay, al título de Adentro. Si no, se perdía en <body>.
+    // Tu Ronda abierta con el botón flotante vuelve a donde estaba (salirDeTuRonda).
     if (view === 'ahora' && subTab) return (
-      <button onClick={() => {
+      <button id="telon-volver" onClick={() => {
+        if (salirDeTuRonda()) return
         const desde = subTab
         irASubTab('')
         requestAnimationFrame(() => {
@@ -1769,7 +1815,7 @@ function App() {
         })
       }} style={{ ...estiloTelon, ...botonTelon, gap: 6 }}>
         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-        Volver a Adentro
+        {volverA ? textoVolver(volverA) : 'Volver a Adentro'}
       </button>
     )
     return <div style={estiloTelon}>Tu día</div>
@@ -1876,21 +1922,41 @@ function App() {
     { id: 'rutina', label: 'Rutina', icon: <path d="M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /> },
     { id: 'programas', label: 'Rutas', icon: <path d="M5 19c0-4 3-4 7-7s7-3 7-7M5 19h4M19 5h-4" /> },
   ]
+  // Antes de abrir Tu Ronda (desde «Pregúntale» o desde el botón flotante).
+  const prepararTuRonda = () => {
+    // Un programa que se está creando, o creado y sin guardar, no se pierde
+    // al salir y volver: Tu Ronda abre ahí. Lo demás empieza de cero.
+    const programaPendiente = aiStep === 3 || (aiStep === 4 && aiProgram && !aiSaved)
+    if (!programaPendiente) resetAiAgent()
+    setChatMode(programaPendiente ? 'create' : 'chat')
+    chatSesionContadaRef.current = false
+  }
   const abrirAcceso = (id) => {
-    if (id === 'ai') {
-      // Un programa que se está creando, o creado y sin guardar, no se pierde
-      // al salir y volver: Pregúntale abre ahí. Lo demás empieza de cero.
-      const programaPendiente = aiStep === 3 || (aiStep === 4 && aiProgram && !aiSaved)
-      if (!programaPendiente) resetAiAgent()
-      setChatMode(programaPendiente ? 'create' : 'chat')
-      chatSesionContadaRef.current = false
-    }
+    if (id === 'ai') prepararTuRonda()
     irASubTab(id)
     // Después de navegar: irASubTab quita el aviso de la pantalla anterior.
     // Sin la autorización de la IA se ve la tarjeta, no el chat: el aviso
     // de fundadora espera a que lo pueda ver.
     if (id === 'ai' && isPremium && iaOk) showFoundingPerk('chat', 'Tu Ronda · IA personal')
     track('module_viewed', { module: 'ahora', sub: id })
+  }
+  // El botón flotante de Tu Ronda, desde cualquier pantalla: lo mismo que
+  // «Pregúntale» (sin Ronda+, el aviso de pago; sin la autorización de la IA,
+  // la tarjeta que la pide, con Ayuda), y recuerda de dónde vino para que
+  // «Volver» la deje ahí. El botón se va en Tu Ronda: el foco pasa al modo
+  // del chat (la tarjeta de la IA ya enfoca su título; en el aviso de pago,
+  // a «Volver»).
+  const abrirTuRonda = () => {
+    const desde = { view, subTab, scrollY: window.scrollY }
+    prepararTuRonda()
+    openModule('ahora', 'ai')
+    setVolverA(desde)
+    if (isPremium && iaOk) showFoundingPerk('chat', 'Tu Ronda · IA personal')
+    requestAnimationFrame(() => {
+      if (document.querySelector('main')?.contains(document.activeElement)) return
+      const destino = document.querySelector('[aria-label="Modo de Tu Ronda"] [aria-pressed="true"]') || document.getElementById('telon-volver')
+      destino?.focus({ preventScroll: true })
+    })
   }
 
   // Libro de la temporada en Adentro: null si la temporada venció; si no,
@@ -3946,9 +4012,10 @@ function App() {
 
   // El chat cabe en la pantalla sin que la página se desplace: arriba el
   // encabezado (124) y el margen de la hoja; abajo el aviso legal (32 + ~86
-  // en móvil, ~50 en escritorio) y el espacio de la barra inferior (110).
+  // en móvil, ~50 en escritorio) y el espacio del menú y del botón de
+  // emergencia (150 más la zona segura: ESPACIO_FLOTANTES.unoConMenu).
   const aiAgentView = (
-    <div style={{ display: 'flex', flexDirection: 'column', height: `calc(100dvh - env(safe-area-inset-top, 0px) - ${isMobile ? 376 : 344}px)`, minHeight: 280, maxHeight: 600 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: `calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - ${isMobile ? 416 : 384}px)`, minHeight: 280, maxHeight: 600 }}>
       {avisoFundadora('chat')}
       {/* Mode toggle */}
       <div role="group" aria-label="Modo de Tu Ronda" style={{ display: 'flex', gap: 0, marginBottom: 12, background: C.card, borderRadius: 14, padding: 3, border: `1px solid ${C.border}` }}>
@@ -5165,6 +5232,7 @@ function App() {
           <p style={{ margin: '28px auto 0', maxWidth: 320, fontSize: 14, color: C.subtle, lineHeight: 1.5, textAlign: 'center', fontStyle: 'italic' }}>
             Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
           </p>
+          <BotonEmergencia onAbrir={() => abrirAyuda('cargando')} />
         </div>
     )
   }
@@ -5521,6 +5589,8 @@ function App() {
   /* ── Render: telón morado arriba, hoja clara redondeada con el contenido ──
      La Ayuda va fuera de esta raíz (conAyuda): es position: fixed y la raíz
      no crea un contexto de apilamiento, así que se ve igual. */
+  // Tu Ronda flotante en todas las pantallas menos en la propia Tu Ronda.
+  const enTuRonda = view === 'ahora' && subTab === 'ai'
   return conAyuda(
     <div style={{ maxWidth: 600, margin: '0 auto', minHeight: '100vh', background: C.morado, fontFamily: FONT }}>
       {header}
@@ -5529,7 +5599,12 @@ function App() {
         // La hoja llena lo que deja el encabezado (124 px + la muesca): con
         // 110 px toda pantalla corta tenía 14 px de scroll sobrante.
         minHeight: 'calc(100vh - 124px - env(safe-area-inset-top, 0px))',
-        padding: isMobile ? '24px 16px 110px' : '28px 24px 110px',
+        paddingTop: isMobile ? 24 : 28,
+        paddingLeft: isMobile ? 16 : 24,
+        paddingRight: isMobile ? 16 : 24,
+        // Abajo, el menú y los botones flotantes: con este espacio el final
+        // de cada pantalla sube por encima de ellos con el scroll.
+        paddingBottom: enTuRonda ? ESPACIO_FLOTANTES.unoConMenu : ESPACIO_FLOTANTES.dosConMenu,
       }}>
         {view === 'rondas' && (
           <RondasView
@@ -5553,6 +5628,8 @@ function App() {
                 requestAnimationFrame(() => document.querySelector('[aria-label="Modo de Tu Ronda"] [aria-pressed="true"]')?.focus({ preventScroll: true }))
               }}
               onAhoraNo={() => {
+                // Abierta con el botón flotante: vuelve a donde estaba.
+                if (salirDeTuRonda()) return
                 irASubTab('')
                 // El foco vuelve a «Pregúntale», traído al centro: abajo lo tapaba el menú fijo.
                 enfocarDespues('acceso-ai', { centrar: true })
@@ -5593,6 +5670,10 @@ function App() {
           <EnlacePolitica style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 4px', fontWeight: 600 }}>Cómo cuidamos tus datos</EnlacePolitica>
         </p>
       </main>
+      {/* Los botones flotantes: Tu Ronda encima del de emergencia, los dos
+          encima del menú. Con un diálogo abierto quedan debajo e inertes. */}
+      {!enTuRonda && <BotonTuRonda onAbrir={abrirTuRonda} conNombre={!isMobile} inerte={fondoInerte} />}
+      <BotonEmergencia onAbrir={() => abrirAyuda('flotante')} conMenu inerte={fondoInerte} />
       {bottomNav}
       {morningModal}
       {nightModal}

@@ -16,6 +16,8 @@ import { FONT, FONT_DISPLAY, SHADOW } from '../constants/tokens'
 import { BOTON_AYUDA } from '../utils/crisis'
 import LineaCrisis from './ui/LineaCrisis'
 import SalidaAyuda from './ui/SalidaAyuda'
+import { BotonEmergencia } from './ui/BotonesFlotantes'
+import { ESPACIO_FLOTANTES } from '../constants/flotantes'
 import {
   CORREO_DATOS, URL_POLITICA, iaAutorizada, fechaAutorizacion,
 } from '../lib/autorizaciones'
@@ -128,7 +130,8 @@ function MarcoAutorizacion({ onAyuda, inerte, children }) {
       <main inert={inerte} style={{
         background: C.hoja, borderRadius: '24px 24px 0 0',
         minHeight: 'calc(100vh - 72px - env(safe-area-inset-top, 0px))',
-        padding: '24px 16px 48px',
+        // Abajo, el espacio del botón de emergencia: lo último sube por encima.
+        padding: '24px 16px 48px', paddingBottom: ESPACIO_FLOTANTES.unoSinMenu,
       }}>
         <div style={{ background: C.card, borderRadius: 20, padding: '24px 20px', boxShadow: SHADOW.md, maxWidth: 520, margin: '0 auto' }}>
           {children}
@@ -137,6 +140,8 @@ function MarcoAutorizacion({ onAyuda, inerte, children }) {
           Si estás en crisis, llama a la <LineaCrisis numero="106">Línea 106</LineaCrisis>, o al <LineaCrisis numero="123">123</LineaCrisis> si estás en peligro inmediato.
         </p>
       </main>
+      {/* El botón de emergencia abre la misma Ayuda que «Ayuda», arriba. */}
+      <BotonEmergencia onAbrir={onAyuda} inerte={inerte} />
     </div>
   )
 }

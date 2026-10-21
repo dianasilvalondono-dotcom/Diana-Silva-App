@@ -24,3 +24,14 @@ body {
   0%, 100% { box-shadow: 0 4px 20px rgba(20,24,51,0.5); transform: scale(1); }
   50% { box-shadow: 0 4px 30px rgba(20,24,51,0.8); transform: scale(1.05); }
 }
+
+/* El botón de emergencia late suave (BotonesFlotantes.jsx). Con «reducir
+   movimiento» en el teléfono, queda quieto. */
+.boton-emergencia {
+  animation: pulse-gentle 3s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .boton-emergencia {
+    animation: none;
+  }
+}
