@@ -11,8 +11,9 @@
 
 // Patrones y respuesta de crisis: compartidos con la app (la app también
 // detecta crisis antes de llamar aquí, para abrir Ayuda aunque esto falle).
-import { isCrisis, CRISIS_TEXT, BOTON_AYUDA } from '../src/utils/crisis.js'
-import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA } from './_auth.js'
+import { isCrisis, CRISIS_TEXT, BOTON_AYUDA, AYUDA_TEXT } from '../src/utils/crisis.js'
+import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA, exigirTopeIA, responderPausaIA } from './_auth.js'
+import { cabeEnTope, MAX_PUBLICACION } from '../src/utils/limitesIA.js'
 
 const GUIA_IA = { name: 'Emilia', title: 'Guía IA de Ronda' }
 
@@ -30,7 +31,7 @@ const RECHAZO_TEXT = `Esta vez no logré responderte, y no quiero dejarte sin na
 // Categorías del Board (las mismas de BOARD_CATS en src/App.jsx, sin 'todas').
 const CATEGORIAS = ['ansiedad', 'relaciones', 'autoestima', 'maternidad', 'duelo', 'emprendimiento', 'general']
 // Largo máximo de una publicación (el mismo BOARD_MAX de src/App.jsx).
-const MAX_CONTENT = 2000
+const MAX_CONTENT = MAX_PUBLICACION
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -59,7 +60,7 @@ export default async function handler(req, res) {
   if (!(await exigirRondaPlus(req, res, user))) return
   if (!(await exigirAutorizacionIA(req, res, user))) return
 
-  if (content.length > MAX_CONTENT) return res.status(413).json({ error: 'El mensaje es demasiado largo' })
+  if (content.length > MAX_CONTENT) return res.status(413).json({ error: 'El mensaje es demasiado largo', ayuda: AYUDA_TEXT })
   if (!CATEGORIAS.includes(cat)) return res.status(400).json({ error: 'Categoría no válida' })
 
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -109,8 +110,17 @@ Recuerda: eres educación y acompañamiento de bienestar, no atención de salud 
 Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta (con [CRISIS] al inicio si hay riesgo), sin firmar (la app ya muestra tu nombre).`
 
   if (apiKey) {
+    // Tope de tamaño total (src/utils/limitesIA.js); con 2.000 caracteres
+    // siempre cabe, pero se revisa igual. Si no cabe, 413 y no se cuenta.
+    const messages = cabeEnTope(systemPrompt, [{ role: 'user', content: userMessage }])
+    if (!messages) return res.status(413).json({ error: 'El mensaje es demasiado largo', ayuda: AYUDA_TEXT })
+
+    // El tope diario: justo antes de llamar a Anthropic (api/_auth.js).
+    if (!(await exigirTopeIA(req, res, 'comunidad'))) return
+
+    let response
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,15 +132,22 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta (
           // Tope del total de salida: pensamiento + respuesta.
           max_tokens: 2048,
           system: systemPrompt,
-          messages: [{ role: 'user', content: userMessage }],
+          messages,
         }),
       })
+    } catch (err) {
+      // Sin red hacia Anthropic: la IA en pausa, con Ayuda.
+      console.error('anthropic', err?.name)
+      return responderPausaIA(res)
+    }
+    // Anthropic no respondió bien (también el 400 del límite de gasto de la
+    // consola): la IA en pausa, con Ayuda. Solo el número, nunca el cuerpo.
+    if (!response.ok) {
+      console.error('anthropic', response.status)
+      return responderPausaIA(res)
+    }
 
-      if (!response.ok) {
-        const err = await response.text()
-        return res.status(500).json({ error: 'AI error', details: err })
-      }
-
+    try {
       const data = await response.json()
       // La respuesta puede traer bloques de pensamiento antes del texto: se
       // unen todos los bloques de texto, no solo el primero.
@@ -178,7 +195,8 @@ Respóndele siguiendo todas las reglas. Devuelve SOLO el texto de la respuesta (
         },
       })
     } catch (err) {
-      return res.status(500).json({ error: 'Server error', details: err.message })
+      console.error('guia', err?.name)
+      return res.status(500).json({ error: 'Server error' })
     }
   }
 

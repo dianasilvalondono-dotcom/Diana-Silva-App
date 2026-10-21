@@ -1,6 +1,7 @@
 // Patrones de crisis: los mismos de la app, la Guía IA y Tu Ronda.
-import { isCrisis } from '../src/utils/crisis.js'
-import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA } from './_auth.js'
+import { isCrisis, AYUDA_TEXT } from '../src/utils/crisis.js'
+import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA, exigirTopeIA, responderPausaIA } from './_auth.js'
+import { cabeEnTope, MAX_META_PROGRAMA, MAX_CONTEXTO_PROGRAMA } from '../src/utils/limitesIA.js'
 
 // Los mensajes de error son internos (la app muestra su propio texto fijo),
 // pero van en español por si alguien los lee en los registros.
@@ -13,11 +14,16 @@ export default async function handler(req, res) {
 
   const { goal, context } = req.body || {}
   if (typeof goal !== 'string' || !goal.trim()) return res.status(400).json({ error: 'Falta la meta' })
+  // El contexto como texto, siempre (la app lo manda así). Si llega una
+  // lista, se unen sus textos: así también pasa por la revisión de crisis y
+  // por el límite de largo, y nunca entra entera al prompt.
+  const ctx = typeof context === 'string' ? context
+    : Array.isArray(context) ? context.filter(t => typeof t === 'string').join('\n') : ''
 
   // ── Chequeo de crisis PRIMERO: con una señal de crisis en la meta o en el
   // contexto no se arma un programa. La app abre Ayuda con la Línea 106 y el
   // 123 (también lo revisa antes de llamar aquí). Con y sin API key.
-  if (isCrisis(goal) || (typeof context === 'string' && isCrisis(context))) {
+  if (isCrisis(goal) || isCrisis(ctx)) {
     return res.status(200).json({ crisis: true, program: null })
   }
 
@@ -25,6 +31,11 @@ export default async function handler(req, res) {
   // solo con la autorización de la IA (Ley 1581, art. 6).
   if (!(await exigirRondaPlus(req, res, user))) return
   if (!(await exigirAutorizacionIA(req, res, user))) return
+
+  // Largo (después de la crisis). La app no deja escribir más (maxLength).
+  if (goal.length > MAX_META_PROGRAMA || ctx.length > MAX_CONTEXTO_PROGRAMA) {
+    return res.status(413).json({ error: 'La meta o el contexto son demasiado largos', ayuda: AYUDA_TEXT })
+  }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
 
@@ -54,12 +65,20 @@ FORMATO DE RESPUESTA (JSON estricto):
 
 IMPORTANTE: Responde SOLO con el JSON. Sin texto antes ni después. Sin emojis.`
 
-    const userMessage = context
-      ? `Mi meta: ${goal}\n\nContexto adicional: ${context}`
+    const userMessage = ctx.trim()
+      ? `Mi meta: ${goal}\n\nContexto adicional: ${ctx}`
       : `Mi meta: ${goal}`
 
+    // Tope de tamaño total (src/utils/limitesIA.js); si no cabe, 413 sin contar.
+    const messages = cabeEnTope(systemPrompt, [{ role: 'user', content: userMessage }])
+    if (!messages) return res.status(413).json({ error: 'La meta o el contexto son demasiado largos', ayuda: AYUDA_TEXT })
+
+    // El tope diario: justo antes de llamar a Anthropic (api/_auth.js).
+    if (!(await exigirTopeIA(req, res, 'programa'))) return
+
+    let response
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,23 +89,35 @@ IMPORTANTE: Responde SOLO con el JSON. Sin texto antes ni después. Sin emojis.`
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 2048,
           system: systemPrompt,
-          messages: [{ role: 'user', content: userMessage }],
+          messages,
         }),
       })
+    } catch (err) {
+      // Sin red hacia Anthropic: la IA en pausa, con Ayuda.
+      console.error('anthropic', err?.name)
+      return responderPausaIA(res)
+    }
+    // Anthropic no respondió bien (también el 400 del límite de gasto de la
+    // consola): la IA en pausa, con Ayuda. Solo el número, nunca el cuerpo.
+    if (!response.ok) {
+      console.error('anthropic', response.status)
+      return responderPausaIA(res)
+    }
 
-      if (!response.ok) {
-        const err = await response.text()
-        return res.status(500).json({ error: 'Error del servicio de IA', details: err })
-      }
-
+    try {
       const data = await response.json()
-      const text = data.content[0].text
+      // Se unen los bloques de texto (puede venir otro bloque antes del texto).
+      const text = (Array.isArray(data.content) ? data.content : [])
+        .filter(b => b && b.type === 'text' && typeof b.text === 'string')
+        .map(b => b.text)
+        .join('')
       const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) return res.status(500).json({ error: 'Respuesta de la IA no válida' })
       const program = JSON.parse(jsonMatch[0])
       return res.status(200).json({ program })
     } catch (err) {
-      return res.status(500).json({ error: 'Error del servidor', details: err.message })
+      console.error('generate-program', err?.name)
+      return res.status(500).json({ error: 'Error del servidor' })
     }
   }
 

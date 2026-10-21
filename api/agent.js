@@ -1,9 +1,12 @@
 // Patrones y respuesta de crisis: los mismos de la Guía IA y de la app.
 import { normalize, isCrisis, CRISIS_TEXT_CHAT, BOTON_AYUDA } from '../src/utils/crisis.js'
-import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA } from './_auth.js'
+import { AYUDA_TEXT } from '../src/utils/crisis.js'
+import { exigirSesion, exigirRondaPlus, exigirAutorizacionIA, exigirTopeIA, responderPausaIA } from './_auth.js'
+import { corta, numero, cabeEnTope, MAX_MENSAJE_CHAT } from '../src/utils/limitesIA.js'
 
-// Largo máximo de cada turno del historial que se le pasa al modelo.
-const MAX_TURNO = 4000
+// Largo máximo de cada turno del historial que se le pasa al modelo (el
+// mismo del mensaje: src/utils/limitesIA.js).
+const MAX_TURNO = MAX_MENSAJE_CHAT
 
 // [CONECTAR:categoria] lleva a preguntar en la Comunidad: las categorías son
 // las del Board (BOARD_CATS en src/App.jsx y api/guia.js, sin 'todas').
@@ -29,9 +32,10 @@ function normalizarHistorial(history) {
   const validos = history.filter(h =>
     h && (h.role === 'user' || h.role === 'assistant') && typeof h.text === 'string' && h.text.trim())
   for (const h of validos.slice(-10)) {
-    const texto = h.text.trim().slice(0, MAX_TURNO)
+    const texto = corta(h.text.trim(), MAX_TURNO)
     const ultimo = turnos[turnos.length - 1]
-    if (ultimo && ultimo.role === h.role) ultimo.content += `\n\n${texto}`
+    // Turnos seguidos del mismo rol: se unen, con lo más reciente (hasta MAX_TURNO).
+    if (ultimo && ultimo.role === h.role) ultimo.content = `${ultimo.content}\n\n${texto}`.slice(-MAX_TURNO)
     else turnos.push({ role: h.role, content: texto })
   }
   while (turnos.length && turnos[0].role !== 'user') turnos.shift()
@@ -59,35 +63,52 @@ export default async function handler(req, res) {
   if (!(await exigirRondaPlus(req, res, user))) return
   if (!(await exigirAutorizacionIA(req, res, user))) return
 
+  // Largo del mensaje (después de la crisis: una crisis nunca recibe un
+  // error). La app no deja escribir más (maxLength); no se cuenta.
+  if (message.length > MAX_MENSAJE_CHAT) return res.status(413).json({ error: 'El mensaje es demasiado largo', ayuda: AYUDA_TEXT })
+
   const apiKey = process.env.ANTHROPIC_API_KEY
 
   // ── Build rich context block ──
-  const ctxBlock = typeof context === 'object' && context !== null
+  // Todo lo que manda la app se recorta como texto o como número
+  // (src/utils/limitesIA.js): una lista o un número raro no entra entero.
+  const c = typeof context === 'object' && context !== null && !Array.isArray(context) ? context : null
+  // El ánimo llega como texto ('0.0' = Difícil cuenta); solo si es un número.
+  const animoCrudo = c?.avgMood7d
+  const animo = (typeof animoCrudo === 'number' || (typeof animoCrudo === 'string' && animoCrudo.trim())) && Number.isFinite(Number(animoCrudo))
+    ? numero(animoCrudo, 4) : null
+  const ctxBlock = c
     ? [
-        `Nombre: ${context.name || 'Usuaria'}`,
-        context.city ? `Ciudad: ${context.city}` : null,
-        context.intention ? `Intención del año: "${context.intention}"` : null,
-        `Hábitos hoy: ${context.habitsToday || '0/0'}`,
-        context.avgMood7d ? `Mood promedio últimos 7 días: ${context.avgMood7d}/4` : null,
-        context.lastJournalNote ? `Última entrada de diario: "${context.lastJournalNote}"` : null,
-        context.programActive ? `Programa activo: ${context.programActive}` : null,
+        `Nombre: ${corta(c.name, 60) || 'Usuaria'}`,
+        corta(c.city, 60) ? `Ciudad: ${corta(c.city, 60)}` : null,
+        corta(c.intention, 200) ? `Intención del año: "${corta(c.intention, 200)}"` : null,
+        `Hábitos hoy: ${corta(c.habitsToday, 20) || '0/0'}`,
+        animo !== null ? `Mood promedio últimos 7 días: ${animo.toFixed(1)}/4` : null,
+        corta(c.lastJournalNote, 200) ? `Última entrada de diario: "${corta(c.lastJournalNote, 200)}"` : null,
+        corta(c.programActive, 300) ? `Programa activo: ${corta(c.programActive, 300)}` : null,
       ].filter(Boolean).join('\n')
-    : (typeof context === 'string' ? context : 'Sin contexto.')
+    : (corta(context, 1000) || 'Sin contexto.')
 
   // ── Build memory block (lo que Ronda ya sabe de ella) ──
-  const hasMemory = memory && (
-    (memory.facts && memory.facts.length) ||
-    (memory.patterns && memory.patterns.length) ||
-    memory.summary
-  )
+  // Recortada como el contexto: resumen hasta 500, hasta 30 datos y 20
+  // patrones de 200 cada uno (los mismos topes con que la app la guarda).
+  const m = typeof memory === 'object' && memory !== null && !Array.isArray(memory) ? memory : {}
+  const lista = (v, cuantos) => (Array.isArray(v) ? v : []).map(x => corta(x, 200).trim()).filter(Boolean).slice(-cuantos)
+  const mem = {
+    summary: corta(m.summary, 500).trim(),
+    facts: lista(m.facts, 30),
+    patterns: lista(m.patterns, 20),
+    conversationCount: Math.floor(numero(m.conversationCount, 9999)),
+  }
+  const hasMemory = mem.facts.length || mem.patterns.length || mem.summary
 
   const memoryBlock = hasMemory ? `
 MEMORIA DE LA USUARIA (lo que ya sabes de ella, úsalo con naturalidad — NO lo recites):
 
-${memory.summary ? `Resumen: ${memory.summary}\n` : ''}
-${memory.facts && memory.facts.length ? `Datos clave:\n${memory.facts.map(f => `  - ${f}`).join('\n')}` : ''}
-${memory.patterns && memory.patterns.length ? `Patrones observados:\n${memory.patterns.map(p => `  - ${p}`).join('\n')}` : ''}
-${memory.conversationCount ? `Conversaciones previas: ${memory.conversationCount}` : ''}
+${mem.summary ? `Resumen: ${mem.summary}\n` : ''}
+${mem.facts.length ? `Datos clave:\n${mem.facts.map(f => `  - ${f}`).join('\n')}` : ''}
+${mem.patterns.length ? `Patrones observados:\n${mem.patterns.map(p => `  - ${p}`).join('\n')}` : ''}
+${mem.conversationCount ? `Conversaciones previas: ${mem.conversationCount}` : ''}
 
 IMPORTANTE: Usa esta memoria para personalizar tu respuesta sin mencionarla explícitamente. Actúa como una amiga que se acuerda. No digas "veo en mi memoria que..." — simplemente responde como alguien que la conoce.
 ` : 'Esta es una conversación temprana — aún no tienes memoria estructurada de ella. Escucha con atención.'
@@ -146,16 +167,25 @@ Solo incluye el bloque MEMORY si aprendiste algo nuevo. Si no, omítelo. Los "fa
 
 DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No reemplaza atención profesional en salud mental.`
 
-  const messages = normalizarHistorial(history)
-  const ultimo = messages[messages.length - 1]
+  const historial = normalizarHistorial(history)
+  const ultimo = historial[historial.length - 1]
   // Si el último turno ya es de la usuaria (su mensaje anterior no tuvo
   // respuesta), el nuevo se une a ese turno.
   if (ultimo && ultimo.role === 'user') ultimo.content += `\n\n${message}`
-  else messages.push({ role: 'user', content: message })
+  else historial.push({ role: 'user', content: message })
 
   if (apiKey) {
+    // Tope de tamaño total (contexto, memoria, historial y mensaje): si no
+    // cabe, se quitan los turnos más viejos; si ni así, 413 y no se cuenta.
+    const messages = cabeEnTope(systemPrompt, historial)
+    if (!messages) return res.status(413).json({ error: 'El mensaje es demasiado largo', ayuda: AYUDA_TEXT })
+
+    // El tope diario: justo antes de llamar a Anthropic (api/_auth.js).
+    if (!(await exigirTopeIA(req, res, 'chat'))) return
+
+    let response
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,12 +202,19 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
           messages,
         }),
       })
+    } catch (err) {
+      // Sin red hacia Anthropic: la IA en pausa, con Ayuda.
+      console.error('anthropic', err?.name)
+      return responderPausaIA(res)
+    }
+    // Anthropic no respondió bien (también el 400 del límite de gasto de la
+    // consola): la IA en pausa, con Ayuda. Solo el número, nunca el cuerpo.
+    if (!response.ok) {
+      console.error('anthropic', response.status)
+      return responderPausaIA(res)
+    }
 
-      if (!response.ok) {
-        const err = await response.text()
-        return res.status(500).json({ error: 'AI error', details: err })
-      }
-
+    try {
       const data = await response.json()
       // La respuesta puede traer bloques de pensamiento antes del texto: se
       // unen todos los bloques de texto, no solo el primero.
@@ -274,7 +311,8 @@ DISCLAIMER: Ronda ofrece herramientas de bienestar y contenido educativo. No ree
         memoryUpdate,
       })
     } catch (err) {
-      return res.status(500).json({ error: 'Server error', details: err.message })
+      console.error('agent', err?.name)
+      return res.status(500).json({ error: 'Server error' })
     }
   }
 

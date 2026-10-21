@@ -3,7 +3,8 @@
    manda el token de su sesión como "Authorization: Bearer <token>" (ver
    apiHeaders en src/lib/supabase.js).
    Además, como en la app, son de Ronda+ (exigirRondaPlus) y solo para quien
-   autorizó «Usar la IA de Ronda» (exigirAutorizacionIA).
+   autorizó «Usar la IA de Ronda» (exigirAutorizacionIA). Y con un tope de
+   mensajes al día por persona, contado en Supabase (exigirTopeIA).
    El guion bajo del nombre hace que Vercel no lo publique como endpoint. */
 import { esAdmin, rondaPlusVigente } from '../src/utils/plan.js'
 import { AYUDA_TEXT } from '../src/utils/crisis.js'
@@ -129,5 +130,71 @@ export async function exigirAutorizacionIA(req, res, user) {
     autorizacion: 'ia',
     ayuda: AYUDA_TEXT,
   })
+  return false
+}
+
+// ── El tope diario de la IA (src/sql/tope-ia-y-cuentas-nuevas.sql) ──
+
+// Suma 1 al uso de hoy en Supabase (public.usar_ia), con el token de ella,
+// así solo gasta su propio cupo. { permitido, motivo, usados, tope } o null si
+// no se pudo contar (sin Supabase, error, red caída o más de 5 s).
+// Solo viaja el nombre de la función ('chat', 'comunidad' o 'programa'):
+// nunca lo que escribió.
+async function usarIA(req, funcion) {
+  const url = supabaseUrl()
+  const anonKey = supabaseAnonKey()
+  if (!url || !anonKey) return null
+  const control = new AbortController()
+  const corte = setTimeout(() => control.abort(), 5000)
+  try {
+    const resp = await fetch(`${url}/rest/v1/rpc/usar_ia`, {
+      method: 'POST',
+      headers: { apikey: anonKey, Authorization: `Bearer ${tokenDe(req)}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_funcion: funcion }),
+      signal: control.signal,
+    })
+    if (!resp.ok) { console.error('api/_auth: usar_ia respondió', resp.status); return null }
+    const r = await resp.json()
+    return r && typeof r.permitido === 'boolean' ? r : null
+  } catch (err) {
+    console.error('api/_auth: usar_ia falló', err?.name)
+    return null
+  } finally {
+    clearTimeout(corte)
+  }
+}
+
+// La IA de Ronda en pausa: el tope en 0 o Anthropic no respondió bien (también
+// el 400 del límite de gasto de la consola, que puede durar hasta el mes
+// siguiente). Sin el texto de Anthropic (hallazgo H16) y con la salida a
+// Ayuda y a las líneas. La app muestra el texto de pausa (src/utils/limitesIA.js).
+export function responderPausaIA(res) {
+  return res.status(503).json({ error: 'ia_en_pausa', tope: true, motivo: 'pausa', ayuda: AYUDA_TEXT })
+}
+
+// El tope diario de la IA. Va después de la revisión de crisis, de Ronda+, de
+// la autorización de la IA y de los límites de largo y de tamaño total, y
+// justo antes de llamar a Anthropic: una crisis nunca gasta cupo ni recibe
+// este aviso. Como en los 403, sin respuesta del modelo no hay segunda capa
+// que vea una crisis dicha de otra forma: toda respuesta lleva la salida a
+// Ayuda y a las líneas (ayuda).
+//   · 429 motivo 'tope': ya usó los mensajes de hoy (limite: el tope de hoy).
+//   · 503 motivo 'pausa': el tope está en 0.
+//   · 503 motivo 'conteo': no se pudo contar. Falla cerrado: sin contar no se
+//     llama a Anthropic, y no gasta cupo.
+// Devuelve true si puede seguir.
+export async function exigirTopeIA(req, res, funcion) {
+  const r = await usarIA(req, funcion)
+  if (r?.permitido === true) return true
+  if (r?.motivo === 'tope') {
+    res.status(429).json({
+      error: 'tope_ia', tope: true, motivo: 'tope',
+      limite: Number.isInteger(r.tope) && r.tope > 0 ? r.tope : null,
+      ayuda: AYUDA_TEXT,
+    })
+    return false
+  }
+  if (r?.motivo === 'pausa') { responderPausaIA(res); return false }
+  res.status(503).json({ error: 'conteo_ia', tope: true, motivo: 'conteo', ayuda: AYUDA_TEXT })
   return false
 }
