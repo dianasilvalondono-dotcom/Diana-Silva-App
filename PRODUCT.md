@@ -6,7 +6,7 @@ Este documento es la fuente de verdad del producto. Si algo no está aquí, no s
 
 ## Ronda en una frase
 
-Ronda es un toolkit de bienestar para mujeres basado en neurociencia y DBT.
+Ronda usa la tecnología para devolver a la gente a la vida real: planes vivos en grupos pequeños, gente real y comunidad. Sus prácticas de bienestar están inspiradas en DBT.
 Tres experiencias: herramientas que funcionan ahora, programas con estructura, comunidad que sostiene.
 
 ---
