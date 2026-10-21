@@ -86,6 +86,8 @@ drop trigger if exists a_sellar_autorizacion on public.autorizaciones;
 create trigger a_sellar_autorizacion
   before insert on public.autorizaciones
   for each row execute function public.sellar_autorizacion();
+-- Solo la usa el trigger: nadie la ejecuta por la API.
+revoke execute on function public.sellar_autorizacion() from public, anon, authenticated;
 
 -- ── 2. Estado actual en profiles (columnas nuevas, todas nulables) ──
 -- null = todavía no ha respondido. Las fechas *_en las pone el servidor
@@ -133,6 +135,8 @@ drop trigger if exists a_sellar_autorizacion_perfil on public.profiles;
 create trigger a_sellar_autorizacion_perfil
   before insert or update on public.profiles
   for each row execute function public.sellar_autorizacion_perfil();
+-- Solo la usa el trigger: nadie la ejecuta por la API.
+revoke execute on function public.sellar_autorizacion_perfil() from public, anon, authenticated;
 
 -- ── 3. Cada usuaria escribe solo su propia fila de profiles ──
 -- Las políticas de schema.sql ya lo hacen (el USING del UPDATE también
