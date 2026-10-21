@@ -11,16 +11,22 @@
 -- La fecha que vale es la del servidor (now()), nunca la del teléfono.
 -- Nunca se guarda contenido, ánimo, texto del diario o de la IA, ni la IP.
 --
--- Orden para publicar: aplicar este archivo ANTES de desplegar la app con
--- las autorizaciones. Es obligatorio: los endpoints de IA (/api/agent, guia,
--- generate-program y speak) leen profiles.autorizacion_ia y, sin esa
--- columna, responden 403 a todas. Se puede aplicar más de una vez.
--- Lo que ya existe solo cambia en cuatro cosas: columnas nuevas nulables en
--- profiles; en la sección 4, nadie con sesión puede volver a escribir en
--- las tablas que la app ya no usa (diario, hábitos, rutas, frases y racha);
--- en la sección 5 (PENDIENTE del visto bueno de Diana), los mensajes sobre
--- un plan se borran con la cuenta; y en la sección 6 (PENDIENTE), columnas
--- nuevas nulables en organizadoras para la prueba de su autorización.
+-- Orden para publicar: aplicar este archivo COMPLETO ANTES de desplegar la
+-- app con las autorizaciones. Es obligatorio: los endpoints de IA
+-- (/api/agent, guia, generate-program y speak) leen profiles.autorizacion_ia
+-- y, sin esa columna, responden 403 a todas. Todo lo de aquí se puede
+-- aplicar más de una vez (if not exists, drop … if exists, create or
+-- replace y revoke) y nada espera otra decisión.
+-- Lo que ya existe cambia en tres cosas: columnas nuevas nulables en
+-- profiles, con un trigger que pone sus fechas (sección 2); las dos reglas
+-- de profiles quedan explícitas, con WITH CHECK y solo para quien tiene
+-- sesión (sección 3, el mismo efecto que hoy); y en la sección 4, nadie con
+-- sesión puede volver a escribir en las tablas que la app ya no usa (diario,
+-- hábitos, rutas, frases y racha).
+-- Las secciones 5 y 6 (los mensajes sobre un plan se borran con la cuenta;
+-- la prueba de la autorización de quienes organizan planes) esperan el «sí»
+-- de Diana y están aparte, en consentimiento-pendiente.sql. Este archivo no
+-- depende de ellas.
 -- ═══════════════════════════════════════════════════════════════
 
 -- ── 1. Tabla de autorizaciones (la prueba) ──
@@ -157,32 +163,7 @@ revoke insert, update on public.active_programs from anon, authenticated;
 revoke insert, update on public.fav_quotes from anon, authenticated;
 revoke insert, update on public.streaks from anon, authenticated;
 
--- ── 5. Los mensajes sobre un plan se borran con la cuenta ──
--- PENDIENTE: visto bueno de Diana antes de aplicarla.
--- reportes.user_id es hoy ON DELETE SET NULL (curaduria.sql, aplicado el
--- 12-oct-2026): al borrar una cuenta, su mensaje se quedaba sin dueña, con
--- lo que contó (puede ser algo de su salud o de su intimidad). La política
--- (secciones 3.2, 8 y 9) promete borrar todo lo que guarda la cuenta.
--- Antes de aplicarla, confirmar el nombre real de la llave:
---   select conname from pg_constraint where conrelid = 'public.reportes'::regclass and contype = 'f';
--- Mientras no esté aplicada, al borrar una cuenta se borran primero sus
--- mensajes a mano (manual-interno-datos.md, «Borrar una cuenta»).
-alter table public.reportes drop constraint if exists reportes_user_id_fkey;
-alter table public.reportes add constraint reportes_user_id_fkey
-  foreign key (user_id) references auth.users(id) on delete cascade;
-
--- ── 6. La prueba de la autorización de quienes organizan planes ──
--- PENDIENTE: visto bueno de Diana y respuesta del abogado (pregunta 10).
--- La política (sección 12) dice que a quien organiza planes le pedimos una
--- autorización aparte, que firma antes de su próximo plan (modelo:
--- ronda-hq/06-legal-y-datos/autorizacion-organizadoras-v1.md). Aquí queda
--- qué versión firmó, cuándo y por qué medio (por ejemplo, 'correo' o
--- 'firma-electronica'). Solo la ve quien revisa los planes (organizadoras no
--- tiene política SELECT, curaduria.sql), y publica planes nuevos solo de
--- organizadoras con la firma registrada.
-alter table public.organizadoras add column if not exists autorizacion_version text;
-alter table public.organizadoras add column if not exists autorizacion_fecha timestamptz;
-alter table public.organizadoras add column if not exists autorizacion_medio text;
+-- ── 5 y 6. Esperan el «sí» de Diana: están en consentimiento-pendiente.sql ──
 
 -- ── Consultas útiles (no cambian nada) ──
 -- Cuántas cuentas tienen todavía copias en el servidor de lo que ya no se
