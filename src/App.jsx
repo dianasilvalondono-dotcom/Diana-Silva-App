@@ -5912,13 +5912,15 @@ function App() {
             }}>
               {appModal.cta || 'Listo'}
             </button>
-            {/* El aviso de Ronda+ siempre se puede cerrar sin ir a otro lado */}
+            {/* El aviso de Ronda+ siempre se puede cerrar sin ir a otro lado.
+                «Cerrar» y no «Más tarde»: sin pago abierto, no promete que
+                después la pueda tener. */}
             {appModal.type === 'paywall' && appModal.destino && (
               <button onClick={() => setAppModal(null)} style={{
                 width: '100%', minHeight: 44, marginTop: 8, background: 'none', border: 'none',
                 color: C.muted, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                Más tarde
+                Cerrar
               </button>
             )}
             {appModal.type === 'confirm' && (
