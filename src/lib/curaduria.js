@@ -5,7 +5,7 @@
    para que la usuaria pueda reintentar (rondas-1, rondas-2). */
 import { supabase } from './supabase'
 import { PLANES_EJEMPLO } from '../constants/curaduria'
-import { load, save } from '../utils/helpers'
+import { load, save, safeKeys } from '../utils/helpers'
 
 const fromRow = (r) => ({
   id: r.id,
@@ -211,8 +211,21 @@ export async function enviarReporte(plan, texto, user) {
   }
 }
 
-/* Antes, lo que no llegaba al servidor se quedaba en 'ronda_reportes'. Esos
-   mensajes ya no se envían solos: lo que ella cuenta sobre un plan puede
-   ser algo de su salud o de su intimidad, y solo se envía cuando ella toca
-   «Enviar» después de leer el aviso del diálogo (política, sección 3.2). Se
-   quedan en su teléfono. */
+/* Antes, lo que no llegaba al servidor se quedaba en 'ronda_reportes' (y,
+   si entró otra cuenta en el teléfono, en su copia apartada,
+   'ronda-apartado:<id>:ronda_reportes'). Esos mensajes ya no se envían
+   solos: lo que ella cuenta sobre un plan puede ser algo de su salud o de su
+   intimidad, y solo se envía cuando ella toca «Enviar» con el aviso del
+   diálogo a la vista (política, sección 3.2; la autorización de cuenta no
+   cubre estos datos). Como nada los envía ni los muestra, se borran del
+   teléfono al abrir la app, mucho antes de que pase el plazo de los mensajes
+   sobre un plan. Corre en cada carga: una copia apartada vuelve cuando su
+   cuenta entra otra vez. */
+const REPORTES_VIEJOS = 'ronda_reportes'
+export function borrarReportesViejos() {
+  for (const k of safeKeys()) {
+    if (k === REPORTES_VIEJOS || (k.startsWith('ronda-apartado:') && k.endsWith(`:${REPORTES_VIEJOS}`))) {
+      try { localStorage.removeItem(k) } catch { /* almacenamiento bloqueado */ }
+    }
+  }
+}

@@ -10,6 +10,7 @@ import HistoriaView from './components/views/HistoriaView'
 import DiarioView from './components/views/DiarioView'
 import RondasView from './components/views/RondasView'
 import { TEMPORADA, temporadaVigente, mesTemporada, CIUDAD_KEY, CIUDAD_POR_DEFECTO, ciudadValida } from './constants/curaduria'
+import { borrarReportesViejos } from './lib/curaduria'
 import {
   DIMS, DIM_POR_DEFECTO, dimValida, DEFAULT_MORNING, DEFAULT_MIDDAY, DEFAULT_NIGHT,
   TOOLKIT_CATS, PROGRAMAS, PROGRAMAS_PREMIUM, SUGGESTED_HABITS,
@@ -22,6 +23,9 @@ import { todayKey, dateKey, load, save, saveDay, limpiarDiasVacios, leerHistoria
 runMigrationCleanDianaDefaults()
 // Borra las claves diarias vacías que dejaban las versiones anteriores.
 limpiarDiasVacios()
+// Borra del teléfono los mensajes sobre un plan que una versión anterior
+// guardó sin enviar (src/lib/curaduria.js).
+borrarReportesViejos()
 import { useAuth } from './lib/useAuth'
 import { apiFetch } from './lib/supabase'
 import { initAnalytics, track, identifyUser, setUserProps, resetAnalytics } from './lib/analytics'
